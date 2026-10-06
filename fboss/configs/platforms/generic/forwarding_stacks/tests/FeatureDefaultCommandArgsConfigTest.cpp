@@ -65,5 +65,19 @@ TEST(FeatureDefaultCommandArgsConfigTest, RejectsInvalidSemantics) {
       FbossError);
 }
 
+TEST(FeatureDefaultCommandArgsConfigTest, RejectsUnknownAsicType) {
+  EXPECT_THROW(
+      parseFeatureDefaultCommandArgsConfig(
+          R"({"features":{"feature":{"args":{"foo":"true"},"autoEnableWhen":{"asicTypes":{"included":["TOMAHAWK5"]}}}}})"),
+      FbossError);
+}
+
+TEST(FeatureDefaultCommandArgsConfigTest, RejectsUnknownPlatformType) {
+  EXPECT_THROW(
+      parseFeatureDefaultCommandArgsConfig(
+          R"({"features":{"feature":{"args":{"foo":"true"},"autoEnableWhen":{"platforms":{"included":["wedge800bact"]}}}}})"),
+      FbossError);
+}
+
 } // namespace
 } // namespace facebook::fboss::configgen

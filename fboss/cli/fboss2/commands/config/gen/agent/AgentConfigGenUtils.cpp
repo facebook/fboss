@@ -641,7 +641,7 @@ fs::path generateAgentConfig(
       ServiceType::AGENT,
       inputs.profile,
       getAsicType(switchConfig),
-      platform);
+      *inputs.platformDescriptor.platformType());
   auto config = assembleAgentConfig(
       std::move(defaultCommandLineArgs),
       std::move(switchConfig),

@@ -17,6 +17,7 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/configs/platforms/generic/forwarding_stacks/gen-cpp2/feature_default_command_args_types.h"
+#include "fboss/lib/if/gen-cpp2/fboss_common_types.h"
 
 namespace facebook::fboss::configgen {
 
@@ -44,7 +45,7 @@ std::map<std::string, std::string> resolveFeatureDefaultCommandArgs(
     const FeatureDefaultCommandArgsConfig& config,
     std::string_view profile,
     std::optional<cfg::AsicType> asicType,
-    std::string_view platform);
+    PlatformType platformType);
 
 // Convenience entry point that loads the service config and resolves its
 // command-line arguments for one config-generation request.
@@ -53,6 +54,6 @@ std::map<std::string, std::string> generateFeatureDefaultCommandArgs(
     ServiceType serviceType,
     std::string_view profile,
     std::optional<cfg::AsicType> asicType,
-    std::string_view platform);
+    PlatformType platformType);
 
 } // namespace facebook::fboss::configgen

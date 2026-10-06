@@ -436,6 +436,7 @@ add_library(fboss2_config_gen_lib
 target_link_libraries(fboss2_config_gen_lib
   agent_config_cpp2
   feature_default_command_args_cpp2
+  fboss_common_cpp2
   fboss_config_utils
   fboss_error
   fboss_agent_config_utils

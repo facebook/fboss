@@ -228,7 +228,8 @@ FeatureDefaultCommandArgs makeAutoFeature(
     std::set<std::string> profiles = {},
     std::set<std::string> asicTypes = {},
     std::set<std::string> excludedAsicTypes = {},
-    std::set<std::string> platforms = {}) {
+    std::set<std::string> platforms = {},
+    std::set<std::string> excludedPlatforms = {}) {
   FeatureEnableConditions conditions;
   if (!profiles.empty()) {
     FeatureConditionValues values;
@@ -241,9 +242,10 @@ FeatureDefaultCommandArgs makeAutoFeature(
     values.excluded() = std::move(excludedAsicTypes);
     conditions.asicTypes() = std::move(values);
   }
-  if (!platforms.empty()) {
+  if (!platforms.empty() || !excludedPlatforms.empty()) {
     FeatureConditionValues values;
     values.included() = std::move(platforms);
+    values.excluded() = std::move(excludedPlatforms);
     conditions.platforms() = std::move(values);
   }
 
@@ -253,9 +255,7 @@ FeatureDefaultCommandArgs makeAutoFeature(
   return feature;
 }
 
-void writeFeatureDefaultCommandArgsConfig(
-    const fs::path& fbossRoot,
-    std::string_view platform = kPlatform) {
+void writeFeatureDefaultCommandArgsConfig(const fs::path& fbossRoot) {
   FeatureDefaultCommandArgsConfig config;
   config.profileDefaultArgs()[std::string(kProfile)] = {
       {"check_wb_handles", "true"},
@@ -282,13 +282,13 @@ void writeFeatureDefaultCommandArgsConfig(
       {std::string(kProfile)},
       {},
       {},
-      {std::string(platform)});
+      {"PLATFORM_WEDGE800BACT"});
   config.features()["use_raw_platform_mapping"] = makeAutoFeature(
       {{"use_raw_platform_mapping", "true"}},
       {std::string(kProfile)},
       {},
       {},
-      {std::string(platform)});
+      {"PLATFORM_WEDGE800BACT"});
 
   writeTestFile(
       fbossRoot / "configs" / "platforms" / "generic" / "forwarding_stacks" /
@@ -313,7 +313,7 @@ fs::path createTestPlatform(
     std::string_view configType = "YAML_CONFIG",
     std::string_view extension = ".yml",
     std::string_view generatedConfig = kAsicYaml) {
-  writeFeatureDefaultCommandArgsConfig(fbossRoot, platform);
+  writeFeatureDefaultCommandArgsConfig(fbossRoot);
   const auto asicConfigDirectory =
       fbossRoot / "configs" / "platforms" / vendor / platform / "asic_config";
   writeTestFile(
@@ -446,7 +446,14 @@ TEST(FeatureDefaultCommandArgsTest, ResolvesMatchingAutomaticFeatures) {
       {"hw_test"},
       {"ASIC_TYPE_TOMAHAWK5"},
       {},
-      {"wedge800bact"});
+      {"PLATFORM_WEDGE800BACT"});
+  config.features()["excluded_platform"] = makeAutoFeature(
+      {{"excluded_platform", "true"}},
+      {"hw_test"},
+      {},
+      {},
+      {},
+      {"PLATFORM_WEDGE800BACT"});
   config.features()["excluded"] = makeAutoFeature(
       {{"excluded", "true"}}, {"hw_test"}, {}, {"ASIC_TYPE_TOMAHAWK5"});
   config.features()["other_profile"] =
@@ -462,7 +469,7 @@ TEST(FeatureDefaultCommandArgsTest, ResolvesMatchingAutomaticFeatures) {
           config,
           "hw_test",
           cfg::AsicType::ASIC_TYPE_TOMAHAWK5,
-          "wedge800bact"),
+          PlatformType::PLATFORM_WEDGE800BACT),
       expected);
 }
 
@@ -470,7 +477,11 @@ TEST(FeatureDefaultCommandArgsTest, SkipsAsicConditionsWithoutAsicType) {
   FeatureDefaultCommandArgsConfig config;
   config.profileDefaultArgs()["hw_test"] = {{"base", "true"}};
   config.features()["platform_feature"] = makeAutoFeature(
-      {{"platform_feature", "true"}}, {"hw_test"}, {}, {}, {"wedge800bact"});
+      {{"platform_feature", "true"}},
+      {"hw_test"},
+      {},
+      {},
+      {"PLATFORM_WEDGE800BACT"});
   config.features()["asic_feature"] = makeAutoFeature(
       {{"asic_feature", "true"}}, {"hw_test"}, {"ASIC_TYPE_TOMAHAWK5"});
 
@@ -478,7 +489,7 @@ TEST(FeatureDefaultCommandArgsTest, SkipsAsicConditionsWithoutAsicType) {
       {"base", "true"}, {"platform_feature", "true"}};
   EXPECT_EQ(
       resolveFeatureDefaultCommandArgs(
-          config, "hw_test", std::nullopt, "wedge800bact"),
+          config, "hw_test", std::nullopt, PlatformType::PLATFORM_WEDGE800BACT),
       expected);
 }
 
@@ -491,7 +502,7 @@ TEST(FeatureDefaultCommandArgsTest, RejectsEmptyAutomaticConditions) {
 
   EXPECT_THROW(
       resolveFeatureDefaultCommandArgs(
-          config, "hw_test", std::nullopt, "wedge800bact"),
+          config, "hw_test", std::nullopt, PlatformType::PLATFORM_WEDGE800BACT),
       FbossError);
 }
 
@@ -507,7 +518,7 @@ TEST(FeatureDefaultCommandArgsTest, RejectsConflictingArguments) {
           config,
           "hw_test",
           cfg::AsicType::ASIC_TYPE_TOMAHAWK5,
-          "wedge800bact"),
+          PlatformType::PLATFORM_WEDGE800BACT),
       FbossError);
 }
 

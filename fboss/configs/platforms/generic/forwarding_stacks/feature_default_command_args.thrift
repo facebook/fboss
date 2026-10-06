@@ -13,7 +13,11 @@ struct FeatureConditionValues {
 struct FeatureEnableConditions {
   // Populated condition dimensions are ANDed together.
   1: optional FeatureConditionValues configProfiles;
+  // Values must be cfg::AsicType enum names from agent/switch_config.thrift,
+  // for example "ASIC_TYPE_TOMAHAWK5".
   2: optional FeatureConditionValues asicTypes;
+  // Values must be PlatformType enum names from lib/if/fboss_common.thrift,
+  // for example "PLATFORM_WEDGE800BACT".
   3: optional FeatureConditionValues platforms;
 }
 
