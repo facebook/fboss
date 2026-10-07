@@ -1,4 +1,3 @@
-load("@fbcode_macros//build_defs:auto_headers.bzl", "AutoHeaders")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 
 oncall("fboss_agent_push")
@@ -50,7 +49,6 @@ cpp_library(
         "FakeSaiVlan.cpp",
         "FakeSaiWred.cpp",
     ],
-    auto_headers = AutoHeaders.SOURCES,
     headers = [
         "FakeManager.h",
         "FakeSai.h",
