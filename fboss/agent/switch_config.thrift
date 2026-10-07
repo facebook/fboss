@@ -711,6 +711,13 @@ struct AclEntry {
    * MPLS traffic.
    */
   40: optional Ttl mplsLabel0Ttl;
+
+  /**
+   * Mask applied to tcpFlagsBitMap: a packet matches when
+   * (packet flags & tcpFlagsMask) == (tcpFlagsBitMap & tcpFlagsMask).
+   * Valid values [1-63], and valid only when tcpFlagsBitMap is set.
+   */
+  41: optional i16 tcpFlagsMask;
 }
 
 enum AclTableActionType {

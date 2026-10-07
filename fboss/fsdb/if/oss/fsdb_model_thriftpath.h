@@ -8211,6 +8211,7 @@ class ChildThriftPath<::facebook::fboss::cfg::AclEntry, ::facebook::fboss::fsdb:
     STRUCT_CHILD_GETTERS(dstIpV6Word2, 38);
     STRUCT_CHILD_GETTERS(lookupClassPort, 39);
     STRUCT_CHILD_GETTERS(mplsLabel0Ttl, 40);
+    STRUCT_CHILD_GETTERS(tcpFlagsMask, 41);
 };
 
 
