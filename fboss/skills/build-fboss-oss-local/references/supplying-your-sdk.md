@@ -64,11 +64,12 @@ tar xzf pai_impl.tar.gz pai_impl/include/sai/inc/saiversion.h -O | grep -E 'SAI_
 # #define SAI_REVISION 1      -> --phy-sai-version 1.18.1 (in this example)
 ```
 
-**For NPU you cannot.** An NPU drop contains only `libsai_impl.a` and the
-vendor's extension headers; the SAI spec comes from the OCP download, so
-nothing in the tarball records which spec version it was built against. That
-asymmetry is why the NPU spec version has to be looked up and the PHY one does
-not.
+**For NPU, usually you cannot.** A typical NPU drop contains only the
+library and the vendor's extension headers; the SAI spec comes from the OCP
+download, so nothing in the tarball records which spec version it was built
+against, and it has to be looked up. The exception is an NPU SDK that ships its
+own SAI headers in `sai/inc/` (see below): then the version is read from them,
+as for PHY.
 
 If you cannot resolve a consistent triple, build against fake SAI and raise it
 upstream rather than guessing. A wrong spec version does not fail cleanly.
@@ -82,6 +83,12 @@ upstream rather than guessing. A wrong spec version does not fail cleanly.
   CMake locates it with `find_library(SAI_IMPL sai_impl)`, so the name is
   load-bearing; it prefers the `.so` when both are present.
 - A directory of your SAI **extension** headers, laid out flat.
+- Optionally, the core SAI headers your SDK was compiled against, as `sai/inc/`
+  beside the library. FBOSS then compiles against those instead of the OCP
+  download, and `run-getdeps.py` sets the spec version from their
+  `saiversion.h`, so `--npu-sai-version` can be omitted; if given, it must
+  match. Ship them whenever your SDK modified the spec headers, because
+  compiling against different headers than the SDK used does not fail cleanly.
 
 A shared `libsai_impl.so` is linked dynamically, so binaries share one copy of
 the SDK instead of each embedding it, which shrinks them and the package

@@ -595,6 +595,39 @@ def _sdk_fingerprint(*dirs):
     return h.hexdigest()[:12]
 
 
+def _read_sai_spec_version(saiversion_h):
+    """Return the X.Y.Z SAI spec version a saiversion.h declares."""
+    with open(saiversion_h) as f:
+        text = f.read()
+    parts = []
+    for field in ("MAJOR", "MINOR", "REVISION"):
+        m = re.search(rf"^#define\s+SAI_{field}\s+(\d+)", text, re.MULTILINE)
+        if m is None:
+            print_error(f"Error: no SAI_{field} in {saiversion_h}")
+            sys.exit(1)
+        parts.append(m.group(1))
+    return ".".join(parts)
+
+
+def _use_sdk_sai_headers(libsai_impl_dir):
+    """If the SDK ships the SAI headers it was built against (sai/inc/ beside its
+    library), set SAI_VERSION from them. CMake then compiles against those
+    headers instead of the downloaded OCP ones, so the two must agree."""
+    saiversion_h = os.path.join(libsai_impl_dir, "sai", "inc", "saiversion.h")
+    if not os.path.isfile(saiversion_h):
+        return
+    version = _read_sai_spec_version(saiversion_h)
+    requested = os.environ.get("SAI_VERSION")
+    if requested and requested != version:
+        print_error(
+            f"Error: SAI_VERSION is {requested} but the SDK's SAI headers are "
+            f"{version} ({saiversion_h}). Drop {ARG_NPU_SAI_VERSION} or make it match."
+        )
+        sys.exit(1)
+    os.environ["SAI_VERSION"] = version
+    print_info(f"Using the SDK's SAI {version} headers; set ENV SAI_VERSION={version}")
+
+
 def _stage_npu_sdk(libsai_impl_dir, experiments_dir, scratch_path):
     """Stage a flat NPU SDK into <scratch_path>/installed/sai_impl_staging-<hash>
     and prepend it to CMAKE_PREFIX_PATH. Shared by the --npu-libsai-impl-path and
@@ -628,6 +661,7 @@ def _stage_npu_sdk(libsai_impl_dir, experiments_dir, scratch_path):
     print_info(f"Symlinked {abs_exp} -> {os.path.join(staging_dir, 'include')}")
     print_info(f"Symlinked {abs_exp} -> {os.path.join(staging_dir, 'experimental')}")
     print_info(f"Staged SDK artifacts in {staging_dir}")
+    _use_sdk_sai_headers(abs_lib)
 
     existing = os.environ.get("CMAKE_PREFIX_PATH", "")
     os.environ["CMAKE_PREFIX_PATH"] = (
