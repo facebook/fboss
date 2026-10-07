@@ -1603,6 +1603,7 @@ add_dependencies(fboss_platform_services
   cross_config_validator_test
   fw_util_hw_test
   fixmyfboss_result_printer_test
+  fixmyfboss_check_runner_test
 )
 
 add_custom_target(qsfp_targets)

@@ -16,90 +16,24 @@
 #include <folly/logging/LoggerDB.h>
 #include <folly/logging/xlog.h>
 
+#include "fboss/platform/fixmyfboss/CheckRegistry.h"
+#include "fboss/platform/fixmyfboss/CheckRunner.h"
 #include "fboss/platform/fixmyfboss/ResultPrinter.h"
-#include "fboss/platform/helpers/PlatformNameLib.h"
-#include "fboss/platform/platform_checks/PlatformCheck.h"
-#include "fboss/platform/platform_checks/checks/MacAddressCheck.h"
-#include "fboss/platform/platform_checks/checks/PciDeviceCheck.h"
-#include "fboss/platform/platform_checks/checks/PowerResetCheck.h"
-#include "fboss/platform/platform_checks/checks/i801SmbusTimeoutCheck.h"
+#include "fboss/platform/platform_checks/LocalHost.h"
+#include "fboss/platform/platform_checks/PlatformName.h"
 
 using namespace facebook::fboss::platform;
 
 namespace {
 
-// Create all platform checks
-std::vector<std::unique_ptr<platform_checks::PlatformCheck>> createAllChecks() {
-  std::vector<std::unique_ptr<platform_checks::PlatformCheck>> checks;
-  checks.push_back(std::make_unique<platform_checks::MacAddressCheck>());
-  checks.push_back(std::make_unique<platform_checks::PciDeviceCheck>());
-  checks.push_back(
-      std::make_unique<platform_checks::RecentManualRebootCheck>());
-  checks.push_back(std::make_unique<platform_checks::RecentKernelPanicCheck>());
-  checks.push_back(
-      std::make_unique<platform_checks::WatchdogDidNotStopCheck>());
-  checks.push_back(std::make_unique<platform_checks::i801SmbusTimeoutCheck>());
-  return checks;
-}
-
-// Filter checks by platform
-std::vector<platform_checks::PlatformCheck*> getChecksForPlatform(
+void listChecks(
     const std::vector<std::unique_ptr<platform_checks::PlatformCheck>>& checks,
-    const std::string& platformName) {
-  std::vector<platform_checks::PlatformCheck*> filteredChecks;
-  for (const auto& check : checks) {
-    auto supportedPlatforms = check->getSupportedPlatforms();
-    // Empty set means all platforms are supported
-    if (supportedPlatforms.empty() ||
-        supportedPlatforms.count(platformName) > 0) {
-      filteredChecks.push_back(check.get());
-    }
-  }
-  return filteredChecks;
-}
-
-std::vector<platform_checks::CheckResult> runAllChecks(
-    const std::vector<platform_checks::PlatformCheck*>& checks) {
-  std::vector<platform_checks::CheckResult> results;
-
-  for (auto* check : checks) {
-    XLOG(DBG2) << "Running check: " << check->getDescription();
-    try {
-      auto result = check->run();
-      XLOG(DBG2) << "Check " << check->getDescription()
-                 << " completed with status: "
-                 << static_cast<int>(*result.status());
-      results.push_back(std::move(result));
-    } catch (const std::exception& e) {
-      // Convert exceptions to ERROR results
-      XLOG(ERR) << "Exception in check " << check->getDescription() << ": "
-                << e.what();
-      platform_checks::CheckResult errorResult;
-      errorResult.checkType() = check->getType();
-      errorResult.checkName() = check->getName();
-      errorResult.status() = platform_checks::CheckStatus::ERROR;
-      errorResult.errorMessage() =
-          std::string("Exception during check execution: ") + e.what();
-      results.push_back(std::move(errorResult));
-    }
-  }
-  return results;
-}
-
-void listChecks(const std::string& platformName) {
-  auto allChecks = createAllChecks();
-  auto checksForPlatform = getChecksForPlatform(allChecks, platformName);
-
+    const fixmyfboss::CheckRunner& runner) {
   std::cout << "List of checks:\n";
   int index = 1;
-
-  for (const auto& check : allChecks) {
-    bool willRun =
-        std::find_if(
-            checksForPlatform.begin(), checksForPlatform.end(), [&](auto* c) {
-              return c == check.get();
-            }) != checksForPlatform.end();
-    std::string runIndicator = willRun ? "" : " (skipped)";
+  for (const auto& check : checks) {
+    std::string runIndicator =
+        runner.appliesToPlatform(*check) ? "" : " (skipped)";
     std::cout << index++ << ". " << check->getName() << ": "
               << check->getDescription() << runIndicator << "\n";
   }
@@ -118,21 +52,17 @@ void configureLogging(bool debugFlag, bool verboseFlag) {
 }
 
 std::vector<platform_checks::CheckResult> runChecks(
+    const std::vector<std::unique_ptr<platform_checks::PlatformCheck>>& checks,
+    const fixmyfboss::CheckRunner& runner,
     const std::string& platformName) {
   XLOG(INFO) << "Starting fixmyfboss checks for platform: " << platformName;
-
-  auto allChecks = createAllChecks();
-  auto checks = getChecksForPlatform(allChecks, platformName);
-
-  XLOG(INFO) << "Found " << checks.size()
-             << " applicable checks for this platform";
 
   fixmyfboss::ResultPrinter printer;
   printer.printProgress(
       "Platform: " + platformName + " - Running " +
       std::to_string(checks.size()) + " checks");
 
-  auto results = runAllChecks(checks);
+  auto results = runner.run(checks);
   printer.clearLine();
   return results;
 }
@@ -169,21 +99,25 @@ int main(int argc, char* argv[]) {
 
   configureLogging(debugFlag, verboseFlag);
 
-  auto platformNameOpt = helpers::PlatformNameLib().getPlatformName();
+  auto x86 = std::make_shared<platform_checks::LocalHost>();
+  auto platformNameOpt = platform_checks::getPlatformName(*x86);
   if (!platformNameOpt.has_value()) {
     XLOG(ERR) << "Failed to determine platform name";
     return EXIT_FAILURE;
   }
-  const std::string& platformName = platformNameOpt.value();
+  const fixmyfboss::CheckEnvironment env{
+      .platformName = *platformNameOpt, .x86 = x86};
+  auto checks = fixmyfboss::createAllChecks(env);
+  const fixmyfboss::CheckRunner runner(env.platformName);
 
   // Handle --list-checks mode
   if (listChecksFlag) {
-    listChecks(platformName);
+    listChecks(checks, runner);
     return EXIT_SUCCESS;
   }
 
   // Run checks and print results
-  auto results = runChecks(platformName);
+  auto results = runChecks(checks, runner, env.platformName);
   fixmyfboss::ResultPrinter printer(std::cout, verboseFlag || debugFlag);
   printer.printSummary(results);
   printer.printDetails(results);

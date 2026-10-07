@@ -19,16 +19,51 @@ cpp_library(
     ],
 )
 
+cpp_library(
+    name = "check_runner",
+    srcs = [
+        "CheckRunner.cpp",
+    ],
+    headers = [
+        "CheckRunner.h",
+    ],
+    deps = [
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
+        "//fboss/platform/platform_checks:platform_check",
+    ],
+)
+
+cpp_library(
+    name = "check_registry",
+    srcs = [
+        "CheckRegistry.cpp",
+    ],
+    headers = [
+        "CheckEnvironment.h",
+        "CheckRegistry.h",
+    ],
+    deps = [
+        "//fboss/platform/platform_checks:platform_checks",
+    ],
+    exported_deps = [
+        "//fboss/platform/platform_checks:host",
+        "//fboss/platform/platform_checks:platform_check",
+    ],
+)
+
 cpp_binary(
     name = "fixmyfboss",
     srcs = [
         "main.cpp",
     ],
     deps = [
+        ":check_registry",
+        ":check_runner",
         ":result_printer",
-        "//fboss/platform/helpers:platform_name_lib",
-        "//fboss/platform/platform_checks:platform_check",
-        "//fboss/platform/platform_checks:platform_checks",
+        "//fboss/platform/platform_checks:host",
+        "//fboss/platform/platform_checks:platform_name",
         "//folly/logging:logging",
     ],
     external_deps = [
@@ -53,5 +88,16 @@ cpp_unittest(
     deps = [
         "fbsource//third-party/googletest:gmock",
         ":result_printer",
+    ],
+)
+
+cpp_unittest(
+    name = "check_runner_test",
+    srcs = [
+        "tests/CheckRunnerTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        ":check_runner",
     ],
 )
