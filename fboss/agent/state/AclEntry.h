@@ -202,6 +202,17 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
     set<switch_state_tags::tcpFlagsBitMap>(flagsBitMap);
   }
 
+  std::optional<uint8_t> getTcpFlagsMask() const {
+    if (auto tcpFlagsMask = cref<switch_state_tags::tcpFlagsMask>()) {
+      return tcpFlagsMask->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setTcpFlagsMask(const uint8_t flagsMask) {
+    set<switch_state_tags::tcpFlagsMask>(flagsMask);
+  }
+
   std::optional<uint16_t> getSrcPort() const {
     if (auto srcPort = cref<switch_state_tags::srcPort>()) {
       return srcPort->cref();
