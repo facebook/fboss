@@ -29,6 +29,23 @@ folly::IPAddressV6 makeSid(int index) {
       fmt::format("3001:db8:{:x}:{:x}::", (index >> 8) + 1, index & 0xFF));
 }
 
+ResolvedNextHop makeSrv6NextHop(
+    const folly::IPAddress& ip,
+    InterfaceID intf,
+    const folly::IPAddressV6& sid) {
+  return ResolvedNextHop(
+      ip,
+      intf,
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::vector<folly::IPAddressV6>{sid},
+      TunnelType::SRV6_ENCAP,
+      std::string("srv6Tunnel0"));
+}
+
 // MySID SID offset: keeps the /48 MySID entries
 // (3001:db8:<i+kMySidLocatorBase>::, built by
 // utility::makeAdjacencyMySidEntries) clear of the SRv6 tunnel SID range
@@ -91,17 +108,8 @@ std::vector<RoutePrefix<folly::IPAddressV6>> addSrv6EcmpGroupRoutes(
     for (int member = 0; member < membersPerGroup; ++member) {
       auto globalIndex = group * membersPerGroup + member;
       auto nhop = ecmpHelper.nhop(globalIndex % numNhops);
-      members.emplace_back(
-          nhop.ip,
-          nhop.intf,
-          ECMP_WEIGHT,
-          std::nullopt,
-          std::nullopt,
-          std::nullopt,
-          std::nullopt,
-          std::vector<folly::IPAddressV6>{makeSid(sidBase + globalIndex)},
-          TunnelType::SRV6_ENCAP,
-          std::string("srv6Tunnel0"));
+      members.push_back(
+          makeSrv6NextHop(nhop.ip, nhop.intf, makeSid(sidBase + globalIndex)));
     }
     RouteNextHopSet nhops(members.begin(), members.end());
     RoutePrefix<folly::IPAddressV6> prefix(
@@ -129,17 +137,8 @@ RouteNextHopSet makeSharedSrv6Nhops(
   members.reserve(numShared);
   for (int i = 0; i < numShared; ++i) {
     auto nhop = ecmpHelper.nhop(i % numNhops);
-    members.emplace_back(
-        nhop.ip,
-        nhop.intf,
-        ECMP_WEIGHT,
-        std::nullopt,
-        std::nullopt,
-        std::nullopt,
-        std::nullopt,
-        std::vector<folly::IPAddressV6>{makeSid(sidBase + i)},
-        TunnelType::SRV6_ENCAP,
-        std::string("srv6Tunnel0"));
+    members.push_back(
+        makeSrv6NextHop(nhop.ip, nhop.intf, makeSid(sidBase + i)));
   }
   return RouteNextHopSet(members.begin(), members.end());
 }
