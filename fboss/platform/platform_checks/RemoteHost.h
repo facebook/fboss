@@ -10,16 +10,31 @@
 
 #pragma once
 
+#include <memory>
+#include <mutex>
+#include <optional>
 #include <string>
 #include <vector>
 
 #include "fboss/platform/platform_checks/Host.h"
+
+namespace facebook::fboss::platform {
+class ExpectSession;
+} // namespace facebook::fboss::platform
 
 namespace facebook::fboss::platform::platform_checks {
 
 /**
  * A switch (x86 or BMC) reached over SSH. Requires non-interactive (key or
  * certificate based) authentication.
+ *
+ * Opening a connection per command costs about a second, which adds up to
+ * minutes for checks that read many sysfs files, so commands share one
+ * long-lived remote shell driven through an ExpectSession. If that shell
+ * cannot be started, each command opens its own connection instead.
+ *
+ * Thread-safe: concurrent commands on one host are serialized through its
+ * shell session.
  */
 class RemoteHost : public Host {
  public:
@@ -37,6 +52,7 @@ class RemoteHost : public Host {
       std::string hostname,
       Transport transport,
       std::string user = "root");
+  ~RemoteHost() override;
 
   std::string name() const override {
     return hostname_;
@@ -58,16 +74,37 @@ class RemoteHost : public Host {
   // Local argv that runs `cmd` on the host. Virtual for tests.
   virtual std::vector<std::string> execArgv(const std::string& cmd) const;
 
+  // Local argv that opens an interactive login shell on the host. Virtual for
+  // tests.
+  virtual std::vector<std::string> interactiveArgv() const;
+
   std::vector<std::string> copyArgv(
       const std::filesystem::path& localPath,
       const std::filesystem::path& hostPath) const;
 
  private:
   std::string destination() const;
+  // nullopt iff the shell could not be started, i.e. `cmd` was never sent.
+  std::optional<CommandResult> runInSession(
+      const std::string& cmd,
+      std::chrono::seconds timeout) const;
+  // A shell ready for commands, or nullptr if it could not be started.
+  std::unique_ptr<ExpectSession> startSession(
+      std::chrono::steady_clock::time_point deadline) const;
+  // Ends the session after a timeout or lost connection while `cmd` was in
+  // flight.
+  CommandResult abandonSession(
+      const std::string& cmd,
+      std::chrono::seconds timeout) const;
+  // Ends the session and reports `error`; the command is not retried.
+  CommandResult endSession(int exitCode, std::string error) const;
 
   std::string hostname_;
   Transport transport_;
   std::string user_;
+  mutable std::mutex sessionMutex_;
+  mutable std::unique_ptr<ExpectSession> session_;
+  mutable uint64_t nextCommandId_{0};
 };
 
 } // namespace facebook::fboss::platform::platform_checks

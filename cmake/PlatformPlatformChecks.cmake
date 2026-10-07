@@ -29,7 +29,9 @@ add_library(platform_checks_host
 )
 
 target_link_libraries(platform_checks_host
+  expect_session
   Folly::folly
+  fmt::fmt
 )
 
 add_library(platform_checks_platform_name

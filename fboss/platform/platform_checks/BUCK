@@ -61,6 +61,13 @@ cpp_library(
     headers = [
         "RemoteHost.h",
     ],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//fboss/platform/helpers:expect_session",
+        "//folly:string",
+        "//folly/logging:logging",
+        "//folly/system:shell",
+    ],
     exported_deps = [
         ":host",
     ],
@@ -217,6 +224,7 @@ cpp_unittest(
     deps = [
         "fbsource//third-party/googletest:gmock",
         ":remote_host",
+        "//folly/testing:test_util",
     ],
 )
 
