@@ -314,6 +314,37 @@ TEST_F(AclTableManagerTest, addAclEntry) {
   EXPECT_EQ(tableIdGot, aclTableId);
 }
 
+TEST_F(AclTableManagerTest, addAclEntryWithTcpFlags) {
+  auto addTcpFlagsEntry = [this](
+                              int priority,
+                              const std::string& name,
+                              std::optional<uint8_t> tcpFlagsMask) {
+    auto aclEntry = std::make_shared<AclEntry>(priority, name);
+    aclEntry->setProto(6);
+    aclEntry->setTcpFlagsBitMap(0x02);
+    if (tcpFlagsMask) {
+      aclEntry->setTcpFlagsMask(*tcpFlagsMask);
+    }
+    aclEntry->setActionType(kActionType());
+    auto aclEntryId = saiManagerTable->aclTableManager().addAclEntry(
+        aclEntry,
+        cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+        nullptr /*state*/);
+    return saiApiTable->aclApi()
+        .getAttribute(
+            aclEntryId, SaiAclEntryTraits::Attributes::FieldTcpFlags{})
+        .getDataAndMask();
+  };
+
+  using DataAndMask = std::pair<uint8_t, uint8_t>;
+  EXPECT_EQ(
+      addTcpFlagsEntry(kPriority(), "AclEntry1", std::nullopt),
+      DataAndMask(0x02, 0x3F));
+  EXPECT_EQ(
+      addTcpFlagsEntry(kPriority2(), "AclEntry2", 0x12),
+      DataAndMask(0x02, 0x12));
+}
+
 TEST_F(AclTableManagerTest, defaultAclTableOmitsLookupClassPort) {
   auto* aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
       cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
