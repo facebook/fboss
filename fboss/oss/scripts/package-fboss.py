@@ -5,6 +5,7 @@ import argparse
 import glob
 import os
 import pathlib
+import re
 import shutil
 import stat
 import subprocess
@@ -349,6 +350,7 @@ class PackageFboss:
 
                     # retrieve dependencies using ldd
                     dependencies = self._get_dependency_paths(bin_abs_path)
+                    dependencies |= self._sdk_sibling_libs(dependencies)
                     for lib_abs_path in dependencies:
                         try:
                             shutil.copy(lib_abs_path, lib_pkg_path)
@@ -412,6 +414,29 @@ class PackageFboss:
                 os.environ["LD_LIBRARY_PATH"] = lib_paths
         except subprocess.CalledProcessError:
             print("Unable to update LD_LIBRARY_PATH, libs may be missing!")
+
+    def _sdk_sibling_libs(self, dependencies: set[str]) -> set[str]:
+        """
+        Shared libraries shipped beside a dynamically linked libsai_impl.so. An
+        NPU SDK may dlopen these (for example per-device libraries), so ldd does
+        not report them.
+        """
+        siblings = set()
+        for lib in dependencies:
+            if os.path.basename(lib) != "libsai_impl.so":
+                continue
+            sdk_dir = os.path.dirname(lib)
+            for name in os.listdir(sdk_dir):
+                path = os.path.join(sdk_dir, name)
+                # libfoo.so or libfoo.so.1.2, not libfoo.so.debug or *.so.bak.
+                if (
+                    re.fullmatch(r".+\.so(\.\d+)*", name)
+                    and os.path.isfile(path)
+                    and path not in self.dependencies
+                ):
+                    siblings.add(path)
+        self.dependencies |= siblings
+        return siblings
 
     def _get_dependency_paths(self, path_to_binary: str) -> {str}:
         """

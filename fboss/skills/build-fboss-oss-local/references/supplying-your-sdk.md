@@ -77,9 +77,24 @@ upstream rather than guessing. A wrong spec version does not fail cleanly.
 
 ### What you must provide
 
-- A static archive named **exactly `libsai_impl.a`**. CMake locates it with
-  `find_library(SAI_IMPL sai_impl)`, so the name is load-bearing.
+- Your SAI implementation as either a static archive named **exactly
+  `libsai_impl.a`** or a shared library named **exactly `libsai_impl.so`**.
+  CMake locates it with `find_library(SAI_IMPL sai_impl)`, so the name is
+  load-bearing; it prefers the `.so` when both are present.
 - A directory of your SAI **extension** headers, laid out flat.
+
+A shared `libsai_impl.so` is linked dynamically, so binaries share one copy of
+the SDK instead of each embedding it, which shrinks them and the package
+considerably. Two requirements:
+
+- Its SONAME must be `libsai_impl.so`. Without one, the linker records the
+  build-time path in every binary.
+- Every other SDK library must ship beside it and be findable from it, for
+  example with a `$ORIGIN` RUNPATH on each (`patchelf --set-rpath '$ORIGIN'`).
+  That includes libraries the SDK only `dlopen`s, such as per-device ones,
+  which no dependency list mentions. `package-fboss.py` copies every shared
+  library beside `libsai_impl.so` into the package's `lib/`, not just what
+  `ldd` reports.
 
 Two accepted tarball shapes, each optionally wrapped in one top-level
 directory:
@@ -100,7 +115,7 @@ containing **three** symlinks and prepends it to `CMAKE_PREFIX_PATH`:
 
 ```text
 <scratch>/installed/sai_impl_staging-<fingerprint>/
-  lib         -> <your libsai_impl.a directory>
+  lib         -> <your libsai_impl.{a,so} directory>
   include     -> <your extension headers directory>
   experimental-> <your extension headers directory>   # same target
 ```
@@ -112,7 +127,7 @@ flat in one directory. Linking the same directory as both `include/` and
 `experimental/` makes both include forms resolve without asking you to
 repackage anything.
 
-CMake then finds it with `find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)`,
+CMake then finds it with `find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a lib/libsai_impl.so)`,
 which is why the staging prefix must contain a `lib/` subdirectory.
 
 The `<fingerprint>` is derived from the SDK's contents. The staging path ends
@@ -123,6 +138,9 @@ changed SDK is guaranteed to be picked up. Older staging directories are
 removed on each run.
 
 ### Extra link dependencies
+
+A shared `libsai_impl.so` records its own dependencies, so this section only
+applies to a static archive, which records none.
 
 If `libsai_impl.a` needs additional shared libraries, declare them rather
 than patching CMake. Ship a `sai_dependencies.txt` next to the archive:

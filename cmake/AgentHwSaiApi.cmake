@@ -110,7 +110,7 @@ if (SAI_TAJO_IMPL)
     fboss/agent/hw/sai/api/oss/HostifApi.cpp
   )
 
-  find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)
+  find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a lib/libsai_impl.so)
   include_directories(${SAI_IMPL_DIR})
   message(STATUS "Found SAI_IMPL_DIR: ${SAI_IMPL_DIR}")
   include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
@@ -133,7 +133,7 @@ elseif (SAI_BRCM_IMPL)
     fboss/agent/hw/sai/api/bcm/HostifApi.cpp
   )
 
-  find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)
+  find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a lib/libsai_impl.so)
   include_directories(${SAI_IMPL_DIR})
   message(STATUS "Found SAI_IMPL_DIR: ${SAI_IMPL_DIR}")
   include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
@@ -156,7 +156,7 @@ elseif (CHENAB_SAI_SDK)
     fboss/agent/hw/sai/api/oss/HostifApi.cpp
   )
 
-  find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)
+  find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a lib/libsai_impl.so)
   include_directories(${SAI_IMPL_DIR})
   message(STATUS "Found SAI_IMPL_DIR: ${SAI_IMPL_DIR}")
   include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})

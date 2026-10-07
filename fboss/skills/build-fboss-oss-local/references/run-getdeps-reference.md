@@ -28,7 +28,7 @@ silently passed through to getdeps, which will reject them.
 | `--npu-sai-impl <TOKEN>` | Which implementation. Supported tokens: see `-h` and the `CMakeLists.txt` `if/elseif` chain. Exported as `<TOKEN>=1`. |
 | `--npu-sai-sdk-version <SELECTOR>` | **Required** whenever `--npu-sai-impl` is given. e.g. `SAI_VERSION_14_2_0_0_ODP`. Becomes a bare `-D<SELECTOR>` compile define. |
 | `--npu-sai-version <X.Y.Z>` | OCP SAI **spec** version to download. Any release tag of the OCP SAI repository; there is no allowlist. |
-| `--npu-libsai-impl-path <DIR>` | Directory *containing* `libsai_impl.a`. Not the `.a` file itself. |
+| `--npu-libsai-impl-path <DIR>` | Directory *containing* `libsai_impl.a` or `libsai_impl.so`. Not the library file itself. |
 | `--npu-experiments-path <DIR>` | Directory containing the vendor's flat SAI extension headers. |
 | `--npu-libsai-impl-tarball <FILE>` | Alternative to the two path flags: a tarball the wrapper extracts and stages. |
 
