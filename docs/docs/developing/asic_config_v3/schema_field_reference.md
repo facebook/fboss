@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 5
 ---
 
 # Schema Field Reference
@@ -180,4 +180,4 @@ common files.
 
 | Field | Required | Description |
 |---|---|---|
-| `global` | yes | SDK or SAI settings copied into the `global` output table according to the layering order described in the [Overview](./overview.md). |
+| `global` | yes | SDK or SAI settings copied into the `global` output table according to the layering order described on the [Broadcom XGS](./broadcom_xgs.md) page. |
