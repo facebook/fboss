@@ -4844,6 +4844,33 @@ void ThriftConfigApplier::checkAcl(const cfg::AclEntry* config) const {
           std::to_string(AclEntry::kMaxIcmpCode));
     }
   }
+  if (auto tcpFlagsBitMap = config->tcpFlagsBitMap()) {
+    if (*tcpFlagsBitMap < 0 || *tcpFlagsBitMap > AclEntry::kMaxTcpFlags) {
+      throw FbossError(
+          "tcp flags bitmap must be between 0 and ",
+          std::to_string(AclEntry::kMaxTcpFlags));
+    }
+  }
+  if (auto tcpFlagsMask = config->tcpFlagsMask()) {
+    if (!config->tcpFlagsBitMap()) {
+      throw FbossError(
+          "tcp flags bitmap must be set when tcp flags mask is set");
+    }
+    if (*tcpFlagsMask < 1 || *tcpFlagsMask > AclEntry::kMaxTcpFlagsMask) {
+      throw FbossError(
+          "tcp flags mask must be between 1 and ",
+          std::to_string(AclEntry::kMaxTcpFlagsMask));
+    }
+    // Bits outside the mask are never compared, so a rule that sets them does
+    // not match what it appears to.
+    if (*config->tcpFlagsBitMap() & ~*tcpFlagsMask) {
+      throw FbossError(
+          "tcp flags bitmap ",
+          *config->tcpFlagsBitMap(),
+          " sets bits outside tcp flags mask ",
+          *tcpFlagsMask);
+    }
+  }
   // TODO(daiweix): check proto should be 58 if icmp type/code is specified
   // after CS00012373216 is resolved.
   if (config->icmpType() && config->proto() &&
@@ -4904,6 +4931,9 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   }
   if (auto tcpFlagsBitMap = config->tcpFlagsBitMap()) {
     newAcl->setTcpFlagsBitMap(*tcpFlagsBitMap);
+  }
+  if (auto tcpFlagsMask = config->tcpFlagsMask()) {
+    newAcl->setTcpFlagsMask(*tcpFlagsMask);
   }
   if (auto srcPort = config->srcPort()) {
     newAcl->setSrcPort(*srcPort);

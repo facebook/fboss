@@ -95,6 +95,8 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
   static const uint8_t kProtoIcmpv6 = 58;
   static const uint8_t kMaxIcmpType = 0xFF;
   static const uint8_t kMaxIcmpCode = 0xFF;
+  static const uint8_t kMaxTcpFlags = 0xFF;
+  static const uint8_t kMaxTcpFlagsMask = 0x3F;
   static const uint16_t kMaxL4Port = 65535;
 
   explicit AclEntry(int priority, const std::string& name);
