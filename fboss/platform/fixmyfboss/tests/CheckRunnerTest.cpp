@@ -90,3 +90,21 @@ TEST(CheckRunnerTest, ExceptionBecomesError) {
   EXPECT_EQ(
       *results[0].errorMessage(), "Exception during check execution: boom");
 }
+
+TEST(CheckRunnerTest, UnavailableHostIsSkippedWithReason) {
+  class NeedsHostCheck : public FakeCheck {
+   public:
+    NeedsHostCheck() : FakeCheck("needs host", {}, /*throws=*/true) {}
+    std::optional<std::string> getSkipReason() const override {
+      return "no BMC";
+    }
+  };
+  std::vector<std::unique_ptr<PlatformCheck>> checks;
+  checks.push_back(std::make_unique<NeedsHostCheck>());
+
+  auto results = fixmyfboss::CheckRunner("MONTBLANC").run(checks);
+
+  ASSERT_EQ(results.size(), 1);
+  EXPECT_EQ(*results[0].status(), CheckStatus::SKIPPED);
+  EXPECT_EQ(*results[0].errorMessage(), "no BMC");
+}

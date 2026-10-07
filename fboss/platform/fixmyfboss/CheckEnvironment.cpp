@@ -40,18 +40,56 @@ std::shared_ptr<const Host> connect(
   return host;
 }
 
+void connectBmc(const ConnectOptions& options, CheckEnvironment& env) {
+  if (options.noBmc) {
+    env.bmcUnavailableReason = "BMC checks disabled with --no-bmc";
+    return;
+  }
+  if (options.bmcHostname) {
+    // Explicitly requested, so failing to connect is fatal.
+    env.bmc = connect(*options.bmcHostname, options.transport);
+    return;
+  }
+  if (!options.hostname) {
+    env.bmcUnavailableReason =
+        "No BMC to check; pass --hostname or --bmc-hostname";
+    return;
+  }
+  // Reported by the BMC Reachable check rather than aborting the run, so the
+  // x86 is still checked. Switches without a BMC need --no-bmc.
+  auto oobHostname = deriveOobHostname(*options.hostname);
+  try {
+    env.bmc = connect(oobHostname, options.transport);
+  } catch (const std::exception& ex) {
+    XLOG(WARN) << ex.what();
+    env.bmcConnectError = ex.what();
+    env.bmcUnavailableReason =
+        "Cannot connect to BMC " + oobHostname + "; see BMC Reachable";
+  }
+}
+
 } // namespace
 
+std::string deriveOobHostname(const std::string& hostname) {
+  auto dot = hostname.find('.');
+  if (dot == std::string::npos) {
+    return hostname + "-oob";
+  }
+  return hostname.substr(0, dot) + "-oob" + hostname.substr(dot);
+}
+
 CheckEnvironment createEnvironment(const ConnectOptions& options) {
-  std::shared_ptr<const Host> x86 = options.hostname
-      ? connect(*options.hostname, options.transport)
-      : std::make_shared<LocalHost>();
-  auto platformName = getPlatformName(*x86);
+  CheckEnvironment env;
+  env.x86 = options.hostname ? connect(*options.hostname, options.transport)
+                             : std::make_shared<LocalHost>();
+  auto platformName = getPlatformName(*env.x86);
   if (!platformName) {
     throw std::runtime_error(
-        "Failed to determine platform name of " + x86->name());
+        "Failed to determine platform name of " + env.x86->name());
   }
-  return CheckEnvironment{.platformName = *platformName, .x86 = std::move(x86)};
+  env.platformName = *platformName;
+  connectBmc(options, env);
+  return env;
 }
 
 } // namespace facebook::fboss::platform::fixmyfboss

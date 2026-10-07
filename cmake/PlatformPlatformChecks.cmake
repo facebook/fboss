@@ -123,3 +123,15 @@ target_link_libraries(platform_checks_platform_name_test
 )
 
 gtest_discover_tests(platform_checks_platform_name_test)
+
+add_executable(platform_checks_bmc_reachable_check_test
+  fboss/platform/platform_checks/tests/BmcReachableCheckTest.cpp
+)
+
+target_link_libraries(platform_checks_bmc_reachable_check_test
+  platform_checks
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(platform_checks_bmc_reachable_check_test)

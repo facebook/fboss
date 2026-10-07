@@ -27,14 +27,26 @@ struct CheckEnvironment {
   // Platform of the x86, used to select configs.
   std::string platformName;
   std::shared_ptr<const platform_checks::Host> x86;
+  // Null if the switch has no reachable BMC; see bmcUnavailableReason.
+  std::shared_ptr<const platform_checks::Host> bmc;
+  std::string bmcUnavailableReason;
+  // Set if the switch should have a BMC but it could not be reached.
+  std::optional<std::string> bmcConnectError;
 };
 
 struct ConnectOptions {
   // Unset means the machine fixmyfboss runs on.
   std::optional<std::string> hostname;
+  // Unset means <hostname>-oob when diagnosing a remote switch, and no BMC
+  // when diagnosing the local machine.
+  std::optional<std::string> bmcHostname;
+  bool noBmc{false};
   platform_checks::RemoteHost::Transport transport{
       platform_checks::RemoteHost::Transport::SSH};
 };
+
+// "rsw1.foo" -> "rsw1-oob.foo", the BMC naming convention.
+std::string deriveOobHostname(const std::string& hostname);
 
 // Connects to the switch and resolves its platform. Throws std::runtime_error
 // with a user-facing message if the switch is unreachable or its platform is

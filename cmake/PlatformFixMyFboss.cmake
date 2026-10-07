@@ -56,3 +56,15 @@ target_link_libraries(fixmyfboss_check_runner_test
 )
 
 gtest_discover_tests(fixmyfboss_check_runner_test)
+
+add_executable(fixmyfboss_check_environment_test
+  fboss/platform/fixmyfboss/tests/CheckEnvironmentTest.cpp
+)
+
+target_link_libraries(fixmyfboss_check_environment_test
+  fixmyfboss_lib
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(fixmyfboss_check_environment_test)

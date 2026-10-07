@@ -118,3 +118,14 @@ cpp_unittest(
         ":check_runner",
     ],
 )
+
+cpp_unittest(
+    name = "check_environment_test",
+    srcs = [
+        "tests/CheckEnvironmentTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        ":check_environment",
+    ],
+)

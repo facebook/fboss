@@ -10,6 +10,7 @@
 
 #include "fboss/platform/fixmyfboss/CheckRegistry.h"
 
+#include "fboss/platform/platform_checks/checks/BmcReachableCheck.h"
 #include "fboss/platform/platform_checks/checks/MacAddressCheck.h"
 #include "fboss/platform/platform_checks/checks/PciDeviceCheck.h"
 #include "fboss/platform/platform_checks/checks/PowerResetCheck.h"
@@ -24,6 +25,11 @@ std::vector<std::unique_ptr<PlatformCheck>> createAllChecks(
   const CheckTarget x86{.host = env.x86, .platformName = env.platformName};
 
   std::vector<std::unique_ptr<PlatformCheck>> checks;
+  checks.push_back(
+      std::make_unique<BmcReachableCheck>(
+          CheckTarget{
+              .host = env.bmc, .unavailableReason = env.bmcUnavailableReason},
+          env.bmcConnectError));
   checks.push_back(std::make_unique<MacAddressCheck>(x86));
   checks.push_back(std::make_unique<PciDeviceCheck>(x86));
   checks.push_back(std::make_unique<RecentManualRebootCheck>(x86));

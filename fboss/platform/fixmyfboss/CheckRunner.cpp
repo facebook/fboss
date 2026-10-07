@@ -35,6 +35,14 @@ std::vector<CheckResult> CheckRunner::run(
 }
 
 CheckResult CheckRunner::runOne(PlatformCheck& check) const {
+  if (auto skipReason = check.getSkipReason()) {
+    CheckResult skipped;
+    skipped.checkType() = check.getType();
+    skipped.checkName() = check.getName();
+    skipped.status() = CheckStatus::SKIPPED;
+    skipped.errorMessage() = *skipReason;
+    return skipped;
+  }
   XLOG(DBG2) << "Running check: " << check.getDescription();
   try {
     auto result = check.run();

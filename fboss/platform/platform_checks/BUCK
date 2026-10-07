@@ -114,6 +114,7 @@ cpp_library(
     ],
     headers = [
         "HostEeprom.h",
+        "checks/BmcReachableCheck.h",
         "checks/KernelVersionCheck.h",
         "checks/MacAddressCheck.h",
         "checks/PciDeviceCheck.h",
@@ -237,5 +238,17 @@ cpp_unittest(
     deps = [
         ":mock_host",
         ":platform_name",
+    ],
+)
+
+cpp_unittest(
+    name = "bmc_reachable_check_test",
+    srcs = [
+        "tests/BmcReachableCheckTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        ":mock_host",
+        ":platform_checks",
     ],
 )

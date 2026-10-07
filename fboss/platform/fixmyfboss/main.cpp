@@ -105,6 +105,18 @@ int main(int argc, char* argv[]) {
       ->check(CLI::IsMember({"auto", "ssh", "sush2"}))
       ->group("Remote");
 
+  std::string bmcHostname;
+  app.add_option(
+         "--bmc-hostname",
+         bmcHostname,
+         "BMC to check over SSH (default with --hostname: <hostname>-oob)")
+      ->group("Remote");
+
+  bool noBmc = false;
+  app.add_flag("--no-bmc", noBmc, "Skip all checks that need the BMC")
+      ->group("Remote")
+      ->excludes("--bmc-hostname");
+
   bool verboseFlag = false;
   app.add_flag(
          "-v,--verbose", verboseFlag, "Enable verbose logging (INFO level)")
@@ -123,10 +135,13 @@ int main(int argc, char* argv[]) {
 
   configureLogging(debugFlag, verboseFlag);
 
-  fixmyfboss::ConnectOptions connectOptions;
+  fixmyfboss::ConnectOptions connectOptions{
+      .noBmc = noBmc, .transport = parseTransport(transport)};
   if (!hostname.empty()) {
     connectOptions.hostname = hostname;
-    connectOptions.transport = parseTransport(transport);
+  }
+  if (!bmcHostname.empty()) {
+    connectOptions.bmcHostname = bmcHostname;
   }
   fixmyfboss::CheckEnvironment env;
   try {

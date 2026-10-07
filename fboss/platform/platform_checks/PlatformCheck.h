@@ -16,9 +16,12 @@ namespace facebook::fboss::platform::platform_checks {
  * The machine a check inspects and the platform whose configs describe it.
  */
 struct CheckTarget {
+  // Null if the machine is unavailable (e.g. no BMC); the check is skipped.
   std::shared_ptr<const Host> host{std::make_shared<LocalHost>()};
   // Unset means the platform of the machine fixmyfboss runs on.
   std::optional<std::string> platformName;
+  // Why `host` is null, reported as the skip reason.
+  std::string unavailableReason;
 };
 
 /**
@@ -47,6 +50,14 @@ class PlatformCheck {
     return {}; // Empty set = all platforms supported
   }
 
+  // Why the check cannot run in this environment, if it cannot.
+  virtual std::optional<std::string> getSkipReason() const {
+    if (!target_.host) {
+      return target_.unavailableReason;
+    }
+    return std::nullopt;
+  }
+
  protected:
   const Host& host() const {
     return *target_.host;
@@ -67,15 +78,6 @@ class PlatformCheck {
     result.checkName() = getName();
     result.status() = CheckStatus::ERROR;
     result.errorMessage() = errorMessage;
-    return result;
-  }
-
-  CheckResult makeSkipped(const std::string& reason) const {
-    CheckResult result;
-    result.checkType() = getType();
-    result.checkName() = getName();
-    result.status() = CheckStatus::SKIPPED;
-    result.errorMessage() = reason;
     return result;
   }
 
