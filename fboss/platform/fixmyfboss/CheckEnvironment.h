@@ -11,9 +11,11 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
 
 #include "fboss/platform/platform_checks/Host.h"
+#include "fboss/platform/platform_checks/RemoteHost.h"
 
 namespace facebook::fboss::platform::fixmyfboss {
 
@@ -26,5 +28,17 @@ struct CheckEnvironment {
   std::string platformName;
   std::shared_ptr<const platform_checks::Host> x86;
 };
+
+struct ConnectOptions {
+  // Unset means the machine fixmyfboss runs on.
+  std::optional<std::string> hostname;
+  platform_checks::RemoteHost::Transport transport{
+      platform_checks::RemoteHost::Transport::SSH};
+};
+
+// Connects to the switch and resolves its platform. Throws std::runtime_error
+// with a user-facing message if the switch is unreachable or its platform is
+// unknown.
+CheckEnvironment createEnvironment(const ConnectOptions& options);
 
 } // namespace facebook::fboss::platform::fixmyfboss

@@ -19,8 +19,6 @@
 #include "fboss/platform/fixmyfboss/CheckRegistry.h"
 #include "fboss/platform/fixmyfboss/CheckRunner.h"
 #include "fboss/platform/fixmyfboss/ResultPrinter.h"
-#include "fboss/platform/platform_checks/LocalHost.h"
-#include "fboss/platform/platform_checks/PlatformName.h"
 
 using namespace facebook::fboss::platform;
 
@@ -37,6 +35,17 @@ void listChecks(
     std::cout << index++ << ". " << check->getName() << ": "
               << check->getDescription() << runIndicator << "\n";
   }
+}
+
+platform_checks::RemoteHost::Transport parseTransport(
+    const std::string& transport) {
+  if (transport == "ssh") {
+    return platform_checks::RemoteHost::Transport::SSH;
+  }
+  if (transport == "sush2") {
+    return platform_checks::RemoteHost::Transport::SUSH2;
+  }
+  return platform_checks::RemoteHost::detectTransport();
 }
 
 void configureLogging(bool debugFlag, bool verboseFlag) {
@@ -81,6 +90,21 @@ int main(int argc, char* argv[]) {
          "Show list of available checks and exit")
       ->group("Information");
 
+  std::string hostname;
+  app.add_option(
+         "--hostname",
+         hostname,
+         "Diagnose this switch over SSH instead of the local machine")
+      ->group("Remote");
+
+  std::string transport = "auto";
+  app.add_option(
+         "--transport",
+         transport,
+         "How to reach --hostname: ssh, sush2, or auto (sush2 if installed)")
+      ->check(CLI::IsMember({"auto", "ssh", "sush2"}))
+      ->group("Remote");
+
   bool verboseFlag = false;
   app.add_flag(
          "-v,--verbose", verboseFlag, "Enable verbose logging (INFO level)")
@@ -99,14 +123,18 @@ int main(int argc, char* argv[]) {
 
   configureLogging(debugFlag, verboseFlag);
 
-  auto x86 = std::make_shared<platform_checks::LocalHost>();
-  auto platformNameOpt = platform_checks::getPlatformName(*x86);
-  if (!platformNameOpt.has_value()) {
-    XLOG(ERR) << "Failed to determine platform name";
+  fixmyfboss::ConnectOptions connectOptions;
+  if (!hostname.empty()) {
+    connectOptions.hostname = hostname;
+    connectOptions.transport = parseTransport(transport);
+  }
+  fixmyfboss::CheckEnvironment env;
+  try {
+    env = fixmyfboss::createEnvironment(connectOptions);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << ex.what();
     return EXIT_FAILURE;
   }
-  const fixmyfboss::CheckEnvironment env{
-      .platformName = *platformNameOpt, .x86 = x86};
   auto checks = fixmyfboss::createAllChecks(env);
   const fixmyfboss::CheckRunner runner(env.platformName);
 

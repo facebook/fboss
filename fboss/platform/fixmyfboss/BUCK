@@ -36,19 +36,37 @@ cpp_library(
 )
 
 cpp_library(
+    name = "check_environment",
+    srcs = [
+        "CheckEnvironment.cpp",
+    ],
+    headers = [
+        "CheckEnvironment.h",
+    ],
+    deps = [
+        "//fboss/platform/platform_checks:platform_name",
+        "//folly:string",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
+        "//fboss/platform/platform_checks:host",
+        "//fboss/platform/platform_checks:remote_host",
+    ],
+)
+
+cpp_library(
     name = "check_registry",
     srcs = [
         "CheckRegistry.cpp",
     ],
     headers = [
-        "CheckEnvironment.h",
         "CheckRegistry.h",
     ],
     deps = [
         "//fboss/platform/platform_checks:platform_checks",
     ],
     exported_deps = [
-        "//fboss/platform/platform_checks:host",
+        ":check_environment",
         "//fboss/platform/platform_checks:platform_check",
     ],
 )
@@ -59,11 +77,10 @@ cpp_binary(
         "main.cpp",
     ],
     deps = [
+        ":check_environment",
         ":check_registry",
         ":check_runner",
         ":result_printer",
-        "//fboss/platform/platform_checks:host",
-        "//fboss/platform/platform_checks:platform_name",
         "//folly/logging:logging",
     ],
     external_deps = [

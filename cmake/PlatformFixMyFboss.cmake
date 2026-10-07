@@ -12,6 +12,7 @@ target_link_libraries(result_printer
 )
 
 add_library(fixmyfboss_lib
+  fboss/platform/fixmyfboss/CheckEnvironment.cpp
   fboss/platform/fixmyfboss/CheckRegistry.cpp
   fboss/platform/fixmyfboss/CheckRunner.cpp
 )
@@ -19,6 +20,7 @@ add_library(fixmyfboss_lib
 target_link_libraries(fixmyfboss_lib
   platform_checks
   platform_checks_host
+  platform_checks_platform_name
 )
 
 add_executable(fixmyfboss
@@ -28,7 +30,6 @@ add_executable(fixmyfboss
 target_link_libraries(fixmyfboss
   fixmyfboss_lib
   result_printer
-  platform_checks_platform_name
   CLI11::CLI11
 )
 
