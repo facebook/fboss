@@ -4963,6 +4963,7 @@ class ChildThriftPath<::facebook::fboss::state::AclEntryFields, ::facebook::fbos
     STRUCT_CHILD_GETTERS(dstIpV6Word2, 37);
     STRUCT_CHILD_GETTERS(lookupClassPort, 38);
     STRUCT_CHILD_GETTERS(mplsLabel0Ttl, 39);
+    STRUCT_CHILD_GETTERS(tcpFlagsMask, 40);
 };
 
 

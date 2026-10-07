@@ -308,6 +308,7 @@ struct AclEntryFields {
   37: optional i64 dstIpV6Word2;
   38: optional switch_config.AclLookupClassPort lookupClassPort;
   39: optional AclTtl mplsLabel0Ttl;
+  40: optional byte tcpFlagsMask;
 }
 
 struct NamedNextHopGroupAndID {
