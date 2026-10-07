@@ -535,6 +535,7 @@ BUILD_HW_BENCHMARK_LIBS(srv6_scale_benchmark
   DEPS
     config_factory
     ecmp_helper
+    handler
     scale_test_utils
     srv6_test_utils
     Folly::folly

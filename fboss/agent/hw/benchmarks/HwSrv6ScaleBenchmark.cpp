@@ -7,6 +7,7 @@
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
+#include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/benchmarks/AgentBenchmarks.h"
 #include "fboss/agent/state/RouteNextHop.h"
@@ -245,6 +246,56 @@ void srv6EcmpGroupScaleBenchmark(int numGroups, int membersPerGroup) {
     routeUpdater.program();
   }
 
+  suspender.rehire();
+}
+
+void srv6NamedNhgScaleBenchmark(int numGroups, int entriesPerGroup) {
+  folly::BenchmarkSuspender suspender;
+
+  FLAGS_ecmp_resource_percentage = 100;
+  FLAGS_srv6_nexthop_resource_percentage = 100;
+  FLAGS_enable_nexthop_id_manager = true;
+  auto ensemble = createSrv6Ensemble();
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(
+      ensemble->getSw()->getState(),
+      ensemble->getSw()->needL2EntryForNeighbor());
+  auto numNhops = resolveSrv6NextHops(*ensemble, ecmpHelper);
+
+  auto groups = std::make_unique<std::vector<NextHopGroup>>(numGroups);
+  auto routes = std::make_unique<std::vector<UnicastRoute>>(numGroups);
+  auto prefixes = std::make_unique<std::vector<IpPrefix>>();
+  auto names = std::make_unique<std::vector<std::string>>();
+  for (int group = 0; group < numGroups; ++group) {
+    auto name = fmt::format("srv6_nhg_{}", group);
+    auto prefix =
+        toIpPrefix({folly::IPAddress(fmt::format("2800:{:x}::", group)), 48});
+    auto& nhg = (*groups)[group];
+    nhg.name() = name;
+    for (int entry = 0; entry < entriesPerGroup; ++entry) {
+      auto globalIndex = group * entriesPerGroup + entry;
+      nhg.nexthops()->push_back(
+          utility::makeSrv6NextHopThrift(
+              ecmpHelper.nhop(globalIndex % numNhops).ip,
+              makeSid(globalIndex)));
+    }
+    NamedRouteDestination namedDest;
+    namedDest.nextHopGroup() = name;
+    auto& route = (*routes)[group];
+    route.dest() = prefix;
+    route.namedRouteDestination() = namedDest;
+    route.adminDistance() = AdminDistance::TE_AGENT;
+    prefixes->push_back(prefix);
+    names->push_back(name);
+  }
+  ThriftHandler handler(ensemble->getSw());
+  constexpr auto kClient = static_cast<int16_t>(ClientID::TE_AGENT);
+
+  suspender.dismiss();
+  handler.addOrUpdateNamedNextHopGroups(
+      std::move(groups), true /*combineDuplicatedNextHops*/);
+  handler.addUnicastRoutes(kClient, std::move(routes));
+  handler.deleteUnicastRoutes(kClient, std::move(prefixes));
+  handler.deleteNamedNextHopGroups(std::move(names));
   suspender.rehire();
 }
 
@@ -603,6 +654,12 @@ BENCHMARK(HwSrv6EcmpGroupScaleBenchmark) {
 // next hop (3000 distinct SidList + underlay-nhop SAI objects).
 BENCHMARK(HwSrv6SingleNextHopRouteScaleBenchmark) {
   srv6EcmpGroupScaleBenchmark(3000, 1);
+}
+
+constexpr int kRbbNhgEntries = 16;
+
+BENCHMARK(HwSrv6NamedNhgEcmpNextHopScaleBenchmark) {
+  srv6NamedNhgScaleBenchmark(390, kRbbNhgEntries);
 }
 
 // ASIC supports 50K routes with SRv6 encap. Routes follow a prod backbone

@@ -724,6 +724,7 @@ agent_benchmark_lib(
         "//fboss/agent:agent_features",
         "//fboss/agent:asic_utils",
         "//fboss/agent:core",
+        "//fboss/agent:handler",
         "//fboss/agent:utils",
         "//fboss/agent/benchmarks:mono_agent_benchmarks",
         "//fboss/agent/state:state",
