@@ -82,8 +82,9 @@ If the platform needs a setting that no listed field covers, see
 
 ## Adding a DNX platform
 
-Adding a platform on the DNX family follows the same pattern as on XGS. Only
-the variant fields differ. The meru800bia platform file at
+Adding a platform on the DNX family follows the same pattern as on XGS. The
+fields under the `defaults` section and in the variants are ASIC family
+specific. The meru800bia platform file at
 `fboss/configs/platforms/arista/meru800bia/asic_config/asic_config.json`
 is a complete reference. The following example shows the overall structure:
 
