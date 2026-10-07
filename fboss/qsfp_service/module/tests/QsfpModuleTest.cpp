@@ -16,6 +16,9 @@
 
 #include <gmock/gmock.h>
 
+#include <chrono>
+#include <thread>
+
 namespace {
 std::string kPortName = "eth1/1/1";
 }
@@ -332,6 +335,31 @@ TEST_F(QsfpModuleTest, updateQsfpDataFull) {
   EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(AtLeast(1));
 
   qsfp_->actualUpdateQsfpData(true);
+}
+
+TEST_F(QsfpModuleTest, periodicRefreshSkippedWhenInfoIsFresh) {
+  gflags::FlagSaver flagSaver;
+  gflags::SetCommandLineOptionWithMode(
+      "qsfp_data_refresh_interval", "10", gflags::SET_FLAGS_VALUE);
+  qsfp_->refresh();
+
+  EXPECT_CALL(*qsfp_, updateQsfpData(_)).Times(0);
+  qsfp_->refresh();
+}
+
+TEST_F(QsfpModuleTest, periodicRefreshNotStarvedByOutOfBandReads) {
+  gflags::FlagSaver flagSaver;
+  gflags::SetCommandLineOptionWithMode(
+      "qsfp_data_refresh_interval", "1", gflags::SET_FLAGS_VALUE);
+  qsfp_->refresh();
+  /* sleep override */
+  std::this_thread::sleep_for(std::chrono::milliseconds(1100));
+
+  // Out-of-band read like a failing programTransceiver() retry does
+  qsfp_->actualUpdateQsfpData(false);
+
+  EXPECT_CALL(*qsfp_, updateQsfpData(_)).Times(1);
+  qsfp_->refresh();
 }
 
 TEST_F(QsfpModuleTest, readTransceiver) {

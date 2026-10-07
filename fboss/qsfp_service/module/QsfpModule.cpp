@@ -589,8 +589,8 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
       }
     }
 
-    tcvrState.timeCollected() = lastRefreshTime_;
-    tcvrStats.timeCollected() = lastRefreshTime_;
+    tcvrState.timeCollected() = lastQsfpDataUpdateTime_;
+    tcvrStats.timeCollected() = lastQsfpDataUpdateTime_;
 
     const auto thermalMargins = getThermalMargins();
     if (thermalMargins.dspTempMargin) {
@@ -667,6 +667,7 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
   tcvrStats.interfaces() = getInterfaces();
 
   *info_.wlock() = info;
+  lastTcvrInfoUpdateTime_ = std::time(nullptr);
 }
 
 bool QsfpModule::customizationSupported() const {
@@ -677,7 +678,7 @@ bool QsfpModule::customizationSupported() const {
 }
 
 bool QsfpModule::shouldRefresh(time_t cooldown) const {
-  return std::time(nullptr) - lastRefreshTime_ >= cooldown;
+  return std::time(nullptr) - lastTcvrInfoUpdateTime_ >= cooldown;
 }
 
 void QsfpModule::ensureOutOfReset() const {

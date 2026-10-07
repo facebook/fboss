@@ -2782,7 +2782,7 @@ DOMDataUnion CmisModule::getDOMDataUnion() {
           IOBuf::wrapBufferAsValue(page27_[0].data(), MAX_QSFP_PAGE_SIZE);
     }
   }
-  cmisData.timeCollected() = lastRefreshTime_;
+  cmisData.timeCollected() = lastQsfpDataUpdateTime_;
   DOMDataUnion data;
   data.cmis() = cmisData;
   return data;
@@ -2816,7 +2816,7 @@ void CmisModule::updateQsfpData(bool allPages) {
     QSFP_LOG(DBG2, this) << "Performing " << ((allPages) ? "full" : "partial")
                          << " qsfp data cache refresh";
     readCmisField(CmisField::PAGE_LOWER, lowerPage_);
-    lastRefreshTime_ = std::time(nullptr);
+    lastQsfpDataUpdateTime_ = std::time(nullptr);
     dirty_ = false;
     setQsfpFlatMem();
     cacheMaxNumBanks();
