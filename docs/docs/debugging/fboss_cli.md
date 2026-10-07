@@ -1234,7 +1234,7 @@ When a session is committed, the CLI determines, **per service**, the least disr
 | `tunnel` | Configure IP-in-IP tunnels |
 | `vlan` | Configure VLAN settings |
 
-Most `config` subcommands have a matching `delete` counterpart to remove or reset the corresponding piece of configuration (e.g. `fboss2-dev delete protocol static ip route ...`).  Note, that not all configuration parameters can be individually deleted.  Modification of leaf parameters may require deleting the parent object and re-configuring with the desired parameter modified or deleted appropriately.
+Most `config` subcommands have a matching `delete` counterpart to remove or reset the corresponding piece of configuration (e.g. `fboss2-dev delete protocol static ip route ...`).  Note, that not all configuration parameters can be individually deleted.  Modification of leaf parameters may require deleting the parent object and re-configuring with the desired parameter modified or deleted appropriately.  `delete` commands are intended to be idempotent: deleting something that doesn't exist is not an error.
 
 ### Config vs. Set - what's the difference?
 
