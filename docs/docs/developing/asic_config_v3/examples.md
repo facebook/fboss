@@ -80,46 +80,6 @@ The output appears beside the input as
 If the platform needs a setting that no listed field covers, see
 [Overriding a setting outside these fields](./overview.md#overriding-a-setting-outside-these-fields).
 
-## Adding a variant
-
-A variant is added by inserting one entry under `variants`; everything not
-declared in it is inherited from `defaults`. Continuing the example above,
-the following adds a `newvariant2` variant that enables MMU lossless mode
-while the `newvariant` variant keeps the defaults:
-
-```json
-"variants": {
-  "newvariant": {},
-  "newvariant2": {
-    "asic_config_params": {
-      "mmu_lossless": true
-    }
-  }
-}
-```
-
-The next generator run produces two output files, `newboard_newvariant.yml`
-and `newboard_newvariant2.yml`. In the `newvariant2` output, `mmu_lossless`
-satisfies the Tomahawk5 conditional setting of the same name, so the lossless MMU settings are
-applied and the corresponding SAI common keys are suppressed; all other
-settings are identical to `newvariant` because the merge with `defaults` fills
-in every field the variant does not declare.
-
-Another common pattern is a variant per hardware configuration, where each
-variant reads its wiring data from a different `platform_mapping_v2`
-directory:
-
-```json
-"variants": {
-  "rack": {
-    "platform_mapping_name": "newboard_rack"
-  },
-  "test_fixture": {
-    "platform_mapping_name": "newboard_test_fixture"
-  }
-}
-```
-
 ## Adding a DNX platform
 
 Adding a platform on the DNX family follows the same pattern as on XGS. Only
@@ -180,6 +140,48 @@ The following steps complete the platform.
    appears beside the input as `generated/<name>_<variant>.json` and must
    match the reference byte for byte.
 
+## Adding a variant
+
+A variant is added by inserting one entry under `variants`; everything not
+declared in it is inherited from `defaults`. The mechanism is the same for
+both families. Continuing the XGS example from
+[Adding an XGS platform](#adding-an-xgs-platform),
+the following adds a `newvariant2` variant that enables MMU lossless mode
+while the `newvariant` variant keeps the defaults:
+
+```json
+"variants": {
+  "newvariant": {},
+  "newvariant2": {
+    "asic_config_params": {
+      "mmu_lossless": true
+    }
+  }
+}
+```
+
+The next generator run produces two output files, `newboard_newvariant.yml`
+and `newboard_newvariant2.yml`. In the `newvariant2` output, `mmu_lossless`
+satisfies the Tomahawk5 conditional setting of the same name, so the lossless MMU settings are
+applied and the corresponding SAI common keys are suppressed; all other
+settings are identical to `newvariant` because the merge with `defaults` fills
+in every field the variant does not declare.
+
+Another common pattern is a variant per hardware configuration, where each
+variant reads its platform mapping data from a different `platform_mapping`
+directory:
+
+```json
+"variants": {
+  "rack": {
+    "platform_mapping_name": "newboard_rack"
+  },
+  "test_fixture": {
+    "platform_mapping_name": "newboard_test_fixture"
+  }
+}
+```
+
 ## Adding a new ASIC family
 
 Supporting a new ASIC family, such as a different vendor or a different
@@ -193,8 +195,9 @@ files can be used as a reference.
    hooks `_apply_settings`, `_validate_apply_target`, and
    `_validate_apply_value`. Reuse the shared patterns where possible. The
    variant and defaults merge, the `asic_config_params` handling, and
-   condition evaluation come from the base class, wiring data comes from the
-   platform mapping parser, and feature toggles use conditional settings.
+   condition evaluation come from the base class, platform mapping data comes
+   from the platform mapping parser, and feature toggles use conditional
+   settings.
    Keep the behavior data-driven and avoid per-platform branches.
 2. **Vendor data.** Add
    `fboss/configs/asic_vendors/<vendor>/<family>/asics/<asic>.json` with
