@@ -27,11 +27,14 @@ struct CheckEnvironment {
   // Platform of the x86, used to select configs.
   std::string platformName;
   std::shared_ptr<const platform_checks::Host> x86;
-  // Null if the switch has no reachable BMC; see bmcUnavailableReason.
+  // Null if the BMC cannot be reached; see bmcUnavailableReason.
   std::shared_ptr<const platform_checks::Host> bmc;
   std::string bmcUnavailableReason;
   // Set if the switch should have a BMC but it could not be reached.
   std::optional<std::string> bmcConnectError;
+  // Set if the switch is treated as having no BMC, so checks of the x86 side
+  // of the management plane are skipped too.
+  std::optional<std::string> noBmcReason;
 };
 
 struct ConnectOptions {

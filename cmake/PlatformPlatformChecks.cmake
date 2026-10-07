@@ -12,11 +12,13 @@ add_fbthrift_cpp_library(
 )
 
 add_library(platform_check
+  fboss/platform/platform_checks/CommandLog.cpp
   fboss/platform/platform_checks/PlatformCheck.cpp
 )
 
 target_link_libraries(platform_check
   check_types_cpp2
+  fmt::fmt
   platform_checks_host
   platform_config_lib
   platform_manager_config_cpp2
@@ -46,7 +48,9 @@ target_link_libraries(platform_checks_platform_name
 
 add_library(platform_checks
   fboss/platform/platform_checks/HostEeprom.cpp
+  fboss/platform/platform_checks/checks/CommandCheck.cpp
   fboss/platform/platform_checks/checks/MacAddressCheck.cpp
+  fboss/platform/platform_checks/checks/ManagementPlaneChecks.cpp
   fboss/platform/platform_checks/checks/PciDeviceCheck.cpp
   fboss/platform/platform_checks/checks/PowerResetCheck.cpp
   # Not including KernelVersionCheck since it relies on internal tools
@@ -135,3 +139,15 @@ target_link_libraries(platform_checks_bmc_reachable_check_test
 )
 
 gtest_discover_tests(platform_checks_bmc_reachable_check_test)
+
+add_executable(platform_checks_management_plane_checks_test
+  fboss/platform/platform_checks/tests/ManagementPlaneChecksTest.cpp
+)
+
+target_link_libraries(platform_checks_management_plane_checks_test
+  platform_checks
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(platform_checks_management_plane_checks_test)

@@ -43,6 +43,7 @@ std::shared_ptr<const Host> connect(
 void connectBmc(const ConnectOptions& options, CheckEnvironment& env) {
   if (options.noBmc) {
     env.bmcUnavailableReason = "BMC checks disabled with --no-bmc";
+    env.noBmcReason = env.bmcUnavailableReason;
     return;
   }
   if (options.bmcHostname) {
@@ -53,6 +54,7 @@ void connectBmc(const ConnectOptions& options, CheckEnvironment& env) {
   if (!options.hostname) {
     env.bmcUnavailableReason =
         "No BMC to check; pass --hostname or --bmc-hostname";
+    env.noBmcReason = env.bmcUnavailableReason;
     return;
   }
   // Reported by the BMC Reachable check rather than aborting the run, so the

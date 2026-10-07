@@ -17,12 +17,15 @@ thrift_library(
 cpp_library(
     name = "platform_check",
     srcs = [
+        "CommandLog.cpp",
         "PlatformCheck.cpp",
     ],
     headers = [
+        "CommandLog.h",
         "PlatformCheck.h",
     ],
     deps = [
+        "fbsource//third-party/fmt:fmt",
         "//fboss/platform/config_lib:config_lib",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
@@ -106,8 +109,10 @@ cpp_library(
     name = "platform_checks",
     srcs = [
         "HostEeprom.cpp",
+        "checks/CommandCheck.cpp",
         "checks/KernelVersionCheck.cpp",
         "checks/MacAddressCheck.cpp",
+        "checks/ManagementPlaneChecks.cpp",
         "checks/PciDeviceCheck.cpp",
         "checks/PowerResetCheck.cpp",
         "checks/i801SmbusTimeoutCheck.cpp",
@@ -115,8 +120,10 @@ cpp_library(
     headers = [
         "HostEeprom.h",
         "checks/BmcReachableCheck.h",
+        "checks/CommandCheck.h",
         "checks/KernelVersionCheck.h",
         "checks/MacAddressCheck.h",
+        "checks/ManagementPlaneChecks.h",
         "checks/PciDeviceCheck.h",
         "checks/PowerResetCheck.h",
         "checks/i801SmbusTimeoutCheck.h",
@@ -248,6 +255,19 @@ cpp_unittest(
     ],
     network_access = network_access_utils.none(),
     deps = [
+        ":mock_host",
+        ":platform_checks",
+    ],
+)
+
+cpp_unittest(
+    name = "management_plane_checks_test",
+    srcs = [
+        "tests/ManagementPlaneChecksTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/googletest:gmock",
         ":mock_host",
         ":platform_checks",
     ],

@@ -12,6 +12,7 @@
 
 #include "fboss/platform/platform_checks/checks/BmcReachableCheck.h"
 #include "fboss/platform/platform_checks/checks/MacAddressCheck.h"
+#include "fboss/platform/platform_checks/checks/ManagementPlaneChecks.h"
 #include "fboss/platform/platform_checks/checks/PciDeviceCheck.h"
 #include "fboss/platform/platform_checks/checks/PowerResetCheck.h"
 #include "fboss/platform/platform_checks/checks/i801SmbusTimeoutCheck.h"
@@ -23,6 +24,12 @@ using namespace platform_checks;
 std::vector<std::unique_ptr<PlatformCheck>> createAllChecks(
     const CheckEnvironment& env) {
   const CheckTarget x86{.host = env.x86, .platformName = env.platformName};
+  const CheckTarget bmc{
+      .host = env.bmc, .unavailableReason = env.bmcUnavailableReason};
+  // The x86 side of the management plane only exists on switches with a BMC.
+  const CheckTarget x86WithBmc = env.noBmcReason
+      ? CheckTarget{.host = nullptr, .unavailableReason = *env.noBmcReason}
+      : x86;
 
   std::vector<std::unique_ptr<PlatformCheck>> checks;
   checks.push_back(
@@ -36,6 +43,15 @@ std::vector<std::unique_ptr<PlatformCheck>> createAllChecks(
   checks.push_back(std::make_unique<RecentKernelPanicCheck>(x86));
   checks.push_back(std::make_unique<WatchdogDidNotStopCheck>(x86));
   checks.push_back(std::make_unique<i801SmbusTimeoutCheck>(x86));
+
+  checks.push_back(makeX86FwUtilCheck(x86WithBmc));
+  checks.push_back(makeX86BmcLinkCheck(x86WithBmc));
+  checks.push_back(makeIpmiMcInfoCheck(x86WithBmc));
+  checks.push_back(makeBmcRestApiFromX86Check(x86WithBmc));
+
+  checks.push_back(makeBmcFwUtilCheck(bmc));
+  checks.push_back(makeBmcX86LinkCheck(bmc));
+  checks.push_back(makeBmcRestApiCheck(bmc));
   return checks;
 }
 
