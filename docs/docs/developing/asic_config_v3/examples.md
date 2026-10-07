@@ -32,9 +32,9 @@ added.
   "defaults": {
     "asic_config_params": {
       "config_type": "YAML_CONFIG",
+      "config_gen_type": "DEFAULT",
       "exact_match": false,
-      "mmu_lossless": false,
-      "config_gen_type": "DEFAULT"
+      "mmu_lossless": false
     },
     "port_config": {
       "default_speed": 400000,
