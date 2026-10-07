@@ -4412,6 +4412,14 @@ std::optional<sai_latch_status_t> SaiPortManager::getPcsRxLinkStatus(
       saiPortId, SaiPortTraits::Attributes::PcsRxLinkStatus{});
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+std::optional<sai_latch_status_t> SaiPortManager::getExtOperStatusLatch(
+    PortSaiId saiPortId) const {
+  std::optional<SaiPortTraits::Attributes::ExtOperStatusLatch> latch;
+  return SaiApiTable::getInstance()->portApi().getAttribute(saiPortId, latch);
+}
+#endif
+
 #endif
 
 #if defined(SAI_BRCM_PAI_IMPL) && SAI_API_VERSION >= SAI_VERSION(1, 10, 0)

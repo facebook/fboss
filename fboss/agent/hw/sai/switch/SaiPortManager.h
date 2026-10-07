@@ -316,6 +316,10 @@ class SaiPortManager {
       uint8_t numFecLanes) const;
   std::optional<sai_latch_status_t> getPcsRxLinkStatus(
       PortSaiId saiPortId) const;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+  std::optional<sai_latch_status_t> getExtOperStatusLatch(
+      PortSaiId saiPortId) const;
+#endif
 #endif
 
 #if defined(SAI_BRCM_PAI_IMPL) && SAI_API_VERSION >= SAI_VERSION(1, 10, 0)

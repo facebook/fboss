@@ -236,6 +236,27 @@ TEST_F(PortManagerTest, addPort) {
   checkPort(PortID(0), handle, true);
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+TEST_F(PortManagerTest, getExtOperStatusLatch) {
+  auto swPort = makePort(p0);
+  saiManagerTable->portManager().addPort(swPort);
+
+  const auto* handle =
+      saiManagerTable->portManager().getPortHandle(swPort->getID());
+  ASSERT_NE(handle, nullptr);
+  auto& fakePort =
+      FakeSai::getInstance()->portManager.get(handle->port->adapterKey());
+  fakePort.portExtOperStatusLatch.current_status = true;
+  fakePort.portExtOperStatusLatch.changed = true;
+
+  const auto status = saiManagerTable->portManager().getExtOperStatusLatch(
+      handle->port->adapterKey());
+  ASSERT_TRUE(status.has_value());
+  EXPECT_TRUE(status->current_status);
+  EXPECT_TRUE(status->changed);
+}
+#endif
+
 TEST_F(PortManagerTest, programUserMetaData) {
   auto swPort = makePort(p0);
   swPort->setUserMetaData(cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED);
