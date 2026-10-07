@@ -98,12 +98,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -419,12 +413,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -474,6 +462,12 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/1.*$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
@@ -1679,12 +1673,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -1998,12 +1986,6 @@
         },
         {
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -2342,6 +2324,9 @@
           "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
         },
         {
+          "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
+        },
+        {
           "test_name_regex": "AgentTunnelMgrTest.verifyNoOobLeakOnPortDown"
         },
         {
@@ -2370,6 +2355,21 @@
         },
         {
           "test_name_regex": "AgentVoqSwitchFullScaleDsfNodesTest.systemPortScaleTestWithHyperPort$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/1.HwResolvedMirrorStat$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/1.HwUnresolvedMirrorStat$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/1.SflowMirrorWithErspanMirror$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/1.SflowMirrorWithErspanMirrorNoPortSflow$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/1.SflowMirrorWithErspanMirrorOnePortSflow$"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/11.7.0.0_dnx_odp/jericho3/multi_switch": [
@@ -2480,12 +2480,6 @@
         },
         {
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -2800,12 +2794,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -2885,6 +2873,9 @@
         },
         {
           "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
         },
         {
           "test_name_regex": "AgentTunnelMgrTest.verifyNoOobLeakOnPortDown"
@@ -3026,12 +3017,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -3347,12 +3332,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -3426,6 +3405,12 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.reachDiscard"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -3536,12 +3521,6 @@
         },
         {
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -3860,12 +3839,6 @@
         },
         {
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -4207,6 +4180,9 @@
           "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
         },
         {
+          "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
+        },
+        {
           "test_name_regex": "AgentTunnelMgrTest.verifyNoOobLeakOnPortDown"
         },
         {
@@ -4342,12 +4318,6 @@
         },
         {
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -4665,12 +4635,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -4753,6 +4717,9 @@
         },
         {
           "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
         },
         {
           "test_name_regex": "AgentTunnelMgrTest.verifyNoOobLeakOnPortDown"
@@ -4894,12 +4861,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -5215,12 +5176,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -5294,6 +5249,12 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.reachDiscard"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -5406,12 +5367,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -5725,12 +5680,6 @@
         },
         {
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -5845,6 +5794,12 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*.AgentSflowMirrorUntruncateTestV6.VerifySampledPacketRate$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/0.SflowMirrorWithErspanMirrorOnePortSflow$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/1.SflowMirrorWithErspanMirrorOnePortSflow$"
         },
         {
           "test_name_regex": "AgentSrv6MidpointTest.*$"
@@ -6014,12 +5969,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -6336,12 +6285,6 @@
         },
         {
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -6681,6 +6624,9 @@
         },
         {
           "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
         },
         {
           "test_name_regex": "AgentTunnelMgrTest.verifyNoOobLeakOnPortDown"
@@ -6805,12 +6751,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -7127,12 +7067,6 @@
         },
         {
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -7472,6 +7406,9 @@
         },
         {
           "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
         },
         {
           "test_name_regex": "AgentTunnelMgrTest.verifyNoOobLeakOnPortDown"
@@ -7617,12 +7554,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -7938,12 +7869,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -8026,6 +7951,9 @@
         },
         {
           "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
         },
         {
           "test_name_regex": "AgentTunnelMgrTest.verifyNoOobLeakOnPortDown"
@@ -8165,12 +8093,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -8486,12 +8408,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -8574,6 +8490,9 @@
         },
         {
           "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
         },
         {
           "test_name_regex": "AgentTunnelMgrTest.verifyNoOobLeakOnPortDown"
@@ -8749,12 +8668,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -9070,12 +8983,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -9149,6 +9056,12 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.reachDiscard"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -9261,12 +9174,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -9582,12 +9489,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -9661,6 +9562,12 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.reachDiscard"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -9773,12 +9680,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -10094,12 +9995,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -10173,6 +10068,12 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.reachDiscard"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -10283,12 +10184,6 @@
         },
         {
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -10607,12 +10502,6 @@
         },
         {
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -10952,6 +10841,9 @@
         },
         {
           "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
         },
         {
           "test_name_regex": "AgentTunnelMgrTest.verifyNoOobLeakOnPortDown"
@@ -11079,12 +10971,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -11401,12 +11287,6 @@
         },
         {
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -11746,6 +11626,9 @@
         },
         {
           "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
         },
         {
           "test_name_regex": "AgentTunnelMgrTest.verifyNoOobLeakOnPortDown"
@@ -11894,12 +11777,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -12215,12 +12092,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -12303,6 +12174,9 @@
         },
         {
           "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
         },
         {
           "test_name_regex": "AgentTunnelMgrTest.verifyNoOobLeakOnPortDown"
@@ -12442,12 +12316,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -12763,12 +12631,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -12851,6 +12713,9 @@
         },
         {
           "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
         },
         {
           "test_name_regex": "AgentTunnelMgrTest.verifyNoOobLeakOnPortDown"
@@ -13029,12 +12894,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -13350,12 +13209,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -13429,6 +13282,12 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.reachDiscard"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -13544,12 +13403,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -13865,12 +13718,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -13944,6 +13791,12 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.reachDiscard"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -14056,12 +13909,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -14377,12 +14224,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -14456,6 +14297,12 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.reachDiscard"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -15640,12 +15487,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -15961,12 +15802,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -16079,6 +15914,12 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*.AgentSflowMirrorUntruncateTestV6.VerifySampledPacketRate$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/0.SflowMirrorWithErspanMirrorOnePortSflow$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/1.SflowMirrorWithErspanMirrorOnePortSflow$"
         },
         {
           "test_name_regex": "AgentSrv6MidpointTest.*$"
@@ -16323,12 +16164,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -16645,12 +16480,6 @@
         },
         {
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -16990,6 +16819,9 @@
         },
         {
           "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
         },
         {
           "test_name_regex": "AgentTunnelMgrTest.verifyNoOobLeakOnPortDown"
@@ -17117,12 +16949,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -17439,12 +17265,6 @@
         },
         {
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -17784,6 +17604,9 @@
         },
         {
           "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
         },
         {
           "test_name_regex": "AgentTunnelMgrTest.verifyNoOobLeakOnPortDown"
@@ -17920,12 +17743,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -18242,12 +18059,6 @@
         },
         {
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -18589,6 +18400,9 @@
           "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
         },
         {
+          "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
+        },
+        {
           "test_name_regex": "AgentTunnelMgrTest.verifyNoOobLeakOnPortDown"
         },
         {
@@ -18617,6 +18431,12 @@
         },
         {
           "test_name_regex": "AgentVoqSwitchWithFabricPortsTest.verifyRxFifoStuckDetectedCallback$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/1.*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -18730,12 +18550,6 @@
         },
         {
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -19053,12 +18867,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -19141,6 +18949,9 @@
         },
         {
           "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
         },
         {
           "test_name_regex": "AgentTunnelMgrTest.verifyNoOobLeakOnPortDown"
@@ -19280,12 +19091,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -19601,12 +19406,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -19689,6 +19488,9 @@
         },
         {
           "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
         },
         {
           "test_name_regex": "AgentTunnelMgrTest.verifyNoOobLeakOnPortDown"
@@ -19867,12 +19669,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -20188,12 +19984,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -20267,6 +20057,12 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.reachDiscard"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -20382,12 +20178,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -20703,12 +20493,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -20782,6 +20566,12 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.reachDiscard"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -20894,12 +20684,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -21215,12 +20999,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -21294,6 +21072,12 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.reachDiscard"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -21406,12 +21190,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -21725,12 +21503,6 @@
         },
         {
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -21857,6 +21629,12 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorAddressFamilySwitchingTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/0.SflowMirrorWithErspanMirrorOnePortSflow$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/1.SflowMirrorWithErspanMirrorOnePortSflow$"
         },
         {
           "test_name_regex": "AgentSrv6EncapTest/[01].sendPacketToEncapRouteUnresolvedDropped$"
@@ -22014,12 +21792,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -22335,12 +22107,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -22390,6 +22156,12 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/1.*$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
@@ -23592,12 +23364,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -23913,12 +23679,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -24031,6 +23791,12 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*.AgentSflowMirrorUntruncateTestV6.VerifySampledPacketRate$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/0.SflowMirrorWithErspanMirrorOnePortSflow$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/1.SflowMirrorWithErspanMirrorOnePortSflow$"
         },
         {
           "test_name_regex": "AgentSrv6MidpointTest.*$"
@@ -24194,12 +23960,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -24515,12 +24275,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -24633,6 +24387,12 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*.AgentSflowMirrorUntruncateTestV6.VerifySampledPacketRate$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/0.SflowMirrorWithErspanMirrorOnePortSflow$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/1.SflowMirrorWithErspanMirrorOnePortSflow$"
         },
         {
           "test_name_regex": "AgentSrv6MidpointTest.*$"
@@ -24796,12 +24556,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -25117,12 +24871,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -25247,6 +24995,12 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorAddressFamilySwitchingTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/0.SflowMirrorWithErspanMirrorOnePortSflow$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/1.SflowMirrorWithErspanMirrorOnePortSflow$"
         },
         {
           "test_name_regex": "AgentSrv6EncapTest/[01].sendPacketToEncapRouteUnresolvedDropped$"
@@ -25404,12 +25158,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -25725,12 +25473,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -25855,6 +25597,12 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorAddressFamilySwitchingTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/0.SflowMirrorWithErspanMirrorOnePortSflow$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/1.SflowMirrorWithErspanMirrorOnePortSflow$"
         },
         {
           "test_name_regex": "AgentSrv6EncapTest/[01].sendPacketToEncapRouteUnresolvedDropped$"
@@ -26012,12 +25760,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -26333,12 +26075,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -26463,6 +26199,12 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorAddressFamilySwitchingTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/0.SflowMirrorWithErspanMirrorOnePortSflow$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/1.SflowMirrorWithErspanMirrorOnePortSflow$"
         },
         {
           "test_name_regex": "AgentSrv6EncapTest/[01].sendPacketToEncapRouteUnresolvedDropped$"
@@ -26620,12 +26362,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -26941,12 +26677,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -27059,6 +26789,12 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*.AgentSflowMirrorUntruncateTestV6.VerifySampledPacketRate$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/0.SflowMirrorWithErspanMirrorOnePortSflow$"
+        },
+        {
+          "test_name_regex": "AgentHwSflowMirrorTest/1.SflowMirrorWithErspanMirrorOnePortSflow$"
         },
         {
           "test_name_regex": "AgentSrv6MidpointTest.*$"
@@ -27174,9 +26910,6 @@
           "test_name_regex": "AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentEcmpTrunkTest.*$"
         },
         {
@@ -27252,9 +26985,6 @@
         },
         {
           "test_name_regex": "AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
-        },
-        {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentEcmpTrunkTest.*$"
@@ -27544,9 +27274,6 @@
           "test_name_regex": "AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentEcmpTrunkTest.*$"
         },
         {
@@ -27622,9 +27349,6 @@
         },
         {
           "test_name_regex": "AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
-        },
-        {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentEcmpTrunkTest.*$"
@@ -28166,12 +27890,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -28424,6 +28142,18 @@
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnTrafficNoDrop$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/0.HwMirrorStat$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/0.NoPortMirroringIfUnResolved$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/0.ResolvedToResolvedUpdate$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/0.UnresolvedToUnresolvedUpdate$"
         },
         {
           "test_name_regex": "AgentPortBandwidthTest.VerifyQueueShaper$"
@@ -28700,12 +28430,6 @@
         },
         {
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -29316,12 +29040,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -29579,6 +29297,9 @@
           "test_name_regex": "AgentDeviceBufferGuaranteeTest.VerifyDeviceBufferCappedUnderCongestion$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/1.HwMirrorStat$"
+        },
+        {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
@@ -29772,12 +29493,6 @@
         },
         {
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -30176,12 +29891,6 @@
         },
         {
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -30736,12 +30445,6 @@
         },
         {
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -31304,12 +31007,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -31559,6 +31256,9 @@
         },
         {
           "test_name_regex": "AgentSrv6MidpointTest/[01].dropPacketUASidIsLastSid$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/1.PortMirrorUpdateIfMirrorUpdate$"
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
@@ -31877,12 +31577,6 @@
         },
         {
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -32136,6 +31830,9 @@
           "test_name_regex": "AgentSrv6MidpointTest/[01].dropPacketUASidIsLastSid$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/1.PortMirrorUpdateIfMirrorUpdate$"
+        },
+        {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
@@ -32452,12 +32149,6 @@
         },
         {
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -32798,12 +32489,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -33134,12 +32819,6 @@
         },
         {
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -33477,12 +33156,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -33818,12 +33491,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -34156,12 +33823,6 @@
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -34452,9 +34113,6 @@
           "test_name_regex": "AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentEcmpTrunkTest.*$"
         },
         {
@@ -34530,9 +34188,6 @@
         },
         {
           "test_name_regex": "AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
-        },
-        {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentEcmpTrunkTest.*$"
@@ -34822,9 +34477,6 @@
           "test_name_regex": "AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentEcmpTrunkTest.*$"
         },
         {
@@ -34900,9 +34552,6 @@
         },
         {
           "test_name_regex": "AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
-        },
-        {
-          "test_name_regex": "AgentHwMirrorTest/[01].*$"
         },
         {
           "test_name_regex": "AgentEcmpTrunkTest.*$"
