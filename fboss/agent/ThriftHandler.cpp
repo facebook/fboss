@@ -3576,6 +3576,7 @@ void ThriftHandler::getNextHopGroups(
     }
 
     NextHopGroup thriftGroup;
+    thriftGroup.id() = setId;
     if (isNamed) {
       thriftGroup.name() = nameIter->second;
       auto refCountIter = refCounts.find(NextHopSetID(setId));
@@ -3626,6 +3627,7 @@ void ThriftHandler::getNamedNextHopGroups(
     foundNames.insert(name);
     NextHopGroup thriftGroup;
     thriftGroup.name() = name;
+    thriftGroup.id() = nextHopSetId;
     thriftGroup.isProgrammed() =
         refCounts.count(NextHopSetID(nextHopSetId)) > 0;
     try {

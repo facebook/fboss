@@ -112,6 +112,8 @@ struct NextHopGroup {
   1: optional string name;
   2: list<NextHopThrift> nexthops;
   3: optional bool isProgrammed;
+  // NextHopSetId of the group. Output only; ignored when adding groups.
+  4: optional i64 id;
 }
 
 /*

@@ -4598,6 +4598,41 @@ TEST_F(
   EXPECT_EQ(orphanGroup->nexthops()->size(), 1);
 }
 
+TEST_F(NamedNextHopGroupThriftTest, nextHopGroupsReportNextHopSetId) {
+  ThriftHandler handler(sw_);
+
+  auto groups = std::make_unique<std::vector<NextHopGroup>>();
+  groups->push_back(makeGroup("group1", {"2401:db00:2110:3001::2"}));
+  groups->push_back(makeGroup("group2", {"2401:db00:2110:3055::2"}));
+  handler.addOrUpdateNamedNextHopGroups(std::move(groups));
+
+  std::map<std::string, int64_t> expected;
+  auto fibInfo = sw_->getState()->getFibsInfoMap()->cbegin()->second;
+  for (const auto& [name, setId] : fibInfo->getNameToNextHopSetId()) {
+    expected[name] = setId;
+  }
+  ASSERT_EQ(expected.size(), 2);
+
+  auto toNameToId = [](const std::vector<NextHopGroup>& result) {
+    std::map<std::string, int64_t> nameToId;
+    for (const auto& group : result) {
+      if (group.name().has_value() && group.id().has_value()) {
+        nameToId[*group.name()] = *group.id();
+      }
+    }
+    return nameToId;
+  };
+
+  std::vector<NextHopGroup> namedGroups;
+  handler.getNamedNextHopGroups(
+      namedGroups, std::make_unique<std::vector<std::string>>());
+  EXPECT_EQ(toNameToId(namedGroups), expected);
+
+  std::vector<NextHopGroup> allGroups;
+  handler.getNextHopGroups(allGroups);
+  EXPECT_EQ(toNameToId(allGroups), expected);
+}
+
 TEST_F(NamedNextHopGroupThriftTest, getNextHopGroupsNamedIsProgrammed) {
   ThriftHandler handler(sw_);
 
