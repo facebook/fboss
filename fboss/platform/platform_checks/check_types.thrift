@@ -19,11 +19,14 @@ enum CheckType {
  * OK - check passed
  * PROBLEM - check failed in an expected way. Remediation may be available.
  * ERROR - unable to complete the check properly
+ * SKIPPED - check was not run, e.g. a required host is unavailable. The
+ *           reason is in errorMessage.
  */
 enum CheckStatus {
   OK = 1,
   PROBLEM = 2,
   ERROR = 3,
+  SKIPPED = 4,
 }
 
 /*
@@ -46,6 +49,8 @@ struct CheckResult {
   4: optional string remediationMessage;
   5: optional string errorMessage;
   6: optional string checkName;
+  // Verbose evidence for debugging, e.g. commands run and their output.
+  7: optional string details;
 }
 
 struct CheckInfo {

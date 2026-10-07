@@ -21,3 +21,15 @@ target_link_libraries(fixmyfboss
   platform_checks
   CLI11::CLI11
 )
+
+add_executable(fixmyfboss_result_printer_test
+  fboss/platform/fixmyfboss/tests/ResultPrinterTest.cpp
+)
+
+target_link_libraries(fixmyfboss_result_printer_test
+  result_printer
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(fixmyfboss_result_printer_test)

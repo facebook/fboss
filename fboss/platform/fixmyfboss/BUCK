@@ -1,5 +1,7 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 load("//fbpkg:fbpkg.bzl", "fbpkg")
 
 oncall("fboss_platform")
@@ -40,4 +42,16 @@ fbpkg.builder(
     path_actions = {
         "fixmyfboss": "//fboss/platform/fixmyfboss:fixmyfboss",
     },
+)
+
+cpp_unittest(
+    name = "result_printer_test",
+    srcs = [
+        "tests/ResultPrinterTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        ":result_printer",
+    ],
 )

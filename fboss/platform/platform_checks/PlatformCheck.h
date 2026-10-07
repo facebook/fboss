@@ -70,6 +70,15 @@ class PlatformCheck {
     return result;
   }
 
+  CheckResult makeSkipped(const std::string& reason) const {
+    CheckResult result;
+    result.checkType() = getType();
+    result.checkName() = getName();
+    result.status() = CheckStatus::SKIPPED;
+    result.errorMessage() = reason;
+    return result;
+  }
+
   CheckResult makeOK() const {
     CheckResult result;
     result.checkType() = getType();

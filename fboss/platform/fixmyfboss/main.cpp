@@ -184,13 +184,14 @@ int main(int argc, char* argv[]) {
 
   // Run checks and print results
   auto results = runChecks(platformName);
-  fixmyfboss::ResultPrinter printer;
+  fixmyfboss::ResultPrinter printer(std::cout, verboseFlag || debugFlag);
   printer.printSummary(results);
   printer.printDetails(results);
 
   bool allPassed =
       std::all_of(results.begin(), results.end(), [](const auto& result) {
-        return *result.status() == platform_checks::CheckStatus::OK;
+        return *result.status() == platform_checks::CheckStatus::OK ||
+            *result.status() == platform_checks::CheckStatus::SKIPPED;
       });
 
   return allPassed ? EXIT_SUCCESS : EXIT_FAILURE;
