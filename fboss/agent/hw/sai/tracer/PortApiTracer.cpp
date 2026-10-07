@@ -248,6 +248,9 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Port, LinkDownDebouncePeriodMs)
   SAI_EXT_ATTR_MAP(Port, LinkUpDebounceRetriggerCount)
   SAI_EXT_ATTR_MAP(Port, LinkDownDebounceRetriggerCount)
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+  SAI_EXT_ATTR_MAP(Port, ExtOperStatusLatch)
+#endif
 #if defined(BRCM_SAI_SDK_GTE_13_0)
   SAI_EXT_ATTR_MAP(PortSerdes, Dco)
   SAI_EXT_ATTR_MAP(PortSerdes, FltM)

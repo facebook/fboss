@@ -168,6 +168,7 @@ typedef enum _sai_port_extensions_attr_t {
   SAI_PORT_ATTR_EXT_PFC_PAUSE_DURATION_OVERRIDE,
   SAI_PORT_ATTR_CABLE_PROPAGATION_DELAY_MEASURE,
   SAI_PORT_ATTR_EXT_LINKSCAN_MODE,
+  SAI_PORT_ATTR_EXT_FAKE_OPER_STATUS_LATCH,
 } sai_port_extensions_attr_t;
 
 typedef enum _sai_ingress_priority_group_extensions_attr_t {

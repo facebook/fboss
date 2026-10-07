@@ -466,6 +466,13 @@ std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
   return std::nullopt;
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeExtOperStatusLatch::operator()() {
+  return std::nullopt;
+}
+#endif
+
 const std::vector<sai_stat_id_t>& SaiPortTraits::llrExtensionStats() {
   static const std::vector<sai_stat_id_t> stats;
   return stats;

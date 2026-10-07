@@ -91,6 +91,7 @@ struct FakePort {
   sai_port_lane_latch_status_list_t portFecAlignmentLockStatus{};
   sai_latch_status_t portPcsLinkStatus{};
   sai_latch_status_t portCrcErrDetect{};
+  sai_latch_status_t portExtOperStatusLatch{};
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
   sai_port_frequency_offset_ppm_list_t portRxPPM{};

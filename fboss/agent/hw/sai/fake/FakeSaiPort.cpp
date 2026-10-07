@@ -1206,6 +1206,12 @@ sai_status_t get_port_attribute_fn(
         attr[i].value.latchstatus = port.portPcsLinkStatus;
         break;
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+      case SAI_PORT_ATTR_EXT_FAKE_OPER_STATUS_LATCH:
+        attr[i].value.latchstatus = port.portExtOperStatusLatch;
+        port.portExtOperStatusLatch.changed = false;
+        break;
+#endif
       case SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL_MODE:
         attr[i].value.u32 = static_cast<int32_t>(port.priorityFlowControlMode);
         break;

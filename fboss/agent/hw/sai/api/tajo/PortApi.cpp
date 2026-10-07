@@ -476,6 +476,17 @@ SaiPortTraits::Attributes::AttributePfcPauseDurationOverride::operator()() {
   return std::nullopt;
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeExtOperStatusLatch::operator()() {
+#if defined(TAJO_SDK_VERSION_25_5_4210)
+  return SAI_PORT_ATTR_EXT_OPER_STATUS_LATCH;
+#else
+  return std::nullopt;
+#endif
+}
+#endif
+
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeCablePropagationDelayMeasure::operator()() {
   return std::nullopt;

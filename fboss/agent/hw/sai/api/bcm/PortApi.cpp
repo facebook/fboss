@@ -753,4 +753,11 @@ const std::vector<sai_stat_id_t>& SaiPortTraits::llrExtensionStats() {
 #endif
   return stats;
 }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeExtOperStatusLatch::operator()() {
+  return std::nullopt;
+}
+#endif
 } // namespace facebook::fboss

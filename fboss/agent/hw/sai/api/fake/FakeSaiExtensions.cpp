@@ -193,6 +193,13 @@ SaiPortTraits::Attributes::AttributeCrcErrorDetect::operator()() {
   return SAI_PORT_ATTR_CRC_ERROR_TOKEN_DETECT;
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeExtOperStatusLatch::operator()() {
+  return SAI_PORT_ATTR_EXT_FAKE_OPER_STATUS_LATCH;
+}
+#endif
+
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeRxLaneSquelchEnable::operator()() {
   return SAI_PORT_ATTR_RX_LANE_SQUELCH_ENABLE;

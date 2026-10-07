@@ -74,6 +74,11 @@ struct SaiPortTraits {
     };
     using CrcErrorDetect =
         SaiExtensionAttribute<sai_latch_status_t, AttributeCrcErrorDetect>;
+    struct AttributeExtOperStatusLatch {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using ExtOperStatusLatch =
+        SaiExtensionAttribute<sai_latch_status_t, AttributeExtOperStatusLatch>;
 #endif
     struct AttributeFdrEnable {
       std::optional<sai_attr_id_t> operator()();
@@ -1151,6 +1156,9 @@ SAI_ATTRIBUTE_NAME(Port, LinkUpDebouncePeriodMs)
 SAI_ATTRIBUTE_NAME(Port, LinkDownDebouncePeriodMs)
 SAI_ATTRIBUTE_NAME(Port, LinkUpDebounceRetriggerCount)
 SAI_ATTRIBUTE_NAME(Port, LinkDownDebounceRetriggerCount)
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+SAI_ATTRIBUTE_NAME(Port, ExtOperStatusLatch)
+#endif
 
 #if defined(CHENAB_SAI_SDK)
 SAI_ATTRIBUTE_NAME(Port, AutoNegotiationMode)

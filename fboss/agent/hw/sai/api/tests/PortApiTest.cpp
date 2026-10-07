@@ -240,6 +240,25 @@ TEST_F(PortApiTest, onePort) {
   EXPECT_EQ(lanes[0], 42);
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+TEST_F(PortApiTest, readExtOperStatusLatchClearsChanged) {
+  auto id = createPort(100000, {42}, true);
+  auto& fakePort = fs->portManager.get(id);
+  fakePort.portExtOperStatusLatch.current_status = true;
+  fakePort.portExtOperStatusLatch.changed = true;
+
+  auto firstRead = portApi->getAttribute(
+      id, SaiPortTraits::Attributes::ExtOperStatusLatch{});
+  EXPECT_TRUE(firstRead.current_status);
+  EXPECT_TRUE(firstRead.changed);
+
+  auto secondRead = portApi->getAttribute(
+      id, SaiPortTraits::Attributes::ExtOperStatusLatch{});
+  EXPECT_TRUE(secondRead.current_status);
+  EXPECT_FALSE(secondRead.changed);
+}
+#endif
+
 #if defined(SAI_CBFC_SUPPORTED)
 TEST_F(PortApiTest, readNativeCbfcReceiverAttributes) {
   auto id = createPort(100000, {42}, true);

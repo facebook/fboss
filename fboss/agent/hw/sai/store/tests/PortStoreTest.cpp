@@ -181,6 +181,20 @@ TEST_F(PortStoreTest, portCreateCtor) {
   EXPECT_EQ(apiSpeed, 100000);
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+TEST_F(PortStoreTest, reloadDoesNotConsumeClearOnReadOperStatusLatch) {
+  auto portId = createPort(0);
+  auto& fakePort = FakeSai::getInstance()->portManager.get(portId);
+  fakePort.portExtOperStatusLatch.current_status = true;
+  fakePort.portExtOperStatusLatch.changed = true;
+
+  SaiStore s(0);
+  s.reload();
+
+  EXPECT_TRUE(fakePort.portExtOperStatusLatch.changed);
+}
+#endif
+
 TEST_F(PortStoreTest, portSetSpeed) {
   auto portId = createPort(0);
   SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);
