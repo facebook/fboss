@@ -98,6 +98,18 @@ std::unique_ptr<AgentEnsemble> createSrv6Ensemble() {
   return ensemble;
 }
 
+int resolveSrv6NextHops(
+    AgentEnsemble& ensemble,
+    const utility::EcmpSetupAnyNPorts6& ecmpHelper) {
+  auto numNhops =
+      std::min(static_cast<int>(ecmpHelper.getNextHops().size()), 64);
+  CHECK_GT(numNhops, 0);
+  ensemble.applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+    return ecmpHelper.resolveNextHops(in, numNhops);
+  });
+  return numNhops;
+}
+
 // Add numGroups SRv6 ECMP-group routes (2800:<group>::/48), each with
 // membersPerGroup unique SRv6 next hops. SIDs are numbered from sidBase so
 // multiple callers can keep disjoint SID ranges. The caller programs the
@@ -212,19 +224,10 @@ void srv6EcmpGroupScaleBenchmark(int numGroups, int membersPerGroup) {
 
   FLAGS_ecmp_resource_percentage = 100;
   auto ensemble = createSrv6Ensemble();
-
   utility::EcmpSetupAnyNPorts6 ecmpHelper(
       ensemble->getSw()->getState(),
       ensemble->getSw()->needL2EntryForNeighbor());
-  // Use ecmpHelper's nhop count — with 2-port LAGs, deduplicated nhops
-  // are fewer than physical ports
-  auto numNhops =
-      std::min(static_cast<int>(ecmpHelper.getNextHops().size()), 64);
-  CHECK_GT(numNhops, 0);
-
-  ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-    return ecmpHelper.resolveNextHops(in, numNhops);
-  });
+  auto numNhops = resolveSrv6NextHops(*ensemble, ecmpHelper);
 
   // Timed: program and unprogram all routes in one shot
   suspender.dismiss();
@@ -478,12 +481,7 @@ void srv6RouteCounterStatsCollectionBenchmark(int numRoutes) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper6(
       ensemble->getSw()->getState(),
       ensemble->getSw()->needL2EntryForNeighbor());
-  auto numNhops =
-      std::min(static_cast<int>(ecmpHelper6.getNextHops().size()), 64);
-  CHECK_GT(numNhops, 0);
-  ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-    return ecmpHelper6.resolveNextHops(in, numNhops);
-  });
+  auto numNhops = resolveSrv6NextHops(*ensemble, ecmpHelper6);
 
   auto sharedV6Nhops =
       makeSharedSrv6Nhops(ecmpHelper6, numNhops, kNumSharedSrv6Nhops);
@@ -548,12 +546,7 @@ void srv6FullScaleWarmbootBenchmark(
     utility::EcmpSetupAnyNPorts6 ecmpHelper(
         ensemble->getSw()->getState(),
         ensemble->getSw()->needL2EntryForNeighbor());
-    auto numNhops =
-        std::min(static_cast<int>(ecmpHelper.getNextHops().size()), 64);
-    CHECK_GT(numNhops, 0);
-    ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      return ecmpHelper.resolveNextHops(in, numNhops);
-    });
+    auto numNhops = resolveSrv6NextHops(*ensemble, ecmpHelper);
 
     auto routeUpdater = ensemble->getSw()->getRouteUpdater();
 
