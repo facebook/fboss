@@ -93,6 +93,10 @@ if ($ENV{SAI_TAJO_IMPL})
   message(STATUS "ENV SAI_TAJO_IMPL is set")
   set (SAI_TAJO_IMPL ON)
 endif()
+if (SAI_TAJO_IMPL)
+  # Code checks TAJO_SDK directly; SAI_SDK_VERSION only defines the selector.
+  add_definitions(-DTAJO_SDK)
+endif()
 
 option(SAI_BRCM_IMPL "Build SAI api with BRCM-SAI extensions" OFF)
 if ($ENV{SAI_BRCM_IMPL})
