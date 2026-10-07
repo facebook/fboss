@@ -442,7 +442,7 @@ in per-ASIC Python code:
 | Table | Emits | Notes |
 |---|---|---|
 | `port_speed_map` | `port_init_speed_*` keys | Interface-type-to-speed entries, emitted verbatim. |
-| `tm_port_header_map` | `tm_port_header_type_{in,out}_*` keys | Keyed by topology variant. The generator selects `dual_stage_3q_2q` when the variant's `port_config` starts with `dual_stage`, and `default` otherwise. |
+| `tm_port_headers` | `tm_port_header_type_{in,out}_*` keys | Emitted verbatim for every variant. Topology-specific header sets are selected through conditional settings. |
 | `dtm_flow_region_map` | `dtm_flow_mapping_mode_region_<N>` keys | Expanded from `key_format`, `start_region`, `count`, and `value`. |
 | `flow_remote_cores` | `dtm_flow_nof_remote_cores_region*` keys | Emitted verbatim. |
 
