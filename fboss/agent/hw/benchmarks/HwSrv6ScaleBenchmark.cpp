@@ -249,7 +249,9 @@ void srv6EcmpGroupScaleBenchmark(int numGroups, int membersPerGroup) {
   suspender.rehire();
 }
 
-void srv6NamedNhgScaleBenchmark(int numGroups, int entriesPerGroup) {
+void srv6NamedNhgScaleBenchmark(
+    int numGroups,
+    const std::vector<int>& weights) {
   folly::BenchmarkSuspender suspender;
 
   FLAGS_ecmp_resource_percentage = 100;
@@ -271,9 +273,12 @@ void srv6NamedNhgScaleBenchmark(int numGroups, int entriesPerGroup) {
         toIpPrefix({folly::IPAddress(fmt::format("2800:{:x}::", group)), 48});
     auto& nhg = (*groups)[group];
     nhg.name() = name;
-    for (int entry = 0; entry < entriesPerGroup; ++entry) {
-      auto globalIndex = group * entriesPerGroup + entry;
-      nhg.nexthops()->push_back(
+    const int numUnique = static_cast<int>(weights.size());
+    for (int i = 0; i < numUnique; ++i) {
+      auto globalIndex = group * numUnique + i;
+      nhg.nexthops()->insert(
+          nhg.nexthops()->end(),
+          weights[i],
           utility::makeSrv6NextHopThrift(
               ecmpHelper.nhop(globalIndex % numNhops).ip,
               makeSid(globalIndex)));
@@ -659,7 +664,19 @@ BENCHMARK(HwSrv6SingleNextHopRouteScaleBenchmark) {
 constexpr int kRbbNhgEntries = 16;
 
 BENCHMARK(HwSrv6NamedNhgEcmpNextHopScaleBenchmark) {
-  srv6NamedNhgScaleBenchmark(390, kRbbNhgEntries);
+  srv6NamedNhgScaleBenchmark(390, std::vector<int>(kRbbNhgEntries, 1));
+}
+
+BENCHMARK(HwSrv6NamedNhgUcmpNextHopScaleBenchmark) {
+  srv6NamedNhgScaleBenchmark(780, {1, 2, 3, 4, 5, 6, 7, 8});
+}
+
+BENCHMARK(HwSrv6NamedNhgEcmpGroupScaleBenchmark) {
+  srv6NamedNhgScaleBenchmark(1024, std::vector<int>(5, 1));
+}
+
+BENCHMARK(HwSrv6NamedNhgUcmpGroupScaleBenchmark) {
+  srv6NamedNhgScaleBenchmark(1024, {1, 2, 3, 4, 5});
 }
 
 // ASIC supports 50K routes with SRv6 encap. Routes follow a prod backbone
