@@ -4115,6 +4115,9 @@ bool BcmSwitch::hasValidAclMatcher(const std::shared_ptr<AclEntry>& acl) const {
           acl->getLookupClassRoute().value()) {
     return false;
   }
+  if (acl->getTcpFlagsMask()) {
+    return false;
+  }
 
   return true;
 }
