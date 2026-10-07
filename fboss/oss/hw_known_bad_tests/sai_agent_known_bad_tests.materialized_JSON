@@ -431,13 +431,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -468,6 +462,12 @@
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
+        },
+        {
+          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
@@ -919,13 +919,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -949,7 +943,7 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
         },
         {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogDetection$"
         },
         {
           "test_name_regex": "AgentIngressBufferTest.validatePGParamChange$"
@@ -1521,13 +1515,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -1573,6 +1561,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentFlexPortTest.FlexPortFOURX10G$"
+        },
+        {
+          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/11.7.0.0_dnx_odp/jericho3/mono": [
@@ -2003,13 +1994,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -2328,9 +2313,6 @@
         },
         {
           "test_name_regex": "roundtrip.*.warm_boot.AgentVoqSwitchIsolationFirmwareTest/1.forceLinkAdminDisable"
-        },
-        {
-          "test_name_regex": "AgentInPauseFloodTest.*"
         },
         {
           "test_name_regex": "warm_boot.AgentPfcConfigTest.PfcWatchdogProgrammingSequence"
@@ -2809,13 +2791,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -2879,9 +2855,6 @@
         },
         {
           "test_name_regex": "roundtrip.*.warm_boot.AgentVoqSwitchIsolationFirmwareTest/1.forceLinkAdminDisable"
-        },
-        {
-          "test_name_regex": "AgentInPauseFloodTest.*"
         },
         {
           "test_name_regex": "warm_boot.AgentPfcConfigTest.PfcWatchdogProgrammingSequence"
@@ -3353,13 +3326,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -3411,6 +3378,12 @@
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
+        },
+        {
+          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -3865,13 +3838,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -4190,9 +4157,6 @@
         },
         {
           "test_name_regex": "roundtrip.*.warm_boot.AgentVoqSwitchIsolationFirmwareTest/1.forceLinkAdminDisable"
-        },
-        {
-          "test_name_regex": "AgentInPauseFloodTest.*"
         },
         {
           "test_name_regex": "warm_boot.AgentPfcConfigTest.PfcWatchdogProgrammingSequence"
@@ -4659,13 +4623,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -4729,9 +4687,6 @@
         },
         {
           "test_name_regex": "roundtrip.*.warm_boot.AgentVoqSwitchIsolationFirmwareTest/1.forceLinkAdminDisable"
-        },
-        {
-          "test_name_regex": "AgentInPauseFloodTest.*"
         },
         {
           "test_name_regex": "warm_boot.AgentPfcConfigTest.PfcWatchdogProgrammingSequence"
@@ -5203,13 +5158,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -5261,6 +5210,12 @@
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
+        },
+        {
+          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -5712,13 +5667,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -5784,9 +5733,6 @@
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
-          "test_name_regex": ".*AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
-        },
-        {
           "test_name_regex": "roundtrip.*AgentMirrorOnDrop.*$"
         },
         {
@@ -5830,9 +5776,6 @@
         },
         {
           "test_name_regex": "AgentInPauseDiscardsCounterTest.*$"
-        },
-        {
-          "test_name_regex": "AgentInPauseFloodTest.*$"
         },
         {
           "test_name_regex": "AgentFlexPortTest.FlexPortTWOX50G$"
@@ -6317,13 +6260,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -6642,9 +6579,6 @@
         },
         {
           "test_name_regex": "roundtrip.*.warm_boot.AgentVoqSwitchIsolationFirmwareTest/1.forceLinkAdminDisable"
-        },
-        {
-          "test_name_regex": "AgentInPauseFloodTest.*"
         },
         {
           "test_name_regex": "warm_boot.AgentPfcConfigTest.PfcWatchdogProgrammingSequence"
@@ -7099,13 +7033,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -7424,9 +7352,6 @@
         },
         {
           "test_name_regex": "roundtrip.*.warm_boot.AgentVoqSwitchIsolationFirmwareTest/1.forceLinkAdminDisable"
-        },
-        {
-          "test_name_regex": "AgentInPauseFloodTest.*"
         },
         {
           "test_name_regex": "warm_boot.AgentPfcConfigTest.PfcWatchdogProgrammingSequence"
@@ -7899,13 +7824,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -7971,9 +7890,6 @@
           "test_name_regex": "roundtrip.*.warm_boot.AgentVoqSwitchIsolationFirmwareTest/1.forceLinkAdminDisable"
         },
         {
-          "test_name_regex": "AgentInPauseFloodTest.*"
-        },
-        {
           "test_name_regex": "warm_boot.AgentPfcConfigTest.PfcWatchdogProgrammingSequence"
         },
         {
@@ -7987,9 +7903,6 @@
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
-        },
-        {
-          "test_name_regex": "cold_boot.AgentVoqSwitchSdkDumpRateLimitTest.verifySdkDumpRateLimit$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3/multi_switch/fap": [
@@ -8435,13 +8348,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -8505,9 +8412,6 @@
         },
         {
           "test_name_regex": "roundtrip.*.warm_boot.AgentVoqSwitchIsolationFirmwareTest/1.forceLinkAdminDisable"
-        },
-        {
-          "test_name_regex": "AgentInPauseFloodTest.*"
         },
         {
           "test_name_regex": "warm_boot.AgentPfcConfigTest.PfcWatchdogProgrammingSequence"
@@ -9025,13 +8929,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -9083,6 +8981,12 @@
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
+        },
+        {
+          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -9534,13 +9438,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -9592,6 +9490,12 @@
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
+        },
+        {
+          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -10043,13 +9947,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -10101,6 +9999,12 @@
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
+        },
+        {
+          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -10555,13 +10459,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -10880,9 +10778,6 @@
         },
         {
           "test_name_regex": "roundtrip.*.warm_boot.AgentVoqSwitchIsolationFirmwareTest/1.forceLinkAdminDisable"
-        },
-        {
-          "test_name_regex": "AgentInPauseFloodTest.*"
         },
         {
           "test_name_regex": "warm_boot.AgentPfcConfigTest.PfcWatchdogProgrammingSequence"
@@ -11340,13 +11235,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -11665,9 +11554,6 @@
         },
         {
           "test_name_regex": "roundtrip.*.warm_boot.AgentVoqSwitchIsolationFirmwareTest/1.forceLinkAdminDisable"
-        },
-        {
-          "test_name_regex": "AgentInPauseFloodTest.*"
         },
         {
           "test_name_regex": "warm_boot.AgentPfcConfigTest.PfcWatchdogProgrammingSequence"
@@ -12143,13 +12029,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -12213,9 +12093,6 @@
         },
         {
           "test_name_regex": "roundtrip.*.warm_boot.AgentVoqSwitchIsolationFirmwareTest/1.forceLinkAdminDisable"
-        },
-        {
-          "test_name_regex": "AgentInPauseFloodTest.*"
         },
         {
           "test_name_regex": "warm_boot.AgentPfcConfigTest.PfcWatchdogProgrammingSequence"
@@ -12679,13 +12556,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -12749,9 +12620,6 @@
         },
         {
           "test_name_regex": "roundtrip.*.warm_boot.AgentVoqSwitchIsolationFirmwareTest/1.forceLinkAdminDisable"
-        },
-        {
-          "test_name_regex": "AgentInPauseFloodTest.*"
         },
         {
           "test_name_regex": "warm_boot.AgentPfcConfigTest.PfcWatchdogProgrammingSequence"
@@ -13272,13 +13140,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -13330,6 +13192,12 @@
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
+        },
+        {
+          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -13784,13 +13652,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -13842,6 +13704,12 @@
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
+        },
+        {
+          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -14293,13 +14161,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -14351,6 +14213,12 @@
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
+        },
+        {
+          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -14796,13 +14664,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -14826,7 +14688,7 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
         },
         {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogDetection$"
         },
         {
           "test_name_regex": "AgentIngressBufferTest.validatePGParamChange$"
@@ -15398,13 +15260,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -15874,13 +15730,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -15946,9 +15796,6 @@
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
-          "test_name_regex": ".*AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
-        },
-        {
           "test_name_regex": "roundtrip.*AgentMirrorOnDrop.*$"
         },
         {
@@ -15992,9 +15839,6 @@
         },
         {
           "test_name_regex": "AgentInPauseDiscardsCounterTest.*$"
-        },
-        {
-          "test_name_regex": "AgentInPauseFloodTest.*$"
         },
         {
           "test_name_regex": "AgentFlexPortTest.FlexPortTWOX50G$"
@@ -16554,13 +16398,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -16879,9 +16717,6 @@
         },
         {
           "test_name_regex": "roundtrip.*.warm_boot.AgentVoqSwitchIsolationFirmwareTest/1.forceLinkAdminDisable"
-        },
-        {
-          "test_name_regex": "AgentInPauseFloodTest.*"
         },
         {
           "test_name_regex": "warm_boot.AgentPfcConfigTest.PfcWatchdogProgrammingSequence"
@@ -17339,13 +17174,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -17664,9 +17493,6 @@
         },
         {
           "test_name_regex": "roundtrip.*.warm_boot.AgentVoqSwitchIsolationFirmwareTest/1.forceLinkAdminDisable"
-        },
-        {
-          "test_name_regex": "AgentInPauseFloodTest.*"
         },
         {
           "test_name_regex": "warm_boot.AgentPfcConfigTest.PfcWatchdogProgrammingSequence"
@@ -18133,13 +17959,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -18460,9 +18280,6 @@
           "test_name_regex": "roundtrip.*.warm_boot.AgentVoqSwitchIsolationFirmwareTest/1.forceLinkAdminDisable"
         },
         {
-          "test_name_regex": "AgentInPauseFloodTest.*"
-        },
-        {
           "test_name_regex": "warm_boot.AgentPfcConfigTest.PfcWatchdogProgrammingSequence"
         },
         {
@@ -18491,6 +18308,9 @@
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/1.*$"
+        },
+        {
+          "test_name_regex": "AgentInPauseFloodTest.*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -18939,13 +18759,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -19009,9 +18823,6 @@
         },
         {
           "test_name_regex": "roundtrip.*.warm_boot.AgentVoqSwitchIsolationFirmwareTest/1.forceLinkAdminDisable"
-        },
-        {
-          "test_name_regex": "AgentInPauseFloodTest.*"
         },
         {
           "test_name_regex": "warm_boot.AgentPfcConfigTest.PfcWatchdogProgrammingSequence"
@@ -19475,13 +19286,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -19545,9 +19350,6 @@
         },
         {
           "test_name_regex": "roundtrip.*.warm_boot.AgentVoqSwitchIsolationFirmwareTest/1.forceLinkAdminDisable"
-        },
-        {
-          "test_name_regex": "AgentInPauseFloodTest.*"
         },
         {
           "test_name_regex": "warm_boot.AgentPfcConfigTest.PfcWatchdogProgrammingSequence"
@@ -20068,13 +19870,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -20126,6 +19922,12 @@
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
+        },
+        {
+          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -20580,13 +20382,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -20638,6 +20434,12 @@
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
+        },
+        {
+          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -21089,13 +20891,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -21147,6 +20943,12 @@
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
+        },
+        {
+          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -21598,13 +21400,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -21716,9 +21512,6 @@
         },
         {
           "test_name_regex": "AgentInPauseDiscardsCounterTest.*$"
-        },
-        {
-          "test_name_regex": "AgentInPauseFloodTest.*$"
         },
         {
           "test_name_regex": "AgentFlexPortTest.FlexPortTWOX50G$"
@@ -22197,13 +21990,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -22234,6 +22021,12 @@
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
+        },
+        {
+          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
@@ -22685,13 +22478,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -22715,7 +22502,7 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
         },
         {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogDetection$"
         },
         {
           "test_name_regex": "AgentIngressBufferTest.validatePGParamChange$"
@@ -23284,13 +23071,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -23336,6 +23117,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentFlexPortTest.FlexPortFOURX10G$"
+        },
+        {
+          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
         }
     ],
     "brcm/15.4.0.0_odp/15.4.0.0_odp/tomahawk5/multi_switch": [
@@ -23769,13 +23553,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -23841,9 +23619,6 @@
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
-          "test_name_regex": ".*AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
-        },
-        {
           "test_name_regex": "roundtrip.*AgentMirrorOnDrop.*$"
         },
         {
@@ -23887,9 +23662,6 @@
         },
         {
           "test_name_regex": "AgentInPauseDiscardsCounterTest.*$"
-        },
-        {
-          "test_name_regex": "AgentInPauseFloodTest.*$"
         },
         {
           "test_name_regex": "AgentFlexPortTest.FlexPortTWOX50G$"
@@ -24365,13 +24137,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -24437,9 +24203,6 @@
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
-          "test_name_regex": ".*AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
-        },
-        {
           "test_name_regex": "roundtrip.*AgentMirrorOnDrop.*$"
         },
         {
@@ -24483,9 +24246,6 @@
         },
         {
           "test_name_regex": "AgentInPauseDiscardsCounterTest.*$"
-        },
-        {
-          "test_name_regex": "AgentInPauseFloodTest.*$"
         },
         {
           "test_name_regex": "AgentFlexPortTest.FlexPortTWOX50G$"
@@ -24961,13 +24721,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -25079,9 +24833,6 @@
         },
         {
           "test_name_regex": "AgentInPauseDiscardsCounterTest.*$"
-        },
-        {
-          "test_name_regex": "AgentInPauseFloodTest.*$"
         },
         {
           "test_name_regex": "AgentFlexPortTest.FlexPortTWOX50G$"
@@ -25560,13 +25311,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -25678,9 +25423,6 @@
         },
         {
           "test_name_regex": "AgentInPauseDiscardsCounterTest.*$"
-        },
-        {
-          "test_name_regex": "AgentInPauseFloodTest.*$"
         },
         {
           "test_name_regex": "AgentFlexPortTest.FlexPortTWOX50G$"
@@ -26159,13 +25901,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -26277,9 +26013,6 @@
         },
         {
           "test_name_regex": "AgentInPauseDiscardsCounterTest.*$"
-        },
-        {
-          "test_name_regex": "AgentInPauseFloodTest.*$"
         },
         {
           "test_name_regex": "AgentFlexPortTest.FlexPortTWOX50G$"
@@ -26758,13 +26491,7 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
@@ -26830,9 +26557,6 @@
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
-          "test_name_regex": ".*AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
-        },
-        {
           "test_name_regex": "roundtrip.*AgentMirrorOnDrop.*$"
         },
         {
@@ -26876,9 +26600,6 @@
         },
         {
           "test_name_regex": "AgentInPauseDiscardsCounterTest.*$"
-        },
-        {
-          "test_name_regex": "AgentInPauseFloodTest.*$"
         },
         {
           "test_name_regex": "AgentFlexPortTest.FlexPortTWOX50G$"
@@ -27809,9 +27530,6 @@
           "test_name_regex": "AgentInPauseDiscardsCounterTest.rxPauseDisabled$"
         },
         {
-          "test_name_regex": "AgentInPauseFloodTest.rxPauseDisabledValidateFlooding$"
-        },
-        {
           "test_name_regex": "AgentMPLSTest/[01].AclRedirectToNexthop$"
         },
         {
@@ -28346,9 +28064,6 @@
         },
         {
           "test_name_regex": "AgentInPauseDiscardsCounterTest.rxPauseDisabled$"
-        },
-        {
-          "test_name_regex": "AgentInPauseFloodTest.rxPauseDisabledValidateFlooding$"
         },
         {
           "test_name_regex": "AgentMPLSTest/[01].AclRedirectToNexthop$"
@@ -28920,9 +28635,6 @@
           "test_name_regex": "AgentTrafficPfcZeroPgHeadroomTest.verifyWithScaleCfgInCongestionDrops$"
         },
         {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
-        },
-        {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogDetection$"
         },
         {
@@ -29405,9 +29117,6 @@
           "test_name_regex": "AgentInPauseDiscardsCounterTest.rxPauseDisabled$"
         },
         {
-          "test_name_regex": "AgentInPauseFloodTest.rxPauseDisabledValidateFlooding$"
-        },
-        {
           "test_name_regex": "AgentMPLSTest/[01].AclRedirectToNexthop$"
         },
         {
@@ -29837,9 +29546,6 @@
         },
         {
           "test_name_regex": "AgentInPauseDiscardsCounterTest.rxPauseDisabled$"
-        },
-        {
-          "test_name_regex": "AgentInPauseFloodTest.rxPauseDisabledValidateFlooding$"
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
@@ -30316,9 +30022,6 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcZeroPgHeadroomTest.verifyWithScaleCfgInCongestionDrops$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogDetection$"
@@ -30873,9 +30576,6 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcZeroPgHeadroomTest.verifyWithScaleCfgInCongestionDrops$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogDetection$"
@@ -31444,9 +31144,6 @@
           "test_name_regex": "AgentTrafficPfcZeroPgHeadroomTest.verifyWithScaleCfgInCongestionDrops$"
         },
         {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
-        },
-        {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogDetection$"
         },
         {
@@ -32011,9 +31708,6 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcZeroPgHeadroomTest.verifyWithScaleCfgInCongestionDrops$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogDetection$"
