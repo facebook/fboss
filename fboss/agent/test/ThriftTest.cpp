@@ -4263,6 +4263,14 @@ TEST_F(NamedNextHopGroupThriftTest, bgpRouteRecursesOntoTeAgentWeights) {
       ClientID::TE_AGENT,
       AdminDistance::TE_AGENT);
 
+  std::vector<NextHopGroup> programmedGroups;
+  auto groupNames = std::make_unique<std::vector<std::string>>();
+  groupNames->push_back("te_agent_group");
+  handler.getNamedNextHopGroups(programmedGroups, std::move(groupNames));
+  ASSERT_EQ(programmedGroups.size(), 1);
+  ASSERT_TRUE(programmedGroups[0].isProgrammed().has_value());
+  EXPECT_TRUE(*programmedGroups[0].isProgrammed());
+
   const std::map<std::string, NextHopWeight> expectedWeights{
       {"fe80:face:b00c::1", 2},
       {"fe80:face:b00c::2", 1},
