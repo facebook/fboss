@@ -1131,7 +1131,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
     fieldTcpFlags =
         SaiAclEntryTraits::Attributes::FieldTcpFlags{AclEntryFieldU8(
             std::make_pair(
-                addedAclEntry->getTcpFlagsBitMap().value(), kTcpFlagsMask))};
+                addedAclEntry->getTcpFlagsBitMap().value(),
+                addedAclEntry->getTcpFlagsMask().value_or(kTcpFlagsMask)))};
   }
 
   std::optional<SaiAclEntryTraits::Attributes::FieldIpFrag> fieldIpFrag{
