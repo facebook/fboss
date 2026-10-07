@@ -11,7 +11,6 @@
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include <memory>
 
-#include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
@@ -739,14 +738,6 @@ std::string getConnectionHandle(int64_t switchId, cfg::AsicType asicType) {
   }
 }
 
-bool deployedConfigIsSai() {
-  try {
-    return isSaiConfig(*AgentConfig::fromDefaultFile()->thrift.sw());
-  } catch (const FbossError&) {
-    return false;
-  }
-}
-
 cfg::SwitchConfig genPortVlanCfg(
     const PlatformMapping* platformMapping,
     const HwAsic* asic,
@@ -965,11 +956,6 @@ cfg::SwitchConfig genPortVlanCfg(
       config.interfaces()->push_back(intf1);
     }
   }
-
-  if (deployedConfigIsSai()) {
-    config.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
-  }
-
   return config;
 }
 
