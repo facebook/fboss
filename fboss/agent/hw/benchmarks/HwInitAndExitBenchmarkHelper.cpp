@@ -189,7 +189,7 @@ void initAndExitBenchmarkHelper(
             asic,
             ensemble.getSw()->getPlatformType(),
             ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-            ensemble.masterLogicalPortIds(),
+            ensemble.masterLogicalInterfacePortIds(),
             numUplinks.value(),
             uplinkSpeed,
             downlinkSpeed,
