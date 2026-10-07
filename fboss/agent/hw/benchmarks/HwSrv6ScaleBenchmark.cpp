@@ -87,6 +87,17 @@ AgentEnsembleSwitchConfigFn makeSrv6ConfigFn() {
   };
 }
 
+std::unique_ptr<AgentEnsemble> createSrv6Ensemble() {
+  auto ensemble = createAgentEnsemble(
+      makeSrv6ConfigFn(), false /*disableLinkStateToggler*/);
+  ensemble->applyNewState(
+      [](const std::shared_ptr<SwitchState>& in) {
+        return utility::enableTrunkPorts(in);
+      },
+      "enable trunk ports");
+  return ensemble;
+}
+
 // Add numGroups SRv6 ECMP-group routes (2800:<group>::/48), each with
 // membersPerGroup unique SRv6 next hops. SIDs are numbered from sidBase so
 // multiple callers can keep disjoint SID ranges. The caller programs the
@@ -200,13 +211,7 @@ void srv6EcmpGroupScaleBenchmark(int numGroups, int membersPerGroup) {
   folly::BenchmarkSuspender suspender;
 
   FLAGS_ecmp_resource_percentage = 100;
-  auto ensemble = createAgentEnsemble(
-      makeSrv6ConfigFn(), false /*disableLinkStateToggler*/);
-  ensemble->applyNewState(
-      [](const std::shared_ptr<SwitchState>& in) {
-        return utility::enableTrunkPorts(in);
-      },
-      "enable trunk ports");
+  auto ensemble = createSrv6Ensemble();
 
   utility::EcmpSetupAnyNPorts6 ecmpHelper(
       ensemble->getSw()->getState(),
@@ -360,14 +365,7 @@ void srv6RouteScaleBenchmark(int numV6Routes, int numV4Routes) {
   folly::BenchmarkSuspender suspender;
   constexpr int kNumSharedSrv6Nhops = 8;
 
-  auto ensemble = createAgentEnsemble(
-      makeSrv6ConfigFn(), false /*disableLinkStateToggler*/);
-  ensemble->applyNewState(
-      [](const std::shared_ptr<SwitchState>& in) {
-        return utility::enableTrunkPorts(in);
-      },
-      "enable trunk ports");
-
+  auto ensemble = createSrv6Ensemble();
   utility::EcmpSetupAnyNPorts6 ecmpHelper6(
       ensemble->getSw()->getState(),
       ensemble->getSw()->needL2EntryForNeighbor());
