@@ -2282,9 +2282,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -2346,6 +2343,9 @@
         },
         {
           "test_name_regex": "roundtrip.*.AgentVoqSwitchWarmbootReconcileTest.WarmbootReconcileMissingRoute"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         },
         {
           "test_name_regex": "AgentTrafficPfcGenTest.verifyBufferPoolWatermarks"
@@ -2833,9 +2833,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -2917,6 +2914,12 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackLinkUpAndDown$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/11.7.0.0_dnx_odp/ramon3/multi_switch": [
@@ -3374,9 +3377,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -3423,6 +3423,12 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackLinkUpAndDown$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3/mono": [
@@ -4138,9 +4144,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -4202,6 +4205,9 @@
         },
         {
           "test_name_regex": "roundtrip.*.AgentVoqSwitchWarmbootReconcileTest.WarmbootReconcileMissingRoute"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         },
         {
           "test_name_regex": "AgentVoqSwitchTest.verifyAI23ModeConfig$"
@@ -4677,9 +4683,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -4761,6 +4764,12 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackLinkUpAndDown$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/multi_switch": [
@@ -5218,9 +5227,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -5267,6 +5273,12 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackLinkUpAndDown$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         }
     ],
     "brcm/11.7.0.0_odp/11.7.0.0_odp/tomahawk5/multi_switch": [
@@ -6584,9 +6596,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -6648,6 +6657,9 @@
         },
         {
           "test_name_regex": "roundtrip.*.AgentVoqSwitchWarmbootReconcileTest.WarmbootReconcileMissingRoute"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -7366,9 +7378,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -7430,6 +7439,9 @@
         },
         {
           "test_name_regex": "roundtrip.*.AgentVoqSwitchWarmbootReconcileTest.WarmbootReconcileMissingRoute"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
@@ -7909,9 +7921,6 @@
         },
         {
           "test_name_regex": "AgentPortBandwidthTest.*$"
-        },
-        {
-          "test_name_regex": "AgentRollbackTest.*$"
         },
         {
           "test_name_regex": "AgentQphRollbackTest.*$"
@@ -8450,9 +8459,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -8540,6 +8546,12 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackLinkUpAndDown$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/mono/fe13": [
@@ -8554,6 +8566,12 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackLinkUpAndDown$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/mono/fe2": [
@@ -8568,6 +8586,12 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackLinkUpAndDown$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/multi_switch": [
@@ -9025,9 +9049,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -9074,6 +9095,12 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackLinkUpAndDown$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/multi_switch/fe13": [
@@ -9531,9 +9558,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -9580,6 +9604,12 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackLinkUpAndDown$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/multi_switch/fe2": [
@@ -10037,9 +10067,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -10086,6 +10113,12 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackLinkUpAndDown$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         }
     ],
     "brcm/13.3.0.0_dnx_odp/13.3.0.0_dnx_odp/jericho3/mono": [
@@ -10801,9 +10834,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -10865,6 +10895,9 @@
         },
         {
           "test_name_regex": "roundtrip.*.AgentVoqSwitchWarmbootReconcileTest.WarmbootReconcileMissingRoute"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -11586,9 +11619,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -11650,6 +11680,9 @@
         },
         {
           "test_name_regex": "roundtrip.*.AgentVoqSwitchWarmbootReconcileTest.WarmbootReconcileMissingRoute"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -12132,9 +12165,6 @@
         },
         {
           "test_name_regex": "AgentPortBandwidthTest.*$"
-        },
-        {
-          "test_name_regex": "AgentRollbackTest.*$"
         },
         {
           "test_name_regex": "AgentQphRollbackTest.*$"
@@ -12673,9 +12703,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -12766,6 +12793,12 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackLinkUpAndDown$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         }
     ],
     "brcm/13.3.0.0_dnx_odp/13.3.0.0_dnx_odp/ramon3/mono/fe13": [
@@ -12780,6 +12813,12 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackLinkUpAndDown$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         }
     ],
     "brcm/13.3.0.0_dnx_odp/13.3.0.0_dnx_odp/ramon3/mono/fe2": [
@@ -12794,6 +12833,12 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackLinkUpAndDown$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         }
     ],
     "brcm/13.3.0.0_dnx_odp/13.3.0.0_dnx_odp/ramon3/multi_switch": [
@@ -13251,9 +13296,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -13303,6 +13345,12 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackLinkUpAndDown$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         }
     ],
     "brcm/13.3.0.0_dnx_odp/13.3.0.0_dnx_odp/ramon3/multi_switch/fe13": [
@@ -13760,9 +13808,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -13809,6 +13854,12 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackLinkUpAndDown$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         }
     ],
     "brcm/13.3.0.0_dnx_odp/13.3.0.0_dnx_odp/ramon3/multi_switch/fe2": [
@@ -14266,9 +14317,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -14315,6 +14363,12 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackLinkUpAndDown$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         }
     ],
     "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk3/multi_switch": [
@@ -16779,9 +16833,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -16843,6 +16894,9 @@
         },
         {
           "test_name_regex": "roundtrip.*.AgentVoqSwitchWarmbootReconcileTest.WarmbootReconcileMissingRoute"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -17564,9 +17618,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -17628,6 +17679,9 @@
         },
         {
           "test_name_regex": "roundtrip.*.AgentVoqSwitchWarmbootReconcileTest.WarmbootReconcileMissingRoute"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -18358,9 +18412,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -18422,6 +18473,9 @@
         },
         {
           "test_name_regex": "roundtrip.*.AgentVoqSwitchWarmbootReconcileTest.WarmbootReconcileMissingRoute"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -18907,9 +18961,6 @@
         },
         {
           "test_name_regex": "AgentPortBandwidthTest.*$"
-        },
-        {
-          "test_name_regex": "AgentRollbackTest.*$"
         },
         {
           "test_name_regex": "AgentQphRollbackTest.*$"
@@ -19448,9 +19499,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -19541,6 +19589,12 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackLinkUpAndDown$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         }
     ],
     "brcm/14.2.0.0_dnx_odp/14.2.0.0_dnx_odp/ramon3/mono/fe13": [
@@ -19555,6 +19609,12 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackLinkUpAndDown$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         }
     ],
     "brcm/14.2.0.0_dnx_odp/14.2.0.0_dnx_odp/ramon3/mono/fe2": [
@@ -19569,6 +19629,12 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackLinkUpAndDown$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         }
     ],
     "brcm/14.2.0.0_dnx_odp/14.2.0.0_dnx_odp/ramon3/multi_switch": [
@@ -20026,9 +20092,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -20078,6 +20141,12 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackLinkUpAndDown$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         }
     ],
     "brcm/14.2.0.0_dnx_odp/14.2.0.0_dnx_odp/ramon3/multi_switch/fe13": [
@@ -20535,9 +20604,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -20584,6 +20650,12 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackLinkUpAndDown$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         }
     ],
     "brcm/14.2.0.0_dnx_odp/14.2.0.0_dnx_odp/ramon3/multi_switch/fe2": [
@@ -21041,9 +21113,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -21090,6 +21159,12 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackLinkUpAndDown$"
+        },
+        {
+          "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         }
     ],
     "brcm/14.2.0.0_odp/14.2.0.0_odp/tomahawk6/multi_switch": [
@@ -21545,9 +21620,6 @@
         },
         {
           "test_name_regex": "AgentPortBandwidthTest.*$"
-        },
-        {
-          "test_name_regex": "AgentRollbackTest.*$"
         },
         {
           "test_name_regex": "AgentQphRollbackTest.*$"
@@ -24913,9 +24985,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -25515,9 +25584,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -26115,9 +26181,6 @@
         },
         {
           "test_name_regex": "AgentPortBandwidthTest.*$"
-        },
-        {
-          "test_name_regex": "AgentRollbackTest.*$"
         },
         {
           "test_name_regex": "AgentQphRollbackTest.*$"
@@ -28118,9 +28181,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -28658,9 +28718,6 @@
         },
         {
           "test_name_regex": "AgentPortBandwidthTest.*$"
-        },
-        {
-          "test_name_regex": "AgentRollbackTest.*$"
         },
         {
           "test_name_regex": "AgentQphRollbackTest.*$"
@@ -29268,9 +29325,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -29723,9 +29777,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -30119,9 +30170,6 @@
         },
         {
           "test_name_regex": "AgentPortBandwidthTest.*$"
-        },
-        {
-          "test_name_regex": "AgentRollbackTest.*$"
         },
         {
           "test_name_regex": "AgentQphRollbackTest.*$"
@@ -30673,9 +30721,6 @@
         },
         {
           "test_name_regex": "AgentPortBandwidthTest.*$"
-        },
-        {
-          "test_name_regex": "AgentRollbackTest.*$"
         },
         {
           "test_name_regex": "AgentQphRollbackTest.*$"
@@ -31233,9 +31278,6 @@
         },
         {
           "test_name_regex": "AgentPortBandwidthTest.*$"
-        },
-        {
-          "test_name_regex": "AgentRollbackTest.*$"
         },
         {
           "test_name_regex": "AgentQphRollbackTest.*$"
@@ -31807,9 +31849,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -32379,9 +32418,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         },
         {
@@ -32717,9 +32753,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         }
     ],
@@ -33050,9 +33083,6 @@
         },
         {
           "test_name_regex": "AgentPortBandwidthTest.*$"
-        },
-        {
-          "test_name_regex": "AgentRollbackTest.*$"
         },
         {
           "test_name_regex": "AgentQphRollbackTest.*$"
@@ -33387,9 +33417,6 @@
           "test_name_regex": "AgentPortBandwidthTest.*$"
         },
         {
-          "test_name_regex": "AgentRollbackTest.*$"
-        },
-        {
           "test_name_regex": "AgentQphRollbackTest.*$"
         }
     ],
@@ -33717,9 +33744,6 @@
         },
         {
           "test_name_regex": "AgentPortBandwidthTest.*$"
-        },
-        {
-          "test_name_regex": "AgentRollbackTest.*$"
         },
         {
           "test_name_regex": "AgentQphRollbackTest.*$"
@@ -34052,9 +34076,6 @@
         },
         {
           "test_name_regex": "AgentPortBandwidthTest.*$"
-        },
-        {
-          "test_name_regex": "AgentRollbackTest.*$"
         },
         {
           "test_name_regex": "AgentQphRollbackTest.*$"
