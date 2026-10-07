@@ -415,6 +415,10 @@ ServiceHandler::~ServiceHandler() {
   num_instances_.incrementValue(-1);
 }
 
+FsdbOperStatsRoot ServiceHandler::operStatsRootExpensive() const {
+  return operStatsStorage_.currentStateExpensive();
+}
+
 OperPublisherInfo ServiceHandler::makePublisherInfo(
     const RawPathT& path,
     const PublisherId& publisherId,
