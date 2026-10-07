@@ -247,5 +247,71 @@
       "fanMissingVal": 0,
       "rpmMin": 6000
     }
-  ]
+  ],
+  "shutdownCmd": "/usr/sbin/shutdown -h now",
+  "shutdownCondition": {
+    "numOvertempSensorForShutdown": 2,
+    "conditions": [
+      {
+        "sensorName": "ASIC_DIODE_0",
+        "overtempThreshold": 122.0,
+        "slidingWindowSize": 10
+      },
+      {
+        "sensorName": "ASIC_DIODE_1",
+        "overtempThreshold": 122.0,
+        "slidingWindowSize": 10
+      },
+      {
+        "sensorName": "ASIC_DIODE_2",
+        "overtempThreshold": 122.0,
+        "slidingWindowSize": 10
+      },
+      {
+        "sensorName": "ASIC_TEMP_MAX_C",
+        "overtempThreshold": 112.0,
+        "slidingWindowSize": 10
+      },
+      {
+        "sensorName": "ASIC_TEMP_MIN_C",
+        "overtempThreshold": 112.0,
+        "slidingWindowSize": 10
+      },
+      {
+        "sensorName": "SWITCH_CARD_REAR",
+        "overtempThreshold": 92.0,
+        "slidingWindowSize": 10
+      },
+      {
+        "sensorName": "CPU_TCTL_TEMP",
+        "overtempThreshold": 120.0,
+        "slidingWindowSize": 10
+      },
+      {
+        "sensorName": "CPU_TCCD1_TEMP",
+        "overtempThreshold": 120.0,
+        "slidingWindowSize": 10
+      },
+      {
+        "sensorName": "CPU_TCCD2_TEMP",
+        "overtempThreshold": 120.0,
+        "slidingWindowSize": 10
+      },
+      {
+        "sensorName": "DIMM1_TEMP",
+        "overtempThreshold": 95.0,
+        "slidingWindowSize": 10
+      },
+      {
+        "sensorName": "DIMM2_TEMP",
+        "overtempThreshold": 95.0,
+        "slidingWindowSize": 10
+      },
+      {
+        "sensorName": "NVME_COMPOSITE_TEMP",
+        "overtempThreshold": 95.0,
+        "slidingWindowSize": 10
+      }
+    ]
+  }
 }
