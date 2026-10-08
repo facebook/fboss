@@ -43,12 +43,7 @@ class AgentMyMacTest : public AgentHwTest {
     auto config = utility::onePortPerInterfaceConfig(
         ensemble.getSw(), ensemble.masterLogicalPortIds());
     const auto ports = ensemble.masterLogicalInterfacePortIds();
-    const auto ingressVlan = vlanOf(config, ports[0]);
-    CHECK_NE(ingressVlan, vlanOf(config, ports[1]));
-    cfg::MacAndVlan myMac;
-    myMac.macAddress() = kVirtualMac.toString();
-    myMac.vlanID() = ingressVlan;
-    config.switchSettings()->myMacs() = {myMac};
+    CHECK_NE(vlanOf(config, ports[0]), vlanOf(config, ports[1]));
     return config;
   }
 
@@ -71,6 +66,15 @@ class AgentMyMacTest : public AgentHwTest {
         ->getPorts()
         ->getNodeIf(ingressPort())
         ->getIngressVlan();
+  }
+
+  void applyMyMac() {
+    auto config = initialConfig(*getAgentEnsemble());
+    cfg::MacAndVlan myMac;
+    myMac.macAddress() = kVirtualMac.toString();
+    myMac.vlanID() = vlanOf(config, ingressPort());
+    config.switchSettings()->myMacs() = {myMac};
+    applyNewConfig(config);
   }
 
   void setupRoutes() {
@@ -140,7 +144,10 @@ class AgentMyMacTest : public AgentHwTest {
 };
 
 TEST_F(AgentMyMacTest, routerMacAndVirtualMacRouted) {
-  auto setup = [this]() { setupRoutes(); };
+  auto setup = [this]() {
+    applyMyMac();
+    setupRoutes();
+  };
   auto verify = [this]() {
     verifyRouted(routerMac());
     verifyRouted(kVirtualMac);
