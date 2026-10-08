@@ -46,6 +46,7 @@
 #include "fboss/agent/hw/sai/switch/SaiLagManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiMirrorManager.h"
+#include "fboss/agent/hw/sai/switch/SaiMyMacManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
@@ -2005,6 +2006,16 @@ void SaiSwitch::processSwitchSettingsChangeSansDrainedEntryLocked(
       managerTable_->switchManager().setPtpTcEnabled(newVal);
       // update already added ports
       managerTable_->portManager().setPtpTcEnable(newVal);
+    }
+  }
+
+  {
+    const auto oldVal = oldSwitchSettings->getMyMacs();
+    const auto newVal = newSwitchSettings->getMyMacs();
+    if (oldVal != newVal) {
+      XLOG(DBG2) << "Configuring myMacs, num entries old: " << oldVal.size()
+                 << " new: " << newVal.size();
+      managerTable_->myMacManager().programMyMacs(newVal);
     }
   }
 
