@@ -431,10 +431,17 @@ _BOOLEAN_OPERATOR_NAMES = {1: "AND", 2: "OR", 3: "NOT"}
 
 
 def _boolean_operator_name(raw: Any) -> str:
-    """routing_policy.BooleanOperator as its name, from the int or the name."""
+    """routing_policy.BooleanOperator as its name, from the int or the name.
+
+    Not a validator: an unrecognised value is returned as-is so the CLI
+    rejects it on replay with its own message.
+    """
     if isinstance(raw, str):
         return raw
-    return _BOOLEAN_OPERATOR_NAMES.get(int(raw), str(raw))
+    try:
+        return _BOOLEAN_OPERATOR_NAMES.get(int(raw), str(raw))
+    except (TypeError, ValueError):
+        return str(raw)
 
 
 def generate_as_path_list_commands(as_path_list: dict[str, Any]) -> list[str]:
@@ -556,9 +563,13 @@ _IP_VERSION_KEYWORDS = {4: "v4", 6: "v6"}
 
 
 def _comparison_operator_name(raw: Any) -> str:
+    """routing_policy.ComparisonOperator as its name; see _boolean_operator_name."""
     if isinstance(raw, str):
         return raw
-    return _COMPARISON_OPERATOR_NAMES.get(int(raw), str(raw))
+    try:
+        return _COMPARISON_OPERATOR_NAMES.get(int(raw), str(raw))
+    except (TypeError, ValueError):
+        return str(raw)
 
 
 def _prefix_list_warnings(name: str, prefix_list: dict[str, Any]) -> list[str]:

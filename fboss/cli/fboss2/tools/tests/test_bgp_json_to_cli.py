@@ -1047,6 +1047,16 @@ class GenerateAsPathListCommandsTest(unittest.TestCase):
         self.assertTrue(commands[0].startswith("# WARNING:"), commands[0])
         self.assertIn("NOT", commands[0])
 
+    def test_malformed_boolean_operator_passes_through(self) -> None:
+        """j2c does not validate enum values; the CLI rejects them on replay."""
+        for raw, rendered in ((None, "None"), ([1], "'[1]'")):
+            commands = generate_as_path_list_commands(
+                {"name": "ASPL", "boolean_operator": raw}
+            )
+            self.assertEqual(
+                commands, [f"{self.PREFIX} boolean-operator {rendered}"], raw
+            )
+
     def test_dead_fields_warn(self) -> None:
         """Fields bgpd never reads surface as warnings, not silently dropped."""
         commands = generate_as_path_list_commands(
@@ -1235,6 +1245,16 @@ class GeneratePrefixListCommandsTest(unittest.TestCase):
         self.assertEqual(len(commands), 4)
         for c in commands:
             self.assertTrue(c.startswith("# WARNING:"), c)
+
+    def test_malformed_compare_operator_passes_through(self) -> None:
+        """j2c does not validate enum values; the CLI rejects them on replay."""
+        for raw, rendered in ((None, "None"), ([2], "'[2]'")):
+            commands = generate_prefix_list_commands(
+                {"name": "PL", "compare_operator": raw}
+            )
+            self.assertEqual(
+                commands, [f"{self.PREFIX} compare-operator {rendered}"], raw
+            )
 
     def test_policy_block_order(self) -> None:
         config = {
