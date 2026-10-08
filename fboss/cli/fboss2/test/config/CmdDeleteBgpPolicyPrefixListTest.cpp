@@ -13,7 +13,6 @@
 #include <vector>
 
 #include "configerator/structs/neteng/bgp_policy/thrift/gen-cpp2/routing_policy_types.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/prefix-list/BgpPrefixListCliUtils.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/prefix-list/CmdConfigProtocolBgpPolicyPrefixList.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/bgp/policy/prefix-list/CmdDeleteProtocolBgpPolicyPrefixList.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
@@ -42,22 +41,6 @@ class CmdDeleteBgpPolicyPrefixListTestFixture : public CmdConfigTestBase {
     CmdConfigProtocolBgpPolicyPrefixList cmd;
     HostInfo hostInfo("testhost");
     return cmd.queryClient(hostInfo, BgpPrefixListConfig(tokens));
-  }
-
-  // Seed an entry. The entry level is its own subcommand
-  // (CmdConfigProtocolBgpPolicyPrefixListEntry), which lands above this
-  // command in the stack — so stage it through the shared helpers rather than
-  // depending on that handler.
-  void configureEntry(
-      const std::string& listName,
-      int32_t seqNum,
-      const std::string& basePrefix) {
-    auto& session = ConfigSession::getInstance();
-    auto& list =
-        bgpcli::findOrCreatePrefixList(session.getBgpConfig(), listName);
-    bgpcli::findOrCreatePrefixListEntry(list, seqNum).base_prefix() =
-        basePrefix;
-    session.saveBgpConfig();
   }
 
   std::string del(const std::vector<std::string>& tokens) {
@@ -116,26 +99,14 @@ class CmdDeleteBgpPolicyPrefixListTestFixture : public CmdConfigTestBase {
 TEST_F(CmdDeleteBgpPolicyPrefixListTestFixture, argValidation) {
   auto listOnly = BgpPrefixListRef({"PL100"});
   EXPECT_EQ(listOnly.listName(), "PL100");
-  EXPECT_FALSE(listOnly.hasEntry());
 
-  auto withEntry = BgpPrefixListRef({"PL100", "entry", "10"});
-  EXPECT_EQ(withEntry.listName(), "PL100");
-  EXPECT_TRUE(withEntry.hasEntry());
-  EXPECT_EQ(withEntry.seqNum(), 10);
-
-  // Invalid: empty, empty name, non-`entry` second token, missing seq-num,
-  // non-integer and negative seq-nums, extra tokens.
+  // Invalid: empty, empty name, any second token (entries are deleted
+  // through the entry subcommand, not here).
   EXPECT_THROW(BgpPrefixListRef({}), std::invalid_argument);
   EXPECT_THROW(BgpPrefixListRef({""}), std::invalid_argument);
   EXPECT_THROW(BgpPrefixListRef({"PL100", "PL200"}), std::invalid_argument);
-  EXPECT_THROW(BgpPrefixListRef({"PL100", "entry"}), std::invalid_argument);
   EXPECT_THROW(
-      BgpPrefixListRef({"PL100", "entry", "ten"}), std::invalid_argument);
-  EXPECT_THROW(
-      BgpPrefixListRef({"PL100", "entry", "-1"}), std::invalid_argument);
-  EXPECT_THROW(
-      BgpPrefixListRef({"PL100", "entry", "10", "extra"}),
-      std::invalid_argument);
+      BgpPrefixListRef({"PL100", "entry", "10"}), std::invalid_argument);
 }
 
 // ==============================================================================
@@ -143,7 +114,7 @@ TEST_F(CmdDeleteBgpPolicyPrefixListTestFixture, argValidation) {
 // ==============================================================================
 
 TEST_F(CmdDeleteBgpPolicyPrefixListTestFixture, deleteExistingList) {
-  configureEntry("PL100", 10, "10.0.0.0/8");
+  configure({"PL100", "description", "drop"});
   configure({"PL200", "description", "keep"});
   ASSERT_EQ(lists().size(), 2);
 
@@ -196,87 +167,6 @@ TEST_F(
 }
 
 // ==============================================================================
-// queryClient: single entry deletion
-// ==============================================================================
-
-TEST_F(CmdDeleteBgpPolicyPrefixListTestFixture, deleteExistingEntry) {
-  configureEntry("PL100", 10, "10.0.0.0/8");
-  configureEntry("PL100", 20, "192.168.0.0/16");
-
-  auto result = del({"PL100", "entry", "10"});
-  EXPECT_THAT(
-      result, HasSubstr("Successfully deleted BGP prefix-list PL100 entry 10"));
-  // The list and its other entry survive.
-  ASSERT_EQ(lists().size(), 1);
-  ASSERT_EQ(lists()[0].prefixes()->size(), 1);
-  EXPECT_EQ(*(*lists()[0].prefixes())[0].seq_num(), 20);
-  EXPECT_TRUE(sessionFileExists());
-}
-
-TEST_F(CmdDeleteBgpPolicyPrefixListTestFixture, deleteLastEntryKeepsList) {
-  configureEntry("PL100", 10, "10.0.0.0/8");
-
-  auto result = del({"PL100", "entry", "10"});
-  EXPECT_THAT(result, HasSubstr("Successfully deleted"));
-  // The list stays, shaped like one that never had entries (prefixes is a
-  // non-optional list, so empty — not unset — is that shape).
-  ASSERT_EQ(lists().size(), 1);
-  EXPECT_EQ(*lists()[0].name(), "PL100");
-  EXPECT_TRUE(lists()[0].prefixes()->empty());
-}
-
-TEST_F(CmdDeleteBgpPolicyPrefixListTestFixture, deleteUnknownEntryWarns) {
-  configureEntry("PL100", 10, "10.0.0.0/8");
-  // Remove the session file created by configure so its absence afterwards
-  // proves the no-op delete did not persist anything new.
-  ASSERT_TRUE(sessionFileExists());
-  std::filesystem::remove(
-      ConfigSession::getInstance().getBgpSessionConfigPath());
-
-  auto result = del({"PL100", "entry", "99"});
-  EXPECT_THAT(
-      result,
-      HasSubstr(
-          "Warning: BGP prefix-list PL100 has no entry 99; nothing to delete"));
-  EXPECT_THAT(result, Not(HasSubstr("Error:")));
-  EXPECT_FALSE(sessionFileExists())
-      << "no-op delete must not persist a session file";
-  // The existing entry is untouched.
-  ASSERT_EQ(lists().size(), 1);
-  ASSERT_EQ(lists()[0].prefixes()->size(), 1);
-  EXPECT_EQ(*(*lists()[0].prefixes())[0].seq_num(), 10);
-}
-
-TEST_F(CmdDeleteBgpPolicyPrefixListTestFixture, deleteEntryTwiceIsIdempotent) {
-  configureEntry("PL100", 10, "10.0.0.0/8");
-  EXPECT_THAT(del({"PL100", "entry", "10"}), HasSubstr("Successfully"));
-  EXPECT_TRUE(lists()[0].prefixes()->empty());
-
-  auto again = del({"PL100", "entry", "10"});
-  EXPECT_THAT(
-      again,
-      HasSubstr(
-          "Warning: BGP prefix-list PL100 has no entry 10; nothing to delete"));
-  EXPECT_THAT(again, Not(HasSubstr("Error:")));
-  ASSERT_EQ(lists().size(), 1);
-  EXPECT_TRUE(lists()[0].prefixes()->empty());
-}
-
-TEST_F(
-    CmdDeleteBgpPolicyPrefixListTestFixture,
-    deleteEntryFromUnknownListWarns) {
-  auto result = del({"NO-SUCH-LIST", "entry", "10"});
-  EXPECT_THAT(
-      result,
-      HasSubstr(
-          "Warning: BGP prefix-list NO-SUCH-LIST does not exist; nothing to "
-          "delete"));
-  EXPECT_THAT(result, Not(HasSubstr("Error:")));
-  EXPECT_FALSE(sessionFileExists())
-      << "session file should not exist after a no-op delete";
-}
-
-// ==============================================================================
 // Reference guard — a list a routing-policy term still names is not deletable
 // ==============================================================================
 
@@ -319,21 +209,6 @@ TEST_F(
   EXPECT_THAT(result, HasSubstr("Successfully deleted BGP prefix-list PL200"));
   ASSERT_EQ(lists().size(), 1);
   EXPECT_EQ(*lists()[0].name(), "PL100");
-}
-
-TEST_F(
-    CmdDeleteBgpPolicyPrefixListTestFixture,
-    entryDeleteOnReferencedListAllowed) {
-  // Removing one entry keeps the name defined, so the reference stays valid.
-  configureEntry("PL100", 10, "10.0.0.0/8");
-  configureEntry("PL100", 20, "192.168.0.0/16");
-  addPolicyTermMatching("RM100", 10, "PL100");
-
-  auto result = del({"PL100", "entry", "10"});
-  EXPECT_THAT(
-      result, HasSubstr("Successfully deleted BGP prefix-list PL100 entry 10"));
-  ASSERT_EQ(lists().size(), 1);
-  EXPECT_EQ(lists()[0].prefixes()->size(), 1);
 }
 
 } // namespace facebook::fboss
