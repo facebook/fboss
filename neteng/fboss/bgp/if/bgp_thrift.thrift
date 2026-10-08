@@ -307,6 +307,13 @@ struct TBgpSession {
    * through logs.
    */
   27: optional i64 prepolicy_rcvd_dropped_prefix_count;
+  /*
+   * Current session's End-of-RIB completion, not a startup timestamp.
+   * Present even when false so CLI clients can distinguish a pending EoR
+   * from an older bgpd that does not support these fields.
+   */
+  28: optional bool eor_received;
+  29: optional bool eor_sent;
 }
 
 struct TPeerEgressStats {
