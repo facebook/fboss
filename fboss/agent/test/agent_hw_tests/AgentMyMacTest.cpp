@@ -11,11 +11,17 @@
 
 #include "fboss/agent/test/gen-cpp2/production_features_types.h"
 
+#include <chrono>
+#include <thread>
+
 namespace facebook::fboss {
 
 namespace {
 constexpr int kNumPkts = 100;
 const folly::MacAddress kVirtualMac("02:fb:00:00:00:01");
+// Differs from kVirtualMac only in the last bit, so it is not a MY_MAC match
+const folly::MacAddress kVirtualMacPlusOne(
+    folly::MacAddress::fromHBO(kVirtualMac.u64HBO() + 1));
 
 int vlanOf(const cfg::SwitchConfig& config, PortID port) {
   for (const auto& vlanPort : *config.vlanPorts()) {
@@ -107,6 +113,27 @@ class AgentMyMacTest : public AgentHwTest {
     }
   }
 
+  // With one port per interface, A is the only port in its VLAN, so packets to
+  // a non router MAC are dropped. Check they went out of (and so looped back
+  // into) A, then wait before checking that none were routed out of B.
+  void verifyNotRouted(const folly::MacAddress& dstMac) {
+    for (bool isV6 : {true, false}) {
+      auto before = getLatestPortStats({ingressPort(), egressPort()});
+      sendPkts(dstMac, isV6);
+      WITH_RETRIES({
+        auto after = getLatestPortStats(ingressPort());
+        EXPECT_EVENTUALLY_EQ(
+            *after.outUnicastPkts_() - *before[ingressPort()].outUnicastPkts_(),
+            kNumPkts);
+      });
+      // @lint-ignore CLANGTIDY facebook-hte-BadCall-sleep_for
+      std::this_thread::sleep_for(std::chrono::seconds(10));
+      EXPECT_EQ(
+          *getLatestPortStats(egressPort()).outUnicastPkts_(),
+          *before[egressPort()].outUnicastPkts_());
+    }
+  }
+
   folly::MacAddress routerMac() const {
     return getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
   }
@@ -117,6 +144,7 @@ TEST_F(AgentMyMacTest, routerMacAndVirtualMacRouted) {
   auto verify = [this]() {
     verifyRouted(routerMac());
     verifyRouted(kVirtualMac);
+    verifyNotRouted(kVirtualMacPlusOne);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
