@@ -156,4 +156,20 @@ TEST_F(AgentMyMacTest, routerMacAndVirtualMacRouted) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(AgentMyMacTest, virtualMacRoutedAfterMyMacAddedPostWarmboot) {
+  auto setup = [this]() { setupRoutes(); };
+  auto verify = [this]() {
+    verifyRouted(routerMac());
+    verifyNotRouted(kVirtualMac);
+    verifyNotRouted(kVirtualMacPlusOne);
+  };
+  auto setupPostWarmboot = [this]() { applyMyMac(); };
+  auto verifyPostWarmboot = [this]() {
+    verifyRouted(routerMac());
+    verifyRouted(kVirtualMac);
+    verifyNotRouted(kVirtualMacPlusOne);
+  };
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+}
+
 } // namespace facebook::fboss
