@@ -200,6 +200,45 @@ TEST(CmdArgsTest, LoopbackComponentActionEnableDisable) {
   EXPECT_EQ(mixedCase.componentName(), "xphy_line");
 }
 
+TEST(CmdArgsTest, LoopbackComponentActionDirection) {
+  using loopback_utils::LoopbackComponentAction;
+
+  EXPECT_EQ(
+      LoopbackComponentAction({"transceiver_line", "enable"}).direction(),
+      phy::LoopbackMode::INPUT);
+  auto output =
+      LoopbackComponentAction({"transceiver_line", "OUTPUT", "enable"});
+  EXPECT_EQ(output.direction(), phy::LoopbackMode::OUTPUT);
+  EXPECT_EQ(output.component(), phy::PortComponent::TRANSCEIVER_LINE);
+  EXPECT_TRUE(output.enable());
+  EXPECT_EQ(
+      LoopbackComponentAction({"transceiver_system", "input", "disable"})
+          .direction(),
+      phy::LoopbackMode::INPUT);
+  EXPECT_THROW(
+      LoopbackComponentAction({"transceiver_line", "sideways", "enable"}),
+      std::exception);
+}
+
+TEST(CmdArgsTest, LoopbackActionDirection) {
+  using loopback_utils::LoopbackAction;
+
+  auto defaulted = LoopbackAction({"system", "enable"});
+  EXPECT_EQ(defaulted.mode(), "system");
+  EXPECT_EQ(defaulted.direction(), phy::LoopbackMode::INPUT);
+  EXPECT_TRUE(defaulted.enable());
+
+  auto output = LoopbackAction({"line", "output", "disable"});
+  EXPECT_EQ(output.mode(), "line");
+  EXPECT_EQ(output.direction(), phy::LoopbackMode::OUTPUT);
+  EXPECT_FALSE(output.enable());
+
+  EXPECT_TRUE(LoopbackAction({"disable"}).isDisableAll());
+  EXPECT_THROW(LoopbackAction({"line", "sideways", "enable"}), std::exception);
+  EXPECT_THROW(
+      LoopbackAction({"line", "output", "enable", "extra"}), std::exception);
+}
+
 TEST(CmdArgsTest, LoopbackComponentActionInvalid) {
   using loopback_utils::LoopbackComponentAction;
 
