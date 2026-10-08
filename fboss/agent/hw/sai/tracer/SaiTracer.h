@@ -296,6 +296,9 @@ class SaiTracer {
   sai_macsec_api_t* macsecApi_;
   sai_mirror_api_t* mirrorApi_;
   sai_mpls_api_t* mplsApi_;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  sai_my_mac_api_t* myMacApi_;
+#endif
   sai_port_api_t* portApi_;
   sai_queue_api_t* queueApi_;
   sai_qos_map_api_t* qosMapApi_;
@@ -517,6 +520,9 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_QUEUE, "queue_"},
       {SAI_OBJECT_TYPE_ROUTER_INTERFACE, "routerInterface_"},
       {SAI_OBJECT_TYPE_SAMPLEPACKET, "samplepacket_"},
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+      {SAI_OBJECT_TYPE_MY_MAC, "myMac_"},
+#endif
       {SAI_OBJECT_TYPE_SCHEDULER, "scheduler_"},
       {SAI_OBJECT_TYPE_SCHEDULER_GROUP, "schedulerGroup_"},
       {SAI_OBJECT_TYPE_SWITCH, "switch_"},
@@ -607,6 +613,9 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_QOS_MAP, "qos_map_api->"},
       {SAI_OBJECT_TYPE_QUEUE, "queue_api->"},
       {SAI_OBJECT_TYPE_SAMPLEPACKET, "samplepacket_api->"},
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+      {SAI_OBJECT_TYPE_MY_MAC, "my_mac_api->"},
+#endif
       {SAI_OBJECT_TYPE_SCHEDULER, "scheduler_api->"},
       {SAI_OBJECT_TYPE_SCHEDULER_GROUP, "scheduler_group_api->"},
       {SAI_OBJECT_TYPE_SWITCH, "switch_api->"},

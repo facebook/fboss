@@ -81,6 +81,7 @@ cpp_library(
         "MacsecApi.h",
         "MirrorApi.h",
         "MplsApi.h",
+        "MyMacApi.h",
         "NeighborApi.h",
         "NextHopApi.h",
         "NextHopGroupApi.h",

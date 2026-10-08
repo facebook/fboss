@@ -59,6 +59,7 @@ set(SAI_API_SRC
   fboss/agent/hw/sai/api/LagApi.h
   fboss/agent/hw/sai/api/MirrorApi.h
   fboss/agent/hw/sai/api/MplsApi.h
+  fboss/agent/hw/sai/api/MyMacApi.h
   fboss/agent/hw/sai/api/NextHopApi.h
   fboss/agent/hw/sai/api/NextHopGroupApi.h
   fboss/agent/hw/sai/api/PortApi.h

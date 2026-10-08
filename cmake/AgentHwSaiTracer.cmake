@@ -20,6 +20,7 @@ add_library(sai_tracer
   fboss/agent/hw/sai/tracer/MacsecApiTracer.cpp
   fboss/agent/hw/sai/tracer/MirrorApiTracer.cpp
   fboss/agent/hw/sai/tracer/MplsApiTracer.cpp
+  fboss/agent/hw/sai/tracer/MyMacApiTracer.cpp
   fboss/agent/hw/sai/tracer/NeighborApiTracer.cpp
   fboss/agent/hw/sai/tracer/NextHopApiTracer.cpp
   fboss/agent/hw/sai/tracer/NextHopGroupApiTracer.cpp
