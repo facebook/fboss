@@ -679,8 +679,13 @@ SaiAclTableManager::addAclCounter(
         statSuffix = "packets";
         break;
       case cfg::CounterType::BYTES:
-        enableByteCount =
-            SaiAclCounterTraits::Attributes::EnableByteCount{true};
+        // Gate on ASIC type rather than HwAsic::Feature::ACL_BYTE_COUNTER;
+        // gating with feature causes a failure with Cisco SDK.
+        if (platform_->getAsic()->getAsicType() !=
+            cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) {
+          enableByteCount =
+              SaiAclCounterTraits::Attributes::EnableByteCount{true};
+        }
         statSuffix = "bytes";
         break;
       default:
