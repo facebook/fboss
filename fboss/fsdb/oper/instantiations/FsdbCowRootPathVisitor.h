@@ -31,4 +31,22 @@ extern template ThriftTraverseResult RootPathVisitor::visit<FsdbCowStatsRoot>(
     const PathVisitOptions& options,
     BasePathVisitorOperator& op);
 
+extern template ThriftTraverseResult pv_detail::visitNode<
+    apache::thrift::type_class::structure,
+    FsdbCowStatsRoot,
+    BasePathVisitorOperator>(
+    FsdbCowStatsRoot& node,
+    const pv_detail::VisitImplParams<BasePathVisitorOperator>& params,
+    pv_detail::PathIter cursor,
+    bool isContainerNode);
+
+extern template ThriftTraverseResult pv_detail::visitNode<
+    apache::thrift::type_class::structure,
+    const FsdbCowStatsRoot,
+    BasePathVisitorOperator>(
+    const FsdbCowStatsRoot& node,
+    const pv_detail::VisitImplParams<BasePathVisitorOperator>& params,
+    pv_detail::PathIter cursor,
+    bool isContainerNode);
+
 } // namespace facebook::fboss::thrift_cow
