@@ -10,6 +10,7 @@
 
 #include "fboss/platform/fixmyfboss/CheckRegistry.h"
 
+#include "fboss/platform/platform_checks/checks/BmcChecks.h"
 #include "fboss/platform/platform_checks/checks/BmcReachableCheck.h"
 #include "fboss/platform/platform_checks/checks/MacAddressCheck.h"
 #include "fboss/platform/platform_checks/checks/ManagementPlaneChecks.h"
@@ -52,6 +53,9 @@ std::vector<std::unique_ptr<PlatformCheck>> createAllChecks(
   checks.push_back(makeBmcFwUtilCheck(bmc));
   checks.push_back(makeBmcX86LinkCheck(bmc));
   checks.push_back(makeBmcRestApiCheck(bmc));
+  checks.push_back(std::make_unique<BmcMacAddressCheck>(bmc));
+  checks.push_back(std::make_unique<BmcEepromCheck>(bmc));
+  checks.push_back(std::make_unique<X86MacConsistencyCheck>(x86, bmc));
   return checks;
 }
 

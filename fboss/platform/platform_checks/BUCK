@@ -109,6 +109,7 @@ cpp_library(
     name = "platform_checks",
     srcs = [
         "HostEeprom.cpp",
+        "checks/BmcChecks.cpp",
         "checks/CommandCheck.cpp",
         "checks/KernelVersionCheck.cpp",
         "checks/MacAddressCheck.cpp",
@@ -119,6 +120,7 @@ cpp_library(
     ],
     headers = [
         "HostEeprom.h",
+        "checks/BmcChecks.h",
         "checks/BmcReachableCheck.h",
         "checks/CommandCheck.h",
         "checks/KernelVersionCheck.h",
@@ -264,6 +266,19 @@ cpp_unittest(
     name = "management_plane_checks_test",
     srcs = [
         "tests/ManagementPlaneChecksTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        ":mock_host",
+        ":platform_checks",
+    ],
+)
+
+cpp_unittest(
+    name = "bmc_checks_test",
+    srcs = [
+        "tests/BmcChecksTest.cpp",
     ],
     network_access = network_access_utils.none(),
     deps = [

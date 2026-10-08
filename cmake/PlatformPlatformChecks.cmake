@@ -48,6 +48,7 @@ target_link_libraries(platform_checks_platform_name
 
 add_library(platform_checks
   fboss/platform/platform_checks/HostEeprom.cpp
+  fboss/platform/platform_checks/checks/BmcChecks.cpp
   fboss/platform/platform_checks/checks/CommandCheck.cpp
   fboss/platform/platform_checks/checks/MacAddressCheck.cpp
   fboss/platform/platform_checks/checks/ManagementPlaneChecks.cpp
@@ -151,3 +152,15 @@ target_link_libraries(platform_checks_management_plane_checks_test
 )
 
 gtest_discover_tests(platform_checks_management_plane_checks_test)
+
+add_executable(platform_checks_bmc_checks_test
+  fboss/platform/platform_checks/tests/BmcChecksTest.cpp
+)
+
+target_link_libraries(platform_checks_bmc_checks_test
+  platform_checks
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(platform_checks_bmc_checks_test)
