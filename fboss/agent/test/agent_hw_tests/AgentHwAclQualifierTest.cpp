@@ -185,20 +185,8 @@ class AgentHwAclQualifierTest : public AgentHwTest {
     auto masterLogicalPorts =
         getAgentEnsemble()->masterLogicalInterfacePortIds({switchID});
     configureQualifier(acl->srcPort(), enable, masterLogicalPorts[0]);
-    if ((hwAsicForSwitch(switchID)->getAsicType() !=
-         cfg::AsicType::ASIC_TYPE_JERICHO2) &&
-        (hwAsicForSwitch(switchID)->getAsicVendor() !=
-         HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) &&
-        (hwAsicForSwitch(switchID)->getAsicType() !=
-         cfg::AsicType::ASIC_TYPE_JERICHO3) &&
-        (hwAsicForSwitch(switchID)->getAsicType() !=
-         cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) &&
-        (hwAsicForSwitch(switchID)->getAsicType() !=
-         cfg::AsicType::ASIC_TYPE_TOMAHAWK6)) {
-      // No out port support on J2. Out port not used in prod
-      // No out support on Chenab in ingress stage
-      // No out port support on TU1 in ingress stage
-      // No out port support on TH6 in ingress stage
+    if (hwAsicForSwitch(switchID)->isSupported(
+            HwAsic::Feature::ACL_ENTRY_OUT_PORT_QUALIFIER)) {
       configureQualifier(acl->dstPort(), enable, masterLogicalPorts[1]);
     }
   }
