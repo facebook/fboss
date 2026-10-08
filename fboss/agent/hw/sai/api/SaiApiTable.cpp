@@ -171,6 +171,12 @@ const RouterInterfaceApi& SaiApiTable::routerInterfaceApi() const {
   return getApi<RouterInterfaceApi>();
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+const MyMacApi& SaiApiTable::myMacApi() const {
+  return getApi<MyMacApi>();
+}
+#endif
+
 const SamplePacketApi& SaiApiTable::samplePacketApi() const {
   return getApi<SamplePacketApi>();
 }

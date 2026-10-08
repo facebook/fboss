@@ -25,6 +25,7 @@
 #include "fboss/agent/hw/sai/api/MacsecApi.h"
 #include "fboss/agent/hw/sai/api/MirrorApi.h"
 #include "fboss/agent/hw/sai/api/MplsApi.h"
+#include "fboss/agent/hw/sai/api/MyMacApi.h"
 #include "fboss/agent/hw/sai/api/NeighborApi.h"
 #include "fboss/agent/hw/sai/api/NextHopApi.h"
 #include "fboss/agent/hw/sai/api/NextHopGroupApi.h"
@@ -122,6 +123,10 @@ class SaiApiTable {
 
   const RouterInterfaceApi& routerInterfaceApi() const;
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  const MyMacApi& myMacApi() const;
+#endif
+
   const SamplePacketApi& samplePacketApi() const;
 
   const SchedulerApi& schedulerApi() const;
@@ -205,6 +210,9 @@ class SaiApiTable {
       std::unique_ptr<NextHopGroupApi>,
       std::unique_ptr<MirrorApi>,
       std::unique_ptr<MplsApi>,
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+      std::unique_ptr<MyMacApi>,
+#endif
       std::unique_ptr<NeighborApi>,
       std::unique_ptr<PortApi>,
       std::unique_ptr<QosMapApi>,

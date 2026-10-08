@@ -1052,6 +1052,8 @@ const std::set<sai_api_t>& SaiPlatform::getDefaultSwitchAsicSupportedApis()
   // But in case in the future we have some special phy api which won't be
   // supported in the switch asic, we can also exclude those apis ad-hoc.
   static auto apis = SaiApiTable::getInstance()->getFullApiList();
+  auto* asic = getAsic();
+  CHECK(asic);
   // Macsec is not currently supported in the broadcom sai sdk
   apis.erase(facebook::fboss::MacsecApi::ApiType);
   /*
@@ -1060,9 +1062,16 @@ const std::set<sai_api_t>& SaiPlatform::getDefaultSwitchAsicSupportedApis()
    * SaiApiTable::queryApis, and that takes agent init down entirely -- not just
    * isolation group functionality -- so the default has to be to leave it out.
    */
-  if (!getAsic()->isSupported(HwAsic::Feature::ISOLATION_GROUP)) {
+  if (!asic->isSupported(HwAsic::Feature::ISOLATION_GROUP)) {
     apis.erase(facebook::fboss::IsolationGroupApi::ApiType);
   }
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  // Querying an api the adapter does not implement fails init, so only query
+  // it where the asic declares support.
+  if (!asic->isSupported(HwAsic::Feature::MY_MAC)) {
+    apis.erase(facebook::fboss::MyMacApi::ApiType);
+  }
+#endif
   return apis;
 }
 const std::set<sai_api_t>& SaiPlatform::getDefaultPhyAsicSupportedApis() const {
