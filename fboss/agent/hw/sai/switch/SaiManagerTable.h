@@ -47,6 +47,7 @@ class SaiQueueManager;
 class SaiQosMapManager;
 class SaiRouteManager;
 class SaiRouterInterfaceManager;
+class SaiMyMacManager;
 class SaiSamplePacketManager;
 class SaiSwitchManager;
 class SaiSystemPortManager;
@@ -151,6 +152,9 @@ class SaiManagerTable {
   SaiRouterInterfaceManager& routerInterfaceManager();
   const SaiRouterInterfaceManager& routerInterfaceManager() const;
 
+  SaiMyMacManager& myMacManager();
+  const SaiMyMacManager& myMacManager() const;
+
   SaiSamplePacketManager& samplePacketManager();
   const SaiSamplePacketManager& samplePacketManager() const;
 
@@ -224,6 +228,7 @@ class SaiManagerTable {
   std::unique_ptr<SaiQosMapManager> qosMapManager_;
   std::unique_ptr<SaiRouteManager> routeManager_;
   std::unique_ptr<SaiRouterInterfaceManager> routerInterfaceManager_;
+  std::unique_ptr<SaiMyMacManager> myMacManager_;
   std::unique_ptr<SaiSamplePacketManager> samplePacketManager_;
   std::unique_ptr<SaiSchedulerManager> schedulerManager_;
   std::unique_ptr<SaiSwitchManager> switchManager_;

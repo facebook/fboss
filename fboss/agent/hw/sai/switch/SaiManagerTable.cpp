@@ -29,6 +29,7 @@
 #include "fboss/agent/hw/sai/switch/SaiLagManager.h"
 #include "fboss/agent/hw/sai/switch/SaiMacsecManager.h"
 #include "fboss/agent/hw/sai/switch/SaiMirrorManager.h"
+#include "fboss/agent/hw/sai/switch/SaiMyMacManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
@@ -104,6 +105,7 @@ void SaiManagerTable::createSaiTableManagers(
   routeManager_ = std::make_unique<SaiRouteManager>(saiStore, this, platform);
   routerInterfaceManager_ =
       std::make_unique<SaiRouterInterfaceManager>(saiStore, this, platform);
+  myMacManager_ = std::make_unique<SaiMyMacManager>(saiStore);
   samplePacketManager_ =
       std::make_unique<SaiSamplePacketManager>(saiStore, this, platform);
   schedulerManager_ =
@@ -197,6 +199,7 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   // Qos map manager is going away, reset global qos maps
   switchManager_->resetQosMaps();
   samplePacketManager_.reset();
+  myMacManager_.reset();
 
   // ACL Table Group is going away, reset ingressACL pointing to it
   if (!skipSwitchManager) {
@@ -447,6 +450,13 @@ SaiRouterInterfaceManager& SaiManagerTable::routerInterfaceManager() {
 const SaiRouterInterfaceManager& SaiManagerTable::routerInterfaceManager()
     const {
   return *routerInterfaceManager_;
+}
+
+SaiMyMacManager& SaiManagerTable::myMacManager() {
+  return *myMacManager_;
+}
+const SaiMyMacManager& SaiManagerTable::myMacManager() const {
+  return *myMacManager_;
 }
 
 SaiSamplePacketManager& SaiManagerTable::samplePacketManager() {
