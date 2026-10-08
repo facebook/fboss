@@ -2,7 +2,7 @@
 
 Builds a fake-SAI FBOSS Distro image through the standard vendor-neutral
 pipeline: fake is one vendor row (a manifest), and its identity files ride a
-`fake-ident` RPM built from `payload/` via the manifest's `other_dependencies`
+`fake-ident` RPM built from `../components/fake/payload/` via the manifest's `other_dependencies`
 `execute` entry — the same channel vendors use for their files. No builder
 changes, no hooks, no generated blobs.
 
@@ -15,12 +15,12 @@ credentials, and non-public paths.
 
 | Repo source | Destination in the image | Via |
 |---|---|---|
-| `fboss-lite.json` | (build input only) | manifest |
-| `rpm/fake-ident.spec`, `rpm/build_fake_ident.sh` | (build input only) | `execute` |
-| `payload/var/facebook/fboss/fruid.json` | `/var/facebook/fboss/fruid.json` | RPM |
-| `payload/etc/coop/agent.conf` | `/etc/coop/agent.conf` | RPM |
-| `payload/etc/fboss/fake_platform_manager.json` | `/etc/fboss/fake_platform_manager.json` | RPM |
-| `payload/etc/systemd/system/*.service.d/fake.conf` | same paths | RPM |
+| `../manifests/6.11.1_fake.json` | (build input only) | manifest |
+| `../components/fake/rpm/fake-ident.spec`, `../components/fake/rpm/build_fake_ident.sh` | (build input only) | `execute` |
+| `../components/fake/payload/var/facebook/fboss/fruid.json` | `/var/facebook/fboss/fruid.json` | RPM |
+| `../components/fake/payload/etc/coop/agent.conf` | `/etc/coop/agent.conf` | RPM |
+| `../components/fake/payload/etc/fboss/fake_platform_manager.json` | `/etc/fboss/fake_platform_manager.json` | RPM |
+| `../components/fake/payload/etc/systemd/system/*.service.d/fake.conf` | same paths | RPM |
 | `%post` in the spec | `/usr/local/fake_bsp/<kver>/kmods.json` | RPM (`<kver>` known only at install time) |
 
 `agent.conf` is generated once from the in-repo sim seed and committed as
@@ -28,7 +28,7 @@ plain JSON. Regenerate with:
 
 ```bash
 jq '.defaultCommandLineArgs.multi_switch = "true"' \
-  fboss/github/fboss-sim/docker/runtime/mono.conf > payload/etc/coop/agent.conf
+  fboss/github/fboss-sim/docker/runtime/mono.conf > fboss/github/fboss-image/components/fake/payload/etc/coop/agent.conf
 ```
 
 The `m4062nhp` platform defaults do not boot under fake SAI, which is why the
@@ -39,10 +39,10 @@ already exist, so baked files survive first boot and reboots.
 
 ```bash
 python3 fboss/facebook/scripts/fetch_distro_artifacts.py \
-  fboss/github/fboss-image/fake/fboss-lite.json --dest <artifacts>
+  fboss/github/fboss-image/manifests/6.11.1_fake.json --dest <artifacts>
 ARTIFACT_BASE=file:<artifacts> sudo -E python3 \
   fboss/github/fboss-image/distro_cli/fboss-image build \
-  fboss/github/fboss-image/fake/fboss-lite.json --output-dir <images>
+  fboss/github/fboss-image/manifests/6.11.1_fake.json --output-dir <images>
 ```
 
 Keep `--output-dir` off EdenFS. The RPM's `%post` verifies every file and
