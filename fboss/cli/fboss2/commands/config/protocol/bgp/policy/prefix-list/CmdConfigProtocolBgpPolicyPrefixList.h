@@ -27,8 +27,9 @@ namespace facebook::fboss {
 //
 // Grammar (from the FBOSS proposed syntax):
 //   prefix-list <name>                       (create/select list)
-//   prefix-list <name> boolean-operator <op> (list attribute)
-//   prefix-list <name> compare-operator <op> (list attribute)
+//   prefix-list <name> boolean-operator OR   (list attribute; bgpd accepts
+//                                             only OR, and no list-level
+//                                             compare-operator at all)
 //   prefix-list <name> description <string>  (list attribute)
 //   prefix-list <name> ip-version <v4|v6>    (list attribute)
 class BgpPrefixListConfig : public utils::BaseObjectArgType<std::string> {

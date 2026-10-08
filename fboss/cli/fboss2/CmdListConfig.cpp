@@ -451,8 +451,8 @@ const CommandTree& kConfigCommandTree() {
                                "prefix-list",
                                "Configure BGP prefix-list: <name> "
                                "[<attribute> <value> ...] "
-                               "(boolean-operator, compare-operator, "
-                               "description, ip-version)",
+                               "(boolean-operator, description, "
+                               "ip-version)",
                                commandHandler<
                                    CmdConfigProtocolBgpPolicyPrefixList>,
                                argRegistrar<

@@ -74,7 +74,7 @@ TEST_F(ConfigBgpPolicyPrefixListTest, SetListAttributesAndCommit) {
   discardSession();
   clearBgpSession();
   stagePrefixList({kList, "description", "test", "spine", "prefixes"});
-  stagePrefixList({kList, "boolean-operator", "AND"});
+  stagePrefixList({kList, "boolean-operator", "OR"});
   stagePrefixList({kList, "ip-version", "v4"});
   commitAndGetSha();
   ASSERT_TRUE(waitForBgpDaemonActive())
@@ -93,8 +93,11 @@ TEST_F(ConfigBgpPolicyPrefixListTest, SetListAttributesAndCommit) {
       << "bgpd's running config has no prefix-list " << kList;
   EXPECT_EQ((*runningList)["description"].asString(), "test spine prefixes");
   // Enums ride the SimpleJSON wire format as integers:
-  // routing_policy.BooleanOperator.AND = 1.
-  EXPECT_EQ((*runningList)["boolean_operator"].asInt(), 1);
+  // routing_policy.BooleanOperator.OR = 2. bgpd only validates list
+  // operators from PrefixTreeMatch::PopulateReferences, i.e. once a
+  // routing-policy term references the list, so an end-to-end rejection
+  // test belongs with the term match command.
+  EXPECT_EQ((*runningList)["boolean_operator"].asInt(), 2);
   EXPECT_EQ((*runningList)["version"].asInt(), 4);
 }
 

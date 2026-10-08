@@ -1220,9 +1220,41 @@ class GeneratePrefixListCommandsTest(unittest.TestCase):
             commands,
             [
                 f"{self.PREFIX} description loopbacks",
-                f"{self.PREFIX} boolean-operator AND",
-                f"{self.PREFIX} compare-operator GE",
+                "# WARNING: prefix-list PL: boolean_operator AND is not accepted "
+                "by bgpd (only OR); not emitted",
+                "# WARNING: prefix-list PL: list-level compare_operator GE is "
+                "not accepted by bgpd; not emitted",
                 f"{self.PREFIX} ip-version v6",
+            ],
+        )
+
+    def test_boolean_operator_not_or_warns(self) -> None:
+        """bgpd: "PrefixList BooleanOperator can only be OR"."""
+        for raw, rendered in ((1, "AND"), (3, "NOT"), ("NOT", "NOT")):
+            commands = generate_prefix_list_commands(
+                {"name": "PL", "boolean_operator": raw}
+            )
+            self.assertEqual(
+                commands,
+                [
+                    f"# WARNING: prefix-list PL: boolean_operator {rendered} is "
+                    "not accepted by bgpd (only OR); not emitted"
+                ],
+                raw,
+            )
+
+    def test_prefixes_warn_until_entry_subcommand(self) -> None:
+        commands = generate_prefix_list_commands(
+            {
+                "name": "PL",
+                "prefixes": [{"base_prefix": "10.0.0.0/8"}, {"base_prefix": "::/0"}],
+            }
+        )
+        self.assertEqual(
+            commands,
+            [
+                "# WARNING: prefix-list PL: 2 prefixes are not emitted until "
+                "the entry subcommand lands"
             ],
         )
 
@@ -1246,15 +1278,30 @@ class GeneratePrefixListCommandsTest(unittest.TestCase):
         for c in commands:
             self.assertTrue(c.startswith("# WARNING:"), c)
 
-    def test_malformed_compare_operator_passes_through(self) -> None:
-        """j2c does not validate enum values; the CLI rejects them on replay."""
-        for raw, rendered in ((None, "None"), ([2], "'[2]'")):
+    def test_any_compare_operator_warns(self) -> None:
+        """bgpd rejects a list-level compare_operator whatever its value."""
+        for raw, rendered in ((2, "GE"), (7, "RG"), (None, "None"), ([2], "[2]")):
             commands = generate_prefix_list_commands(
                 {"name": "PL", "compare_operator": raw}
             )
             self.assertEqual(
-                commands, [f"{self.PREFIX} compare-operator {rendered}"], raw
+                commands,
+                [
+                    f"# WARNING: prefix-list PL: list-level compare_operator "
+                    f"{rendered} is not accepted by bgpd; not emitted"
+                ],
+                raw,
             )
+
+    def test_warning_text_is_single_comment_line(self) -> None:
+        """A control character in a JSON name must not end the # comment."""
+        commands = generate_prefix_list_commands(
+            {"name": "PL\nrm -rf /", "prefix_list_names": ["X"]}
+        )
+        self.assertEqual(len(commands), 1)
+        self.assertTrue(commands[0].startswith("# WARNING:"), commands[0])
+        self.assertNotIn("\n", commands[0])
+        self.assertIn("PL?rm -rf /", commands[0])
 
     def test_policy_block_order(self) -> None:
         config = {

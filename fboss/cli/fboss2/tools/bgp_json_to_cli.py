@@ -424,7 +424,9 @@ _WARNING_PREFIX = "# WARNING:"
 
 
 def _warning(text: str) -> str:
-    return f"{_WARNING_PREFIX} {text}"
+    # Warning text interpolates JSON-sourced names and values; a control
+    # character in one would end the `#` comment and become shell input.
+    return f"{_WARNING_PREFIX} {_printable(text)}"
 
 
 _BOOLEAN_OPERATOR_NAMES = {1: "AND", 2: "OR", 3: "NOT"}
@@ -595,9 +597,12 @@ def _prefix_list_warnings(name: str, prefix_list: dict[str, Any]) -> list[str]:
 def generate_prefix_list_commands(prefix_list: dict[str, Any]) -> list[str]:
     """Generate `config protocol bgp policy prefix-list` commands for one list.
 
-    `ip-version` is the CLI spelling of the `version` field (4/6). The
-    `prefix_list_names` references and the `ip_version` enum field have no
-    CLI spelling and surface as warnings.
+    `ip-version` is the CLI spelling of the `version` field (4/6). bgpd
+    accepts only `boolean_operator` OR and no list-level `compare_operator`
+    (PrefixTreeMatch::validateAndCreatePrefixTree), and the CLI offers nothing
+    else, so other values surface as warnings rather than commands. The
+    `prefix_list_names` references, the `ip_version` enum field and (until the
+    entry subcommand lands) `prefixes` have no CLI spelling and also warn.
     """
     name = prefix_list.get("name", "")
     if not name:
@@ -612,18 +617,20 @@ def generate_prefix_list_commands(prefix_list: dict[str, Any]) -> list[str]:
     if "boolean_operator" in prefix_list:
         operator = _boolean_operator_name(prefix_list["boolean_operator"])
         if operator != "OR":
-            commands.append(f"{prefix} boolean-operator {escape_shell_arg(operator)}")
-    if "compare_operator" in prefix_list:
-        operator = _comparison_operator_name(prefix_list["compare_operator"])
-        if operator == "RG":
             commands.append(
                 _warning(
-                    f"prefix-list {name}: compare_operator RG is not accepted at "
-                    "the list level; not emitted"
+                    f"prefix-list {name}: boolean_operator {operator} is not "
+                    "accepted by bgpd (only OR); not emitted"
                 )
             )
-        else:
-            commands.append(f"{prefix} compare-operator {escape_shell_arg(operator)}")
+    if "compare_operator" in prefix_list:
+        operator = _comparison_operator_name(prefix_list["compare_operator"])
+        commands.append(
+            _warning(
+                f"prefix-list {name}: list-level compare_operator {operator} is "
+                "not accepted by bgpd; not emitted"
+            )
+        )
     if "version" in prefix_list:
         keyword = _IP_VERSION_KEYWORDS.get(prefix_list["version"])
         if keyword is None:
@@ -635,6 +642,13 @@ def generate_prefix_list_commands(prefix_list: dict[str, Any]) -> list[str]:
             )
         else:
             commands.append(f"{prefix} ip-version {keyword}")
+    if prefix_list.get("prefixes"):
+        commands.append(
+            _warning(
+                f"prefix-list {name}: {len(prefix_list['prefixes'])} prefixes "
+                "are not emitted until the entry subcommand lands"
+            )
+        )
     commands.extend(_prefix_list_warnings(name, prefix_list))
     if not commands:
         # Nothing to set: still recreate the (empty) prefix-list by name.

@@ -13,24 +13,28 @@
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <fmt/core.h>
-#include <neteng/fboss/bgp/public_tld/configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h>
 #include <cstdint>
 #include <functional>
 #include <iostream>
 #include <map>
 #include <optional>
-#include <ostream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 #include <vector>
-#include "configerator/structs/neteng/bgp_policy/thrift/gen-cpp2/routing_policy_types.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/BgpCliAttrHandlers.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/prefix-list/BgpPrefixListCliUtils.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fmt/format.h"
+
+#ifndef IS_OSS
+#include <configerator/structs/neteng/bgp_policy/thrift/gen-cpp2/routing_policy_types.h>
+#include <configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h>
+#else
+#include <neteng/fboss/bgp/public_tld/configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h>
+#endif
 
 namespace facebook::fboss {
 
@@ -40,24 +44,15 @@ namespace {
 // valid-attribute set and the handler table stay in sync. The list's prefixes
 // are their own subcommand, not attributes.
 constexpr std::string_view kBooleanOperator = "boolean-operator";
-constexpr std::string_view kCompareOperator = "compare-operator";
 constexpr std::string_view kDescription = "description";
 constexpr std::string_view kIpVersion = "ip-version";
 
-// boolean-operator values (routing_policy.BooleanOperator names).
-constexpr std::string_view kBooleanOperatorAnd = "AND";
+// boolean-operator values (routing_policy.BooleanOperator names). Only OR is
+// offered: bgpd's PrefixTreeMatch rejects any other value ("PrefixList
+// BooleanOperator can only be OR") once a policy references the list, and
+// it rejects a list-level compare_operator outright, so that attribute is
+// not offered at all.
 constexpr std::string_view kBooleanOperatorOr = "OR";
-constexpr std::string_view kBooleanOperatorNot = "NOT";
-
-// compare-operator values (routing_policy.ComparisonOperator names). RG
-// (range) is only documented for the entry-level prefix-len-range.
-constexpr std::string_view kCompareOperatorEq = "EQ";
-constexpr std::string_view kCompareOperatorGe = "GE";
-constexpr std::string_view kCompareOperatorLe = "LE";
-constexpr std::string_view kCompareOperatorNe = "NE";
-constexpr std::string_view kCompareOperatorGt = "GT";
-constexpr std::string_view kCompareOperatorLt = "LT";
-constexpr std::string_view kCompareOperatorRg = "RG";
 
 // ip-version values, stored as the numeric IP version in PrefixList.version
 // (the documented thrift field for this command).
@@ -67,7 +62,6 @@ constexpr int32_t kIpVersionV4Value = 4;
 constexpr int32_t kIpVersionV6Value = 6;
 
 using BooleanOperator = bgp::routing_policy::BooleanOperator;
-using ComparisonOperator = bgp::routing_policy::ComparisonOperator;
 using PrefixList = bgp::routing_policy::PrefixList;
 using bgpcli::AttrHandler;
 using bgpcli::enumAttr;
@@ -75,40 +69,11 @@ using bgpcli::joinedStringAttr;
 using bgpcli::ok;
 using bgpcli::Result;
 
-std::optional<ComparisonOperator> lookupComparisonOperator(
-    const std::string& s) {
-  if (s == kCompareOperatorEq) {
-    return ComparisonOperator::EQ;
-  }
-  if (s == kCompareOperatorGe) {
-    return ComparisonOperator::GE;
-  }
-  if (s == kCompareOperatorLe) {
-    return ComparisonOperator::LE;
-  }
-  if (s == kCompareOperatorNe) {
-    return ComparisonOperator::NE;
-  }
-  if (s == kCompareOperatorGt) {
-    return ComparisonOperator::GT;
-  }
-  if (s == kCompareOperatorLt) {
-    return ComparisonOperator::LT;
-  }
-  return std::nullopt;
-}
-
 // ---- value lookups ----------------------------------------------------------
 
 std::optional<BooleanOperator> lookupBooleanOperator(const std::string& s) {
-  if (s == kBooleanOperatorAnd) {
-    return BooleanOperator::AND;
-  }
   if (s == kBooleanOperatorOr) {
     return BooleanOperator::OR;
-  }
-  if (s == kBooleanOperatorNot) {
-    return BooleanOperator::NOT;
   }
   return std::nullopt;
 }
@@ -131,10 +96,6 @@ void setListBooleanOperator(PrefixList& list, BooleanOperator op) {
   list.boolean_operator() = op;
 }
 
-void setListCompareOperator(PrefixList& list, ComparisonOperator op) {
-  list.compare_operator() = op;
-}
-
 void setListDescription(PrefixList& list, const std::string& description) {
   list.description() = description;
 }
@@ -150,16 +111,8 @@ void setListIpVersion(PrefixList& list, int32_t version) {
 // the setter that stores it.
 const std::map<std::string, AttrHandler<PrefixList>, std::less<>>&
 listAttrHandlers() {
-  static const std::string kBooleanOperatorValues = fmt::format(
-      "{}|{}|{}", kBooleanOperatorAnd, kBooleanOperatorOr, kBooleanOperatorNot);
-  static const std::string kCompareOperatorValues = fmt::format(
-      "{}|{}|{}|{}|{}|{}",
-      kCompareOperatorEq,
-      kCompareOperatorGe,
-      kCompareOperatorLe,
-      kCompareOperatorNe,
-      kCompareOperatorGt,
-      kCompareOperatorLt);
+  static const std::string kBooleanOperatorValues =
+      std::string(kBooleanOperatorOr);
   static const std::string kIpVersionValues =
       fmt::format("{}|{}", kIpVersionV4, kIpVersionV6);
   static const std::map<std::string, AttrHandler<PrefixList>, std::less<>>
@@ -170,12 +123,6 @@ listAttrHandlers() {
                kBooleanOperatorValues,
                lookupBooleanOperator,
                setListBooleanOperator)},
-          {std::string(kCompareOperator),
-           enumAttr<PrefixList, ComparisonOperator>(
-               kCompareOperator,
-               kCompareOperatorValues,
-               lookupComparisonOperator,
-               setListCompareOperator)},
           {std::string(kDescription),
            joinedStringAttr<PrefixList>(kDescription, setListDescription)},
           {std::string(kIpVersion),
@@ -188,10 +135,6 @@ listAttrHandlers() {
   return kHandlers;
 }
 
-// The attr factories keep their display name as a string_view, so the
-// composed `prefix-len-range <sub-attr>` names need static storage — a
-// fmt::format temporary at the factory call site would dangle (the same
-// hazard enumAttr's valueDesc used to have).
 std::string validAttrList() {
   std::string out;
   for (const auto& [name, _] : listAttrHandlers()) {
@@ -244,6 +187,7 @@ CmdConfigProtocolBgpPolicyPrefixList::queryClient(
   auto& cfg = session.getBgpConfig();
   const bool listCreated = !bgpcli::prefixListExists(cfg, args.listName());
   auto& list = bgpcli::findOrCreatePrefixList(cfg, args.listName());
+  auto& lists = *cfg.policies().ensure().prefix_lists();
 
   Result result = args.attr().empty()
       ? ok(listCreated
@@ -262,10 +206,10 @@ CmdConfigProtocolBgpPolicyPrefixList::queryClient(
     session.saveBgpConfig();
     result.message +=
         fmt::format("\nConfig saved to: {}", session.getBgpSessionConfigPath());
-  } else if (listCreated) {
+  } else if (listCreated && !lists.empty()) {
     // Drop the phantom list so a rejected value is not visible to later
     // lookups in the same process.
-    cfg.policies()->prefix_lists()->pop_back();
+    lists.pop_back();
   }
   return result.message;
 }

@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include <configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h>
+#include <fmt/core.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -17,7 +18,6 @@
 
 using namespace ::testing;
 using facebook::bgp::routing_policy::BooleanOperator;
-using facebook::bgp::routing_policy::ComparisonOperator;
 
 namespace facebook::fboss {
 
@@ -80,6 +80,11 @@ TEST_F(CmdConfigBgpPolicyPrefixListTestFixture, argValidation) {
   EXPECT_THROW(
       BgpPrefixListConfig({"PL100", "base-prefix", "10.0.0.0/8"}),
       std::invalid_argument);
+  // compare-operator is not offered: bgpd rejects a list-level
+  // compare_operator ("Unsupported PrefixList configuration").
+  EXPECT_THROW(
+      BgpPrefixListConfig({"PL100", "compare-operator", "GE"}),
+      std::invalid_argument);
 }
 
 // ==============================================================================
@@ -108,12 +113,21 @@ TEST_F(CmdConfigBgpPolicyPrefixListTestFixture, setListDescription) {
 }
 
 TEST_F(CmdConfigBgpPolicyPrefixListTestFixture, setBooleanOperator) {
-  auto result = run({"PL100", "boolean-operator", "AND"});
+  auto result = run({"PL100", "boolean-operator", "OR"});
   EXPECT_THAT(result, HasSubstr("Successfully set boolean-operator"));
-  EXPECT_EQ(*lists()[0].boolean_operator(), BooleanOperator::AND);
+  EXPECT_EQ(*lists()[0].boolean_operator(), BooleanOperator::OR);
 
-  run({"PL100", "boolean-operator", "NOT"});
-  EXPECT_EQ(*lists()[0].boolean_operator(), BooleanOperator::NOT);
+  // bgpd: "PrefixList BooleanOperator can only be OR". AND and NOT are
+  // refused and leave the stored value untouched.
+  for (const auto* op : {"AND", "NOT"}) {
+    auto rejected = run({"PL100", "boolean-operator", op});
+    EXPECT_THAT(
+        rejected,
+        HasSubstr(
+            fmt::format(
+                "Invalid boolean-operator value '{}'; expected OR", op)));
+    EXPECT_EQ(*lists()[0].boolean_operator(), BooleanOperator::OR);
+  }
 }
 
 TEST_F(CmdConfigBgpPolicyPrefixListTestFixture, booleanOperatorDefaultIsOr) {
@@ -121,19 +135,14 @@ TEST_F(CmdConfigBgpPolicyPrefixListTestFixture, booleanOperatorDefaultIsOr) {
   EXPECT_EQ(*lists()[0].boolean_operator(), BooleanOperator::OR);
 }
 
-TEST_F(CmdConfigBgpPolicyPrefixListTestFixture, setCompareOperator) {
-  auto result = run({"PL100", "compare-operator", "GE"});
-  EXPECT_THAT(result, HasSubstr("Successfully set compare-operator"));
-  ASSERT_TRUE(lists()[0].compare_operator().has_value());
-  EXPECT_EQ(*lists()[0].compare_operator(), ComparisonOperator::GE);
-
-  // RG is only documented for the entry-level prefix-len-range.
-  auto rejected = run({"PL100", "compare-operator", "RG"});
-  EXPECT_THAT(
-      rejected,
-      HasSubstr(
-          "Invalid compare-operator value 'RG'; expected EQ|GE|LE|NE|GT|LT"));
-  EXPECT_EQ(*lists()[0].compare_operator(), ComparisonOperator::GE);
+TEST_F(CmdConfigBgpPolicyPrefixListTestFixture, compareOperatorNeverSet) {
+  // Nothing at the list level writes compare_operator; bgpd rejects the
+  // field whenever it is present.
+  run({"PL100", "description", "x"});
+  run({"PL100", "boolean-operator", "OR"});
+  run({"PL100", "ip-version", "v4"});
+  ASSERT_EQ(lists().size(), 1);
+  EXPECT_FALSE(lists()[0].compare_operator().has_value());
 }
 
 TEST_F(CmdConfigBgpPolicyPrefixListTestFixture, setIpVersion) {
@@ -176,8 +185,7 @@ TEST_F(
     invalidBooleanOperatorRejected) {
   auto result = run({"PL100", "boolean-operator", "XOR"});
   EXPECT_THAT(
-      result,
-      HasSubstr("Invalid boolean-operator value 'XOR'; expected AND|OR|NOT"));
+      result, HasSubstr("Invalid boolean-operator value 'XOR'; expected OR"));
   // The rejected value must not leave a phantom list behind.
   EXPECT_TRUE(lists().empty());
   EXPECT_FALSE(sessionFileExists())
