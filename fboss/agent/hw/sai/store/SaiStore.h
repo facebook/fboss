@@ -720,6 +720,9 @@ class SaiStore {
       SaiObjectStore<SaiQueueTraits>,
       SaiObjectStore<SaiSchedulerTraits>,
       SaiObjectStore<SaiSamplePacketTraits>,
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+      SaiObjectStore<SaiMyMacTraits>,
+#endif
       SaiObjectStore<SaiHashTraits>,
       SaiObjectStore<SaiInSegTraits>,
       SaiObjectStore<SaiQosMapTraits>,
