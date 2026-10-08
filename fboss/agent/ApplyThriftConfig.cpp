@@ -6547,6 +6547,18 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
       switchSettingsChange = true;
     }
   }
+  {
+    const auto& myMacs = *cfg_->switchSettings()->myMacs();
+    for (const auto& myMac : myMacs) {
+      if (!folly::MacAddress::tryFromString(*myMac.macAddress()).hasValue()) {
+        throw FbossError("Invalid myMacs MAC address: ", *myMac.macAddress());
+      }
+    }
+    if (myMacs != origSwitchSettings->getMyMacs()) {
+      newSwitchSettings->setMyMacs(myMacs);
+      switchSettingsChange = true;
+    }
+  }
 
   if (switchSettingsChange) {
     return newSwitchSettings;
