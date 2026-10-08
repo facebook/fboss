@@ -54,3 +54,10 @@ TEST_F(MyMacApiTest, removeMyMac) {
   myMacApi->remove(id);
   EXPECT_EQ(fs->myMacManager.map().size(), 0);
 }
+
+TEST_F(MyMacApiTest, defaults) {
+  EXPECT_EQ(SaiMyMacTraits::Attributes::VlanId::defaultValue(), 0);
+  EXPECT_EQ(
+      SaiMyMacTraits::Attributes::MacAddressMask::defaultValue(),
+      folly::MacAddress("ff:ff:ff:ff:ff:ff"));
+}

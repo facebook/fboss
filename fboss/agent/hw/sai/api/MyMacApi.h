@@ -38,9 +38,13 @@ struct SaiMyMacTraits {
     using MacAddressMask = SaiAttribute<
         EnumType,
         SAI_MY_MAC_ATTR_MAC_ADDRESS_MASK,
-        folly::MacAddress>;
-    using VlanId =
-        SaiAttribute<EnumType, SAI_MY_MAC_ATTR_VLAN_ID, sai_uint16_t>;
+        folly::MacAddress,
+        SaiMacAddressExactMatchMaskDefault>;
+    using VlanId = SaiAttribute<
+        EnumType,
+        SAI_MY_MAC_ATTR_VLAN_ID,
+        sai_uint16_t,
+        SaiIntDefault<sai_uint16_t>>;
   };
   using AdapterKey = MyMacSaiId;
   // All attributes are CREATE_ONLY
