@@ -588,6 +588,7 @@ struct SwitchSettingsFields {
     switch_config.EcmpGroupType,
     switch_config.EcmpGroupSettings
   > ecmpGroupSettings;
+  64: list<switch_config.MacAndVlan> myMacs;
 }
 
 struct RoutePrefix {
