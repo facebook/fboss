@@ -4204,6 +4204,64 @@ TEST_F(NamedNextHopGroupThriftTest, teAgentRouteOverridesOpenrWithWeights) {
   EXPECT_EQ(teAgentSids, expectedTeAgentSids);
 }
 
+TEST_F(
+    NamedNextHopGroupThriftTest,
+    teAgentRouteOverridesOpenrWithNormalizedWeights) {
+  ThriftHandler handler(sw_);
+
+  constexpr auto kPrefix = "fdad:ffff::4/128";
+  constexpr auto kPrefixAddr = "fdad:ffff::4";
+
+  const auto openrNhop1 = makeLinkLocalNextHopThrift("fe80:face:b00c::1");
+  const auto openrNhop2 = makeLinkLocalNextHopThrift("fe80:face:b00c::2");
+  const auto nhop1 =
+      makeLinkLocalSrv6NextHopThrift("fe80:face:b00c::1", "2001:db8::1");
+  const auto nhop2 =
+      makeLinkLocalSrv6NextHopThrift("fe80:face:b00c::2", "2001:db8::2");
+
+  addUnicastRouteWithNextHopThrifts(
+      handler,
+      kPrefix,
+      {openrNhop1, openrNhop2},
+      ClientID::OPENR,
+      AdminDistance::OPENR);
+
+  NextHopGroup teAgentGroup;
+  teAgentGroup.name() = "te_agent_group";
+  teAgentGroup.nexthops() = {nhop1, nhop1, nhop2, nhop2};
+  auto teAgentGroups = std::make_unique<std::vector<NextHopGroup>>();
+  teAgentGroups->push_back(std::move(teAgentGroup));
+  handler.addOrUpdateNamedNextHopGroups(
+      std::move(teAgentGroups), /*combineDuplicatedNextHops=*/true);
+
+  addUnicastRouteWithNamedNextHopGroup(
+      handler,
+      kPrefix,
+      "te_agent_group",
+      ClientID::TE_AGENT,
+      AdminDistance::TE_AGENT);
+
+  std::vector<NextHopGroup> programmedGroups;
+  auto groupNames = std::make_unique<std::vector<std::string>>();
+  groupNames->push_back("te_agent_group");
+  handler.getNamedNextHopGroups(programmedGroups, std::move(groupNames));
+  ASSERT_EQ(programmedGroups.size(), 1);
+  ASSERT_TRUE(programmedGroups[0].isProgrammed().has_value());
+  EXPECT_TRUE(*programmedGroups[0].isProgrammed());
+
+  auto state = sw_->getState();
+  auto route = findRoute<folly::IPAddressV6>(
+      RouterID(0), {folly::IPAddress(kPrefixAddr), 128}, state);
+  ASSERT_NE(route, nullptr);
+  std::map<std::string, NextHopWeight> weights;
+  for (const auto& nhop : getNextHops(state, route->getForwardInfo())) {
+    weights[nhop.addr().str()] = nhop.weight();
+  }
+  const std::map<std::string, NextHopWeight> expectedWeights{
+      {"fe80:face:b00c::1", 1}, {"fe80:face:b00c::2", 1}};
+  EXPECT_EQ(weights, expectedWeights);
+}
+
 TEST_F(NamedNextHopGroupThriftTest, bgpRouteRecursesOntoTeAgentWeights) {
   ThriftHandler handler(sw_);
 
