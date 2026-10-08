@@ -32,6 +32,7 @@ set(SAI_SWITCH_SRC
   fboss/agent/hw/sai/switch/SaiRouteManager.cpp
   fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.cpp
   fboss/agent/hw/sai/switch/SaiRxPacket.cpp
+  fboss/agent/hw/sai/switch/SaiMyMacManager.cpp
   fboss/agent/hw/sai/switch/SaiSamplePacketManager.cpp
   fboss/agent/hw/sai/switch/SaiSchedulerManager.cpp
   fboss/agent/hw/sai/switch/SaiSwitch.cpp
