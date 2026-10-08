@@ -837,7 +837,8 @@ const CommandTree& kConfigCommandTree() {
                      },
                      {
                          "prefix-list",
-                         "Delete a BGP prefix-list: <name>",
+                         "Delete a BGP prefix-list: <name> "
+                         "[entry <seq-num>]",
                          commandHandler<CmdDeleteProtocolBgpPolicyPrefixList>,
                          argRegistrar<
                              CmdDeleteProtocolBgpPolicyPrefixListTraits>,

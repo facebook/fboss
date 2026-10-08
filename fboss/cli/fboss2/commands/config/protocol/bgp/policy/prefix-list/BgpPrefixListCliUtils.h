@@ -11,6 +11,7 @@
 #pragma once
 
 #include <algorithm>
+#include <cstdint>
 #include <string>
 
 #ifndef IS_OSS
@@ -22,10 +23,10 @@
 
 /**
  * Lookup/create helpers for the prefix-list CLI family, shared between the
- * list-level dispatcher (CmdConfigProtocolBgpPolicyPrefixList) and its delete
- * counterpart. A PrefixList is keyed by name. Entry helpers arrive with the
- * entry subcommand, which decides the entry's identity (bgpd rejects a
- * PrefixListEntry carrying seq_num).
+ * list-level dispatcher (CmdConfigProtocolBgpPolicyPrefixList), the entry
+ * subcommand (CmdConfigProtocolBgpPolicyPrefixListEntry), and the delete
+ * counterparts. A PrefixList is keyed by name; a PrefixListEntry (in
+ * prefixes[]) is keyed by seq_num.
  */
 namespace facebook::fboss::bgpcli {
 
@@ -58,6 +59,32 @@ inline bgp::routing_policy::PrefixList& findOrCreatePrefixList(
   auto& list = lists.back();
   list.name() = name;
   return list;
+}
+
+inline bool prefixListEntryExists(
+    const bgp::routing_policy::PrefixList& list,
+    int32_t seqNum) {
+  const auto& entries = *list.prefixes();
+  return std::any_of(entries.begin(), entries.end(), [&](const auto& entry) {
+    return entry.seq_num().has_value() && *entry.seq_num() == seqNum;
+  });
+}
+
+// Find the entry keyed by seq_num within a list's prefixes[], creating it if
+// absent. seq_num is the entry's identity.
+inline bgp::routing_policy::PrefixListEntry& findOrCreatePrefixListEntry(
+    bgp::routing_policy::PrefixList& list,
+    int32_t seqNum) {
+  auto& entries = *list.prefixes();
+  for (auto& entry : entries) {
+    if (entry.seq_num().has_value() && *entry.seq_num() == seqNum) {
+      return entry;
+    }
+  }
+  entries.emplace_back();
+  auto& entry = entries.back();
+  entry.seq_num() = seqNum;
+  return entry;
 }
 
 } // namespace facebook::fboss::bgpcli
