@@ -1100,6 +1100,18 @@ struct hash<facebook::fboss::SaiAttribute<AttrEnumT, AttrEnum, DataT, void>> {
   }
 };
 
+// boost has no hash_value for folly::MacAddress
+template <typename AttrEnumT, AttrEnumT AttrEnum>
+struct hash<facebook::fboss::
+                SaiAttribute<AttrEnumT, AttrEnum, folly::MacAddress, void>> {
+  size_t operator()(
+      const facebook::fboss::
+          SaiAttribute<AttrEnumT, AttrEnum, folly::MacAddress, void>& attr)
+      const {
+    return std::hash<folly::MacAddress>()(attr.value());
+  }
+};
+
 template <
     typename AttrEnumT,
     AttrEnumT AttrEnum,
