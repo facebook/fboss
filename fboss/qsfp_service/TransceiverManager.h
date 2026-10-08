@@ -332,13 +332,15 @@ class TransceiverManager {
   void setPortLoopbackState(
       std::string /* portName */,
       phy::PortComponent /* component */,
-      bool /* setLoopback */);
+      bool /* setLoopback */,
+      phy::LoopbackMode mode = phy::LoopbackMode::INPUT);
 
   void setPortLoopbackStateTransceiver(
       PortID portId,
       std::string portName,
       phy::PortComponent component,
-      bool setLoopback);
+      bool setLoopback,
+      phy::LoopbackMode mode = phy::LoopbackMode::INPUT);
 
   void setPortAdminState(
       std::string /* portName */,

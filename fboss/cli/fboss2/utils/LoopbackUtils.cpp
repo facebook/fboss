@@ -200,7 +200,8 @@ std::string setTransceiverLoopbackForPort(
     int failCount = 0;
     for (const auto& [comp, modeName] : components) {
       try {
-        qsfpService->sync_setPortLoopbackState(portName, comp, false);
+        qsfpService->sync_setPortLoopbackState(
+            portName, comp, false, phy::LoopbackMode::INPUT);
       } catch (const std::exception& ex) {
         output += fmt::format("Error disabling {}: {}\n", modeName, ex.what());
         ++failCount;
@@ -221,7 +222,7 @@ std::string setTransceiverLoopbackForPort(
 
     try {
       qsfpService->sync_setPortLoopbackState(
-          portName, component, action.enable());
+          portName, component, action.enable(), phy::LoopbackMode::INPUT);
       output += "Result: success\n";
     } catch (const std::exception& ex) {
       output += "Result: error\n";

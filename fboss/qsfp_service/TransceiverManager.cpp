@@ -3542,7 +3542,8 @@ void TransceiverManager::getPauseRemediationUntil(
 void TransceiverManager::setPortLoopbackState(
     std::string portName,
     phy::PortComponent component,
-    bool setLoopback) {
+    bool setLoopback,
+    phy::LoopbackMode mode) {
   auto swPort = getPortIDByPortName(portName);
   if (!swPort.has_value()) {
     throw FbossError(
@@ -3563,6 +3564,13 @@ void TransceiverManager::setPortLoopbackState(
 
   if (component == phy::PortComponent::GB_SYSTEM ||
       component == phy::PortComponent::GB_LINE) {
+    if (mode != phy::LoopbackMode::INPUT) {
+      throw FbossError(
+          fmt::format(
+              "Loopback mode {} is not supported on {}",
+              apache::thrift::util::enumNameSafe(mode),
+              apache::thrift::util::enumNameSafe(component)));
+    }
     if (!getPhyManager()) {
       throw FbossError(
           "Unable to set xphy loopback state when PhyManager is not set");
@@ -3571,7 +3579,7 @@ void TransceiverManager::setPortLoopbackState(
         PortID(swPort.value()), component, setLoopback);
   } else {
     setPortLoopbackStateTransceiver(
-        swPort.value(), portName, component, setLoopback);
+        swPort.value(), portName, component, setLoopback, mode);
   }
 }
 
@@ -3579,7 +3587,8 @@ void TransceiverManager::setPortLoopbackStateTransceiver(
     PortID portId,
     std::string portName,
     phy::PortComponent component,
-    bool setLoopback) {
+    bool setLoopback,
+    phy::LoopbackMode mode) {
   // Get the Transceiver ID
   auto tcvrId = getTransceiverID(portId);
   if (!tcvrId.has_value()) {
@@ -3594,10 +3603,10 @@ void TransceiverManager::setPortLoopbackStateTransceiver(
       it != lockedTransceivers->end()) {
     if (component == phy::PortComponent::TRANSCEIVER_LINE) {
       it->second->setTransceiverLoopback(
-          portName, phy::Side::LINE, setLoopback, phy::LoopbackMode::INPUT);
+          portName, phy::Side::LINE, setLoopback, mode);
     } else {
       it->second->setTransceiverLoopback(
-          portName, phy::Side::SYSTEM, setLoopback, phy::LoopbackMode::INPUT);
+          portName, phy::Side::SYSTEM, setLoopback, mode);
     }
   }
 }

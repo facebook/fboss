@@ -120,7 +120,8 @@ CmdSetInterfaceLoopback::RetType CmdSetInterfaceLoopback::queryClient(
   // the transceiver components above.
   for (const auto& intf : queriedIfs.data()) {
     try {
-      qsfpClient->sync_setPortLoopbackState(intf, component, enable);
+      qsfpClient->sync_setPortLoopbackState(
+          intf, component, enable, phy::LoopbackMode::INPUT);
       output += fmt::format(
           "Set loopback {}={} on {}\n",
           action.componentName(),

@@ -120,7 +120,8 @@ class PortManager {
   void setPortLoopbackState(
       const std::string& /* portName */,
       phy::PortComponent /* component */,
-      bool /* setLoopback */);
+      bool /* setLoopback */,
+      phy::LoopbackMode mode = phy::LoopbackMode::INPUT);
 
   void setPortAdminState(
       const std::string& /* portName */,

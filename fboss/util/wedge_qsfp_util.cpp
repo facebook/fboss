@@ -2919,15 +2919,27 @@ bool setTransceiverLoopback(
       try {
         if (mode == electricalLoopback) {
           client->sync_setPortLoopbackState(
-              portName, phy::PortComponent::TRANSCEIVER_SYSTEM, true);
+              portName,
+              phy::PortComponent::TRANSCEIVER_SYSTEM,
+              true,
+              phy::LoopbackMode::INPUT);
         } else if (mode == opticalLoopback) {
           client->sync_setPortLoopbackState(
-              portName, phy::PortComponent::TRANSCEIVER_LINE, true);
+              portName,
+              phy::PortComponent::TRANSCEIVER_LINE,
+              true,
+              phy::LoopbackMode::INPUT);
         } else {
           client->sync_setPortLoopbackState(
-              portName, phy::PortComponent::TRANSCEIVER_SYSTEM, false);
+              portName,
+              phy::PortComponent::TRANSCEIVER_SYSTEM,
+              false,
+              phy::LoopbackMode::INPUT);
           client->sync_setPortLoopbackState(
-              portName, phy::PortComponent::TRANSCEIVER_LINE, false);
+              portName,
+              phy::PortComponent::TRANSCEIVER_LINE,
+              false,
+              phy::LoopbackMode::INPUT);
         }
 
         printf("QSFP port %s loopback mode setting done\n", portName.c_str());

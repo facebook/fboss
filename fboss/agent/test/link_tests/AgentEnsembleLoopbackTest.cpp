@@ -583,7 +583,7 @@ void AgentEnsembleLoopbackTest::setLoopback(
       << apache::thrift::util::enumNameSafe(mode.side) << " loopback on "
       << getPortName(port);
   qsfpServiceClient_->sync_setPortLoopbackState(
-      getPortName(port), mode.component, enable);
+      getPortName(port), mode.component, enable, phy::LoopbackMode::INPUT);
 }
 
 // Best effort: keep clearing the remaining optics even if one of them fails,
