@@ -45,8 +45,7 @@ std::vector<NextHopGroup> createSameSetNamedGroups() {
 // Expected CLI rows for createSameSetNamedGroups(): a full-object expectation
 // covering every displayed attribute (name, isNamed, programmed state, id, and
 // the formatted nexthop string), so a mismatch pinpoints the offending field. A
-// bare nexthop (weight 0, no interface/cost/SRv6/backup) formats to just its
-// address.
+// bare nexthop (weight 0, no interface/cost/SRv6/backup) displays weight 1.
 std::vector<cli::NextHopGroupEntry> expectedNamedEntries() {
   std::vector<cli::NextHopGroupEntry> entries;
   for (const auto& name : kGroupNames) {
@@ -55,7 +54,7 @@ std::vector<cli::NextHopGroupEntry> expectedNamedEntries() {
     entry.isNamed() = true;
     entry.programmed() = "yes";
     entry.id() = kSharedSetId;
-    entry.nextHops() = {kSharedNhIp};
+    entry.nextHops() = {fmt::format("{} weight 1", kSharedNhIp)};
     entries.push_back(std::move(entry));
   }
   return entries;
@@ -95,9 +94,9 @@ TEST_F(CmdShowNamedNextHopGroupsTestFixture, printOutputShowsGroupId) {
 
   const std::string expected = fmt::format(
       "NextHopGroup: nhgA  Id: {}  Programmed: yes\n"
-      "  {}\n"
+      "  {} weight 1\n"
       "NextHopGroup: nhgB  Id: --  Programmed: yes\n"
-      "  {}\n",
+      "  {} weight 1\n",
       kSharedSetId,
       kSharedNhIp,
       kSharedNhIp);

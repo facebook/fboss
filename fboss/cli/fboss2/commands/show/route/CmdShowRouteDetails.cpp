@@ -324,12 +324,43 @@ CmdShowRouteDetails::RetType CmdShowRouteDetails::createModel(
 
       auto& fwdInfo = *entry.fwdInfo();
       auto& nextHops = entry.nextHops().value();
+      const auto resolvedNextHops =
+          entry.resolvedNextHops().value_or(std::vector<NextHopThrift>());
+
+      auto findPreNormalizationWeight =
+          [&resolvedNextHops](const NextHopThrift& nextHop) {
+            auto normalizedComparable = nextHop;
+            normalizedComparable.weight() = 0;
+            normalizedComparable.topologyInfo().reset();
+            for (auto resolvedNextHop : resolvedNextHops) {
+              const auto resolvedWeight = *resolvedNextHop.weight();
+              resolvedNextHop.weight() = 0;
+              resolvedNextHop.topologyInfo().reset();
+              if (normalizedComparable == resolvedNextHop) {
+                return std::optional<int32_t>(resolvedWeight);
+              }
+            }
+            return std::optional<int32_t>();
+          };
 
       if (nextHops.size() > 0) {
+        bool showPreNormalizationWeights = false;
         for (const auto& nextHop : nextHops) {
           cli::NextHopInfo nextHopInfo;
           show::route::utils::getNextHopInfoThrift(nextHop, nextHopInfo);
+          if (auto preNormalizationWeight = findPreNormalizationWeight(nextHop);
+              preNormalizationWeight.has_value()) {
+            nextHopInfo.preNormalizationWeight() = *preNormalizationWeight;
+            showPreNormalizationWeights |=
+                (*preNormalizationWeight == 0 ? 1 : *preNormalizationWeight) !=
+                (*nextHop.weight() == 0 ? 1 : *nextHop.weight());
+          }
           routeDetails.nextHops()->emplace_back(nextHopInfo);
+        }
+        if (!showPreNormalizationWeights) {
+          for (auto& nextHopInfo : *routeDetails.nextHops()) {
+            nextHopInfo.preNormalizationWeight().reset();
+          }
         }
       } else if (fwdInfo.size() > 0) {
         for (const auto& ifAndIp : fwdInfo) {
