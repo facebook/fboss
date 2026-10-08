@@ -3594,10 +3594,10 @@ void TransceiverManager::setPortLoopbackStateTransceiver(
       it != lockedTransceivers->end()) {
     if (component == phy::PortComponent::TRANSCEIVER_LINE) {
       it->second->setTransceiverLoopback(
-          portName, phy::Side::LINE, setLoopback);
+          portName, phy::Side::LINE, setLoopback, phy::LoopbackMode::INPUT);
     } else {
       it->second->setTransceiverLoopback(
-          portName, phy::Side::SYSTEM, setLoopback);
+          portName, phy::Side::SYSTEM, setLoopback, phy::LoopbackMode::INPUT);
     }
   }
 }

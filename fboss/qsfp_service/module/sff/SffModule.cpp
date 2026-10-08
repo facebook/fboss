@@ -1940,7 +1940,16 @@ bool SffModule::setTransceiverTxImplLocked(
 void SffModule::setTransceiverLoopbackLocked(
     const std::string& portName,
     phy::Side side,
-    bool setLoopback) {
+    bool setLoopback,
+    phy::LoopbackMode mode) {
+  if (mode != phy::LoopbackMode::INPUT) {
+    throw FbossError(
+        fmt::format(
+            "Module {:s} only supports INPUT loopback, got {:s}",
+            portName,
+            apache::thrift::util::enumNameSafe(mode)));
+  }
+
   // Check if the module supports Loopback feature first
   if (!isTransceiverFeatureSupported(TransceiverFeature::LOOPBACK, side)) {
     throw FbossError(

@@ -335,7 +335,8 @@ class QsfpModule : public Transceiver {
   void setTransceiverLoopback(
       const std::string& portName,
       phy::Side side,
-      bool setLoopback) override;
+      bool setLoopback,
+      phy::LoopbackMode mode) override;
 
   std::map<std::string, CdbDatapathSymErrHistogram> getSymbolErrorHistogram()
       override;
@@ -737,7 +738,8 @@ class QsfpModule : public Transceiver {
   virtual void setTransceiverLoopbackLocked(
       const std::string& /* portName */,
       phy::Side /* side */,
-      bool /* setLoopback */) {}
+      bool /* setLoopback */,
+      phy::LoopbackMode /* mode */) {}
 
   virtual std::optional<TunableLaserStatus> getTunableLaserStatus() {
     return std::nullopt;

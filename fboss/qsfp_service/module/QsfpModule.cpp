@@ -820,11 +820,12 @@ bool QsfpModule::setTransceiverTx(
 void QsfpModule::setTransceiverLoopback(
     const std::string& portName,
     phy::Side side,
-    bool setLoopback) {
+    bool setLoopback,
+    phy::LoopbackMode mode) {
   // Lambda to call Locked function
   auto setTcvrFn = [&]() {
     lock_guard<std::mutex> g(qsfpModuleMutex_);
-    setTransceiverLoopbackLocked(portName, side, setLoopback);
+    setTransceiverLoopbackLocked(portName, side, setLoopback, mode);
   };
 
   auto i2cEvb = qsfpImpl_->getI2cEventBase();

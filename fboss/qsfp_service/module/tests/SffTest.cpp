@@ -608,4 +608,17 @@ TEST_F(SffTest, 200GCr4TransceiverInfoTest) {
   EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
 }
 
+// SFF modules have no CMIS output loopbacks, so OUTPUT is rejected outright.
+TEST_F(SffTest, setTransceiverLoopbackRejectsOutputMode) {
+  auto xcvrID = TransceiverID(0);
+  auto xcvr = overrideSffModule<SffCwdm4Transceiver>(xcvrID);
+  auto portName = *transceiverManager_->getPortNames(xcvrID).begin();
+
+  for (auto side : {phy::Side::SYSTEM, phy::Side::LINE}) {
+    EXPECT_THROW(
+        xcvr->setTransceiverLoopback(
+            portName, side, true, phy::LoopbackMode::OUTPUT),
+        FbossError);
+  }
+}
 } // namespace facebook::fboss

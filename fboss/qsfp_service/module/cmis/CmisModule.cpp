@@ -361,10 +361,10 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
      {CmisPages::PAGE13, 175, 1}},
     {CmisField::REF_CLK_CTRL, {CmisPages::PAGE13, 176, 1}},
     {CmisField::BER_CTRL, {CmisPages::PAGE13, 177, 1}},
-    {CmisField::HOST_NEAR_LB_EN, {CmisPages::PAGE13, 180, 1}},
-    {CmisField::MEDIA_NEAR_LB_EN, {CmisPages::PAGE13, 181, 1}},
-    {CmisField::HOST_FAR_LB_EN, {CmisPages::PAGE13, 182, 1}},
-    {CmisField::MEDIA_FAR_LB_EN, {CmisPages::PAGE13, 183, 1}},
+    {CmisField::MEDIA_OUTPUT_LB_EN, {CmisPages::PAGE13, 180, 1}},
+    {CmisField::MEDIA_INPUT_LB_EN, {CmisPages::PAGE13, 181, 1}},
+    {CmisField::HOST_OUTPUT_LB_EN, {CmisPages::PAGE13, 182, 1}},
+    {CmisField::HOST_INPUT_LB_EN, {CmisPages::PAGE13, 183, 1}},
     {CmisField::REF_CLK_LOSS, {CmisPages::PAGE13, 206, 1}},
     {CmisField::HOST_CHECKER_GATING_COMPLETE, {CmisPages::PAGE13, 208, 1}},
     {CmisField::MEDIA_CHECKER_GATING_COMPLETE, {CmisPages::PAGE13, 209, 1}},
@@ -5917,14 +5917,15 @@ bool CmisModule::upgradeFirmwareLockedImpl(FbossFirmware* fbossFw) const {
 /*
  * setTransceiverLoopbackLocked
  *
- * Sets or resets the loopback on the given lanes for the SW Port on system
- * or line side of the Transceiver. The System side loopback set should bring
- * up the NPU port. The Line side loopback set should bring up the peer port.
+ * Sets or resets the loopback on the given lanes for the SW Port. side selects
+ * the host (SYSTEM) or media (LINE) side of the module, and mode selects the
+ * input or output loopback on that side (CMIS page 13h bytes 180-183).
  */
 void CmisModule::setTransceiverLoopbackLocked(
     const std::string& portName,
     phy::Side side,
-    bool setLoopback) {
+    bool setLoopback,
+    phy::LoopbackMode mode) {
   // Get the list of lanes to disable/enable the loopback
   auto tcvrLanes = getTcvrLanesForPort(portName, side);
   if (tcvrLanes.empty()) {
@@ -5935,18 +5936,44 @@ void CmisModule::setTransceiverLoopbackLocked(
     return;
   }
 
-  // Check if the module supports system or line side loopback
-  if (!isTransceiverFeatureSupported(TransceiverFeature::LOOPBACK, side)) {
-    throw FbossError(
-        fmt::format(
-            "Module {:s} does not support transceiver Loopback on {:s}",
-            portName,
-            ((side == phy::Side::LINE) ? "Line" : "System")));
+  const bool hostSide = (side == phy::Side::SYSTEM);
+  const bool input = (mode == phy::LoopbackMode::INPUT);
+  CmisField regField;
+  bool supported = false;
+  std::optional<LoopbackCapability> lbCap;
+  {
+    auto diagsCapability = diagsCapability_.rlock();
+    if (diagsCapability->has_value()) {
+      lbCap = (*diagsCapability)->loopbackCapability().to_optional();
+    }
+  }
+  if (hostSide && input) {
+    regField = CmisField::HOST_INPUT_LB_EN;
+    supported = lbCap && *lbCap->hostSideInput();
+  } else if (hostSide) {
+    regField = CmisField::HOST_OUTPUT_LB_EN;
+    supported = lbCap && *lbCap->hostSideOutput();
+  } else if (input) {
+    regField = CmisField::MEDIA_INPUT_LB_EN;
+    supported = lbCap && *lbCap->mediaSideInput();
+  } else {
+    regField = CmisField::MEDIA_OUTPUT_LB_EN;
+    supported = lbCap && *lbCap->mediaSideOutput();
   }
 
-  auto regField = (side == phy::Side::SYSTEM) ? CmisField::MEDIA_FAR_LB_EN
-                                              : CmisField::MEDIA_NEAR_LB_EN;
-  uint8_t hostOrMediaInputLbEnable;
+  if (!supported) {
+    // Nothing can be enabled in an unsupported loopback, so there is nothing
+    // to clear; this keeps "disable all loopbacks" callers simple.
+    if (!setLoopback) {
+      return;
+    }
+    throw FbossError(
+        fmt::format(
+            "Module {:s} does not support {:s} side {:s} loopback",
+            portName,
+            hostSide ? "host" : "media",
+            apache::thrift::util::enumNameSafe(mode)));
+  }
 
   // A port's lanes are confined to one bank; the loopback enable register is
   // per-bank, so reduce the lanes to intra-bank offsets and select that bank.
@@ -5966,12 +5993,41 @@ void CmisModule::setTransceiverLoopbackLocked(
     intraBankLanes.insert(laneInBank(lane));
   }
 
-  readCmisField(regField, &hostOrMediaInputLbEnable, false, bank);
+  if (setLoopback && !*lbCap->simultaneousHostAndMediaSide()) {
+    // Refuse rather than silently clear a loopback on the opposite side.
+    auto oppositeSide = hostSide ? phy::Side::LINE : phy::Side::SYSTEM;
+    std::map<uint8_t, uint8_t> oppositeLaneMaskPerBank;
+    for (auto lane : getTcvrLanesForPort(portName, oppositeSide)) {
+      oppositeLaneMaskPerBank[laneToBank(lane)] |= (1 << laneInBank(lane));
+    }
+    auto oppositeFields = hostSide
+        ? std::array<
+              CmisField,
+              2>{CmisField::MEDIA_OUTPUT_LB_EN, CmisField::MEDIA_INPUT_LB_EN}
+        : std::array<CmisField, 2>{
+              CmisField::HOST_OUTPUT_LB_EN, CmisField::HOST_INPUT_LB_EN};
+    for (const auto& [oppositeBank, laneMask] : oppositeLaneMaskPerBank) {
+      for (auto field : oppositeFields) {
+        uint8_t enabled;
+        readCmisField(field, &enabled, false, oppositeBank);
+        if (enabled & laneMask) {
+          throw FbossError(
+              fmt::format(
+                  "Module {:s} does not support simultaneous host and media side loopback; disable the {:s} side loopback first",
+                  portName,
+                  hostSide ? "media" : "host"));
+        }
+      }
+    }
+  }
 
-  hostOrMediaInputLbEnable = setTxChannelMask(
-      intraBankLanes, std::nullopt, !setLoopback, hostOrMediaInputLbEnable);
+  uint8_t lbEnable;
+  readCmisField(regField, &lbEnable, false, bank);
 
-  writeCmisField(regField, &hostOrMediaInputLbEnable, false, bank);
+  lbEnable =
+      setTxChannelMask(intraBankLanes, std::nullopt, !setLoopback, lbEnable);
+
+  writeCmisField(regField, &lbEnable, false, bank);
 }
 
 /*

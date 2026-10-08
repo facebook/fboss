@@ -861,7 +861,8 @@ class CmisModule : public QsfpModule {
   virtual void setTransceiverLoopbackLocked(
       const std::string& portName,
       phy::Side side,
-      bool setLoopback) override;
+      bool setLoopback,
+      phy::LoopbackMode mode) override;
 
   /* How long this module needs to repopulate page 14h after DIAG_SEL changes,
    * keyed off the part number. */

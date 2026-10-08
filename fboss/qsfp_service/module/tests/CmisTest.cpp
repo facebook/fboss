@@ -3619,4 +3619,133 @@ TEST_F(CmisTest, readModifyWriteCmisFieldRejectsMultiByteField) {
       xcvr->readModifyWriteCmisField(CmisField::PART_NUMBER, 0xff, 0x00),
       FbossError);
 }
+
+namespace {
+// Page 13h loopback enable registers, per the CMIS spec names.
+constexpr uint8_t kLoopbackPage = 0x13;
+constexpr int kMediaOutputLbByte = 180;
+constexpr int kMediaInputLbByte = 181;
+constexpr int kHostOutputLbByte = 182;
+constexpr int kHostInputLbByte = 183;
+constexpr std::array<int, 4> kLoopbackBytes = {
+    kMediaOutputLbByte,
+    kMediaInputLbByte,
+    kHostOutputLbByte,
+    kHostInputLbByte};
+
+struct LoopbackCase {
+  phy::Side side;
+  phy::LoopbackMode mode;
+  int expectedByte;
+};
+
+// Loopback is applied to a port's lanes, which are only known once the port
+// has been programmed.
+void programSinglePort(
+    MockCmisModule* xcvr,
+    const std::string& portName,
+    cfg::PortSpeed speed) {
+  ProgramTransceiverState programTcvrState;
+  TransceiverPortState portState;
+  portState.portName = portName;
+  portState.startHostLane = 0;
+  portState.speed = speed;
+  portState.numHostLanes = 4;
+  programTcvrState.ports.emplace(portState.portName, portState);
+  xcvr->programTransceiver(programTcvrState, false);
+}
+} // namespace
+
+TEST_F(CmisTest, setTransceiverLoopbackSelectsRegisterPerMode) {
+  auto xcvrID = TransceiverID(0);
+  auto xcvr = overrideCmisModule<Cmis200GTransceiver>(xcvrID);
+  auto impl = lastQsfpImpl();
+  auto portName = *transceiverManager_->getPortNames(xcvrID).begin();
+  programSinglePort(xcvr, portName, cfg::PortSpeed::TWOHUNDREDG);
+
+  for (const auto& tc : std::vector<LoopbackCase>{
+           {phy::Side::SYSTEM, phy::LoopbackMode::INPUT, kHostInputLbByte},
+           {phy::Side::SYSTEM, phy::LoopbackMode::OUTPUT, kHostOutputLbByte},
+           {phy::Side::LINE, phy::LoopbackMode::INPUT, kMediaInputLbByte},
+           {phy::Side::LINE, phy::LoopbackMode::OUTPUT, kMediaOutputLbByte},
+       }) {
+    SCOPED_TRACE(
+        fmt::format(
+            "{} {}",
+            apache::thrift::util::enumNameSafe(tc.side),
+            apache::thrift::util::enumNameSafe(tc.mode)));
+
+    xcvr->setTransceiverLoopback(portName, tc.side, true, tc.mode);
+    for (auto byte : kLoopbackBytes) {
+      if (byte == tc.expectedByte) {
+        EXPECT_NE(peekEeprom(impl, kLoopbackPage, byte), 0);
+      } else {
+        EXPECT_EQ(peekEeprom(impl, kLoopbackPage, byte), 0);
+      }
+    }
+
+    xcvr->setTransceiverLoopback(portName, tc.side, false, tc.mode);
+    for (auto byte : kLoopbackBytes) {
+      EXPECT_EQ(peekEeprom(impl, kLoopbackPage, byte), 0);
+    }
+  }
+}
+
+// kCmis2x400GFr4Page13 advertises only the media and host input loopbacks.
+TEST_F(CmisTest, setTransceiverLoopbackRejectsUnadvertisedMode) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x400GFr4Transceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+  auto impl = lastQsfpImpl();
+  auto portName = *transceiverManager_->getPortNames(xcvrID).begin();
+  programSinglePort(xcvr, portName, cfg::PortSpeed::FOURHUNDREDG);
+
+  EXPECT_THROW(
+      xcvr->setTransceiverLoopback(
+          portName, phy::Side::SYSTEM, true, phy::LoopbackMode::OUTPUT),
+      FbossError);
+  EXPECT_THROW(
+      xcvr->setTransceiverLoopback(
+          portName, phy::Side::LINE, true, phy::LoopbackMode::OUTPUT),
+      FbossError);
+  for (auto byte : kLoopbackBytes) {
+    EXPECT_EQ(peekEeprom(impl, kLoopbackPage, byte), 0);
+  }
+
+  // Disabling an unadvertised loopback is a no-op rather than an error.
+  EXPECT_NO_THROW(xcvr->setTransceiverLoopback(
+      portName, phy::Side::LINE, false, phy::LoopbackMode::OUTPUT));
+
+  EXPECT_NO_THROW(xcvr->setTransceiverLoopback(
+      portName, phy::Side::LINE, true, phy::LoopbackMode::INPUT));
+  EXPECT_NE(peekEeprom(impl, kLoopbackPage, kMediaInputLbByte), 0);
+}
+
+// Neither fixture advertises simultaneous host and media side loopback.
+TEST_F(CmisTest, setTransceiverLoopbackRejectsSimultaneousHostAndMedia) {
+  auto xcvrID = TransceiverID(0);
+  auto xcvr = overrideCmisModule<Cmis200GTransceiver>(xcvrID);
+  auto impl = lastQsfpImpl();
+  auto portName = *transceiverManager_->getPortNames(xcvrID).begin();
+  programSinglePort(xcvr, portName, cfg::PortSpeed::TWOHUNDREDG);
+
+  xcvr->setTransceiverLoopback(
+      portName, phy::Side::LINE, true, phy::LoopbackMode::INPUT);
+  EXPECT_THROW(
+      xcvr->setTransceiverLoopback(
+          portName, phy::Side::SYSTEM, true, phy::LoopbackMode::INPUT),
+      FbossError);
+  EXPECT_EQ(peekEeprom(impl, kLoopbackPage, kHostInputLbByte), 0);
+
+  // Both loopbacks on the same side are allowed together.
+  EXPECT_NO_THROW(xcvr->setTransceiverLoopback(
+      portName, phy::Side::LINE, true, phy::LoopbackMode::OUTPUT));
+
+  xcvr->setTransceiverLoopback(
+      portName, phy::Side::LINE, false, phy::LoopbackMode::INPUT);
+  xcvr->setTransceiverLoopback(
+      portName, phy::Side::LINE, false, phy::LoopbackMode::OUTPUT);
+  EXPECT_NO_THROW(xcvr->setTransceiverLoopback(
+      portName, phy::Side::SYSTEM, true, phy::LoopbackMode::INPUT));
+}
 } // namespace facebook::fboss
