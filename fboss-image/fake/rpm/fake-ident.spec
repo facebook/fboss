@@ -23,10 +23,7 @@ done
 # build) rather than ship an image that breaks at fboss_init.
 for f in /var/facebook/fboss/fruid.json /etc/coop/agent.conf \
     /etc/fboss/fake_platform_manager.json \
-    /etc/systemd/system/platform_manager.service.d/fake.conf \
-    /etc/systemd/system/sensor_service.service.d/fake.conf \
-    /etc/systemd/system/fan_service.service.d/fake.conf \
-    /etc/systemd/system/data_corral_service.service.d/fake.conf; do
+    /etc/systemd/system/platform_manager.service.d/fake.conf; do
   [ -s "$f" ] || { echo "fake-ident: missing $f" >&2; exit 1; }
 done
 [ -n "$(ls /usr/local/fake_bsp/*/kmods.json 2>/dev/null)" ] || { echo "fake-ident: no kmods.json written" >&2; exit 1; }
@@ -35,6 +32,3 @@ done
 /etc/coop/agent.conf
 /etc/fboss/fake_platform_manager.json
 /etc/systemd/system/platform_manager.service.d/fake.conf
-/etc/systemd/system/sensor_service.service.d/fake.conf
-/etc/systemd/system/fan_service.service.d/fake.conf
-/etc/systemd/system/data_corral_service.service.d/fake.conf
