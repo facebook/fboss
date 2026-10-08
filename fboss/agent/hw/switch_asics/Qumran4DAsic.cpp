@@ -298,6 +298,7 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS:
     case HwAsic::Feature::NEXT_HOP_GROUP_MEMBER_MONITORED_OBJECT:
     case HwAsic::Feature::RX_PACKET_TYPE:
+    case HwAsic::Feature::MY_MAC:
     case HwAsic::Feature::ISOLATION_GROUP:
     case HwAsic::Feature::ACL_ENTRY_OUT_PORT_QUALIFIER:
       return false;

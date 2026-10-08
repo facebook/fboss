@@ -84,6 +84,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::EGRESS_POOL_AVAILABLE_SIZE_ATTRIBUTE_SUPPORTED:
     case HwAsic::Feature::ANY_ACL_DROP_COUNTER:
     case HwAsic::Feature::ACL_ENTRY_OUT_PORT_QUALIFIER:
+    case HwAsic::Feature::MY_MAC:
       return true;
     case HwAsic::Feature::ERSPANv6:
     case HwAsic::Feature::SFLOWv6:

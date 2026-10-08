@@ -626,6 +626,9 @@ class HwAsic {
     // Port isolation groups: traffic ingressing a port is not forwarded to the
     // members of the isolation group bound to it
     ISOLATION_GROUP,
+    // Extra router MACs via the SAI MY_MAC object: packets destined to a
+    // programmed MAC + VLAN are routed like packets to the switch's own MAC.
+    MY_MAC,
   };
 
   enum class AsicMode {
