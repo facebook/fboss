@@ -1513,7 +1513,7 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
 }
 
 void SaiSwitchManager::updateSdkDumpSuppressedCounter() {
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(SAI_SDK_DUMP_RATE_LIMIT_SUPPORTED)
   if (!platform_->getAsic()->isSupported(HwAsic::Feature::SDK_REGISTER_DUMP)) {
     return;
   }

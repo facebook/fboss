@@ -902,7 +902,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 
   std::optional<SaiSwitchTraits::Attributes::SdkDumpRateLimitWindow>
       sdkDumpRateLimitWindow{std::nullopt};
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(SAI_SDK_DUMP_RATE_LIMIT_SUPPORTED)
   sdkDumpRateLimitWindow = FLAGS_sdk_dump_rate_limit_window_ms;
 #endif
 

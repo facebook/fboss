@@ -183,6 +183,16 @@
 #define BRCM_SAI_SDK_DNX_GTE_12_0
 #endif
 
+// SDK dump rate limiting (CS00012465650). The OSS 14.2 DNX SDK artifact is
+// built from an older drop than tp2 and lacks the SAI attribute ids.
+//
+// TODO: drop the IS_OSS clause once the OSS 14.2 DNX SDK artifact is rebuilt
+// from current tp2.
+#if defined(SAI_VERSION_12_2_0_0_DNX_ODP) || \
+    (defined(BRCM_SAI_SDK_DNX_GTE_12_0) && !defined(IS_OSS))
+#define SAI_SDK_DUMP_RATE_LIMIT_SUPPORTED
+#endif
+
 #if defined BRCM_SAI_SDK_GTE_12_0 || defined(SAI_VERSION_11_0_EA_ODP) || \
     defined(SAI_VERSION_11_0_EA_SIM_ODP) ||                              \
     defined(SAI_VERSION_11_0_EA_DNX_ODP) ||                              \
