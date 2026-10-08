@@ -293,7 +293,7 @@ void SaiPhyManager::initializeXphyImpl(
   // Create xphy sai switch
   auto xphy = static_cast<xphychipT*>(getExternalPhy(xphyID));
   // Set xphy's customized switch attributes before calling init
-  saiPlatform->setSwitchAttributes(xphy->getSwitchAttributes());
+  saiPlatform->setSwitchAttributes(xphy->getSwitchAttributes(warmboot));
   cfg::AgentConfig config;
   cfg::SwitchInfo switchInfo;
   switchInfo.switchType() = cfg::SwitchType::PHY;

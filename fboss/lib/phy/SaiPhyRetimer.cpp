@@ -228,7 +228,8 @@ void* SaiPhyRetimer::getRegisterWriteFuncPtr() {
   return reinterpret_cast<void*>(saiPhyRetimerSwitchRegisterWrite);
 }
 
-SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
+SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes(
+    bool warmboot) {
   XLOG(DBG5) << __func__ << ": Starting for xphyID=" << xphyID_;
 
   SaiSwitchTraits::Attributes::InitSwitch initSwitch(true);
@@ -261,7 +262,12 @@ SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
       SAI_SWITCH_FIRMWARE_LOAD_METHOD_INTERNAL);
 
   std::optional<SaiSwitchTraits::Attributes::FirmwareLoadType> fwLoadType(
-      SAI_SWITCH_FIRMWARE_LOAD_TYPE_AUTO);
+      warmboot ? SAI_SWITCH_FIRMWARE_LOAD_TYPE_SKIP
+               : SAI_SWITCH_FIRMWARE_LOAD_TYPE_AUTO);
+  std::optional<SaiSwitchTraits::Attributes::WarmRecover> warmRecover;
+  if (warmboot) {
+    warmRecover = true;
+  }
 
   // Phy is accessible on MDIO
   std::optional<SaiSwitchTraits::Attributes::HardwareAccessBus> hwAccessBus(
@@ -410,7 +416,7 @@ SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
 #if defined(SAI_BRCM_PAI_IMPL)
       reinterpret_cast<sai_pointer_t>(pai_lock_callback), // user sync_lock
       reinterpret_cast<sai_pointer_t>(pai_unlock_callback), // user sync_unlock
-      std::nullopt, // Warm recover
+      warmRecover, // Warm recover
 #endif
   };
 }
