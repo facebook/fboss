@@ -77,6 +77,10 @@ class AgentMyMacTest : public AgentHwTest {
     applyNewConfig(config);
   }
 
+  void removeMyMac() {
+    applyNewConfig(initialConfig(*getAgentEnsemble()));
+  }
+
   void setupRoutes() {
     const PortDescriptor egress(egressPort());
     utility::EcmpSetupTargetedPorts6 ecmpHelper6(
@@ -167,6 +171,25 @@ TEST_F(AgentMyMacTest, virtualMacRoutedAfterMyMacAddedPostWarmboot) {
   auto verifyPostWarmboot = [this]() {
     verifyRouted(routerMac());
     verifyRouted(kVirtualMac);
+    verifyNotRouted(kVirtualMacPlusOne);
+  };
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+}
+
+TEST_F(AgentMyMacTest, virtualMacNotRoutedAfterMyMacRemovedPostWarmboot) {
+  auto setup = [this]() {
+    applyMyMac();
+    setupRoutes();
+  };
+  auto verify = [this]() {
+    verifyRouted(routerMac());
+    verifyRouted(kVirtualMac);
+    verifyNotRouted(kVirtualMacPlusOne);
+  };
+  auto setupPostWarmboot = [this]() { removeMyMac(); };
+  auto verifyPostWarmboot = [this]() {
+    verifyRouted(routerMac());
+    verifyNotRouted(kVirtualMac);
     verifyNotRouted(kVirtualMacPlusOne);
   };
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
