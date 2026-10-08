@@ -5520,7 +5520,16 @@
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
-          "test_name_regex": "roundtrip.*AgentMirrorOnDrop.*$"
+          "test_name_regex": "roundtrip.*AgentMirrorOnDropMtuTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*AgentMirrorOnDropDestMacTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*AgentMirrorOnDropSrv6Test.*$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*.AgentSflowMirrorTruncateTestV4.VerifySampledPacketRate$"
@@ -11174,7 +11183,16 @@
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
-          "test_name_regex": "roundtrip.*AgentMirrorOnDrop.*$"
+          "test_name_regex": "roundtrip.*AgentMirrorOnDropMtuTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*AgentMirrorOnDropDestMacTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*AgentMirrorOnDropSrv6Test.*$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*.AgentSflowMirrorTruncateTestV4.VerifySampledPacketRate$"
@@ -18721,7 +18739,16 @@
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
-          "test_name_regex": "roundtrip.*AgentMirrorOnDrop.*$"
+          "test_name_regex": "roundtrip.*AgentMirrorOnDropMtuTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*AgentMirrorOnDropDestMacTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*AgentMirrorOnDropSrv6Test.*$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*.AgentSflowMirrorTruncateTestV4.VerifySampledPacketRate$"
@@ -19275,7 +19302,16 @@
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
-          "test_name_regex": "roundtrip.*AgentMirrorOnDrop.*$"
+          "test_name_regex": "roundtrip.*AgentMirrorOnDropMtuTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*AgentMirrorOnDropDestMacTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*AgentMirrorOnDropSrv6Test.*$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*.AgentSflowMirrorTruncateTestV4.VerifySampledPacketRate$"
@@ -21509,7 +21545,16 @@
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
-          "test_name_regex": "roundtrip.*AgentMirrorOnDrop.*$"
+          "test_name_regex": "roundtrip.*AgentMirrorOnDropMtuTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*AgentMirrorOnDropDestMacTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*AgentMirrorOnDropSrv6Test.*$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*.AgentSflowMirrorTruncateTestV4.VerifySampledPacketRate$"
