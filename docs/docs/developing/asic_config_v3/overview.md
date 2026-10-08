@@ -134,6 +134,10 @@ configurations.
   and the synced references under
   `fboss/lib/asic_config_v2/synced_asic_configs/` semantically.
 
+Missing synced references fail unless the exact platform and variant are listed
+in `VARIANTS_WITHOUT_SYNCED_REFERENCE`. Missing materialized `HW_TEST` references
+always fail.
+
 ## Configuration details
 
 ### Conditional settings
