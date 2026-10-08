@@ -344,6 +344,38 @@ TEST(SwitchSettingsTest, applyMacAddrsToBlock) {
       macAddrToBlock.macAddress());
 }
 
+TEST(SwitchSettingsTest, applyMyMacs) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  addSwitchInfo(stateV0, cfg::SwitchType::NPU, kNpuSwitchIdBegin /* switchId*/);
+  auto switchSettingsV0 = utility::getFirstNodeIf(stateV0->getSwitchSettings());
+  ASSERT_NE(nullptr, switchSettingsV0);
+  EXPECT_TRUE(switchSettingsV0->getMyMacs().empty());
+
+  cfg::MacAndVlan myMac;
+  myMac.vlanID() = 2000;
+  myMac.macAddress() = "02:fb:00:00:00:01";
+  cfg::SwitchConfig config;
+  config.switchSettings()->myMacs() = {myMac};
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  auto switchSettingsV1 = utility::getFirstNodeIf(stateV1->getSwitchSettings());
+  ASSERT_NE(nullptr, switchSettingsV1);
+  EXPECT_EQ(switchSettingsV1->getMyMacs(), std::vector<cfg::MacAndVlan>{myMac});
+
+  config.switchSettings()->myMacs()->clear();
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  ASSERT_NE(nullptr, stateV2);
+  auto switchSettingsV2 = utility::getFirstNodeIf(stateV2->getSwitchSettings());
+  ASSERT_NE(nullptr, switchSettingsV2);
+  EXPECT_TRUE(switchSettingsV2->getMyMacs().empty());
+
+  myMac.macAddress() = "not-a-mac";
+  config.switchSettings()->myMacs() = {myMac};
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV2, &config, platform.get()), FbossError);
+}
+
 TEST(SwitchSettingsTest, applyMacOuis) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
