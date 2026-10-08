@@ -2264,6 +2264,9 @@ struct SwitchSettings {
    * effect on existing groups.
    */
   38: map<EcmpGroupType, EcmpGroupSettings> ecmpGroupSettings;
+  // Additional router MACs. Packets to these MACs on the given VLAN are routed,
+  // in addition to packets to the interface MAC.
+  39: list<MacAndVlan> myMacs = [];
 }
 
 // Global buffer pool

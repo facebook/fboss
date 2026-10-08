@@ -7607,6 +7607,7 @@ class ChildThriftPath<::facebook::fboss::cfg::SwitchSettings, ::facebook::fboss:
     STRUCT_CHILD_GETTERS(packetForwardingMode, 36);
     STRUCT_CHILD_GETTERS(ecmpWidth, 37);
     STRUCT_CHILD_GETTERS(ecmpGroupSettings, 38);
+    STRUCT_CHILD_GETTERS(myMacs, 39);
 };
 
 
