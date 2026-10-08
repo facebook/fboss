@@ -6549,6 +6549,12 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
   }
   {
     const auto& myMacs = *cfg_->switchSettings()->myMacs();
+    if (!myMacs.empty() &&
+        !hwAsicTable_->isFeatureSupportedOnAllAsic(HwAsic::Feature::MY_MAC)) {
+      throw FbossError(
+          "myMacs (MY_MAC) is not supported on ",
+          folly::join(" ", hwAsicTable_->asicNames()));
+    }
     for (const auto& myMac : myMacs) {
       if (!folly::MacAddress::tryFromString(*myMac.macAddress()).hasValue()) {
         throw FbossError("Invalid myMacs MAC address: ", *myMac.macAddress());
