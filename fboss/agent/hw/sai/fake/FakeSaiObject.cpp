@@ -120,6 +120,9 @@ sai_status_t sai_get_object_count(
     case SAI_OBJECT_TYPE_SAMPLEPACKET:
       *count = fs->samplePacketManager.map().size();
       break;
+    case SAI_OBJECT_TYPE_MY_MAC:
+      *count = static_cast<uint32_t>(fs->myMacManager.map().size());
+      break;
     case SAI_OBJECT_TYPE_SCHEDULER:
       *count = fs->scheduleManager.map().size();
       break;
@@ -461,6 +464,12 @@ sai_status_t sai_get_object_key(
     case SAI_OBJECT_TYPE_SAMPLEPACKET: {
       for (const auto& sp : fs->samplePacketManager.map()) {
         object_list[i++].key.object_id = sp.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_MY_MAC: {
+      for (const auto& myMac : fs->myMacManager.map()) {
+        object_list[i++].key.object_id = myMac.second.id;
       }
       break;
     }

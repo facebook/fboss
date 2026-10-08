@@ -24,6 +24,7 @@
 #include "fboss/agent/hw/sai/fake/FakeSaiLag.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiMacsec.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiMirror.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiMyMac.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiNeighbor.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiNextHop.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiNextHopGroup.h"
@@ -93,6 +94,7 @@ struct FakeSai {
   FakeQueueManager queueManager;
   FakeRouteManager routeManager;
   FakeRouterInterfaceManager routeInterfaceManager;
+  FakeMyMacManager myMacManager;
   FakeSamplePacketManager samplePacketManager;
   FakeSchedulerManager scheduleManager;
   FakeSwitchManager switchManager;
