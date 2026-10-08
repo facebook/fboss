@@ -163,6 +163,8 @@ struct RouteDetails {
   12: optional list<common.NextHopThrift> overridenNextHops;
   13: optional i64 resolvedNextHopSetID;
   14: optional i64 normalizedResolvedNextHopSetID;
+  // Resolved next hops before hardware normalization.
+  15: optional list<common.NextHopThrift> resolvedNextHops;
 }
 
 struct MplsRouteDetails {

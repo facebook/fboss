@@ -4260,6 +4260,34 @@ TEST_F(
   const std::map<std::string, NextHopWeight> expectedWeights{
       {"fe80:face:b00c::1", 1}, {"fe80:face:b00c::2", 1}};
   EXPECT_EQ(weights, expectedWeights);
+
+  std::vector<RouteDetails> routeDetails;
+  handler.getRouteTableDetails(routeDetails);
+  const auto detail = std::find_if(
+      routeDetails.begin(), routeDetails.end(), [](const auto& routeDetail) {
+        return facebook::network::toIPAddress(*routeDetail.dest()->ip()) ==
+            folly::IPAddress("fdad:ffff::4");
+      });
+  ASSERT_NE(detail, routeDetails.end());
+  ASSERT_TRUE(detail->resolvedNextHops().has_value());
+
+  std::map<std::string, NextHopWeight> postNormalizationWeights;
+  for (const auto& nhop : *detail->nextHops()) {
+    postNormalizationWeights[facebook::network::toIPAddress(*nhop.address())
+                                 .str()] = *nhop.weight();
+  }
+  std::map<std::string, NextHopWeight> preNormalizationWeights;
+  for (const auto& nhop : *detail->resolvedNextHops()) {
+    preNormalizationWeights[facebook::network::toIPAddress(*nhop.address())
+                                .str()] = *nhop.weight();
+  }
+  const std::map<std::string, NextHopWeight> expectedPreNormalizationWeights{
+      {"fe80:face:b00c::1", 2}, {"fe80:face:b00c::2", 2}};
+  const std::map<std::string, NextHopWeight> expectedPostNormalizationWeights{
+      {"fe80:face:b00c::1", 1}, {"fe80:face:b00c::2", 1}};
+  EXPECT_EQ(preNormalizationWeights, expectedPreNormalizationWeights);
+  EXPECT_EQ(postNormalizationWeights, expectedPostNormalizationWeights);
+  EXPECT_NE(preNormalizationWeights, postNormalizationWeights);
 }
 
 TEST_F(NamedNextHopGroupThriftTest, bgpRouteRecursesOntoTeAgentWeights) {
@@ -4342,6 +4370,38 @@ TEST_F(NamedNextHopGroupThriftTest, bgpRouteRecursesOntoTeAgentWeights) {
   addUnicastRouteWithNextHops(handler, kBgpPrefix, {kTePrefixAddr});
 
   EXPECT_EQ(resolvedWeights(kBgpPrefixAddr, 64), expectedWeights);
+
+  std::vector<RouteDetails> routeDetails;
+  handler.getRouteTableDetails(routeDetails);
+  const auto detail = std::find_if(
+      routeDetails.begin(), routeDetails.end(), [](const auto& routeDetail) {
+        return facebook::network::toIPAddress(*routeDetail.dest()->ip()) ==
+            folly::IPAddress("100::");
+      });
+  ASSERT_NE(detail, routeDetails.end());
+  ASSERT_TRUE(detail->resolvedNextHops().has_value());
+
+  std::map<std::string, NextHopWeight> preNormalizationWeights;
+  for (const auto& nhop : *detail->resolvedNextHops()) {
+    preNormalizationWeights[facebook::network::toIPAddress(*nhop.address())
+                                .str()] = *nhop.weight();
+  }
+  std::map<std::string, NextHopWeight> postNormalizationWeights;
+  for (const auto& nhop : *detail->nextHops()) {
+    postNormalizationWeights[facebook::network::toIPAddress(*nhop.address())
+                                 .str()] = *nhop.weight();
+  }
+  // The inherited weights have a GCD of 1, so normalization preserves them.
+  const std::map<std::string, NextHopWeight> expectedPreNormalizationWeights{
+      {"fe80:face:b00c::1", 2},
+      {"fe80:face:b00c::2", 1},
+      {"fe80:face:b00c::3", 1}};
+  const std::map<std::string, NextHopWeight> expectedPostNormalizationWeights{
+      {"fe80:face:b00c::1", 2},
+      {"fe80:face:b00c::2", 1},
+      {"fe80:face:b00c::3", 1}};
+  EXPECT_EQ(preNormalizationWeights, expectedPreNormalizationWeights);
+  EXPECT_EQ(postNormalizationWeights, expectedPostNormalizationWeights);
 }
 
 TEST_F(
@@ -4413,6 +4473,37 @@ TEST_F(
   ASSERT_EQ(programmedGroups.size(), 1);
   ASSERT_TRUE(programmedGroups[0].isProgrammed().has_value());
   EXPECT_TRUE(*programmedGroups[0].isProgrammed());
+
+  std::vector<RouteDetails> routeDetails;
+  handler.getRouteTableDetails(routeDetails);
+  const auto detail = std::find_if(
+      routeDetails.begin(), routeDetails.end(), [](const auto& routeDetail) {
+        return facebook::network::toIPAddress(*routeDetail.dest()->ip()) ==
+            folly::IPAddress("100::");
+      });
+  ASSERT_NE(detail, routeDetails.end());
+  ASSERT_TRUE(detail->resolvedNextHops().has_value());
+
+  std::map<std::string, NextHopWeight> postNormalizationWeights;
+  for (const auto& nhop : *detail->nextHops()) {
+    postNormalizationWeights[facebook::network::toIPAddress(*nhop.address())
+                                 .str()] = *nhop.weight();
+  }
+  std::map<std::string, NextHopWeight> preNormalizationWeights;
+  for (const auto& nhop : *detail->resolvedNextHops()) {
+    preNormalizationWeights[facebook::network::toIPAddress(*nhop.address())
+                                .str()] = *nhop.weight();
+  }
+  // Recursing through equal TE weights produces unweighted ECMP next hops.
+  // Route details preserve ECMP_WEIGHT (0) before normalization and report
+  // explicit weights of 1 after normalization.
+  const std::map<std::string, NextHopWeight> expectedPreNormalizationWeights{
+      {"fe80:face:b00c::1", ECMP_WEIGHT}, {"fe80:face:b00c::2", ECMP_WEIGHT}};
+  const std::map<std::string, NextHopWeight> expectedPostNormalizationWeights{
+      {"fe80:face:b00c::1", 1}, {"fe80:face:b00c::2", 1}};
+  EXPECT_EQ(preNormalizationWeights, expectedPreNormalizationWeights);
+  EXPECT_EQ(postNormalizationWeights, expectedPostNormalizationWeights);
+  EXPECT_NE(preNormalizationWeights, postNormalizationWeights);
 }
 
 TEST_F(NamedNextHopGroupThriftTest, combinedGroupWeightsFollowGroupUpdates) {
