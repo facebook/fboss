@@ -376,6 +376,28 @@ TEST(SwitchSettingsTest, applyMyMacs) {
       publishAndApplyConfig(stateV2, &config, platform.get()), FbossError);
 }
 
+TEST(SwitchSettingsTest, applyMyMacsUnsupportedAsic) {
+  auto platform = createMockPlatform();
+  cfg::MacAndVlan myMac;
+  myMac.vlanID() = 2000;
+  myMac.macAddress() = "02:fb:00:00:00:01";
+
+  auto applyOnAsic = [&](cfg::AsicType asicType,
+                         const std::vector<cfg::MacAndVlan>& myMacs) {
+    auto state = make_shared<SwitchState>();
+    addSwitchInfo(state, cfg::SwitchType::NPU, 0 /* switchId*/, asicType);
+    cfg::SwitchConfig config;
+    config.switchSettings()->switchIdToSwitchInfo() = {
+        {0, createSwitchInfo(cfg::SwitchType::NPU, asicType)}};
+    config.switchSettings()->myMacs() = myMacs;
+    return publishAndApplyConfig(state, &config, platform.get());
+  };
+
+  EXPECT_NE(nullptr, applyOnAsic(cfg::AsicType::ASIC_TYPE_TOMAHAWK3, {myMac}));
+  EXPECT_NO_THROW(applyOnAsic(cfg::AsicType::ASIC_TYPE_EBRO, {}));
+  EXPECT_THROW(applyOnAsic(cfg::AsicType::ASIC_TYPE_EBRO, {myMac}), FbossError);
+}
+
 TEST(SwitchSettingsTest, applyMacOuis) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
