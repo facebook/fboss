@@ -27,6 +27,7 @@
 #include <folly/io/async/EventBase.h>
 #include <folly/json.h>
 #include <gflags/gflags.h>
+#include <array>
 #include <chrono>
 #include "fboss/agent/EnumUtils.h"
 
@@ -318,15 +319,23 @@ DEFINE_string(
 DEFINE_bool(
     electrical_loopback,
     false,
-    "Set the module to be electrical loopback, only for Miniphoton");
+    "Set the module to be electrical loopback (Miniphoton, or CMIS Host Side Input loopback)");
 DEFINE_bool(
     optical_loopback,
     false,
-    "Set the module to be optical loopback, only for Miniphoton");
+    "Set the module to be optical loopback (Miniphoton, or CMIS Media Side Input loopback)");
+DEFINE_bool(
+    host_output_loopback,
+    false,
+    "Set the module to CMIS Host Side Output loopback (fiber toward fiber via the host side), CMIS only");
+DEFINE_bool(
+    media_output_loopback,
+    false,
+    "Set the module to CMIS Media Side Output loopback (host toward host via the media side), CMIS only");
 DEFINE_bool(
     clear_loopback,
     false,
-    "Clear the module loopback bits, only for Miniphoton");
+    "Clear all the module loopback bits (Miniphoton, or all four CMIS loopbacks)");
 DEFINE_bool(skip_check, false, "Skip checks for setting module loopback");
 DEFINE_bool(
     read_reg,
@@ -2875,6 +2884,61 @@ int dumpTransceiverI2cLog(
   return ret;
 }
 
+namespace {
+struct CmisLoopbackTarget {
+  LoopbackMode mode;
+  phy::PortComponent component;
+  phy::LoopbackMode direction;
+  // CMIS page 13h loopback capability bit (byte 128) and enable register.
+  uint8_t capabilityMask;
+  int enableRegister;
+  const char* name;
+};
+
+constexpr std::array<CmisLoopbackTarget, 4> kCmisLoopbackTargets = {{
+    {electricalLoopback,
+     phy::PortComponent::TRANSCEIVER_SYSTEM,
+     phy::LoopbackMode::INPUT,
+     0x08,
+     183,
+     "Host side input"},
+    {hostOutputLoopback,
+     phy::PortComponent::TRANSCEIVER_SYSTEM,
+     phy::LoopbackMode::OUTPUT,
+     0x04,
+     182,
+     "Host side output"},
+    {opticalLoopback,
+     phy::PortComponent::TRANSCEIVER_LINE,
+     phy::LoopbackMode::INPUT,
+     0x02,
+     181,
+     "Media side input"},
+    {mediaOutputLoopback,
+     phy::PortComponent::TRANSCEIVER_LINE,
+     phy::LoopbackMode::OUTPUT,
+     0x01,
+     180,
+     "Media side output"},
+}};
+
+const char* loopbackModeName(LoopbackMode mode) {
+  switch (mode) {
+    case electricalLoopback:
+      return "electricalLoopback";
+    case opticalLoopback:
+      return "opticalLoopback";
+    case hostOutputLoopback:
+      return "hostOutputLoopback";
+    case mediaOutputLoopback:
+      return "mediaOutputLoopback";
+    case noLoopback:
+      return "noLoopback";
+  }
+  return "unknown";
+}
+} // namespace
+
 bool setTransceiverLoopback(
     DirectI2cInfo i2cInfo,
     std::vector<std::string> portList,
@@ -2890,22 +2954,26 @@ bool setTransceiverLoopback(
     for (auto& portName : portList) {
       auto port = wedgeManager->getPortNameToModuleMap().at(portName) + 1;
       managementInterface = getModuleTypeDirect(bus, port);
+      bool portResult = false;
       if (managementInterface != TransceiverManagementInterface::CMIS) {
-        result = result && doMiniphotonLoopbackDirect(bus, port, mode);
+        if (mode == hostOutputLoopback || mode == mediaOutputLoopback) {
+          fprintf(
+              stderr,
+              "QSFP %d: %s is only supported on CMIS modules\n",
+              port,
+              loopbackModeName(mode));
+        } else {
+          portResult = doMiniphotonLoopbackDirect(bus, port, mode);
+        }
       } else {
-        if (mode == electricalLoopback || mode == noLoopback) {
-          cmisHostInputLoopbackDirect(bus, port, mode);
-        }
-        if (mode == opticalLoopback || mode == noLoopback) {
-          cmisMediaInputLoopbackDirect(bus, port, mode);
-        }
+        portResult = cmisLoopbackDirect(bus, port, mode);
       }
       printf(
-          "QSFP port %s loopback mode setting to %s done\n",
+          "QSFP port %s loopback mode setting to %s %s\n",
           portName.c_str(),
-          ((mode == electricalLoopback)    ? "electrical"
-               : (mode == opticalLoopback) ? "opticalLoopback"
-                                           : "noLoopback"));
+          loopbackModeName(mode),
+          portResult ? "done" : "failed");
+      result = result && portResult;
     }
     return result;
   } else {
@@ -2915,43 +2983,36 @@ bool setTransceiverLoopback(
 
     auto client = getQsfpClient(evb);
 
+    // Every port and loopback is attempted even if an earlier one fails, so a
+    // single error cannot leave the remaining loopbacks enabled.
+    bool result = true;
     for (auto& portName : portList) {
-      try {
-        if (mode == electricalLoopback) {
-          client->sync_setPortLoopbackState(
-              portName,
-              phy::PortComponent::TRANSCEIVER_SYSTEM,
-              true,
-              phy::LoopbackMode::INPUT);
-        } else if (mode == opticalLoopback) {
-          client->sync_setPortLoopbackState(
-              portName,
-              phy::PortComponent::TRANSCEIVER_LINE,
-              true,
-              phy::LoopbackMode::INPUT);
-        } else {
-          client->sync_setPortLoopbackState(
-              portName,
-              phy::PortComponent::TRANSCEIVER_SYSTEM,
-              false,
-              phy::LoopbackMode::INPUT);
-          client->sync_setPortLoopbackState(
-              portName,
-              phy::PortComponent::TRANSCEIVER_LINE,
-              false,
-              phy::LoopbackMode::INPUT);
+      bool portResult = true;
+      for (const auto& target : kCmisLoopbackTargets) {
+        // qsfp_service treats clearing an unsupported loopback as a no-op.
+        if (mode != noLoopback && target.mode != mode) {
+          continue;
         }
-
-        printf("QSFP port %s loopback mode setting done\n", portName.c_str());
-      } catch (const std::exception& ex) {
-        fprintf(
-            stderr,
-            "Error setting loopback mode via qsfp_service: %s\n",
-            ex.what());
-        return false;
+        try {
+          client->sync_setPortLoopbackState(
+              portName, target.component, mode != noLoopback, target.direction);
+        } catch (const std::exception& ex) {
+          fprintf(
+              stderr,
+              "Error setting %s loopback on %s via qsfp_service: %s\n",
+              target.name,
+              portName.c_str(),
+              ex.what());
+          portResult = false;
+        }
       }
+      printf(
+          "QSFP port %s loopback mode setting %s\n",
+          portName.c_str(),
+          portResult ? "done" : "failed");
+      result = result && portResult;
     }
-    return true;
+    return result;
   }
 }
 
@@ -2981,7 +3042,14 @@ bool doMiniphotonLoopbackDirect(
   return true;
 }
 
-void cmisHostInputLoopbackDirect(
+/*
+ * cmisLoopbackDirect
+ *
+ * Enables the CMIS loopback for mode on all lanes, or clears all four
+ * loopbacks for noLoopback. Only the selected loopback register is written,
+ * so enabling one mode leaves any other enabled loopback in place.
+ */
+bool cmisLoopbackDirect(
     TransceiverI2CApi* bus,
     unsigned int port,
     LoopbackMode mode) {
@@ -2993,65 +3061,43 @@ void cmisHostInputLoopbackDirect(
         {TransceiverAccessParameter::ADDR_QSFP, 127, sizeof(page)},
         &page);
 
-    uint8_t data;
+    uint8_t capability = 0xff;
     if (!FLAGS_skip_check) {
       bus->moduleRead(
           port,
-          {TransceiverAccessParameter::ADDR_QSFP, 128, sizeof(data)},
-          &data);
-      if (!(data & 0x08)) {
-        fprintf(
-            stderr,
-            "QSFP %d: Host side input loopback not supported, you may try --skip_check\n",
-            port);
-        return;
-      }
+          {TransceiverAccessParameter::ADDR_QSFP, 128, sizeof(capability)},
+          &capability);
     }
 
-    data = (mode == electricalLoopback) ? 0xff : 0;
-    bus->moduleWrite(
-        port,
-        {TransceiverAccessParameter::ADDR_QSFP, 183, sizeof(data)},
-        &data);
-  } catch (const I2cError&) {
-    fprintf(stderr, "QSFP %d: fail to set loopback\n", port);
-  }
-}
-
-void cmisMediaInputLoopbackDirect(
-    TransceiverI2CApi* bus,
-    unsigned int port,
-    LoopbackMode mode) {
-  try {
-    // Make sure we have page 0x13 selected.
-    uint8_t page = 0x13;
-    bus->moduleWrite(
-        port,
-        {TransceiverAccessParameter::ADDR_QSFP, 127, sizeof(page)},
-        &page);
-
-    uint8_t data;
-    if (!FLAGS_skip_check) {
-      bus->moduleRead(
+    bool result = true;
+    for (const auto& target : kCmisLoopbackTargets) {
+      if (mode != noLoopback && target.mode != mode) {
+        continue;
+      }
+      if (!(capability & target.capabilityMask)) {
+        // Nothing to clear in an unsupported loopback.
+        if (mode != noLoopback) {
+          fprintf(
+              stderr,
+              "QSFP %d: %s loopback not supported, you may try --skip_check\n",
+              port,
+              target.name);
+          result = false;
+        }
+        continue;
+      }
+      uint8_t data = (mode == noLoopback) ? 0 : 0xff;
+      bus->moduleWrite(
           port,
-          {TransceiverAccessParameter::ADDR_QSFP, 128, sizeof(data)},
+          {TransceiverAccessParameter::ADDR_QSFP,
+           target.enableRegister,
+           sizeof(data)},
           &data);
-      if (!(data & 0x02)) {
-        fprintf(
-            stderr,
-            "QSFP %d: Media side input loopback not supported, you may try --skip_check\n",
-            port);
-        return;
-      }
     }
-
-    data = (mode == opticalLoopback) ? 0xff : 0;
-    bus->moduleWrite(
-        port,
-        {TransceiverAccessParameter::ADDR_QSFP, 181, sizeof(data)},
-        &data);
+    return result;
   } catch (const I2cError&) {
     fprintf(stderr, "QSFP %d: fail to set loopback\n", port);
+    return false;
   }
 }
 
@@ -4651,7 +4697,8 @@ bool verifyDirectI2cCompliance() {
       FLAGS_get_remediation_until_time || FLAGS_read_reg || FLAGS_write_reg ||
       FLAGS_update_module_firmware || FLAGS_update_bulk_module_fw ||
       FLAGS_set_40g || FLAGS_set_100g || FLAGS_electrical_loopback ||
-      FLAGS_optical_loopback || FLAGS_clear_loopback || FLAGS_qsfp_reset ||
+      FLAGS_optical_loopback || FLAGS_host_output_loopback ||
+      FLAGS_media_output_loopback || FLAGS_clear_loopback || FLAGS_qsfp_reset ||
       FLAGS_port_info_summary) {
     if (FLAGS_direct_i2c) {
       if (QsfpServiceDetector::getInstance()->isQsfpServiceActive()) {
