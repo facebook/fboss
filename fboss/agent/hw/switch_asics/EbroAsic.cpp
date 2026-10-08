@@ -280,6 +280,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::ISOLATION_GROUP:
     case HwAsic::Feature::SAI_ACL_MPLS_LABEL0_TTL:
     case HwAsic::Feature::SAI_MPLS_NEXTHOP_OUTSEG_TYPE:
+    case HwAsic::Feature::ACL_ENTRY_OUT_PORT_QUALIFIER:
       return false;
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
     case HwAsic::Feature::SAI_PRBS:

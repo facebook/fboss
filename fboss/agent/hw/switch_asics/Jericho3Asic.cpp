@@ -297,6 +297,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS:
     case HwAsic::Feature::NEXT_HOP_GROUP_MEMBER_MONITORED_OBJECT:
     case HwAsic::Feature::ISOLATION_GROUP:
+    case HwAsic::Feature::ACL_ENTRY_OUT_PORT_QUALIFIER:
       return false;
   }
   return false;
