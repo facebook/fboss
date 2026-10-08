@@ -647,7 +647,7 @@ SaiSwitchTraits::Attributes::AttributeSdkRegDumpLogPath::operator()() {
 // is what keeps SaiExtensionAttribute from CHECK failing on an unresolvable id.
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeSdkDumpRateLimitWindow::operator()() {
-#if defined(SAI_VERSION_12_2_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   return SAI_SWITCH_ATTR_SDK_DUMP_RATE_LIMIT_WINDOW;
 #endif
   return std::nullopt;
@@ -663,7 +663,7 @@ SaiSwitchTraits::Attributes::AttributeSdkDumpRateLimitWindow::operator()() {
 // is what keeps SaiExtensionAttribute from CHECK failing on an unresolvable id.
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeSdkDumpSuppressedCount::operator()() {
-#if defined(SAI_VERSION_12_2_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   return SAI_SWITCH_ATTR_SDK_DUMP_SUPPRESSED_COUNT;
 #endif
   return std::nullopt;
