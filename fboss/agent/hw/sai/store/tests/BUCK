@@ -180,6 +180,13 @@ store_unittest(
 )
 
 store_unittest(
+    name = "my_mac_store_test",
+    srcs = [
+        "MyMacStoreTest.cpp",
+    ],
+)
+
+store_unittest(
     name = "samplepacket_store_test",
     srcs = [
         "SamplePacketStoreTest.cpp",

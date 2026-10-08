@@ -28,6 +28,7 @@ add_executable(store_test
     fboss/agent/hw/sai/store/tests/RouteStoreTest.cpp
     fboss/agent/hw/sai/store/tests/RouterInterfaceStoreTest.cpp
     fboss/agent/hw/sai/store/tests/SaiEmptyStoreTest.cpp
+    fboss/agent/hw/sai/store/tests/MyMacStoreTest.cpp
     fboss/agent/hw/sai/store/tests/SamplePacketStoreTest.cpp
     fboss/agent/hw/sai/store/tests/SchedulerStoreTest.cpp
     fboss/agent/hw/sai/store/tests/TamStoreTest.cpp
