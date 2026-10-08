@@ -74,6 +74,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _SwitchMap{
     SAI_ATTR_MAP(Switch, FirmwarePathName),
     SAI_ATTR_MAP(Switch, FirmwareLoadMethod),
     SAI_ATTR_MAP(Switch, FirmwareLoadType),
+    SAI_ATTR_MAP(Switch, WarmRecover),
     SAI_ATTR_MAP(Switch, HardwareAccessBus),
     SAI_ATTR_MAP(Switch, PlatformContext),
     SAI_ATTR_MAP(Switch, SwitchProfileId),

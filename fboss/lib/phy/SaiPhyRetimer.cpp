@@ -410,6 +410,7 @@ SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
 #if defined(SAI_BRCM_PAI_IMPL)
       reinterpret_cast<sai_pointer_t>(pai_lock_callback), // user sync_lock
       reinterpret_cast<sai_pointer_t>(pai_unlock_callback), // user sync_unlock
+      std::nullopt, // Warm recover
 #endif
   };
 }

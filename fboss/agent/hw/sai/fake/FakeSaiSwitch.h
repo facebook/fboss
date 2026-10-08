@@ -79,6 +79,9 @@ class FakeSwitch {
   void setFirmwareLoadType(int32_t firmwareLoadType) {
     firmwareLoadType_ = firmwareLoadType;
   }
+  void setWarmRecover(bool warmRecover) {
+    warmRecover_ = warmRecover;
+  }
   void setHardwareAccessBus(int32_t hardwareAccessBus) {
     hardwareAccessBus_ = hardwareAccessBus;
   }
@@ -154,6 +157,9 @@ class FakeSwitch {
   }
   int32_t firmwareLoadType() {
     return firmwareLoadType_;
+  }
+  bool warmRecover() const {
+    return warmRecover_;
   }
   int32_t hardwareAccessBus() {
     return hardwareAccessBus_;
@@ -383,6 +389,7 @@ class FakeSwitch {
   std::vector<int8_t> firmwarePathName_;
   int32_t firmwareLoadMethod_;
   int32_t firmwareLoadType_;
+  bool warmRecover_{false};
   int32_t hardwareAccessBus_;
   sai_uint64_t platformContext_;
   sai_uint32_t profileId_;

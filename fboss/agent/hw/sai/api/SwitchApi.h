@@ -329,6 +329,11 @@ struct SaiSwitchTraits {
         SAI_SWITCH_ATTR_FIRMWARE_LOAD_TYPE,
         int32_t,
         SaiIntDefault<int32_t>>;
+    using WarmRecover = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_WARM_RECOVER,
+        bool,
+        SaiBoolDefaultFalse>;
     using HardwareAccessBus = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_HARDWARE_ACCESS_BUS,
@@ -1047,7 +1052,8 @@ struct SaiSwitchTraits {
 #if defined(SAI_BRCM_PAI_IMPL)
       ,
       std::optional<Attributes::SyncLock>,
-      std::optional<Attributes::SyncUnlock>
+      std::optional<Attributes::SyncUnlock>,
+      std::optional<Attributes::WarmRecover>
 #endif
       >;
 
@@ -1155,6 +1161,7 @@ SAI_ATTRIBUTE_NAME(Switch, FirmwarePathName)
 SAI_ATTRIBUTE_NAME(Switch, FirmwareLogFile)
 SAI_ATTRIBUTE_NAME(Switch, FirmwareLoadMethod)
 SAI_ATTRIBUTE_NAME(Switch, FirmwareLoadType)
+SAI_ATTRIBUTE_NAME(Switch, WarmRecover)
 SAI_ATTRIBUTE_NAME(Switch, HardwareAccessBus)
 SAI_ATTRIBUTE_NAME(Switch, PlatformContext)
 SAI_ATTRIBUTE_NAME(Switch, SwitchProfileId)

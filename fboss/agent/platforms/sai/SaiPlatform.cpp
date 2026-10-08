@@ -1016,6 +1016,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #if defined(SAI_BRCM_PAI_IMPL)
       std::nullopt, // SyncLock
       std::nullopt, // SyncUnlock
+      std::nullopt, // WarmRecover
 #endif
   };
 }
