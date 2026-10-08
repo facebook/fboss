@@ -31,10 +31,12 @@ namespace facebook::fboss {
 //   ... prefix-list <name> entry <seq-num> base-prefix <prefix/len>
 //   ... prefix-list <name> entry <seq-num> communities <community-string>
 //   ... prefix-list <name> entry <seq-num> description <string>
-//   ... prefix-list <name> entry <seq-num> match-logic <EQUAL|NOT_EQUAL>
+//   ... prefix-list <name> entry <seq-num> match-logic EQUAL
+//       (bgpd rejects NOT_EQUAL)
 //   ... prefix-list <name> entry <seq-num> max-allowed-subnet-count <value>
+//       (bgpd reads it only for golden-prefix policies)
 //   ... prefix-list <name> entry <seq-num> prefix-len-range compare-operator
-//   <op>
+//   <EQ|GE|LE|NE|GT|LT>  (bgpd rejects RG)
 //   ... prefix-list <name> entry <seq-num> prefix-len-range value <0-128>
 //   ... prefix-list <name> entry <seq-num> regex <string>
 class BgpPrefixListEntryConfig : public utils::BaseObjectArgType<std::string> {
