@@ -30,6 +30,9 @@
 #include "fboss/agent/hw/sai/switch/SaiUdfManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
+#include "fboss/agent/state/DeltaFunctions.h"
+#include "fboss/agent/state/NodeMapDelta.h"
+#include "fboss/agent/state/SwitchState.h"
 
 #include <folly/MacAddress.h>
 #include <chrono>
@@ -50,6 +53,14 @@ namespace {
 
 // Match all 32 bits in the selected IPv6 word.
 constexpr uint32_t kIpV6WordExactMatchMask = 0xFFFFFFFF;
+constexpr int kMigratedAclTablePriority = 23;
+
+int normalizeAclTablePriority(int priority) {
+  // TODO: Add dedicated ACL Agent HW tests for configured priority changes,
+  // then remove this after all ACL table configs use priority 23.
+  return priority < kMigratedAclTablePriority ? kMigratedAclTablePriority
+                                              : priority;
+}
 
 folly::IPAddressV6 ipV6WordToAddress(uint32_t word, int wordIndex) {
   CHECK(wordIndex == 2 || wordIndex == 3)
@@ -144,7 +155,8 @@ std::vector<std::string> SaiAclTableManager::getAllHandleNames() const {
 AclTableSaiId SaiAclTableManager::addAclTable(
     const std::shared_ptr<AclTable>& addedAclTable,
     cfg::AclStage aclStage,
-    const std::shared_ptr<SwitchState>& /*state*/) {
+    const std::shared_ptr<SwitchState>& /*state*/,
+    cfg::AclTableGroupBindPoint bindPoint) {
   auto saiAclStage =
       SaiAclTableGroupManager::cfgAclStageToSaiAclStage(aclStage);
 
@@ -170,7 +182,7 @@ AclTableSaiId SaiAclTableManager::addAclTable(
   SaiAclTableTraits::CreateAttributes attributes;
 
   std::tie(adapterHostKey, attributes) =
-      aclTableCreateAttributes(saiAclStage, addedAclTable);
+      aclTableCreateAttributes(saiAclStage, addedAclTable, bindPoint);
 
   auto& aclTableStore = saiStore_->get<SaiAclTableTraits>();
   std::shared_ptr<SaiAclTable> saiAclTable{};
@@ -196,9 +208,13 @@ AclTableSaiId SaiAclTableManager::addAclTable(
   auto aclTableSaiId = it->second->aclTable->adapterKey();
 
   // Add ACL Table to group based on the stage
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::ACL_TABLE_GROUP)) {
+  if (hasTableGroups_) {
     managerTable_->aclTableGroupManager().addAclTableGroupMember(
-        saiAclStage, aclTableSaiId, aclTableName);
+        saiAclStage,
+        bindPoint,
+        aclTableSaiId,
+        aclTableName,
+        normalizeAclTablePriority(addedAclTable->getPriority()));
   }
 
   return aclTableSaiId;
@@ -207,7 +223,8 @@ AclTableSaiId SaiAclTableManager::addAclTable(
 void SaiAclTableManager::removeAclTable(
     const std::shared_ptr<AclTable>& removedAclTable,
     cfg::AclStage aclStage,
-    const std::shared_ptr<SwitchState>& /*state*/) {
+    const std::shared_ptr<SwitchState>& /*state*/,
+    cfg::AclTableGroupBindPoint bindPoint) {
   auto saiAclStage =
       SaiAclTableGroupManager::cfgAclStageToSaiAclStage(aclStage);
   auto aclTableName = removedAclTable->getID();
@@ -215,22 +232,66 @@ void SaiAclTableManager::removeAclTable(
   // remove from acl table group
   if (hasTableGroups_) {
     managerTable_->aclTableGroupManager().removeAclTableGroupMember(
-        saiAclStage, aclTableName);
+        saiAclStage, bindPoint, aclTableName);
   }
 
   // remove from handles
   handles_.erase(aclTableName);
 }
 
+void SaiAclTableManager::removeObsoletePortBoundAclTables(
+    const std::shared_ptr<SwitchState>& oldState,
+    const std::shared_ptr<SwitchState>& newState) {
+  const auto& oldPortAclTableGroups = oldState->getPortAclTableGroups();
+  const auto& newPortAclTableGroups = newState->getPortAclTableGroups();
+  for (const auto& [_, tableGroupMap] : std::as_const(*oldPortAclTableGroups)) {
+    for (const auto& [_, tableGroup] : std::as_const(*tableGroupMap)) {
+      const auto aclStage = tableGroup->getID();
+      const auto oldAclTables = tableGroup->getAclTableMap();
+      std::shared_ptr<const AclTableMap> newAclTables;
+      if (const auto newTableGroup =
+              newPortAclTableGroups->getNodeIf(aclStage)) {
+        newAclTables = newTableGroup->getAclTableMap();
+      }
+      DeltaFunctions::forEachRemoved(
+          ThriftMapDelta<AclTableMap>(oldAclTables.get(), newAclTables.get()),
+          [this, aclStage, &newState](const auto& removedAclTable) {
+            removeAclTable(
+                removedAclTable,
+                aclStage,
+                newState,
+                cfg::AclTableGroupBindPoint::PORT);
+          });
+    }
+  }
+}
+
 bool SaiAclTableManager::needsAclTableRecreate(
     const std::shared_ptr<AclTable>& oldAclTable,
-    const std::shared_ptr<AclTable>& newAclTable) {
+    const std::shared_ptr<AclTable>& newAclTable,
+    cfg::AclStage aclStage) {
+  // TODO(zecheng): actionTypes has the same empty-means-ASIC-default semantics
+  // as qualifiers (see getActionTypeList) and should be compared the same way.
   if (oldAclTable->getActionTypes() != newAclTable->getActionTypes() ||
-      oldAclTable->getPriority() != newAclTable->getPriority() ||
-      oldAclTable->getQualifiers() != newAclTable->getQualifiers() ||
+      normalizeAclTablePriority(oldAclTable->getPriority()) !=
+          normalizeAclTablePriority(newAclTable->getPriority()) ||
       oldAclTable->getUdfGroups()->toThrift() !=
           newAclTable->getUdfGroups()->toThrift()) {
-    XLOG(DBG2) << "Recreating ACL table";
+    XLOG(DBG2) << "Recreating ACL table: table properties changed";
+    return true;
+  }
+  if (oldAclTable->getQualifiers() == newAclTable->getQualifiers()) {
+    return false;
+  }
+  // An empty list means "whatever the ASIC supports", so lists that differ can
+  // still resolve to the same set. Reaching getQualifierSet only from here also
+  // keeps it off the unchanged path, where it could throw for an egress table
+  // on an ASIC without post lookup ACL support.
+  auto saiAclStage =
+      SaiAclTableGroupManager::cfgAclStageToSaiAclStage(aclStage);
+  if (getQualifierSet(saiAclStage, oldAclTable) !=
+      getQualifierSet(saiAclStage, newAclTable)) {
+    XLOG(DBG2) << "Recreating ACL table: qualifiers changed";
     return true;
   }
   return false;
@@ -268,17 +329,74 @@ void SaiAclTableManager::changedAclTable(
     const std::shared_ptr<AclTable>& oldAclTable,
     const std::shared_ptr<AclTable>& newAclTable,
     cfg::AclStage aclStage,
-    const std::shared_ptr<SwitchState>& state) {
+    const std::shared_ptr<SwitchState>& state,
+    cfg::AclTableGroupBindPoint bindPoint) {
   /*
    * If the only change in acl table is in acl entries, then the acl entry delta
    * processing will take care of changing those.
    * Changes to ACL table properties will need a remove and readd
    * Ensure that the newly added table also adds the old acls*/
-  if (needsAclTableRecreate(oldAclTable, newAclTable)) {
+  if (needsAclTableRecreate(oldAclTable, newAclTable, aclStage)) {
+    if (bindPoint == cfg::AclTableGroupBindPoint::PORT) {
+      // Stage the replacement under a temporary name so both tables coexist.
+      const auto aclTableName = oldAclTable->getID();
+      const auto stagedAclTableName =
+          folly::to<std::string>(aclTableName, "-recreate");
+      if (getAclTableHandle(stagedAclTableName)) {
+        throw FbossError(
+            "staged ACL table already exists: ", stagedAclTableName);
+      }
+
+      auto stagedAclTableFields = newAclTable->toThrift();
+      stagedAclTableFields.id() = stagedAclTableName;
+      auto stagedAclTable =
+          std::make_shared<AclTable>(std::move(stagedAclTableFields));
+      const auto oldAclTableId =
+          getAclTableHandle(aclTableName)->aclTable->adapterKey();
+      const auto newAclTableId =
+          addAclTable(stagedAclTable, aclStage, state, bindPoint);
+
+      try {
+        // Program the replacement, then move ports to its OID.
+        auto oldAclMap = oldAclTable->getAclMap().unwrap();
+        addAclEntriesToTable(stagedAclTable, oldAclMap, state);
+        managerTable_->portManager().replaceIngressAcl(
+            oldAclTableId, newAclTableId);
+      } catch (...) {
+        managerTable_->portManager().replaceIngressAcl(
+            newAclTableId, oldAclTableId);
+        removeAclEntriesFromTable(stagedAclTable);
+        removeAclTable(stagedAclTable, aclStage, state, bindPoint);
+        throw;
+      }
+
+      // The old table is no longer bound and can now be removed.
+      removeAclEntriesFromTable(oldAclTable);
+      removeAclTable(oldAclTable, aclStage, state, bindPoint);
+
+      // Restore the configured name in bookkeeping without changing its OID.
+      managerTable_->aclTableGroupManager().removeAclTableGroupMember(
+          SaiAclTableGroupManager::cfgAclStageToSaiAclStage(aclStage),
+          bindPoint,
+          stagedAclTableName);
+      managerTable_->aclTableGroupManager().addAclTableGroupMember(
+          SaiAclTableGroupManager::cfgAclStageToSaiAclStage(aclStage),
+          bindPoint,
+          newAclTableId,
+          aclTableName,
+          normalizeAclTablePriority(newAclTable->getPriority()));
+
+      auto stagedHandle = std::move(handles_.at(stagedAclTableName));
+      handles_.erase(stagedAclTableName);
+      auto [_, inserted] =
+          handles_.emplace(aclTableName, std::move(stagedHandle));
+      CHECK(inserted);
+      return;
+    }
     // Remove acl entries from old acl table before removing the table
     removeAclEntriesFromTable(oldAclTable);
-    removeAclTable(oldAclTable, aclStage, state);
-    addAclTable(newAclTable, aclStage, state);
+    removeAclTable(oldAclTable, aclStage, state, bindPoint);
+    addAclTable(newAclTable, aclStage, state, bindPoint);
 
     // Add the old acl Entries back to new acl table
     auto oldAclMap = oldAclTable->getAclMap().unwrap();
@@ -360,6 +478,7 @@ uint16_t SaiAclTableManager::cfgEtherTypeToSaiEtherType(
     case cfg::EtherType::ARP:
     case cfg::EtherType::LACP:
     case cfg::EtherType::AIFM:
+    case cfg::EtherType::MPLS:
       return static_cast<uint16_t>(cfgEtherType);
   }
   // should return in one of the cases
@@ -560,8 +679,13 @@ SaiAclTableManager::addAclCounter(
         statSuffix = "packets";
         break;
       case cfg::CounterType::BYTES:
-        enableByteCount =
-            SaiAclCounterTraits::Attributes::EnableByteCount{true};
+        // Gate on ASIC type rather than HwAsic::Feature::ACL_BYTE_COUNTER;
+        // gating with feature causes a failure with Cisco SDK.
+        if (platform_->getAsic()->getAsicType() !=
+            cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) {
+          enableByteCount =
+              SaiAclCounterTraits::Attributes::EnableByteCount{true};
+        }
         statSuffix = "bytes";
         break;
       default:
@@ -571,12 +695,12 @@ SaiAclTableManager::addAclCounter(
     auto statName =
         folly::to<std::string>(*trafficCount.name(), ".", statSuffix);
     aclCounterTypeAndName.emplace_back(counterType, statName);
-    if (aclCounterRefMap.find(statName) == aclCounterRefMap.end()) {
+    if (aclCounterRefMap_.find(statName) == aclCounterRefMap_.end()) {
       // Create fb303 counter since stat is being added/readded again
       aclStats_.reinitStat(statName, std::nullopt);
-      aclCounterRefMap[statName] = 1;
+      aclCounterRefMap_[statName] = 1;
     } else {
-      aclCounterRefMap[statName]++;
+      aclCounterRefMap_[statName]++;
     }
   }
 
@@ -808,16 +932,16 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclTableHandle->aclTable->adapterKey()};
   SaiAclEntryTraits::Attributes::Priority priority{
       swPriorityToSaiPriority(addedAclEntry->getPriority())};
-  std::optional<SaiAclEntryTraits::Attributes::LabelExtended> labelExtended;
-  if (SaiAclEntryTraits::Attributes::LabelExtended::
-          optionalExtensionAttributeId()
-              .has_value()) {
-    const auto& aclEntryName = addedAclEntry->getID();
-    labelExtended = SaiAclEntryTraits::Attributes::LabelExtended{
-        std::vector<int8_t>(aclEntryName.begin(), aclEntryName.end())};
-  }
-  SaiAclEntryTraits::AdapterHostKey adapterHostKey{
-      aclTableId, priority, labelExtended};
+#if defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_P200)
+  // Two entries in one table may share a priority (PBR does), so the entry name
+  // is carried in the ACL entry label to keep their AdapterHostKeys distinct.
+  const auto& aclEntryName = addedAclEntry->getID();
+  std::optional<SaiAclEntryTraits::Attributes::Label> label{
+      std::vector<sai_int8_t>(aclEntryName.begin(), aclEntryName.end())};
+  SaiAclEntryTraits::AdapterHostKey adapterHostKey{aclTableId, priority, label};
+#else
+  SaiAclEntryTraits::AdapterHostKey adapterHostKey{aclTableId, priority};
+#endif
 
   std::optional<SaiAclEntryTraits::Attributes::FieldSrcIpV6> fieldSrcIpV6{
       std::nullopt};
@@ -1012,7 +1136,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
     fieldTcpFlags =
         SaiAclEntryTraits::Attributes::FieldTcpFlags{AclEntryFieldU8(
             std::make_pair(
-                addedAclEntry->getTcpFlagsBitMap().value(), kTcpFlagsMask))};
+                addedAclEntry->getTcpFlagsBitMap().value(),
+                addedAclEntry->getTcpFlagsMask().value_or(kTcpFlagsMask)))};
   }
 
   std::optional<SaiAclEntryTraits::Attributes::FieldIpFrag> fieldIpFrag{
@@ -1103,6 +1228,22 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             addedAclEntry->getTtl().value().getMask()))};
   }
 
+  std::optional<SaiAclEntryTraits::Attributes::FieldMplsLabel0Ttl>
+      fieldMplsLabel0Ttl{std::nullopt};
+  if (addedAclEntry->getMplsLabel0Ttl()) {
+    if (!platform_->getAsic()->isSupported(
+            HwAsic::Feature::SAI_ACL_MPLS_LABEL0_TTL)) {
+      throw FbossError(
+          "MPLS label0 TTL ACL qualifier is not supported on this SDK, acl: ",
+          addedAclEntry->getID());
+    }
+    fieldMplsLabel0Ttl =
+        SaiAclEntryTraits::Attributes::FieldMplsLabel0Ttl{AclEntryFieldU8(
+            std::make_pair(
+                addedAclEntry->getMplsLabel0Ttl().value().getValue(),
+                addedAclEntry->getMplsLabel0Ttl().value().getMask()))};
+  }
+
   std::optional<SaiAclEntryTraits::Attributes::FieldRouteDstUserMeta>
       fieldRouteDstUserMeta{std::nullopt};
   if (addedAclEntry->getLookupClassRoute()) {
@@ -1189,13 +1330,27 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   // TODO(skhare) Support all other ACL actions
   std::optional<SaiAclEntryTraits::Attributes::ActionPacketAction>
       aclActionPacketAction{std::nullopt};
-  const auto& act = addedAclEntry->getActionType();
-  if (act == cfg::AclActionType::DENY) {
-    aclActionPacketAction = SaiAclEntryTraits::Attributes::ActionPacketAction{
-        SAI_PACKET_ACTION_DROP};
-  } else {
-    aclActionPacketAction = SaiAclEntryTraits::Attributes::ActionPacketAction{
-        SAI_PACKET_ACTION_FORWARD};
+  /*
+   * FBOSS ACL action -> SAI packet action:
+   *  - PERMIT: leave the pipeline's forwarding decision alone (FORWARD).
+   *  - DENY: drop the packet (DROP). A copy to CPU that a lower priority ACL
+   *    or a host interface trap asked for still happens.
+   *  - DENY_DATA_AND_CONTROL_PLANE: drop the packet and cancel that copy to CPU
+   * (DENY, which the SAI spec defines as COPY_CANCEL plus DROP).
+   */
+  switch (addedAclEntry->getActionType()) {
+    case cfg::AclActionType::DENY:
+      aclActionPacketAction = SaiAclEntryTraits::Attributes::ActionPacketAction{
+          SAI_PACKET_ACTION_DROP};
+      break;
+    case cfg::AclActionType::DENY_DATA_AND_CONTROL_PLANE:
+      aclActionPacketAction = SaiAclEntryTraits::Attributes::ActionPacketAction{
+          SAI_PACKET_ACTION_DENY};
+      break;
+    case cfg::AclActionType::PERMIT:
+      aclActionPacketAction = SaiAclEntryTraits::Attributes::ActionPacketAction{
+          SAI_PACKET_ACTION_FORWARD};
+      break;
   }
 
   std::optional<SaiAclEntryTraits::Attributes::ActionRedirect>
@@ -1494,7 +1649,17 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
             auto arsProfileHandle =
                 managerTable_->arsProfileManager().getArsProfileHandle();
-            if (arsProfileHandle && arsProfileHandle->arsVirtualGroupsEnabled) {
+            // A DLB eligible packet hits entries in both IFP groups, and
+            // DynamicEcmpEnable and L3Switch are not mutually exclusive, so
+            // both actions get applied. Without the cancel the packet then
+            // egresses through the static ECMP group rather than the DLB one,
+            // and split horizon on the ARS group never comes into play.
+            const bool arsSplitHorizonEnabled =
+                managerTable_->nextHopGroupManager().isSplitHorizonEnabled(
+                    cfg::EcmpGroupType::ARS);
+            if ((arsProfileHandle &&
+                 arsProfileHandle->arsVirtualGroupsEnabled) ||
+                arsSplitHorizonEnabled) {
               aclActionL3SwitchCancel =
                   SaiAclEntryTraits::Attributes::ActionL3SwitchCancel{true};
             }
@@ -1507,20 +1672,6 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             break;
         }
       }
-#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
-      if (matchAction.getEnableAlternateArsMembers().has_value()) {
-        auto alternateMemberArsHandlePtr =
-            managerTable_->arsManager().getAlternateMemberArsHandle();
-        if (alternateMemberArsHandlePtr->ars) {
-          aclActionSetArsObject =
-              SaiAclEntryTraits::Attributes::ActionSetArsObject{
-                  AclEntryActionSaiObjectIdT(
-                      alternateMemberArsHandlePtr->ars->adapterKey())};
-        }
-        aclActionL3SwitchCancel =
-            SaiAclEntryTraits::Attributes::ActionL3SwitchCancel{true};
-      }
-#endif
     }
 #endif
 
@@ -1594,10 +1745,10 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        fieldIcmpV6Type.has_value() || fieldIcmpV6Code.has_value() ||
        fieldDscp.has_value() || fieldTc.has_value() ||
        fieldDstMac.has_value() || fieldIpType.has_value() ||
-       fieldTtl.has_value() || fieldFdbDstUserMeta.has_value() ||
-       fieldRouteDstUserMeta.has_value() || fieldEtherType.has_value() ||
-       fieldNeighborDstUserMeta.has_value() || fieldPortUserMeta.has_value() ||
-       fieldOuterVlanId.has_value() ||
+       fieldTtl.has_value() || fieldMplsLabel0Ttl.has_value() ||
+       fieldFdbDstUserMeta.has_value() || fieldRouteDstUserMeta.has_value() ||
+       fieldEtherType.has_value() || fieldNeighborDstUserMeta.has_value() ||
+       fieldPortUserMeta.has_value() || fieldOuterVlanId.has_value() ||
 #if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
        fieldBthOpcode.has_value() ||
 #endif
@@ -1615,7 +1766,22 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
        aclFieldRouteDestination.has_value() ||
 #endif
-       platform_->getAsic()->isSupported(HwAsic::Feature::EMPTY_ACL_MATCHER));
+       // With EMPTY_ACL_MATCHER, SaiSwitch allows programming an ACL entry
+       // with no matchers. Such entries implement match-all ACLs. However,
+       // a qualifier SaiSwitch does not support (e.g. PacketLookupResultType)
+       // would also yield an entry with no matchers, i.e. a match-all entry,
+       // which shadows every entry below it in the table. Avoid that by
+       // explicitly disallowing entries where SaiSwitch found no matcher, but
+       // a matcher does exist in the SwitchState.
+       //
+       // TODO(skhare): temporary fix that retains the current SaiSwitch
+       // behavior of not programming the mpls-dest-nomatch ACL, which matches
+       // on PacketLookupResultType. A subsequent config change will remove
+       // this ACL entry altogether. At that time, enhance this into a
+       // stricter check that throws an error if SwSwitch attempts to program
+       // an ACL with matcher(s) not supported by SaiSwitch.
+       (platform_->getAsic()->isSupported(HwAsic::Feature::EMPTY_ACL_MATCHER) &&
+        !addedAclEntry->hasMatcher()));
   if ((dstIpV6Word3 || dstIpV6Word2) && !dstIpV6WordQualifiersSupported) {
     throw FbossError(
         "ACL entry ",
@@ -1685,6 +1851,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldDstMac,
       fieldIpType,
       fieldTtl,
+      fieldMplsLabel0Ttl,
       fieldFdbDstUserMeta,
       fieldRouteDstUserMeta,
       fieldNeighborDstUserMeta,
@@ -1732,7 +1899,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclActionL3SwitchCancel,
       aclFieldRouteDestination,
 #endif
-      labelExtended,
+#if defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_P200)
+      label,
+#endif
       fieldPortUserMeta,
   };
 
@@ -1804,13 +1973,13 @@ void SaiAclTableManager::removeAclCounter(
   for (const auto& counterType : *trafficCount.types()) {
     auto statName =
         utility::statNameFromCounterType(*trafficCount.name(), counterType);
-    auto entry = aclCounterRefMap.find(statName);
-    if (entry != aclCounterRefMap.end()) {
+    auto entry = aclCounterRefMap_.find(statName);
+    if (entry != aclCounterRefMap_.end()) {
       entry->second--;
       if (entry->second == 0) {
         // Counter no longer used. Remove from fb303 counters
         aclStats_.removeStat(statName);
-        aclCounterRefMap.erase(entry);
+        aclCounterRefMap_.erase(entry);
       }
     } else {
       throw FbossError("Acl counter ", statName, " not found om counter map");
@@ -2165,7 +2334,7 @@ void SaiAclTableManager::removeDefaultAclTable(
       SaiAclTableGroupManager::cfgAclStageToSaiAclStage(stage);
   if (platform_->getAsic()->isSupported(HwAsic::Feature::ACL_TABLE_GROUP)) {
     managerTable_->aclTableGroupManager().removeAclTableGroupMember(
-        saiAclStage, name);
+        saiAclStage, cfg::AclTableGroupBindPoint::SWITCH, name);
   }
   handles_.erase(cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
 }
@@ -2280,6 +2449,11 @@ bool SaiAclTableManager::isQualifierSupported(
     case cfg::AclTableQualifier::TTL:
       return hasField(
           std::get<std::optional<SaiAclTableTraits::Attributes::FieldTtl>>(
+              attributes));
+    case cfg::AclTableQualifier::MPLS_LABEL0_TTL:
+      return hasField(
+          std::get<
+              std::optional<SaiAclTableTraits::Attributes::FieldMplsLabel0Ttl>>(
               attributes));
     case cfg::AclTableQualifier::LOOKUP_CLASS_L2:
       return hasField(

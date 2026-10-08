@@ -38,9 +38,23 @@ cpp_library(
     srcs = [
         "ConfigValidator.cpp",
     ],
+    headers = [
+        "ConfigValidator.h",
+    ],
     deps = [
         "fbsource//third-party/range-v3:range-v3",
+        ":fan_service_config_types",
         "//folly/logging:logging",
+    ],
+    exported_deps = [
+        "//fboss/platform/fan_service/if:fan_service-cpp2-types",
+    ],
+)
+
+cpp_library(
+    name = "fan_service_config_types",
+    headers = [
+        "FanServiceConfigTypes.h",
     ],
     exported_deps = [
         "//fboss/platform/fan_service/if:fan_service-cpp2-types",
@@ -51,6 +65,9 @@ cpp_library(
     name = "pid_logic_library",
     srcs = [
         "PidLogic.cpp",
+    ],
+    headers = [
+        "PidLogic.h",
     ],
     deps = ["//folly/logging:logging"],
     exported_deps = [
@@ -77,9 +94,11 @@ cpp_library(
         "FanServiceHandler.h",
         "FsdbSensorSubscriber.h",
         "OvertempCondition.h",
+        "SensorData.h",
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
+        ":fan_service_config_types",
         ":pid_logic_library",
         "//common/fbwhoami:fb_who_am_i",
         "//common/services/cpp:facebook_identity_verifier",

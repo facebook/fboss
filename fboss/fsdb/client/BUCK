@@ -7,6 +7,9 @@ cpp_library(
     srcs = [
         "FsdbStreamClient.cpp",
     ],
+    headers = [
+        "FsdbStreamClient.h",
+    ],
     deps = [
         "//common/time:time",
         "//folly/logging:logging",
@@ -48,8 +51,11 @@ cpp_library(
         "FsdbDeltaSubscriber.h",
         "FsdbPatchPublisher.h",
         "FsdbPatchSubscriber.h",
+        "FsdbPubSubManager.h",
+        "FsdbPublisher.h",
         "FsdbStatePublisher.h",
         "FsdbStateSubscriber.h",
+        "FsdbSubscriber.h",
     ],
     deps = [
         "//fboss/fsdb/if:fsdb-cpp2-services",

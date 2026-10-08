@@ -492,6 +492,7 @@ class AgentRouteTest : public AgentHwTest {
     auto vlanId = this->getVlanIDForTx();
     auto intfMac =
         getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
+    this->learnL2EntryIfPending(intfMac, ports[1].phyPortID());
 
     auto beforeOutPkts =
         *this->getLatestPortStats(egressPort).outUnicastPkts__ref();
@@ -621,6 +622,7 @@ class AgentRouteTest : public AgentHwTest {
     auto vlanId = this->getVlanIDForTx();
     auto intfMac =
         getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
+    this->learnL2EntryIfPending(intfMac, ports[0].phyPortID());
     auto beforeOutPkts =
         *this->getLatestPortStats(egressPort).outUnicastPkts__ref();
     auto v6TxPkt = utility::makeUDPTxPacket(

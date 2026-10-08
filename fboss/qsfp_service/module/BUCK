@@ -21,6 +21,8 @@ cpp_library(
     ],
     headers = [
         "QsfpFieldInfo.h",
+        "QsfpHelper.h",
+        "QsfpModule.h",
         "QsfpUtil.h",
         "cmis/CmisFieldInfo.h",
         "cmis/CmisHelper.h",

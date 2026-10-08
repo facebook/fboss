@@ -30,6 +30,10 @@ cpp_library(
         "FsdbConfig.cpp",
         "ServiceHandler.cpp",
     ],
+    headers = [
+        "FsdbConfig.h",
+        "ServiceHandler.h",
+    ],
     compiler_flags = ["-ftemplate-backtrace-limit=0"],
     deps = [
         "//fboss/fsdb/common:flags",
@@ -55,6 +59,7 @@ cpp_library(
         "//fboss/fsdb/if:fsdb_config-cpp2-types",
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/fsdb/oper:subscribable_storage",
         "//fboss/fsdb/oper/instantiations:fsdb_naive_periodic_subscribable_storage",
         "//fboss/lib:thread_heartbeat",
         "//folly:synchronized",
@@ -83,6 +88,7 @@ cpp_library(
         "//common/services/cpp:thrift_acl_checker_module_config",
         "//common/services/cpp:thrift_stats_module",
         "//fboss/facebook/bitsflow:bitsflow_helper",
+        "//fboss/facebook/thrift_acl:simple_acl_module",
         "//fboss/fsdb/common:flags",
         "//fboss/lib:thrift_service_utils",
         "//folly/init:init",

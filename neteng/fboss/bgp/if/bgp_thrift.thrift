@@ -331,9 +331,9 @@ struct TPeerEgressStats {
    * without being advertised in AdjRibOut.
    */
   3: optional i64 transient_route_updates_suppressed;
-  /* Number of times adjRibOutQueue_ blocked on a push attempt. */
+  /* Number of times boundedAdjRibOutQueue_ blocked on a push attempt. */
   4: optional i64 adjribout_queue_blocks;
-  /* Total adjRibOutQueue_ block duration. */
+  /* Total boundedAdjRibOutQueue_ block duration. */
   5: optional i64 adjribout_queue_total_block_duration;
   /* Number of times sendQueue_ blocked on a push attempt. */
   6: optional i64 send_queue_blocks;
@@ -341,7 +341,7 @@ struct TPeerEgressStats {
   7: optional i64 send_queue_total_block_duration;
   /* Total writes buffered in AsyncSocket (i.e. socket backpressured). */
   8: optional i64 total_async_socket_buffered;
-  /* Last epoch time (ms) that adjRibOutQueue_ blocked. */
+  /* Last epoch time (ms) that boundedAdjRibOutQueue_ blocked. */
   9: optional i64 last_adjribout_queue_block_time;
   /* Last epoch time (ms) that sendQueue_ blocked. */
   10: optional i64 last_send_queue_block_time;
@@ -535,6 +535,12 @@ struct TUpdateGroupPeerInfo {
 
   /* Epoch time (ms) when EoR was sent to this peer; unset if not sent. */
   15: optional i64 eor_sent_time_ms;
+
+  /*
+   * Epoch time (ms) of this peer's last update-group state transition; unset if
+   * the peer has never left its initial state.
+   */
+  16: optional i64 last_modified_peer_update_state_time_ms;
 }
 
 /**
@@ -694,6 +700,7 @@ struct TBgpLocalConfig {
   7: i64 local_confed_as_4_byte; // unsigned int32
 
   8: bool enable_update_group;
+  9: optional bool enable_route_refresh;
 }
 
 /**
@@ -791,9 +798,7 @@ struct TBgpAttributes {
   7: optional bool install_to_fib;
 }
 
-/**
-* Direction filter for attribute statistics
-*/
+/** Direction filter for BGP statistics. */
 enum TDirectionFilter {
   INGRESS = 0,
   EGRESS = 1,
@@ -978,6 +983,19 @@ struct TAdjRibInStats {
 
 struct TAdjRibOutStats {
   1: list<TAdjRibOutPeerStats> peers;
+}
+
+struct TGetAdjRibStatsRequest {
+  1: TDirectionFilter direction = TDirectionFilter.BOTH;
+}
+
+/**
+ * O(peers) Adj-RIB statistics with no route-scale tree walk.
+ * Peer snapshots have no ordering guarantee.
+ */
+struct TGetAdjRibStatsResponse {
+  1: TAdjRibInStats rib_in;
+  2: TAdjRibOutStats rib_out;
 }
 
 /**
@@ -1371,6 +1389,17 @@ struct THealthReport {
   8: i32 warnCount;
 }
 
+/**
+ * Direction for clearing a BGP neighbor session.
+ * Used by clearBgpNeighbor() to specify the type of clear operation.
+ */
+enum ClearBgpNeighborDirection {
+  UNKNOWN = 0,
+  HARD_RESET = 1,
+  ROUTE_REFRESH_IN = 2,
+  ROUTE_REFRESH_OUT = 3,
+}
+
 // @lint-ignore THRIFTCHECKS facebook-service-deprecated existing service inheritance is out of scope for this API addition
 service TBgpService extends fb303.FacebookService {
   /**
@@ -1662,33 +1691,6 @@ service TBgpService extends fb303.FacebookService {
   > getPrefilterAdvertisedNetworks2(1: string peer);
 
   /**
-   * Routes we receive from peer, after dry run of new policy config.
-   * This API does a dry run of policy config on production routes, without
-   * effecting production state, traffic. It applies the given policy
-   * (which should be on device) on preIn routes of the peer and displays the
-   * postIn output if the policy is applied.
-   * i.e. Determine the effect of policy without effecting the running state.
-   */
-  @hack.SkipCodegen{reason = "Invalid return type"}
-  map<
-    bgp_attr.TIpPrefix,
-    bgp_route_types.TBgpPath
-  > getDryRunPostfilterReceivedNetworks(1: string peer, 2: string file_name);
-
-  /**
-   * Routes we sent to a peer, after dry run of new policy config.
-   * This API does a dry run of policy config on production routes, without
-   * effecting production state, traffic. It applies the given policy
-   * (which should be on device) on preOut routes of the peer and displays the
-   * postOut output if the policy is applied.
-   */
-  @hack.SkipCodegen{reason = "Invalid return type"}
-  map<
-    bgp_attr.TIpPrefix,
-    bgp_route_types.TBgpPath
-  > getDryRunPostfilterAdvertisedNetworks(1: string peer, 2: string file_name);
-
-  /**
    * Get post-policy network information for stream subscribers
    *
    * @param peerID - integer ID of BGP stream subscriber
@@ -1764,11 +1766,42 @@ service TBgpService extends fb303.FacebookService {
   void startSession(1: string peer);
 
   /**
+   * Clear a BGP neighbor session
+   *
+   * @param peer - the peer ip address (ROUTE_REFRESH_IN/ROUTE_REFRESH_OUT
+   *   require a static IP, not CIDR)
+   * @param direction - the clear operation type:
+   *   HARD_RESET: tear down and re-establish the session
+   *   ROUTE_REFRESH_IN: send Route Refresh request to the peer (requires
+   *     Route Refresh capability)
+   *   ROUTE_REFRESH_OUT: re-send our routes to the peer (triggers AFI-scoped
+   *     RIB re-dump)
+   * @param afi - address family filter (AFI_IPV4, AFI_IPV6, or AFI_ALL for both)
+   */
+  void clearBgpNeighbor(
+    1: string peer,
+    2: ClearBgpNeighborDirection direction,
+    3: bgp_attr.TBgpAfi afi,
+  );
+
+  /**
    * Dump the current BGP RIB (prefixes learned from others)
    *
    * @param afi - The afi to dump RIB for
    */
   list<bgp_route_types.TRibEntry> getRibEntries(1: bgp_attr.TBgpAfi afi);
+
+  /**
+   * Get compact FIB-out state for one exact prefix.
+   *
+   * The response omits BGP paths and other RIB attributes. Exact-prefix
+   * lookup bounds RIB event-base work independently of total RIB size.
+   *
+   * @param request - Exact-prefix query parameters
+   */
+  bgp_route_types.TFibOutTable getFibOutPrefix(
+    1: bgp_route_types.TFibOutPrefixRequest request,
+  );
 
   /**
    * Get a compact summary of the BGP RIB (total prefixes + per-prefix-length
@@ -1777,6 +1810,9 @@ service TBgpService extends fb303.FacebookService {
    * @param afi - The afi to summarize the RIB for
    */
   TRibSummary getRibSummary(1: bgp_attr.TBgpAfi afi);
+
+  /** Get canonical nexthop sets in current BGP FIB-out state. */
+  bgp_route_types.TFibNexthopDatabase getFibNexthopDatabase();
 
   /**
    * Dump the current BGP RIB in canonical (deduplicated) form -- the same
@@ -2163,6 +2199,12 @@ service TBgpService extends fb303.FacebookService {
   TGetDeduplicatorStatsResponse getDeduplicatorStats(
     1: TGetDeduplicatorStatsRequest request,
   );
+
+  /**
+   * Get cached per-peer Adj-RIB-IN and effective Adj-RIB-OUT statistics without
+   * traversing a radix tree.
+   */
+  TGetAdjRibStatsResponse getAdjRibStats(1: TGetAdjRibStatsRequest request);
 
   /**
    * Deprecated wire-compatibility placeholder. Returns an empty response

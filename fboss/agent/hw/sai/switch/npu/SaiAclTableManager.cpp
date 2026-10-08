@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
@@ -181,8 +182,12 @@ std::
     pair<SaiAclTableTraits::AdapterHostKey, SaiAclTableTraits::CreateAttributes>
     SaiAclTableManager::aclTableCreateAttributes(
         sai_acl_stage_t aclStage,
-        const std::shared_ptr<AclTable>& addedAclTable) {
-  std::vector<sai_int32_t> bindPointList{SAI_ACL_BIND_POINT_TYPE_SWITCH};
+        const std::shared_ptr<AclTable>& addedAclTable,
+        cfg::AclTableGroupBindPoint bindPoint) {
+  std::vector<sai_int32_t> bindPointList{
+      bindPoint == cfg::AclTableGroupBindPoint::PORT
+          ? SAI_ACL_BIND_POINT_TYPE_PORT
+          : SAI_ACL_BIND_POINT_TYPE_SWITCH};
   SaiAclTableTraits::Attributes::Stage tableStage = aclStage;
 
   auto actionTypeList = getActionTypeList(addedAclTable);
@@ -255,6 +260,16 @@ std::
       qualifierExistsFn(cfg::AclTableQualifier::DST_MAC),
       qualifierExistsFn(cfg::AclTableQualifier::IP_TYPE),
       qualifierExistsFn(cfg::AclTableQualifier::TTL),
+      // Leave unset rather than false when unused: SDKs that do not
+      // implement this qualifier reject the whole table create on an
+      // unknown attribute, which would break every ACL table, not just
+      // MPLS ones.
+      (platform_->getAsic()->isSupported(
+           HwAsic::Feature::SAI_ACL_MPLS_LABEL0_TTL) &&
+       qualifierExistsFn(cfg::AclTableQualifier::MPLS_LABEL0_TTL))
+          ? std::optional<
+                SaiAclTableTraits::Attributes::FieldMplsLabel0Ttl>{true}
+          : std::nullopt, // FieldMplsLabel0Ttl
       qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_L2),
       qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE),
       qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR),

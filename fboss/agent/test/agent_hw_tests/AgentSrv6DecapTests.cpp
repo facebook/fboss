@@ -25,6 +25,8 @@
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
+DECLARE_bool(sai_user_defined_trap);
+
 namespace facebook::fboss {
 
 struct PhysicalPortSrv6Decap {
@@ -71,21 +73,29 @@ class AgentSrv6DecapTest : public AgentHwTest {
     AgentHwTest::setCmdLineFlagOverrides();
     FLAGS_enable_nexthop_id_manager = true;
     FLAGS_resolve_nexthops_from_id = true;
+    // Punt decapped packets to CPU through a user defined trap so the trap ACL
+    // does not rewrite the forwarded packet's TC (see initialConfig).
+    FLAGS_sai_user_defined_trap = true;
   }
 
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto cfg = utility::onePortPerInterfaceConfig(
-        ensemble.getSw(),
-        ensemble.masterLogicalPortIds(),
-        true /*interfaceHasSubnet*/);
+    auto masterLogicalPorts = ensemble.masterLogicalPortIds();
+    cfg::SwitchConfig cfg;
     if constexpr (kIsTrunk) {
+      std::vector<utility::AggregatePortInfo> aggPorts;
+      aggPorts.reserve(kNumNextHops);
       for (int i = 0; i < kNumNextHops; ++i) {
-        utility::addAggPort(
-            i + 1,
-            {static_cast<int32_t>(ensemble.masterLogicalPortIds()[i])},
-            &cfg);
+        aggPorts.push_back({AggregatePortID(i + 1), {masterLogicalPorts[i]}});
       }
+      cfg = utility::oneAggregatePortPerInterfaceConfig(
+          ensemble.getSw(),
+          masterLogicalPorts,
+          aggPorts,
+          true /*interfaceHasSubnet*/);
+    } else {
+      cfg = utility::onePortPerInterfaceConfig(
+          ensemble.getSw(), masterLogicalPorts, true /*interfaceHasSubnet*/);
     }
     cfg.loadBalancers() =
         utility::getEcmpFullWithFlowLabelTrunkFullWithFlowLabelHashConfig(
@@ -95,11 +105,16 @@ class AgentSrv6DecapTest : public AgentHwTest {
     // Add trap ACLs for inner packet destinations so snooper can capture
     // the decapped and forwarded packets
     auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
+    // Only TH5/TH6 punt the copy on the user defined trap alone. Cisco ASICs
+    // doesn't change the TC
+    const bool cpuQueueOnly =
+        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK5 ||
+        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK6;
     utility::addTrapPacketAcl(
         asic,
         &cfg,
-        std::set<folly::CIDRNetwork>{
-            {kV6RouteDstIp, 128}, {kV4RouteDstIp, 32}});
+        std::set<folly::CIDRNetwork>{{kV6RouteDstIp, 128}, {kV4RouteDstIp, 32}},
+        cpuQueueOnly);
     utility::addOlympicQueueConfig(
         &cfg,
         ensemble.getL3Asics(),

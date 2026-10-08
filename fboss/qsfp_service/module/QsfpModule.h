@@ -70,9 +70,13 @@ class QsfpModuleError : public std::exception {
 using TransceiverOverrides = std::vector<cfg::TransceiverConfigOverride>;
 
 struct TransceiverConfig {
-  explicit TransceiverConfig(const TransceiverOverrides& overrides)
-      : overridesConfig_(overrides) {}
+  explicit TransceiverConfig(
+      const TransceiverOverrides& overrides,
+      const std::map<std::string, std::string>& partNumberToFwHandle = {})
+      : overridesConfig_(overrides),
+        partNumberToFwHandle_(partNumberToFwHandle) {}
   TransceiverOverrides overridesConfig_;
+  std::map<std::string, std::string> partNumberToFwHandle_;
 };
 
 /*
@@ -93,7 +97,8 @@ class QsfpModule : public Transceiver {
   explicit QsfpModule(
       std::set<std::string> portNames,
       TransceiverImpl* qsfpImpl,
-      std::string tcvrName);
+      std::string tcvrName,
+      std::shared_ptr<const TransceiverConfig> tcvrConfig = nullptr);
   virtual ~QsfpModule() override;
 
   /*
@@ -330,7 +335,8 @@ class QsfpModule : public Transceiver {
   void setTransceiverLoopback(
       const std::string& portName,
       phy::Side side,
-      bool setLoopback) override;
+      bool setLoopback,
+      phy::LoopbackMode mode) override;
 
   std::map<std::string, CdbDatapathSymErrHistogram> getSymbolErrorHistogram()
       override;
@@ -372,6 +378,9 @@ class QsfpModule : public Transceiver {
  protected:
   /* Qsfp Internal Implementation */
   TransceiverImpl* qsfpImpl_;
+  // Slice of the qsfp config that modules need. Null for modules built
+  // without one, e.g. standalone in tests.
+  const std::shared_ptr<const TransceiverConfig> tcvrConfig_;
   // Flat memory systems don't support paged access to extra data
   bool flatMem_{false};
   /* This counter keeps track of the number of times
@@ -393,8 +402,12 @@ class QsfpModule : public Transceiver {
    * Used to track last time key actions were taken so we don't retry
    * too frequently. These MUST be accessed holding qsfpModuleMutex_.
    */
-  time_t lastRefreshTime_{0};
+  time_t lastQsfpDataUpdateTime_{0};
   time_t lastRemediateTime_{0};
+  // Gates the periodic refresh. Not lastQsfpDataUpdateTime_, since out-of-band
+  // updateQsfpData() calls (e.g. programTransceiver retries) bump that without
+  // regenerating the cached TransceiverInfo
+  time_t lastTcvrInfoUpdateTime_{0};
 
   // last time we know that no port was up on this transceiver.
   std::atomic<time_t> lastDownTime_{0};
@@ -639,7 +652,7 @@ class QsfpModule : public Transceiver {
   /*
    * Whether enough time has passed that we should refresh our data.
    * Cooldown parameter indicates how much time must have elapsed
-   * since last time we refreshed the DOM data.
+   * since last time we regenerated the cached TransceiverInfo.
    */
   bool shouldRefresh(time_t cooldown) const;
 
@@ -725,7 +738,8 @@ class QsfpModule : public Transceiver {
   virtual void setTransceiverLoopbackLocked(
       const std::string& /* portName */,
       phy::Side /* side */,
-      bool /* setLoopback */) {}
+      bool /* setLoopback */,
+      phy::LoopbackMode /* mode */) {}
 
   virtual std::optional<TunableLaserStatus> getTunableLaserStatus() {
     return std::nullopt;
@@ -770,6 +784,15 @@ class QsfpModule : public Transceiver {
   }
 
   void triggerModuleReset();
+
+  /*
+   * Discard qsfp_service's in-memory view of datapath programming progress.
+   * A module reset puts the hardware back at its defaults, so any datapath
+   * operation we still believe is in flight will never complete, and its
+   * timers would otherwise gate the next programming attempt.
+   * Called with qsfpModuleMutex_ held.
+   */
+  virtual void resetDatapathProgrammingStateLocked() {}
 
   // Map key = laneId, value = last datapath reset time for that lane
   std::unordered_map<int, std::time_t> lastDatapathResetTimes_;

@@ -68,6 +68,9 @@ class MockCmisModule : public CmisModule {
   using CmisModule::isRxConsActHoldOffTmrImplSupported;
   using CmisModule::isRxConsActImplSupported;
   using CmisModule::isTunableOptics;
+  using CmisModule::portDatapathStates_;
+  using CmisModule::readModifyWriteCmisField;
+  using CmisModule::triggerModuleReset;
 
  private:
   uint8_t moduleStateChangedReadTimes_{0};
@@ -763,6 +766,14 @@ TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
   EXPECT_TRUE(diagsCap.value().prbsSystem().value());
   EXPECT_TRUE(diagsCap.value().loopbackLine().value());
   EXPECT_TRUE(diagsCap.value().loopbackSystem().value());
+  auto lbCap = diagsCap.value().loopbackCapability().value();
+  EXPECT_TRUE(*lbCap.mediaSideOutput());
+  EXPECT_TRUE(*lbCap.mediaSideInput());
+  EXPECT_TRUE(*lbCap.hostSideOutput());
+  EXPECT_TRUE(*lbCap.hostSideInput());
+  EXPECT_FALSE(*lbCap.perLaneHostSide());
+  EXPECT_FALSE(*lbCap.perLaneMediaSide());
+  EXPECT_FALSE(*lbCap.simultaneousHostAndMediaSide());
   EXPECT_TRUE(diagsCap.value().txOutputControl().value());
   EXPECT_TRUE(diagsCap.value().rxOutputControl().value());
   EXPECT_FALSE(diagsCap.value().snrLine().value());
@@ -1216,6 +1227,14 @@ TEST_F(CmisTest, cmis2x400GFr4TransceiverInfoTest) {
   EXPECT_TRUE(diagsCap.value().prbsSystem().value());
   EXPECT_TRUE(diagsCap.value().loopbackLine().value());
   EXPECT_TRUE(diagsCap.value().loopbackSystem().value());
+  auto lbCap = diagsCap.value().loopbackCapability().value();
+  EXPECT_FALSE(*lbCap.mediaSideOutput());
+  EXPECT_TRUE(*lbCap.mediaSideInput());
+  EXPECT_FALSE(*lbCap.hostSideOutput());
+  EXPECT_TRUE(*lbCap.hostSideInput());
+  EXPECT_FALSE(*lbCap.perLaneHostSide());
+  EXPECT_FALSE(*lbCap.perLaneMediaSide());
+  EXPECT_FALSE(*lbCap.simultaneousHostAndMediaSide());
   EXPECT_TRUE(diagsCap.value().txOutputControl().value());
   EXPECT_TRUE(diagsCap.value().rxOutputControl().value());
   EXPECT_TRUE(diagsCap.value().snrLine().value());
@@ -1821,6 +1840,64 @@ TEST_F(CmisTest, cmis800GZrTransceiverInfoTest) {
   EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
 }
 
+// A module reset (firmware upgrade, remediation) puts the optic back at its
+// defaults, but the datapath timers in portDatapathStates_ live on the module
+// object and used to survive it. A timer left set by a datapath init that was
+// still in flight when the reset happened then reads as "DP_INIT in prog"
+// forever, and customizeTransceiverLocked skips both programTunableModule and
+// the AppSel write on every subsequent attempt -- leaving the optic on its
+// default frequency and AppSel while programming still reports success.
+// triggerModuleReset calls resetDatapathProgrammingStateLocked to drop it.
+TEST_F(CmisTest, resetDatapathProgrammingStateClearsInFlightDatapathState) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+  ASSERT_TRUE(xcvr->isTunableOptics());
+
+  ProgramTransceiverState programTcvrState;
+  TransceiverPortState portState;
+  portState.portName = "eth1/1/1";
+  portState.startHostLane = 0;
+  portState.speed = cfg::PortSpeed::EIGHTHUNDREDG;
+  portState.numHostLanes = 8;
+
+  cfg::OpticalChannelConfig optChanConfig;
+  cfg::FrequencyConfig freqConfig;
+  freqConfig.frequencyGrid() = FrequencyGrid::LASER_6P25GHZ;
+  cfg::CenterFrequencyConfig centerFreq;
+  centerFreq.set_frequencyMhz(CmisModule::kDefaultFrequencyMhz);
+  freqConfig.centerFrequencyConfig() = centerFreq;
+  optChanConfig.frequencyConfig() = freqConfig;
+  optChanConfig.txPower0P01Dbm() = 0;
+  optChanConfig.appSelCode() = 1;
+  portState.opticalChannelConfig = optChanConfig;
+  programTcvrState.ports.emplace(portState.portName, portState);
+
+  xcvr->programTransceiver(programTcvrState, false);
+  ASSERT_FALSE(xcvr->portDatapathStates_.empty());
+
+  // Stand in for a reset landing mid datapath init: the start timer is set and
+  // nothing will ever clear it, because the optic is about to be reset out
+  // from under us.
+  auto& initTimers = xcvr->portDatapathStates_[portState.portName].initTimers;
+  initTimers.progStartTimer = std::chrono::steady_clock::now();
+  ASSERT_NE(initTimers.progStartTimer.time_since_epoch().count(), 0);
+
+  // Drive the real entry point rather than the helper, so this covers the
+  // wiring as well: every module reset goes through triggerModuleReset.
+  xcvr->triggerModuleReset();
+
+  // With the map cleared, the next programming attempt default-constructs the
+  // state and sees progStartTimer == 0, so it takes the branch that actually
+  // programs the laser frequency and AppSel.
+  EXPECT_TRUE(xcvr->portDatapathStates_.empty());
+  EXPECT_EQ(
+      xcvr->portDatapathStates_[portState.portName]
+          .initTimers.progStartTimer.time_since_epoch()
+          .count(),
+      0);
+}
+
 // Verify TX and RX squelch disable behavior for tunable optics (ZR modules).
 // Squelch is only disabled when the module advertises rxConsActImpl
 // (Page 45h, Byte 129, Bit 1). When not advertised, squelch remains enabled.
@@ -1932,6 +2009,50 @@ TEST_F(CmisTest, customFlagsAndThermalMarginsNegative) {
   EXPECT_EQ(info.tcvrStats()->laserTempMargin(), -1.0);
 }
 
+// Page 14h Bytes 130/131 carry one mode-mismatch bit per lane, which maps onto
+// the per-lane host and media signal vectors.
+TEST_F(CmisTest, perLaneModeMismatch) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x800GDr4NegativeMarginTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  const auto& info = xcvr->getTransceiverInfo();
+
+  // Byte 130 = 0x05: host lanes 0 and 2.
+  std::vector<bool> expectedHost(xcvr->numHostLanes(), false);
+  expectedHost[0] = true;
+  expectedHost[2] = true;
+  std::vector<bool> actualHost;
+  for (const auto& signal : *info.tcvrState()->hostLaneSignals()) {
+    actualHost.push_back(*signal.modeMismatch());
+  }
+  EXPECT_EQ(actualHost, expectedHost);
+
+  // Byte 131 = 0x01: media lane 0 only.
+  std::vector<bool> expectedMedia(xcvr->numMediaLanes(), false);
+  expectedMedia[0] = true;
+  std::vector<bool> actualMedia;
+  for (const auto& signal : *info.tcvrState()->mediaLaneSignals()) {
+    actualMedia.push_back(*signal.modeMismatch());
+  }
+  EXPECT_EQ(actualMedia, expectedMedia);
+}
+
+// A healthy module reports no lane mismatched.
+TEST_F(CmisTest, perLaneModeMismatchClear) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x800GDr4CustomFeatureTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  const auto& info = xcvr->getTransceiverInfo();
+  for (const auto& signal : *info.tcvrState()->hostLaneSignals()) {
+    EXPECT_EQ(signal.modeMismatch(), false) << "host lane " << *signal.lane();
+  }
+  for (const auto& signal : *info.tcvrState()->mediaLaneSignals()) {
+    EXPECT_EQ(signal.modeMismatch(), false) << "media lane " << *signal.lane();
+  }
+}
+
 // A module that doesn't advertise the custom features leaves the flags and
 // margins unset rather than reporting whatever the custom bytes happen to hold.
 TEST_F(CmisTest, customFlagsAndThermalMarginsUnsetWhenNotAdvertised) {
@@ -1946,6 +2067,13 @@ TEST_F(CmisTest, customFlagsAndThermalMarginsUnsetWhenNotAdvertised) {
   EXPECT_FALSE(status.laserTempNegativeMarginFlag().has_value());
   EXPECT_FALSE(info.tcvrStats()->dspTempMargin().has_value());
   EXPECT_FALSE(info.tcvrStats()->laserTempMargin().has_value());
+
+  for (const auto& signal : *info.tcvrState()->hostLaneSignals()) {
+    EXPECT_FALSE(signal.modeMismatch().has_value());
+  }
+  for (const auto& signal : *info.tcvrState()->mediaLaneSignals()) {
+    EXPECT_FALSE(signal.modeMismatch().has_value());
+  }
 }
 
 // Byte 191 lives in CMIS Custom space, so it only carries the Meta meaning on
@@ -3410,5 +3538,214 @@ TEST_F(CmisTest, cmisInvalidDatapathTransceiverInfoTest) {
   std::set<TransceiverErrorState> expectedErrorStates = {
       TransceiverErrorState::INVALID_DATA_PATH_LANE_STATE};
   EXPECT_EQ(info.tcvrState()->errorStates(), expectedErrorStates);
+}
+
+namespace {
+// Seed/read a byte straight in the fake EEPROM, selecting the page first the
+// way the module itself does. Lets these tests set up and check a register
+// without going through the private readCmisField/writeCmisField helpers.
+void pokeEeprom(
+    FakeTransceiverImpl* impl,
+    uint8_t page,
+    int byteOffset,
+    uint8_t value) {
+  TransceiverAccessParameter pageParam(
+      TransceiverAccessParameter::ADDR_QSFP, 127, 1);
+  impl->writeTransceiver(pageParam, &page, 0, 0);
+  TransceiverAccessParameter param(
+      TransceiverAccessParameter::ADDR_QSFP, byteOffset, 1);
+  impl->writeTransceiver(param, &value, 0, 0);
+}
+
+uint8_t peekEeprom(FakeTransceiverImpl* impl, uint8_t page, int byteOffset) {
+  TransceiverAccessParameter pageParam(
+      TransceiverAccessParameter::ADDR_QSFP, 127, 1);
+  impl->writeTransceiver(pageParam, &page, 0, 0);
+  TransceiverAccessParameter param(
+      TransceiverAccessParameter::ADDR_QSFP, byteOffset, 1);
+  uint8_t value = 0;
+  impl->readTransceiver(param, &value, 0);
+  return value;
+}
+
+// VDM FreezeRequest (Page 2Fh byte 144) is a convenient one-byte register to
+// exercise the read-modify-write helper against.
+constexpr uint8_t kRmwPage = 0x2f;
+constexpr int kRmwByte = 144;
+} // namespace
+
+TEST_F(CmisTest, readModifyWriteCmisFieldSetsMaskedBits) {
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::OSFP);
+  pokeEeprom(lastQsfpImpl(), kRmwPage, kRmwByte, 0x0f);
+
+  EXPECT_EQ(
+      xcvr->readModifyWriteCmisField(CmisField::VDM_LATCH_REQUEST, 0x80, 0x80),
+      0x8f);
+  EXPECT_EQ(peekEeprom(lastQsfpImpl(), kRmwPage, kRmwByte), 0x8f);
+}
+
+TEST_F(CmisTest, readModifyWriteCmisFieldClearsMaskedBits) {
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::OSFP);
+  pokeEeprom(lastQsfpImpl(), kRmwPage, kRmwByte, 0x8f);
+
+  EXPECT_EQ(
+      xcvr->readModifyWriteCmisField(CmisField::VDM_LATCH_REQUEST, 0x80, 0x00),
+      0x0f);
+  EXPECT_EQ(peekEeprom(lastQsfpImpl(), kRmwPage, kRmwByte), 0x0f);
+}
+
+// value is expected to be already positioned within the byte, so bits of it
+// outside the mask must not leak into the register.
+TEST_F(CmisTest, readModifyWriteCmisFieldIgnoresValueBitsOutsideMask) {
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::OSFP);
+  pokeEeprom(lastQsfpImpl(), kRmwPage, kRmwByte, 0x00);
+
+  EXPECT_EQ(
+      xcvr->readModifyWriteCmisField(CmisField::VDM_LATCH_REQUEST, 0x80, 0xff),
+      0x80);
+}
+
+// The helper reads into a single stack byte, so a wider field would overrun it.
+// It has to reject that rather than corrupt the stack.
+TEST_F(CmisTest, readModifyWriteCmisFieldRejectsMultiByteField) {
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::OSFP);
+
+  // PART_NUMBER is 16 bytes wide.
+  EXPECT_THROW(
+      xcvr->readModifyWriteCmisField(CmisField::PART_NUMBER, 0xff, 0x00),
+      FbossError);
+}
+
+namespace {
+// Page 13h loopback enable registers, per the CMIS spec names.
+constexpr uint8_t kLoopbackPage = 0x13;
+constexpr int kMediaOutputLbByte = 180;
+constexpr int kMediaInputLbByte = 181;
+constexpr int kHostOutputLbByte = 182;
+constexpr int kHostInputLbByte = 183;
+constexpr std::array<int, 4> kLoopbackBytes = {
+    kMediaOutputLbByte,
+    kMediaInputLbByte,
+    kHostOutputLbByte,
+    kHostInputLbByte};
+
+struct LoopbackCase {
+  phy::Side side;
+  phy::LoopbackMode mode;
+  int expectedByte;
+};
+
+// Loopback is applied to a port's lanes, which are only known once the port
+// has been programmed.
+void programSinglePort(
+    MockCmisModule* xcvr,
+    const std::string& portName,
+    cfg::PortSpeed speed) {
+  ProgramTransceiverState programTcvrState;
+  TransceiverPortState portState;
+  portState.portName = portName;
+  portState.startHostLane = 0;
+  portState.speed = speed;
+  portState.numHostLanes = 4;
+  programTcvrState.ports.emplace(portState.portName, portState);
+  xcvr->programTransceiver(programTcvrState, false);
+}
+} // namespace
+
+TEST_F(CmisTest, setTransceiverLoopbackSelectsRegisterPerMode) {
+  auto xcvrID = TransceiverID(0);
+  auto xcvr = overrideCmisModule<Cmis200GTransceiver>(xcvrID);
+  auto impl = lastQsfpImpl();
+  auto portName = *transceiverManager_->getPortNames(xcvrID).begin();
+  programSinglePort(xcvr, portName, cfg::PortSpeed::TWOHUNDREDG);
+
+  for (const auto& tc : std::vector<LoopbackCase>{
+           {phy::Side::SYSTEM, phy::LoopbackMode::INPUT, kHostInputLbByte},
+           {phy::Side::SYSTEM, phy::LoopbackMode::OUTPUT, kHostOutputLbByte},
+           {phy::Side::LINE, phy::LoopbackMode::INPUT, kMediaInputLbByte},
+           {phy::Side::LINE, phy::LoopbackMode::OUTPUT, kMediaOutputLbByte},
+       }) {
+    SCOPED_TRACE(
+        fmt::format(
+            "{} {}",
+            apache::thrift::util::enumNameSafe(tc.side),
+            apache::thrift::util::enumNameSafe(tc.mode)));
+
+    xcvr->setTransceiverLoopback(portName, tc.side, true, tc.mode);
+    for (auto byte : kLoopbackBytes) {
+      if (byte == tc.expectedByte) {
+        EXPECT_NE(peekEeprom(impl, kLoopbackPage, byte), 0);
+      } else {
+        EXPECT_EQ(peekEeprom(impl, kLoopbackPage, byte), 0);
+      }
+    }
+
+    xcvr->setTransceiverLoopback(portName, tc.side, false, tc.mode);
+    for (auto byte : kLoopbackBytes) {
+      EXPECT_EQ(peekEeprom(impl, kLoopbackPage, byte), 0);
+    }
+  }
+}
+
+// kCmis2x400GFr4Page13 advertises only the media and host input loopbacks.
+TEST_F(CmisTest, setTransceiverLoopbackRejectsUnadvertisedMode) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x400GFr4Transceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+  auto impl = lastQsfpImpl();
+  auto portName = *transceiverManager_->getPortNames(xcvrID).begin();
+  programSinglePort(xcvr, portName, cfg::PortSpeed::FOURHUNDREDG);
+
+  EXPECT_THROW(
+      xcvr->setTransceiverLoopback(
+          portName, phy::Side::SYSTEM, true, phy::LoopbackMode::OUTPUT),
+      FbossError);
+  EXPECT_THROW(
+      xcvr->setTransceiverLoopback(
+          portName, phy::Side::LINE, true, phy::LoopbackMode::OUTPUT),
+      FbossError);
+  for (auto byte : kLoopbackBytes) {
+    EXPECT_EQ(peekEeprom(impl, kLoopbackPage, byte), 0);
+  }
+
+  // Disabling an unadvertised loopback is a no-op rather than an error.
+  EXPECT_NO_THROW(xcvr->setTransceiverLoopback(
+      portName, phy::Side::LINE, false, phy::LoopbackMode::OUTPUT));
+
+  EXPECT_NO_THROW(xcvr->setTransceiverLoopback(
+      portName, phy::Side::LINE, true, phy::LoopbackMode::INPUT));
+  EXPECT_NE(peekEeprom(impl, kLoopbackPage, kMediaInputLbByte), 0);
+}
+
+// Neither fixture advertises simultaneous host and media side loopback.
+TEST_F(CmisTest, setTransceiverLoopbackRejectsSimultaneousHostAndMedia) {
+  auto xcvrID = TransceiverID(0);
+  auto xcvr = overrideCmisModule<Cmis200GTransceiver>(xcvrID);
+  auto impl = lastQsfpImpl();
+  auto portName = *transceiverManager_->getPortNames(xcvrID).begin();
+  programSinglePort(xcvr, portName, cfg::PortSpeed::TWOHUNDREDG);
+
+  xcvr->setTransceiverLoopback(
+      portName, phy::Side::LINE, true, phy::LoopbackMode::INPUT);
+  EXPECT_THROW(
+      xcvr->setTransceiverLoopback(
+          portName, phy::Side::SYSTEM, true, phy::LoopbackMode::INPUT),
+      FbossError);
+  EXPECT_EQ(peekEeprom(impl, kLoopbackPage, kHostInputLbByte), 0);
+
+  // Both loopbacks on the same side are allowed together.
+  EXPECT_NO_THROW(xcvr->setTransceiverLoopback(
+      portName, phy::Side::LINE, true, phy::LoopbackMode::OUTPUT));
+
+  xcvr->setTransceiverLoopback(
+      portName, phy::Side::LINE, false, phy::LoopbackMode::INPUT);
+  xcvr->setTransceiverLoopback(
+      portName, phy::Side::LINE, false, phy::LoopbackMode::OUTPUT);
+  EXPECT_NO_THROW(xcvr->setTransceiverLoopback(
+      portName, phy::Side::SYSTEM, true, phy::LoopbackMode::INPUT));
 }
 } // namespace facebook::fboss

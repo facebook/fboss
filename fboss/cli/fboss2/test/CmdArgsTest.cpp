@@ -1,6 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include <fboss/cli/fboss2/utils/CmdUtils.h>
+#include <fboss/cli/fboss2/utils/LoopbackUtils.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <memory>
@@ -163,6 +164,62 @@ TEST(CmdArgsTest, CIDRNetwork) {
       ElementsAre(
           folly::CIDRNetwork("2401:db00:e01e:2105::", 110),
           folly::CIDRNetwork("::", 0)));
+}
+
+TEST(CmdArgsTest, LoopbackComponentActionComponents) {
+  using loopback_utils::LoopbackComponentAction;
+
+  // The component vocabulary is shared with `prbs <component>`.
+  EXPECT_EQ(
+      LoopbackComponentAction({"asic", "enable"}).component(),
+      phy::PortComponent::ASIC);
+  EXPECT_EQ(
+      LoopbackComponentAction({"xphy_system", "enable"}).component(),
+      phy::PortComponent::GB_SYSTEM);
+  EXPECT_EQ(
+      LoopbackComponentAction({"xphy_line", "enable"}).component(),
+      phy::PortComponent::GB_LINE);
+  EXPECT_EQ(
+      LoopbackComponentAction({"transceiver_system", "enable"}).component(),
+      phy::PortComponent::TRANSCEIVER_SYSTEM);
+  EXPECT_EQ(
+      LoopbackComponentAction({"transceiver_line", "enable"}).component(),
+      phy::PortComponent::TRANSCEIVER_LINE);
+}
+
+TEST(CmdArgsTest, LoopbackComponentActionEnableDisable) {
+  using loopback_utils::LoopbackComponentAction;
+
+  EXPECT_TRUE(LoopbackComponentAction({"xphy_line", "enable"}).enable());
+  EXPECT_FALSE(LoopbackComponentAction({"xphy_line", "disable"}).enable());
+
+  // Both tokens are case insensitive, and componentName() is normalized.
+  auto mixedCase = LoopbackComponentAction({"XPHY_Line", "ENABLE"});
+  EXPECT_EQ(mixedCase.component(), phy::PortComponent::GB_LINE);
+  EXPECT_TRUE(mixedCase.enable());
+  EXPECT_EQ(mixedCase.componentName(), "xphy_line");
+}
+
+TEST(CmdArgsTest, LoopbackComponentActionInvalid) {
+  using loopback_utils::LoopbackComponentAction;
+
+  // Wrong number of tokens.
+  EXPECT_THROW(
+      LoopbackComponentAction(std::vector<std::string>{}), std::exception);
+  EXPECT_THROW(LoopbackComponentAction({"xphy_line"}), std::exception);
+  EXPECT_THROW(
+      LoopbackComponentAction({"xphy_line", "enable", "extra"}),
+      std::exception);
+
+  // Unknown component, including the pre-migration syntax which used a bare
+  // side name as the first token.
+  EXPECT_THROW(LoopbackComponentAction({"xphy", "enable"}), std::exception);
+  EXPECT_THROW(LoopbackComponentAction({"line", "enable"}), std::exception);
+  EXPECT_THROW(LoopbackComponentAction({"", "enable"}), std::exception);
+
+  // Unknown action.
+  EXPECT_THROW(LoopbackComponentAction({"xphy_line", "on"}), std::exception);
+  EXPECT_THROW(LoopbackComponentAction({"xphy_line", "none"}), std::exception);
 }
 
 } // namespace facebook::fboss

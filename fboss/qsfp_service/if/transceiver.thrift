@@ -245,6 +245,8 @@ enum MediaInterfaceCode {
   DR4_800G_GEARBOX = 35,
   // 8x800G over DR4: 4 banks, each a 2x800G-DR4
   DR4_8x800G = 36,
+  FR2_200G = 37,
+  DR8_800G = 38,
 }
 
 // The extended specification compliance code of the transceiver module.
@@ -308,6 +310,7 @@ enum SMFMediaInterfaceCode {
   DR2_200G = 0x98,
   DR2_400G = 0x75,
   DR4_800G = 0x77,
+  DR8_800G = 0x56,
   DR1_100G = 0x14,
   FR8_800G = 0xC1,
   ZR_OIF_ZRA_800G = 0x6C,
@@ -316,6 +319,7 @@ enum SMFMediaInterfaceCode {
   ZR_OROADM_FLEXO_4E_DO_400G = 0x64,
   ZR_OPENZRP_OFEC_400G = 0x36,
   FR4_800G = 0x79,
+  FR2_200G = 0xC0,
   FR2_400G = 0xC2,
   FR1_200G = 0xC4,
   ZR_VENDOR_CUSTOM = 0xF7,
@@ -453,6 +457,10 @@ struct MediaLaneSignals {
   5: optional bool rxLol;
   6: optional bool txFault;
   7: optional bool txAdaptEqFault; // DEPRECATED - Use HostLaneSignals instead
+  // Module operation mode does not match the line signal rate on this lane.
+  // CMIS Page 14h Byte 131. Only populated when the module advertises
+  // DiagsCapability.modeMismatchFlag.
+  8: optional bool modeMismatch;
 }
 
 struct HostLaneSignals {
@@ -462,6 +470,10 @@ struct HostLaneSignals {
   4: optional bool txLos;
   5: optional bool txLol;
   6: optional bool txAdaptEqFault;
+  // Module operation mode does not match the host signal rate on this lane.
+  // CMIS Page 14h Byte 130. Only populated when the module advertises
+  // DiagsCapability.modeMismatchFlag.
+  7: optional bool modeMismatch;
 }
 
 struct RxEqualizerSettings {
@@ -1017,6 +1029,17 @@ struct WriteResponse {
   1: bool success;
 }
 
+// CMIS Page 13h Byte 128
+struct LoopbackCapability {
+  1: bool mediaSideOutput = false;
+  2: bool mediaSideInput = false;
+  3: bool hostSideOutput = false;
+  4: bool hostSideInput = false;
+  5: bool perLaneHostSide = false;
+  6: bool perLaneMediaSide = false;
+  7: bool simultaneousHostAndMediaSide = false;
+}
+
 struct DiagsCapability {
   1: bool diagnostics = false;
   2: bool vdm = false;
@@ -1043,6 +1066,7 @@ struct DiagsCapability {
   21: bool modeMismatchFlag = false;
   22: bool dspTempMargin = false;
   23: bool laserTempMargin = false;
+  24: optional LoopbackCapability loopbackCapability;
 }
 
 enum TransceiverStateMachineState {

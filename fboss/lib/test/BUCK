@@ -216,3 +216,17 @@ cpp_unittest(
         "//folly/testing:test_util",
     ],
 )
+
+cpp_unittest(
+    name = "rest_client_test",
+    srcs = [
+        "RestClientTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/agent:fboss-error",
+        "//fboss/lib:rest-client",
+        "//folly:network_address",
+    ],
+)

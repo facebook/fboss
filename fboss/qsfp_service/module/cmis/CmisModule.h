@@ -47,7 +47,8 @@ enum class CmisPages : int {
   PAGE34 = 0x34,
   PAGE35 = 0x35,
   PAGE38 = 0x38,
-  PAGE45 = 0x45
+  PAGE45 = 0x45,
+  PAGEC0 = 0xC0,
 };
 
 enum VdmConfigType {
@@ -734,6 +735,12 @@ class CmisModule : public QsfpModule {
    */
   void setCustomLatchedFlags(ModuleStatus& moduleStatus);
 
+  /*
+   * Whether the module advertises the Meta mode-mismatch feature, which gates
+   * both the Byte 67 latched flag and the per-lane Page 14h registers.
+   */
+  bool isModeMismatchSupported() const;
+
   ThermalMargins getThermalMargins() override;
 
   virtual std::optional<VdmDiagsStats> getVdmDiagsStatsInfo() override;
@@ -754,6 +761,8 @@ class CmisModule : public QsfpModule {
   bool supportRemediate() override;
 
   void resetDataPath(const std::string& portName) override;
+
+  void resetDatapathProgrammingStateLocked() override;
 
   /*
    * Returns true if the current module is LPO
@@ -781,6 +790,16 @@ class CmisModule : public QsfpModule {
    * (LF insertion) via Page 38h before disabling squelch.
    */
   void disableTxRxSquelchForTunableOptics();
+
+  /*
+   * Temporary fix for ZR in 1x800G mode: T289920421
+   * Set Protocol Sel to AM Transparent Mode. This is a temporary
+   * workaround for ZR modules where the PCS alignment marker
+   * mode, when in termination mode, could cause misalignment and the
+   * port does not come up. (only PCS errors are seen, no FEC errors).
+   * This will be removed from the code once we get a FW fix.
+   */
+  void setPcsToAmTransparent();
 
   /*
    * Check if the module advertises Rx Consequent Action support.
@@ -842,11 +861,29 @@ class CmisModule : public QsfpModule {
   virtual void setTransceiverLoopbackLocked(
       const std::string& portName,
       phy::Side side,
-      bool setLoopback) override;
+      bool setLoopback,
+      phy::LoopbackMode mode) override;
 
   /* How long this module needs to repopulate page 14h after DIAG_SEL changes,
    * keyed off the part number. */
   int getDiagSelLatchWaitUsec() const;
+
+  /* Read-modify-write the bits of a one-byte CmisField selected by mask: those
+   * bits take their new state from value, the rest are preserved.
+   * Value is expected to be already positioned within the byte, not shifted in
+   * here, so only its masked bits are consulted. Returns the byte written.
+   *
+   * The write is unconditional -- some registers act on the write itself, so
+   * skipping it when the byte is unchanged would drop the side effect.
+   *
+   * Throws if the field is wider than one byte, which would otherwise overrun
+   * the single-byte read buffer. */
+  uint8_t readModifyWriteCmisField(
+      CmisField field,
+      uint8_t mask,
+      uint8_t value,
+      bool skipBankAndPageChange = false,
+      std::optional<uint8_t> bank = std::nullopt);
 
  private:
   // no copy or assignment
@@ -1189,8 +1226,6 @@ class CmisModule : public QsfpModule {
   // Sets the sampling percentage for
   // FEC errors if supported by transceiver.
   void setMaxFecSamplingLocked();
-
-  const std::shared_ptr<const TransceiverConfig> tcvrConfig_;
 
   bool supportRemediate_;
   std::map<int32_t, SymErrHistogramBin> getCdbSymbolErrorHistogramLocked(

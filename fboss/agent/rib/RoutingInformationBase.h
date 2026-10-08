@@ -35,6 +35,7 @@ namespace facebook::fboss {
 class SwitchState;
 class MultiSwitchFibInfoMap;
 class MultiSwitchMySidMap;
+class MultiSwitchClassBasedPolicyMap;
 class SwitchIdScopeResolver;
 class StateDelta;
 
@@ -76,6 +77,11 @@ struct MySidWithNextHops {
   std::shared_ptr<MySid> mySid;
   RouteNextHopSet nextHopSet;
   std::optional<std::string> nextHopGroupName;
+};
+
+struct MySidFrrProtectionUpdate {
+  folly::CIDRNetwork mySidPrefix;
+  RouteNextHopSet nextHops;
 };
 
 // (prefix-key for the MySid, IP of the removed neighbor). Used by the
@@ -148,6 +154,14 @@ class RibRouteTables {
       const std::vector<std::string>& names,
       const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
 
+  void addOrUpdatePolicies(
+      const std::vector<ClassBasedPolicy>& policies,
+      const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
+
+  void removePolicies(
+      const std::vector<std::string>& policyNames,
+      const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
+
   template <typename RouteType, typename RouteIdType>
   void update(
       const SwitchIdScopeResolver* resolver,
@@ -174,6 +188,13 @@ class RibRouteTables {
       const std::vector<MySidWithNextHops>& toAdd,
       const std::vector<MySidNeighborRemoved>& toUnresolveIfMatch,
       const std::vector<IpPrefix>& toDelete,
+      const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+      void* cookie);
+
+  void updateMySidFrrProtection(
+      const SwitchIdScopeResolver* resolver,
+      const std::vector<MySidFrrProtectionUpdate>& toAddOrUpdate,
+      const std::vector<folly::CIDRNetwork>& toDelete,
       const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
       void* cookie);
 
@@ -224,6 +245,11 @@ class RibRouteTables {
       RibToSwitchStateFunction ribToSwitchStateFunc,
       void* cookie);
 
+  // ECMP width used to normalize nexthops in the RIB, sourced from
+  // cfg.SwitchSettings.ecmpWidth; set at config apply.
+  void setEcmpWidth(uint32_t ecmpWidth);
+  uint32_t getEcmpWidth() const;
+
   void updateRemoteInterfaceRoutes(
       const SwitchIdScopeResolver* resolver,
       const RouterIDAndNetworkToInterfaceRoutes& toAdd,
@@ -245,7 +271,10 @@ class RibRouteTables {
       const std::map<int32_t, state::RouteTableFields>& ribThrift,
       const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
       const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
-      const std::shared_ptr<MultiSwitchMySidMap>& mySidMap);
+      const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
+      uint32_t ecmpWidth,
+      const std::shared_ptr<MultiSwitchClassBasedPolicyMap>&
+          classBasedPolicyMaps);
 
   void ensureVrf(RouterID rid);
   std::vector<RouterID> getVrfList() const;
@@ -276,10 +305,13 @@ class RibRouteTables {
 
   std::map<int32_t, state::RouteTableFields> toThrift() const;
   static RibRouteTables fromThrift(
-      const std::map<int32_t, state::RouteTableFields>&);
+      const std::map<int32_t, state::RouteTableFields>&,
+      uint32_t ecmpWidth);
   std::map<int32_t, state::RouteTableFields> warmBootState() const;
 
   void updateEcmpOverrides(const StateDelta& delta);
+
+  std::string getPolicyDefaultNextHopGroup(const std::string& policyName) const;
 
  private:
   void updateFib(
@@ -325,6 +357,7 @@ class RibRouteTables {
     std::unique_ptr<NextHopIDManager> nextHopIDManager{
         FLAGS_enable_nexthop_id_manager ? std::make_unique<NextHopIDManager>()
                                         : nullptr};
+    uint32_t ecmpWidth{FLAGS_ecmp_width};
   };
 
   using SynchronizedRouteTables = folly::Synchronized<RouteTables>;
@@ -485,6 +518,14 @@ class RoutingInformationBase {
         cookie,
         true /* async */);
   }
+
+  void updateMySidFrrProtection(
+      const SwitchIdScopeResolver* resolver,
+      const std::vector<MySidFrrProtectionUpdate>& toAddOrUpdate,
+      const std::vector<folly::CIDRNetwork>& toDelete,
+      const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+      void* cookie);
+
   /*
    * VrfAndNetworkToInterfaceRoute is conceptually a mapping from the pair
    * (RouterID, folly::CIDRNetwork) to the pair (Interface(1),
@@ -512,6 +553,9 @@ class RoutingInformationBase {
       const std::vector<MySidWithNextHops>& staticMySids,
       RibToSwitchStateFunction ribToSwitchStateFunc,
       void* cookie);
+
+  void setEcmpWidth(uint32_t ecmpWidth);
+  uint32_t getEcmpWidth() const;
 
   void updateRemoteInterfaceRoutes(
       const SwitchIdScopeResolver* resolver,
@@ -558,7 +602,10 @@ class RoutingInformationBase {
       const std::map<int32_t, state::RouteTableFields>& ribJson,
       const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
       const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
-      const std::shared_ptr<MultiSwitchMySidMap>& mySidMap);
+      const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
+      uint32_t ecmpWidth,
+      const std::shared_ptr<MultiSwitchClassBasedPolicyMap>&
+          classBasedPolicyMaps);
 
   void ensureVrf(RouterID rid) {
     ribTables_.ensureVrf(rid);
@@ -601,7 +648,8 @@ class RoutingInformationBase {
 
   std::map<int32_t, state::RouteTableFields> toThrift() const;
   static std::unique_ptr<RoutingInformationBase> fromThrift(
-      const std::map<int32_t, state::RouteTableFields>&);
+      const std::map<int32_t, state::RouteTableFields>&,
+      uint32_t ecmpWidth);
   std::map<int32_t, state::RouteTableFields> warmBootState() const;
 
   // Returns a deep copy of the NextHopIDManager. This is an expensive
@@ -639,6 +687,14 @@ class RoutingInformationBase {
 
   void deleteNamedNextHopGroups(
       const std::vector<std::string>& names,
+      const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
+
+  void addOrUpdatePolicies(
+      const std::vector<ClassBasedPolicy>& policies,
+      const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
+
+  void removePolicies(
+      const std::vector<std::string>& policyNames,
       const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
 
  private:
@@ -715,19 +771,33 @@ RouteNextHopSet getResolvedNextHopsFromRib(
 // via the NextHopIDManager directly. Used by RIB-internal callers operating
 // before the state is published. When FLAGS_resolve_nexthops_from_id is on,
 // resolves via normalizedResolvedNextHopSetID against the manager. When
-// off, falls back to entry.nonOverrideNormalizedNextHops(). Companion to
-// FibHelpers::getNonOverrideNormalizedNextHops.
+// off, falls back to entry.nonOverrideNormalizedNextHops(ecmpWidth). Companion
+// to FibHelpers::getNonOverrideNormalizedNextHops.
 RouteNextHopSet getNonOverrideNormalizedNextHopsFromRib(
     const NextHopIDManager* manager,
-    const RouteNextHopEntry& entry);
+    const RouteNextHopEntry& entry,
+    uint32_t ecmpWidth);
 
 // Resolve the normalized nexthops from a RouteNextHopEntry via the
 // NextHopIDManager. If the entry has override nexthops (inline for now),
-// returns entry.normalizedNextHops() so the override is honored; otherwise
-// delegates to the ID-aware getNonOverrideNormalizedNextHopsFromRib.
+// returns entry.normalizedNextHops(ecmpWidth) so the override is honored;
+// otherwise delegates to the ID-aware getNonOverrideNormalizedNextHopsFromRib.
 // Companion to FibHelpers::getNormalizedNextHops.
 RouteNextHopSet getNormalizedNextHopsFromRib(
     const NextHopIDManager* manager,
-    const RouteNextHopEntry& entry);
+    const RouteNextHopEntry& entry,
+    uint32_t ecmpWidth);
+
+// Resolve a next-hop set against the RIB the same way route resolution
+// resolves a route's next hops: each member is dereferenced to the
+// interface-scoped next hops of its longest-match route, trying each VRF in
+// order. A member with no resolving route is dropped, so the remaining
+// members still forward. Members that already carry an interface pass
+// through untouched. Route tables must already be resolved.
+RouteNextHopSet resolveNextHopSetFromRib(
+    const VrfRouteTables& routeTables,
+    const NextHopIDManager* manager,
+    const RouteNextHopSet& nhops,
+    uint32_t ecmpWidth);
 
 } // namespace facebook::fboss

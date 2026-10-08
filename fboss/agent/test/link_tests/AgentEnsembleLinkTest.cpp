@@ -311,7 +311,8 @@ void AgentEnsembleLinkTest::reinitializeCabledPorts() {
 
 std::tuple<std::vector<PortID>, std::string>
 AgentEnsembleLinkTest::getOpticalAndActiveCabledPortsAndNames(
-    bool pluggableOnly) const {
+    bool pluggableOnly,
+    bool opticalOnly) const {
   std::string portNames;
   std::vector<PortID> ports;
   std::vector<int32_t> transceiverIds;
@@ -347,8 +348,13 @@ AgentEnsembleLinkTest::getOpticalAndActiveCabledPortsAndNames(
       } else if (
           tcvrState.cable().value_or({}).mediaTypeEncoding() ==
           MediaTypeEncodings::ACTIVE_CABLES) {
-        ports.push_back(port);
-        portNames += portName + " ";
+        if (opticalOnly) {
+          XLOG(DBG2) << "Transceiver: " << tcvrId + 1 << ", " << portName
+                     << ", is an active cable, skip it (opticalOnly)";
+        } else {
+          ports.push_back(port);
+          portNames += portName + " ";
+        }
       } else {
         XLOG(DBG2) << "Transceiver: " << tcvrId + 1 << ", " << portName
                    << ", is not optics, skip it";
@@ -567,14 +573,19 @@ std::set<std::pair<PortID, PortID>> AgentEnsembleLinkTest::getConnectedPairs()
  * Returns the set of connected port pairs with optical link and the optics
  * supporting the given feature. For feature==None, this will return set of
  * connected port pairs using optical links
+ *
+ * opticalModulesOnly restricts the candidate ports to optical transceivers,
+ * excluding active electrical cables.
  */
 std::set<std::pair<PortID, PortID>>
 AgentEnsembleLinkTest::getConnectedOpticalAndActivePortPairWithFeature(
     TransceiverFeature feature,
     phy::Side side,
-    bool skipLoopback) const {
+    bool skipLoopback,
+    bool opticalModulesOnly) const {
   auto connectedPairs = getConnectedPairs();
-  auto ports = std::get<0>(getOpticalAndActiveCabledPortsAndNames(false));
+  auto ports = std::get<0>(
+      getOpticalAndActiveCabledPortsAndNames(false, opticalModulesOnly));
 
   std::set<std::pair<PortID, PortID>> connectedOpticalPortPairs;
   for (auto connectedPair : connectedPairs) {

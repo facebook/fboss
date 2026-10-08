@@ -8,11 +8,16 @@
  *
  */
 
+#include <folly/ScopeGuard.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp2/reflection/testing.h> // NOLINT(misc-include-cleaner)
+#include <stdexcept>
+#include <string>
 #include <string_view>
+#include <vector>
 
+#include "fboss/cli/fboss2/CmdLocalOptions.h"
 #include "fboss/cli/fboss2/commands/show/bgp/summary/CmdShowBgpSummary.h"
 #include "fboss/cli/fboss2/commands/show/bgp/summary/gen-cpp2/bgp_summary_types.h"
 #include "fboss/cli/fboss2/test/CmdBgpTestUtils.h"
@@ -289,8 +294,8 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutput) {
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n\n"
       " Peer     AS    State  GR  PR  PA  PS  UG  UGPS  Uptime    Downtime  Description           Session ID  Flaps \n"
       "----------------------------------------------------------------------------------------------------------------------------\n"
-      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s            fsw001.p015.f01.prn6  4.3.2.1     9     \n"
-      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               0h 0m 2s  fsw007.p015.f01.prn6  6.7.8.9     33    \n\n";
+      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s            leaf01.p099.f01.lab0  4.3.2.1     9     \n"
+      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               0h 0m 2s  leaf07.p099.f01.lab0  6.7.8.9     33    \n\n";
 
   EXPECT_EQ(output, expectedOutput);
 }
@@ -316,8 +321,8 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputWhenConfedAsnIsZero) {
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n\n"
       " Peer     AS    State  GR  PR  PA  PS  UG  UGPS  Uptime    Downtime  Description           Session ID  Flaps \n"
       "----------------------------------------------------------------------------------------------------------------------------\n"
-      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s            fsw001.p015.f01.prn6  4.3.2.1     9     \n"
-      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               0h 0m 2s  fsw007.p015.f01.prn6  6.7.8.9     33    \n\n";
+      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s            leaf01.p099.f01.lab0  4.3.2.1     9     \n"
+      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               0h 0m 2s  leaf07.p099.f01.lab0  6.7.8.9     33    \n\n";
 
   EXPECT_EQ(output, expectedOutput);
 }
@@ -344,8 +349,8 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputWithOldAsnField) {
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n\n"
       " Peer     AS    State  GR  PR  PA  PS  UG  UGPS  Uptime    Downtime  Description           Session ID  Flaps \n"
       "----------------------------------------------------------------------------------------------------------------------------\n"
-      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s            fsw001.p015.f01.prn6  4.3.2.1     9     \n"
-      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               0h 0m 2s  fsw007.p015.f01.prn6  6.7.8.9     33    \n\n";
+      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s            leaf01.p099.f01.lab0  4.3.2.1     9     \n"
+      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               0h 0m 2s  leaf07.p099.f01.lab0  6.7.8.9     33    \n\n";
 
   EXPECT_EQ(output, expectedOutput);
 }
@@ -375,8 +380,8 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputBothAsnFieldPresent) {
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n\n"
       " Peer     AS    State  GR  PR  PA  PS  UG  UGPS  Uptime    Downtime  Description           Session ID  Flaps \n"
       "----------------------------------------------------------------------------------------------------------------------------\n"
-      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s            fsw001.p015.f01.prn6  4.3.2.1     9     \n"
-      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               0h 0m 2s  fsw007.p015.f01.prn6  6.7.8.9     33    \n\n";
+      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s            leaf01.p099.f01.lab0  4.3.2.1     9     \n"
+      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               0h 0m 2s  leaf07.p099.f01.lab0  6.7.8.9     33    \n\n";
 
   EXPECT_EQ(output, expectedOutput);
 }
@@ -404,8 +409,8 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputUpdateGroupDisabled) {
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent\n\n"
       " Peer     AS    State  GR  PR  PA  PS  Uptime    Downtime  Description           Session ID  Flaps \n"
       "----------------------------------------------------------------------------------------------------------------\n"
-      " 1.2.3.4  1     ESTA   Y   2   0   2   0h 0m 1s            fsw001.p015.f01.prn6  4.3.2.1     9     \n"
-      " 2.3.4.5  4651  IDLE   N   0   0   0             0h 0m 2s  fsw007.p015.f01.prn6  6.7.8.9     33    \n\n";
+      " 1.2.3.4  1     ESTA   Y   2   0   2   0h 0m 1s            leaf01.p099.f01.lab0  4.3.2.1     9     \n"
+      " 2.3.4.5  4651  IDLE   N   0   0   0             0h 0m 2s  leaf07.p099.f01.lab0  6.7.8.9     33    \n\n";
 
   EXPECT_EQ(output, expectedOutput);
 }
@@ -437,8 +442,8 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputWithUpdateGroupAndPaValues) {
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n\n"
       " Peer     AS    State  GR  PR  PA  PS  UG  UGPS       Uptime    Downtime  Description           Session ID  Flaps \n"
       "---------------------------------------------------------------------------------------------------------------------------------\n"
-      " 1.2.3.4  1     ESTA   Y   2   2   2   5   Converged  0h 0m 1s            fsw001.p015.f01.prn6  4.3.2.1     9     \n"
-      " 2.3.4.5  4651  IDLE   N   0   0   0   7   Pending              0h 0m 2s  fsw007.p015.f01.prn6  6.7.8.9     33    \n\n";
+      " 1.2.3.4  1     ESTA   Y   2   2   2   5   Converged  0h 0m 1s            leaf01.p099.f01.lab0  4.3.2.1     9     \n"
+      " 2.3.4.5  4651  IDLE   N   0   0   0   7   Pending              0h 0m 2s  leaf07.p099.f01.lab0  6.7.8.9     33    \n\n";
 
   EXPECT_EQ(output, expectedOutput);
 }
@@ -466,8 +471,8 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputNoDowntimeColumn) {
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n\n"
       " Peer     AS    State  GR  PR  PA  PS  UG  UGPS  Uptime    Description           Session ID  Flaps \n"
       "-----------------------------------------------------------------------------------------------------------------\n"
-      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s  fsw001.p015.f01.prn6  4.3.2.1     9     \n"
-      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               fsw007.p015.f01.prn6  6.7.8.9     0     \n\n";
+      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s  leaf01.p099.f01.lab0  4.3.2.1     9     \n"
+      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               leaf07.p099.f01.lab0  6.7.8.9     0     \n\n";
 
   EXPECT_EQ(output, expectedOutput);
 }
@@ -494,8 +499,8 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputDrainStateNotSet) {
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n\n"
       " Peer     AS    State  GR  PR  PA  PS  UG  UGPS  Uptime    Downtime  Description           Session ID  Flaps \n"
       "----------------------------------------------------------------------------------------------------------------------------\n"
-      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s            fsw001.p015.f01.prn6  4.3.2.1     9     \n"
-      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               0h 0m 2s  fsw007.p015.f01.prn6  6.7.8.9     33    \n\n";
+      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s            leaf01.p099.f01.lab0  4.3.2.1     9     \n"
+      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               0h 0m 2s  leaf07.p099.f01.lab0  6.7.8.9     33    \n\n";
 
   EXPECT_EQ(output, expectedOutput);
 }
@@ -524,8 +529,8 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputWithDifferentDrainStates) {
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n\n"
       " Peer     AS    State  GR  PR  PA  PS  UG  UGPS  Uptime    Downtime  Description           Session ID  Flaps \n"
       "----------------------------------------------------------------------------------------------------------------------------\n"
-      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s            fsw001.p015.f01.prn6  4.3.2.1     9     \n"
-      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               0h 0m 2s  fsw007.p015.f01.prn6  6.7.8.9     33    \n\n";
+      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s            leaf01.p099.f01.lab0  4.3.2.1     9     \n"
+      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               0h 0m 2s  leaf07.p099.f01.lab0  6.7.8.9     33    \n\n";
 
   EXPECT_EQ(output, expectedOutput);
 
@@ -550,8 +555,8 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputWithDifferentDrainStates) {
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n\n"
       " Peer     AS    State  GR  PR  PA  PS  UG  UGPS  Uptime    Downtime  Description           Session ID  Flaps \n"
       "----------------------------------------------------------------------------------------------------------------------------\n"
-      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s            fsw001.p015.f01.prn6  4.3.2.1     9     \n"
-      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               0h 0m 2s  fsw007.p015.f01.prn6  6.7.8.9     33    \n\n";
+      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s            leaf01.p099.f01.lab0  4.3.2.1     9     \n"
+      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               0h 0m 2s  leaf07.p099.f01.lab0  6.7.8.9     33    \n\n";
 
   EXPECT_EQ(output, expectedOutput);
 }
@@ -578,6 +583,174 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputNoPrefixDrops) {
   std::string output = ss.str();
 
   EXPECT_THAT(output, Not(HasSubstr("PRD")));
+}
+
+using SortColumn = CmdShowBgpSummary::SortColumn;
+
+// Peers deliberately tie on some columns and differ on others, so a
+// multi-column sort has something to break ties on.
+class CmdShowBgpSummarySortTestFixture : public CmdHandlerTestBase {
+ public:
+  static TBgpSession makeSession(
+      const std::string& peerAddr,
+      uint32_t remoteAs,
+      int64_t rcvdPrefixes,
+      int64_t numResets) {
+    TBgpSession session;
+    session.peer()->peer_state() = kEstablishedPeerState;
+    session.peer()->remote_as_4_byte() = remoteAs;
+    session.peer()->graceful() = true;
+    session.peer_addr() = peerAddr;
+    session.prepolicy_rcvd_prefix_count() = rcvdPrefixes;
+    session.postpolicy_rcvd_prefix_count() = rcvdPrefixes;
+    session.postpolicy_sent_prefix_count() = 0;
+    session.uptime() = 0;
+    session.reset_time() = 0;
+    session.num_resets() = numResets;
+    session.description() = "";
+    session.peer_bgp_id() = "0.0.0.0";
+    return session;
+  }
+
+  std::vector<TBgpSession> sessions() {
+    return {
+        makeSession("10.0.0.3", 200, 9, 1),
+        makeSession("10.0.0.1", 100, 100, 3),
+        makeSession("10.0.0.2", 200, 9, 2),
+    };
+  }
+
+  std::vector<std::string> sortedPeers(const std::string& sortBy) {
+    auto input = sessions();
+    TBgpLocalConfig config;
+    TBgpDrainState drainState;
+    const auto model = CmdShowBgpSummary().createModel(
+        input,
+        config,
+        drainState,
+        std::nullopt,
+        std::nullopt,
+        kRibVersion,
+        CmdShowBgpSummary::parseSortKeys(sortBy));
+
+    std::vector<std::string> peers;
+    for (const auto& session : model.sessions().value()) {
+      peers.emplace_back(session.peer_addr().value());
+    }
+    return peers;
+  }
+};
+
+TEST_F(CmdShowBgpSummarySortTestFixture, defaultsToPeerAddressOrder) {
+  const std::vector<std::string> expected = {
+      "10.0.0.1", "10.0.0.2", "10.0.0.3"};
+  EXPECT_EQ(sortedPeers(""), expected);
+}
+
+TEST_F(CmdShowBgpSummarySortTestFixture, sortsNumericallyNotLexically) {
+  // 9 must come before 100, which a string sort would reverse.
+  const std::vector<std::string> expected = {
+      "10.0.0.2", "10.0.0.3", "10.0.0.1"};
+  EXPECT_EQ(sortedPeers("pr"), expected);
+}
+
+TEST_F(CmdShowBgpSummarySortTestFixture, appliesKeysInPriorityOrder) {
+  // AS ascending, then flaps descending within the two peers sharing AS 200.
+  const std::vector<std::string> expected = {
+      "10.0.0.1", "10.0.0.2", "10.0.0.3"};
+  EXPECT_EQ(sortedPeers("as,flaps:desc"), expected);
+}
+
+TEST_F(CmdShowBgpSummarySortTestFixture, tiesFallBackToPeerAddress) {
+  // Both AS-200 peers tie on the only requested key, so they keep peer order.
+  const std::vector<std::string> expected = {
+      "10.0.0.2", "10.0.0.3", "10.0.0.1"};
+  EXPECT_EQ(sortedPeers("as:desc"), expected);
+}
+
+TEST(CmdShowBgpSummaryParseSortKeysTest, parsesMultipleKeysAndDirections) {
+  const auto keys =
+      CmdShowBgpSummary::parseSortKeys(" PR:desc , peer:asc ,flaps");
+  ASSERT_EQ(keys.size(), 3);
+  EXPECT_EQ(keys[0].column, SortColumn::PR);
+  EXPECT_TRUE(keys[0].descending);
+  EXPECT_EQ(keys[1].column, SortColumn::PEER);
+  EXPECT_FALSE(keys[1].descending);
+  EXPECT_EQ(keys[2].column, SortColumn::FLAPS);
+  EXPECT_FALSE(keys[2].descending);
+}
+
+TEST(CmdShowBgpSummaryParseSortKeysTest, emptySpecYieldsNoKeys) {
+  EXPECT_TRUE(CmdShowBgpSummary::parseSortKeys("").empty());
+}
+
+TEST(CmdShowBgpSummaryParseSortKeysTest, rejectsUnknownColumn) {
+  EXPECT_THROW(
+      CmdShowBgpSummary::parseSortKeys("peer,bogus"), std::invalid_argument);
+}
+
+TEST(CmdShowBgpSummaryParseSortKeysTest, rejectsUnknownDirection) {
+  EXPECT_THROW(
+      CmdShowBgpSummary::parseSortKeys("peer:sideways"), std::invalid_argument);
+}
+
+TEST_F(CmdShowBgpSummaryTestFixture, queryClientHonorsSortByOption) {
+  CmdLocalOptions::getInstance()->setLocalOption(
+      "show_bgp_summary", "--sort-by", "pr:desc");
+  SCOPE_EXIT {
+    CmdLocalOptions::getInstance()->setLocalOption(
+        "show_bgp_summary", "--sort-by", "");
+  };
+
+  setupMockedBgpServer();
+  EXPECT_CALL(getMockBgp(), getBgpSessions(_)).WillOnce([&](auto& entries) {
+    entries = sessions_;
+  });
+  EXPECT_CALL(getMockBgp(), getBgpLocalConfig(_)).WillOnce([&](auto& entries) {
+    entries = localConfig_;
+  });
+  EXPECT_CALL(getMockBgp(), getDrainState(_)).WillOnce([&](auto& entries) {
+    entries = drainState_;
+  });
+  EXPECT_CALL(getMockBgp(), getProcessUptimeSeconds())
+      .WillOnce(Return(kProcessUptimeSeconds));
+  EXPECT_CALL(getMockBgp(), getNumPrefixes())
+      .WillOnce(Return(kTotalPrefixCount));
+  EXPECT_CALL(getMockBgp(), getRibVersion()).WillOnce(Return(kRibVersion));
+
+  const auto results = CmdShowBgpSummary().queryClient(localhost());
+
+  // The established peer received prefixes and the idle one did not, so
+  // descending PR puts it first - the reverse of the peer-address default.
+  ASSERT_EQ(results.sessions().value().size(), 2);
+  EXPECT_EQ(
+      results.sessions().value()[0].peer_addr().value(),
+      kEstablishedPeerAddress);
+}
+
+TEST_F(CmdShowBgpSummaryTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowBgpSummaryTraits::description().empty());
+  EXPECT_FALSE(CmdShowBgpSummary::sampleModel().sessions()->empty());
+
+  // Render the sample the way the wiki generator does. A property-only check
+  // would still pass on a sample missing a field printOutput reads via
+  // .value().
+  std::stringstream ss;
+  CmdShowBgpSummary().printOutput(CmdShowBgpSummary::sampleModel(), ss);
+  const std::string output = ss.str();
+
+  EXPECT_THAT(output, HasSubstr("Router ID - 192.0.2.1, Local ASN - 65108"));
+  EXPECT_THAT(output, HasSubstr("Peers: UP - 4, TOTAL - 5"));
+  EXPECT_THAT(output, HasSubstr("192.0.2.11"));
+  // The listen range is deliberately disjoint from the established peers, so
+  // the example cannot be misread as a range that already has sessions in it.
+  EXPECT_THAT(output, HasSubstr("198.51.100.0/24"));
+  EXPECT_THAT(output, Not(HasSubstr("192.0.2.0/24")));
+  // description() tells readers the three conditional columns are absent from
+  // this example, so pin that they really are.
+  EXPECT_THAT(output, Not(HasSubstr("PRD")));
+  EXPECT_THAT(output, Not(HasSubstr("UGPS")));
+  EXPECT_THAT(output, Not(HasSubstr("Downtime")));
 }
 
 } // namespace facebook::fboss

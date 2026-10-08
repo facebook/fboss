@@ -2,6 +2,7 @@ load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
 load("//fboss:THIRD-PARTY-VERSIONS.bzl", "BCM_SDKS", "to_impl_suffix", "to_versions")
+# @oss-disable[end= ]: load("//fboss/agent/hw/sai/impl:impl.bzl", "sai_impl_target_compatible_with")
 load(
     "//fboss/agent/test/link_tests:link_tests.bzl",
     "all_sai_link_test_binaries",
@@ -36,6 +37,11 @@ cpp_library(
         "facebook/MacsecStatTests.cpp",
         "facebook/MacsecTest.cpp",
         "facebook/QsfpFsdbTests.cpp",
+    ],
+    headers = [
+        "LinkTest.h",
+        "LinkTestUtils.h",
+        "facebook/MacsecTest.h",
     ],
     link_whole = True,
     # Will need symbols from bcm, sai layers. Those
@@ -121,6 +127,9 @@ cpp_library(
     srcs = [
         "facebook/MacsecTestUtils.cpp",
     ],
+    headers = [
+        "facebook/MacsecTestUtils.h",
+    ],
     exported_deps = [
         "//fboss/agent/test:resourcelibutil",
         "//fboss/facebook/mka_service/mka_module:mka_structs",
@@ -141,6 +150,11 @@ cpp_library(
         "LinkTestUtils.cpp",
         "facebook/MacsecSanityTests.cpp",
         "facebook/MacsecTest.cpp",
+    ],
+    headers = [
+        "LinkTest.h",
+        "LinkTestUtils.h",
+        "facebook/MacsecTest.h",
     ],
     link_whole = True,
     # Will need symbols from bcm, sai layers. Those
@@ -206,8 +220,10 @@ cpp_library(
         "AgentEnsembleEmptyLinkTest.cpp",
         "AgentEnsembleFabricLinkTests.cpp",
         "AgentEnsembleLacpSanityTests.cpp",
+        "AgentEnsembleLinkDebounceTests.cpp",
         "AgentEnsembleLinkSanityTests.cpp",
         "AgentEnsembleLinkTest.cpp",
+        "AgentEnsembleLoopbackTest.cpp",
         "AgentEnsembleMacLearningTests.cpp",
         "AgentEnsembleOpenBmcUpgradeTests.cpp",
         "AgentEnsembleOpticsTest.cpp",
@@ -224,6 +240,11 @@ cpp_library(
         "facebook/AgentEnsembleMacsecStatTests.cpp",
         "facebook/AgentEnsembleMacsecTest.cpp",
     ],
+    headers = [
+        "AgentEnsembleLinkTest.h",
+        "LinkTestUtils.h",
+        "facebook/AgentEnsembleMacsecTest.h",
+    ],
     link_whole = True,
     undefined_symbols = True,
     deps = [
@@ -231,13 +252,17 @@ cpp_library(
         "//common/base:proc",
         "//fboss/agent:agent_stats-cpp2-types",
         "//fboss/agent:asic_utils",
+        "//fboss/agent:fabric_connectivity_manager",
+        "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:switchid_scope_resolver",
         "//fboss/agent/hw:hardware_stats-cpp2-types",
         "//fboss/agent/hw/test:config_factory",
+        "//fboss/agent/lldp:lldp",
         "//fboss/agent/packet:packet",
         "//fboss/agent/packet:packet_factory",
         "//fboss/agent/test:trunk_utils",
         "//fboss/agent/test:utils",
+        "//fboss/agent/test/utils:config_utils",
         "//fboss/agent/test/utils:copp_test_utils",
         "//fboss/agent/test/utils:hyper_port_test_utils",
         "//fboss/agent/test/utils:load_balancer_test_utils",
@@ -260,6 +285,7 @@ cpp_library(
         "//folly:conv",
         "//folly:network_address",
         "//folly:random",
+        "//folly:scope_guard",
         "//folly:string",
         "//folly/system:env_util",
         "//folly/system:shell",
@@ -314,6 +340,7 @@ cpp_library(
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
         ],
+        # @oss-disable[end= ]: target_compatible_with = sai_impl_target_compatible_with(sdk),
         versions = to_versions(sdk),
         deps = [
             "fbsource//third-party/glog:glog",
@@ -342,6 +369,7 @@ cpp_library(
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
         ],
+        # @oss-disable[end= ]: target_compatible_with = sai_impl_target_compatible_with(sdk),
         versions = to_versions(sdk),
         deps = [
             "fbsource//third-party/glog:glog",
@@ -371,6 +399,7 @@ cpp_library(
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
         ],
+        # @oss-disable[end= ]: target_compatible_with = sai_impl_target_compatible_with(sdk),
         versions = to_versions(sdk),
         deps = [
             "fbsource//third-party/glog:glog",

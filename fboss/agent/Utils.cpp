@@ -569,7 +569,18 @@ std::vector<PortID> getPortsForInterface(
       ports.push_back(getPortID(intf->getSystemPortID().value(), state));
       break;
     case cfg::InterfaceType::PORT:
-      ports.push_back(intf->getPortID());
+      // A port router interface is bound to either a physical port or an
+      // aggregate port, and an aggregate stands for all of its members.
+      if (auto aggregatePortID = intf->getAggregatePortIDf()) {
+        auto aggPort = state->getAggregatePorts()->getNodeIf(*aggregatePortID);
+        if (aggPort) {
+          for (const auto& subport : aggPort->sortedSubports()) {
+            ports.push_back(subport.portID);
+          }
+        }
+      } else {
+        ports.push_back(intf->getPortID());
+      }
       break;
   }
   return ports;
@@ -591,7 +602,15 @@ std::optional<PortID> getInterfacePortToReach(
       port = getPortID(intf->getSystemPortID().value(), state);
       break;
     case cfg::InterfaceType::PORT:
-      port = intf->getPortID();
+      // For an aggregate port router interface, any member port reaches it.
+      if (auto aggregatePortID = intf->getAggregatePortIDf()) {
+        auto aggPort = state->getAggregatePorts()->getNodeIf(*aggregatePortID);
+        if (aggPort && !aggPort->sortedSubports().empty()) {
+          port = aggPort->sortedSubports().begin()->portID;
+        }
+      } else {
+        port = intf->getPortID();
+      }
       break;
   }
   return port;
@@ -1287,7 +1306,14 @@ InterfaceID getInterfaceIDForPort(
           }
           break;
         case cfg::InterfaceType::PORT:
-          if (intf->getPortID() == portID) {
+          if (auto aggregatePortID = intf->getAggregatePortIDf()) {
+            // An aggregate port router interface covers all of its members.
+            auto aggPort =
+                state->getAggregatePorts()->getNodeIf(*aggregatePortID);
+            if (aggPort && aggPort->isMemberPort(portID)) {
+              return intf->getID();
+            }
+          } else if (intf->getPortID() == portID) {
             return intf->getID();
           }
           break;

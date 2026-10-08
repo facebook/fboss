@@ -25,6 +25,29 @@ class AclTableGroupManagerTest : public ManagerTestBase {
   // INGRESS Acl table group and a single Acl table are
   // created on init, nothing to special to do in
   // setting up these test cases.
+
+ protected:
+  void verifyAclTableGroupMemberPriority(
+      int configuredPriority,
+      int expectedPriority) {
+    auto table2 = std::make_shared<AclTable>(configuredPriority, kAclTable2);
+    saiManagerTable->aclTableManager().addAclTable(
+        table2, cfg::AclStage::INGRESS, nullptr /*state*/);
+
+    auto aclTableGroupHandle =
+        saiManagerTable->aclTableGroupManager().getAclTableGroupHandle(
+            SAI_ACL_STAGE_INGRESS);
+    ASSERT_NE(aclTableGroupHandle, nullptr);
+    auto aclTableGroupMemberHandle =
+        saiManagerTable->aclTableGroupManager().getAclTableGroupMemberHandle(
+            aclTableGroupHandle, kAclTable2);
+    ASSERT_NE(aclTableGroupMemberHandle, nullptr);
+
+    auto priorityGot = saiApiTable->aclApi().getAttribute(
+        aclTableGroupMemberHandle->aclTableGroupMember->adapterKey(),
+        SaiAclTableGroupMemberTraits::Attributes::Priority());
+    EXPECT_EQ(priorityGot, expectedPriority);
+  }
 };
 
 TEST_F(AclTableGroupManagerTest, addAclTableGroup) {
@@ -41,19 +64,57 @@ TEST_F(AclTableGroupManagerTest, addAclTableGroup) {
 TEST_F(AclTableGroupManagerTest, addEgressMacSecAclTableGroup) {
   auto aclTableGroup2 =
       std::make_shared<AclTableGroup>(cfg::AclStage::EGRESS_MACSEC);
+  aclTableGroup2->setName("portBoundGroup");
+  aclTableGroup2->setBindPoint(cfg::AclTableGroupBindPoint::PORT);
   AclTableGroupSaiId aclTableGroupId2 =
       saiManagerTable->aclTableGroupManager().addAclTableGroup(aclTableGroup2);
 
   auto stageGot = saiApiTable->aclApi().getAttribute(
       aclTableGroupId2, SaiAclTableGroupTraits::Attributes::Stage());
   EXPECT_EQ(stageGot, SAI_ACL_STAGE_EGRESS_MACSEC);
+  auto bindPoints = saiApiTable->aclApi().getAttribute(
+      aclTableGroupId2,
+      SaiAclTableGroupTraits::Attributes::BindPointTypeList());
+  EXPECT_EQ(bindPoints, std::vector<sai_int32_t>{SAI_ACL_BIND_POINT_TYPE_PORT});
+
+  auto handle = saiManagerTable->aclTableGroupManager().getAclTableGroupHandle(
+      SAI_ACL_STAGE_EGRESS_MACSEC, cfg::AclTableGroupBindPoint::PORT);
+  ASSERT_NE(handle, nullptr);
+  EXPECT_EQ(handle->aclTableGroup->adapterKey(), aclTableGroupId2);
 }
 
 TEST_F(AclTableGroupManagerTest, addDupAclTableGroup) {
   auto aclTableGroup = std::make_shared<AclTableGroup>(cfg::AclStage::INGRESS);
+  aclTableGroup->setName(
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE_GROUP());
   EXPECT_THROW(
       saiManagerTable->aclTableGroupManager().addAclTableGroup(aclTableGroup),
       FbossError);
+}
+
+TEST_F(AclTableGroupManagerTest, addSameStageAclTableGroups) {
+  const auto switchAclTableGroupHandle =
+      saiManagerTable->aclTableGroupManager().getAclTableGroupHandle(
+          SAI_ACL_STAGE_INGRESS, cfg::AclTableGroupBindPoint::SWITCH);
+  ASSERT_NE(switchAclTableGroupHandle, nullptr);
+  auto portAclTableGroup =
+      std::make_shared<AclTableGroup>(cfg::AclStage::INGRESS);
+  portAclTableGroup->setName("portBoundIngressGroup");
+  portAclTableGroup->setBindPoint(cfg::AclTableGroupBindPoint::PORT);
+
+  const auto portAclTableGroupId =
+      saiManagerTable->aclTableGroupManager().addAclTableGroup(
+          portAclTableGroup);
+  auto portAclTableGroupHandle =
+      saiManagerTable->aclTableGroupManager().getAclTableGroupHandle(
+          SAI_ACL_STAGE_INGRESS, cfg::AclTableGroupBindPoint::PORT);
+  ASSERT_NE(portAclTableGroupHandle, nullptr);
+  EXPECT_EQ(
+      portAclTableGroupHandle->aclTableGroup->adapterKey(),
+      portAclTableGroupId);
+  EXPECT_NE(
+      switchAclTableGroupHandle->aclTableGroup->adapterKey(),
+      portAclTableGroupId);
 }
 
 TEST_F(AclTableGroupManagerTest, getAclTableGroup) {
@@ -124,6 +185,27 @@ TEST_F(AclTableGroupManagerTest, addTwoAclTableGroupMember) {
   EXPECT_EQ(tableIdGot2, aclTableId2);
 }
 
+TEST_F(AclTableGroupManagerTest, addAclTableGroupMemberWithConfiguredPriority) {
+  constexpr auto kAclTablePriority = 42;
+  verifyAclTableGroupMemberPriority(kAclTablePriority, kAclTablePriority);
+}
+
+TEST_F(AclTableGroupManagerTest, addAclTableGroupMemberWithLegacyPriority) {
+  constexpr auto kLegacyAclTablePriority = 0;
+  constexpr auto kMigratedAclTablePriority = 23;
+  verifyAclTableGroupMemberPriority(
+      kLegacyAclTablePriority, kMigratedAclTablePriority);
+}
+
+TEST_F(
+    AclTableGroupManagerTest,
+    addAclTableGroupMemberWithPreMigrationPriority) {
+  constexpr auto kPreMigrationAclTablePriority = 2;
+  constexpr auto kMigratedAclTablePriority = 23;
+  verifyAclTableGroupMemberPriority(
+      kPreMigrationAclTablePriority, kMigratedAclTablePriority);
+}
+
 TEST_F(AclTableGroupManagerTest, addDupAclTableGroupMember) {
   auto aclTableId =
       saiManagerTable->aclTableManager()
@@ -133,8 +215,10 @@ TEST_F(AclTableGroupManagerTest, addDupAclTableGroupMember) {
   EXPECT_THROW(
       saiManagerTable->aclTableGroupManager().addAclTableGroupMember(
           SAI_ACL_STAGE_INGRESS,
+          cfg::AclTableGroupBindPoint::SWITCH,
           aclTableId,
-          cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE()),
+          cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+          0),
       FbossError);
 }
 

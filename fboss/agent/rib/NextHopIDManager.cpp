@@ -3,12 +3,14 @@
 #include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/state/ClassBasedPolicyMap.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 
 #include <boost/functional/hash.hpp>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 #include <limits>
 
@@ -267,6 +269,7 @@ void NextHopIDManager::clearNhopIdManagerState() {
   nameToNextHopSetID_.clear();
   nameToRoutes_.clear();
   nameToMySids_.clear();
+  pbrPolicyToNamedNhg_.clear();
 }
 
 // Allocate or update a named next-hop group.
@@ -325,7 +328,6 @@ NextHopIDManager::updateNamedNextHopGroup(
       << "Named next-hop group " << name
       << " exists in nameToNextHopSet_ but not in nameToNextHopSetID_";
 
-  // Deallocate old nexthops
   result.deallocation = decrOrDeallocRouteNextHopSetID(oldSetIdIt->second);
 
   // Allocate new nexthops
@@ -365,7 +367,6 @@ NextHopIDManager::deallocateNamedNextHopGroup(const std::string& name) {
       << "Named next-hop group " << name
       << " exists in nameToNextHopSet_ but not in nameToNextHopSetID_";
 
-  // Deallocate the nexthops
   auto result = decrOrDeallocRouteNextHopSetID(setIdIt->second);
 
   // Remove the name mappings
@@ -380,6 +381,18 @@ std::optional<NextHopSetID> NextHopIDManager::getNextHopSetIDForName(
   auto it = nameToNextHopSetID_.find(name);
   if (it != nameToNextHopSetID_.end()) {
     return it->second;
+  }
+  return std::nullopt;
+}
+
+std::optional<NextHopSetID>
+NextHopIDManager::getNormalizedNextHopSetIDForPolicyNhg(
+    const std::string& name) const {
+  for (const auto& [_policyName, policy] : pbrPolicyToNamedNhg_) {
+    auto it = policy.normalizedIds.find(name);
+    if (it != policy.normalizedIds.end()) {
+      return it->second;
+    }
   }
   return std::nullopt;
 }
@@ -736,6 +749,14 @@ void NextHopIDManager::reconstructMySidPass(
         processNextHopSetIdForReconstruction(
             *setIdOpt, ctx.fibId2NhopMap, ctx.fibId2NhopIdSetMap, ctx);
       }
+      if (auto setIdOpt = mySid->getBackupResolvedNextHopsId()) {
+        processNextHopSetIdForReconstruction(
+            *setIdOpt, ctx.fibId2NhopMap, ctx.fibId2NhopIdSetMap, ctx);
+      }
+      if (auto setIdOpt = mySid->getBackupUnresolveNextHopsId()) {
+        processNextHopSetIdForReconstruction(
+            *setIdOpt, ctx.fibId2NhopMap, ctx.fibId2NhopIdSetMap, ctx);
+      }
       if (auto nhgName = mySid->getNamedNextHopGroup()) {
         const auto cidr = mySid->getMySid();
         nameToMySids_[*nhgName].emplace(cidr.first.asV6(), cidr.second);
@@ -856,6 +877,7 @@ void NextHopIDManager::reconstructFromSwitchStateMaps(
     const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
     const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
     const RibRouteTables* ribTables,
+    const std::shared_ptr<MultiSwitchClassBasedPolicyMap>& classBasedPolicyMaps,
     std::unordered_map<NextHopSetID, NextHopSetID>* setIdRemapOut) {
   DCHECK(assertNextHopIdMapsSame(fibsInfoMap));
   clearNhopIdManagerState();
@@ -873,6 +895,7 @@ void NextHopIDManager::reconstructFromSwitchStateMaps(
   reconstructMySidPass(mySidMap, ctx);
   reconstructMplsFibPass(labelFib, ctx);
   reconstructUnresolvedRibPass(ribTables, ctx);
+  reconstructClassBasedPolicyPass(classBasedPolicyMaps);
 
   // Set next available IDs. The SetID watermark must clear both the highest
   // persisted SetID and any fresh SetIDs minted for deduped member sets.
@@ -907,6 +930,28 @@ void NextHopIDManager::reconstructFromSwitchStateMaps(
       }
       XLOG(DBG3) << "[NextHop ID Manager] reconstructed setId=" << setId
                  << " nhIds={" << ids << "}";
+    }
+  }
+}
+
+void NextHopIDManager::reconstructClassBasedPolicyPass(
+    const std::shared_ptr<MultiSwitchClassBasedPolicyMap>&
+        classBasedPolicyMaps) {
+  if (!classBasedPolicyMaps) {
+    return;
+  }
+  for (const auto& [matcher, policyMap] :
+       std::as_const(*classBasedPolicyMaps)) {
+    for (const auto& [policyName, policyNode] : std::as_const(*policyMap)) {
+      if (pbrPolicyToNamedNhg_.count(policyName)) {
+        continue;
+      }
+      ClassBasedPolicyNhgs policy;
+      policy.defaultNexthopGroup = *policyNode->getDefaultNextHopGroup().name();
+      for (const auto& [fc, named] : policyNode->getClass2NextHopGroup()) {
+        policy.class2NextHopGroup[fc] = *named.name();
+      }
+      pbrPolicyToNamedNhg_[policyName] = std::move(policy);
     }
   }
 }
@@ -989,6 +1034,60 @@ const NextHopIDManager::MySidSet& NextHopIDManager::getMySidsForNamedNhg(
 bool NextHopIDManager::hasMySidsForNamedNhg(const std::string& name) const {
   auto it = nameToMySids_.find(name);
   return it != nameToMySids_.end() && !it->second.empty();
+}
+
+void NextHopIDManager::addOrUpdatePolicy(const ClassBasedPolicy& policy) {
+  CHECK(!policy.name()->empty()) << "ClassBasedPolicy must have a name";
+  ClassBasedPolicyNhgs nhgs;
+  nhgs.defaultNexthopGroup = *policy.defaultNexthopGroup();
+  for (const auto& [fc, nhg] : *policy.class2NextHopGroup()) {
+    if (!nhg.name().has_value() || nhg.name()->empty()) {
+      throw FbossError(
+          "Class-based policy '",
+          *policy.name(),
+          "' has no next-hop group name for traffic class ",
+          apache::thrift::util::enumNameSafe(fc));
+    }
+    nhgs.class2NextHopGroup[fc] = *nhg.name();
+  }
+
+  // Claim before releasing: dropping the last reference first would free the id
+  // and allocate a new one, which moves the ACL's match or redirect target.
+  auto oldIt = pbrPolicyToNamedNhg_.find(*policy.name());
+  if (oldIt != pbrPolicyToNamedNhg_.end()) {
+    auto& oldIds = oldIt->second.normalizedIds;
+    auto claim = [&](const std::string& nhgName) {
+      auto it = oldIds.find(nhgName);
+      if (it != oldIds.end()) {
+        nhgs.normalizedIds.emplace(nhgName, it->second);
+        oldIds.erase(it);
+      }
+    };
+    claim(nhgs.defaultNexthopGroup);
+    for (const auto& [_fc, nhgName] : nhgs.class2NextHopGroup) {
+      claim(nhgName);
+    }
+    for (const auto& [_name, id] : oldIds) {
+      decrOrDeallocRouteNextHopSetID(id);
+    }
+  }
+  pbrPolicyToNamedNhg_[*policy.name()] = std::move(nhgs);
+}
+
+void NextHopIDManager::removePolicy(const std::string& name) {
+  auto it = pbrPolicyToNamedNhg_.find(name);
+  if (it != pbrPolicyToNamedNhg_.end()) {
+    for (const auto& [_name, id] : it->second.normalizedIds) {
+      decrOrDeallocRouteNextHopSetID(id);
+    }
+    pbrPolicyToNamedNhg_.erase(it);
+  }
+}
+
+const ClassBasedPolicyNhgs* NextHopIDManager::getPolicy(
+    const std::string& name) const {
+  auto it = pbrPolicyToNamedNhg_.find(name);
+  return it != pbrPolicyToNamedNhg_.end() ? &it->second : nullptr;
 }
 
 } // namespace facebook::fboss

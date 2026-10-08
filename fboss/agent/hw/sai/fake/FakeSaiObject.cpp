@@ -84,6 +84,9 @@ sai_status_t sai_get_object_count(
       }
       break;
     }
+    case SAI_OBJECT_TYPE_ISOLATION_GROUP:
+      *count = fs->isolationGroupManager.map().size();
+      break;
     case SAI_OBJECT_TYPE_BRIDGE:
       *count = fs->bridgeManager.map().size();
       break;
@@ -99,6 +102,12 @@ sai_status_t sai_get_object_count(
     case SAI_OBJECT_TYPE_BRIDGE_PORT: {
       for (const auto& br : fs->bridgeManager.map()) {
         *count += br.second.fm().map().size();
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_ISOLATION_GROUP_MEMBER: {
+      for (const auto& g : fs->isolationGroupManager.map()) {
+        *count += g.second.fm().map().size();
       }
       break;
     }
@@ -153,6 +162,12 @@ sai_status_t sai_get_object_count(
       break;
     case SAI_OBJECT_TYPE_WRED:
       *count = fs->wredManager.map().size();
+      break;
+    case SAI_OBJECT_TYPE_VIRTUAL_CHANNEL:
+      *count = static_cast<uint32_t>(fs->virtualChannelManager.map().size());
+      break;
+    case SAI_OBJECT_TYPE_CBFC_CREDIT_PROFILE:
+      *count = static_cast<uint32_t>(fs->cbfcCreditProfileManager.map().size());
       break;
     case SAI_OBJECT_TYPE_TAM_COLLECTOR:
       *count = fs->tamCollectorManager.map().size();
@@ -385,6 +400,20 @@ sai_status_t sai_get_object_key(
       }
       break;
     }
+    case SAI_OBJECT_TYPE_ISOLATION_GROUP: {
+      for (const auto& g : fs->isolationGroupManager.map()) {
+        object_list[i++].key.object_id = g.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_ISOLATION_GROUP_MEMBER: {
+      for (const auto& g : fs->isolationGroupManager.map()) {
+        for (const auto& member : g.second.fm().map()) {
+          object_list[i++].key.object_id = member.second.id;
+        }
+      }
+      break;
+    }
     case SAI_OBJECT_TYPE_BRIDGE: {
       for (const auto& b : fs->bridgeManager.map()) {
         object_list[i++].key.object_id = b.second.id;
@@ -515,6 +544,18 @@ sai_status_t sai_get_object_key(
     case SAI_OBJECT_TYPE_WRED: {
       for (const auto& wred : fs->wredManager.map()) {
         object_list[i++].key.object_id = wred.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_VIRTUAL_CHANNEL: {
+      for (const auto& virtualChannel : fs->virtualChannelManager.map()) {
+        object_list[i++].key.object_id = virtualChannel.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_CBFC_CREDIT_PROFILE: {
+      for (const auto& profile : fs->cbfcCreditProfileManager.map()) {
+        object_list[i++].key.object_id = profile.second.id;
       }
       break;
     }

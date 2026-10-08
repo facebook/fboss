@@ -20,6 +20,9 @@ cpp_library(
     srcs = [
         "WedgeI2CBusLock.cpp",
     ],
+    headers = [
+        "WedgeI2CBusLock.h",
+    ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     deps = [
         "//fboss/lib/usb:usb-api",
@@ -36,6 +39,9 @@ cpp_library(
     name = "wedge-transceiver",
     srcs = [
         "WedgeQsfp.cpp",
+    ],
+    headers = [
+        "WedgeQsfp.h",
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     deps = [

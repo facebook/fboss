@@ -10,7 +10,9 @@ cpp_library(
         "facebook/ElbertPlatformMapping.cpp",
     ],
     headers = [
+        "Elbert16QPimPlatformMapping.h",
         "ElbertPlatformMapping.h",
+        "facebook/Elbert8DDPimPlatformMapping.h",
     ],
     deps = [
         "//fboss/agent:fboss-error",

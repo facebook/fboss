@@ -74,6 +74,11 @@ struct SaiPortTraits {
     };
     using CrcErrorDetect =
         SaiExtensionAttribute<sai_latch_status_t, AttributeCrcErrorDetect>;
+    struct AttributeExtOperStatusLatch {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using ExtOperStatusLatch =
+        SaiExtensionAttribute<sai_latch_status_t, AttributeExtOperStatusLatch>;
 #endif
     struct AttributeFdrEnable {
       std::optional<sai_attr_id_t> operator()();
@@ -260,6 +265,13 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_INGRESS_ACL,
         SaiObjectIdT,
         SaiObjectIdDefault>;
+    // Packets ingressing this port are not forwarded to the members of this
+    // isolation group. Nullable; SAI_NULL_OBJECT_ID means no isolation.
+    using IsolationGroup = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_ISOLATION_GROUP,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
     using IngressMacSecAcl = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_INGRESS_MACSEC_ACL,
@@ -327,6 +339,48 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_QOS_TC_TO_PRIORITY_GROUP_MAP,
         SaiObjectIdT,
         SaiObjectIdDefault>;
+#if defined(SAI_CBFC_SUPPORTED)
+    using QosTcToVcMap = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_QOS_TC_TO_VC_MAP,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
+    // CBFC S_P_CL, the cap on credits the sender may hold across all of the
+    // port's virtual channels. Range 0..2^20-1.
+    //
+    // Deliberately NOT in CreateAttributes. brcm-sai 16.0_ea_odp rejects a GET
+    // of this attribute with INVALID PARAMETER, and SaiStore::reload() reads
+    // back every attribute in the tuple for every port at init -- so including
+    // it aborts the HW agent on boot, on every port, even with no CBFC
+    // configured. Set it directly through the port api instead.
+    using CbfcSenderCreditLimit = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_CBFC_SENDER_CREDIT_LIMIT,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
+    // Egress classification: which virtual channel a queue drains into, and
+    // so whose credit the sender must hold before transmitting from it.
+    using QosQueueToVcMap = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_QOS_QUEUE_TO_VC_MAP,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
+    // READ_ONLY. Hardware derives these from the MMU carving; FBOSS never
+    // writes them. They are what the receiver advertises to its peer, so they
+    // are the only way to see how a PG carving turns into credits.
+    using CbfcReceiverNativeCreditSize = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_CBFC_RECEIVER_NATIVE_CREDIT_SIZE,
+        sai_uint16_t>;
+    using CbfcReceiverNativePacketOverhead = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_CBFC_RECEIVER_NATIVE_PACKET_OVERHEAD,
+        sai_int16_t>;
+    using CbfcReceiverNativeTotalCredits = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_CBFC_RECEIVER_NATIVE_TOTAL_CREDITS,
+        sai_uint16_t>;
+#endif
     using QosPfcPriorityToQueueMap = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_QUEUE_MAP,
@@ -781,6 +835,10 @@ struct SaiPortTraits {
       std::optional<Attributes::QosTcToPriorityGroupMap>,
       std::optional<Attributes::QosPfcPriorityToQueueMap>,
       std::optional<Attributes::QosPfcPriorityToPriorityGroupMap>,
+#if defined(SAI_CBFC_SUPPORTED)
+      std::optional<Attributes::QosTcToVcMap>,
+      std::optional<Attributes::QosQueueToVcMap>,
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
       std::optional<Attributes::InterFrameGap>,
 #endif
@@ -838,6 +896,7 @@ struct SaiPortTraits {
 #endif
       std::optional<Attributes::PfcPauseDurationOverride>,
       std::optional<Attributes::IngressAcl>,
+      std::optional<Attributes::IsolationGroup>,
       std::optional<Attributes::Metadata>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
@@ -882,6 +941,25 @@ struct SaiPortTraits {
         SAI_PORT_STAT_LLR_RX_EXPECTED_SEQ_GOOD,
         SAI_PORT_STAT_LLR_RX_EXPECTED_SEQ_POISONED,
         SAI_PORT_STAT_LLR_RX_EXPECTED_SEQ_BAD,
+    };
+    return ids;
+  }
+#endif
+#if defined(SAI_CBFC_SUPPORTED)
+  // UEC Credit-Based Flow Control counters (UE Spec 1.0.2 section 5.2).
+  // get_port_stats is all-or-nothing, so fetch only the counters with a BCM
+  // counter behind them on Tomahawk Ultra 1. The other three in saiport.h are
+  // left out on purpose:
+  //   CBFC_SENDER_CREDITS_USED           TU1 B0 stepping only, NOT_SUPPORTED
+  //                                      on A0
+  //   CBFC_SENDER_CREDITS_USED_WATERMARK no BCM counter on any stepping
+  //   CBFC_NUM_CC_UPDATE_MESSAGES_RX     no BCM counter on any stepping
+  // Adding any of them makes every CBFC port stat read fail.
+  static const std::vector<sai_stat_id_t>& cbfcStats() {
+    static const std::vector<sai_stat_id_t> ids = {
+        SAI_PORT_STAT_CBFC_NUM_CC_UPDATE_MESSAGES_TX,
+        SAI_PORT_STAT_CBFC_NUM_CF_UPDATE_MESSAGES_TX,
+        SAI_PORT_STAT_CBFC_NUM_CF_UPDATE_MESSAGES_RX,
     };
     return ids;
   }
@@ -982,6 +1060,7 @@ SAI_ATTRIBUTE_NAME(Port, PrbsConfig)
 SAI_ATTRIBUTE_NAME(Port, PrbsRxState)
 #endif
 SAI_ATTRIBUTE_NAME(Port, IngressAcl)
+SAI_ATTRIBUTE_NAME(Port, IsolationGroup)
 SAI_ATTRIBUTE_NAME(Port, IngressMacSecAcl)
 SAI_ATTRIBUTE_NAME(Port, EgressMacSecAcl)
 SAI_ATTRIBUTE_NAME(Port, SystemPortId)
@@ -997,6 +1076,14 @@ SAI_ATTRIBUTE_NAME(Port, PortErrStatus)
 SAI_ATTRIBUTE_NAME(Port, IngressPriorityGroupList)
 SAI_ATTRIBUTE_NAME(Port, NumberOfIngressPriorityGroups)
 SAI_ATTRIBUTE_NAME(Port, QosTcToPriorityGroupMap)
+#if defined(SAI_CBFC_SUPPORTED)
+SAI_ATTRIBUTE_NAME(Port, QosTcToVcMap)
+SAI_ATTRIBUTE_NAME(Port, CbfcSenderCreditLimit)
+SAI_ATTRIBUTE_NAME(Port, QosQueueToVcMap)
+SAI_ATTRIBUTE_NAME(Port, CbfcReceiverNativeCreditSize)
+SAI_ATTRIBUTE_NAME(Port, CbfcReceiverNativePacketOverhead)
+SAI_ATTRIBUTE_NAME(Port, CbfcReceiverNativeTotalCredits)
+#endif
 SAI_ATTRIBUTE_NAME(Port, QosPfcPriorityToQueueMap)
 SAI_ATTRIBUTE_NAME(Port, QosPfcPriorityToPriorityGroupMap)
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
@@ -1069,6 +1156,9 @@ SAI_ATTRIBUTE_NAME(Port, LinkUpDebouncePeriodMs)
 SAI_ATTRIBUTE_NAME(Port, LinkDownDebouncePeriodMs)
 SAI_ATTRIBUTE_NAME(Port, LinkUpDebounceRetriggerCount)
 SAI_ATTRIBUTE_NAME(Port, LinkDownDebounceRetriggerCount)
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+SAI_ATTRIBUTE_NAME(Port, ExtOperStatusLatch)
+#endif
 
 #if defined(CHENAB_SAI_SDK)
 SAI_ATTRIBUTE_NAME(Port, AutoNegotiationMode)
@@ -1133,11 +1223,13 @@ struct SaiPortSerdesTraits {
     using TxPrecoding = SaiAttribute<
         EnumType,
         SAI_PORT_SERDES_ATTR_TX_PRECODING,
-        std::vector<sai_int32_t>>;
+        std::vector<sai_int32_t>,
+        SaiS32ListDefault>;
     using RxPrecoding = SaiAttribute<
         EnumType,
         SAI_PORT_SERDES_ATTR_RX_PRECODING,
-        std::vector<sai_int32_t>>;
+        std::vector<sai_int32_t>,
+        SaiS32ListDefault>;
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
     using CustomCollection = SaiAttribute<
@@ -1234,15 +1326,18 @@ struct SaiPortSerdesTraits {
     };
     using RxReach = SaiExtensionAttribute<
         std::vector<sai_int32_t>,
-        AttributeRxReachWrapper>;
+        AttributeRxReachWrapper,
+        SaiS32ListDefault>;
     // Standard TxPrecoding/RxPrecoding attributes are supported on 14.0+
     // These vendor extensions work from 13.3
     using TransmitPrecodingState = SaiExtensionAttribute<
         std::vector<sai_int32_t>,
-        AttributeTransmitPrecodingStateWrapper>;
+        AttributeTransmitPrecodingStateWrapper,
+        SaiS32ListDefault>;
     using ReceivePrecodingState = SaiExtensionAttribute<
         std::vector<sai_int32_t>,
-        AttributeReceivePrecodingStateWrapper>;
+        AttributeReceivePrecodingStateWrapper,
+        SaiS32ListDefault>;
 // Alias to vendor extension attributes on bcm SAI
 #if defined(BRCM_SAI_SDK_GTE_13_0)
     using TxPrecodingAttr = TransmitPrecodingState;
@@ -1569,6 +1664,17 @@ struct SaiPortSerdesTraits {
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
       ,
       std::optional<Attributes::CustomCollection>
+#endif
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+      ,
+      std::optional<Attributes::RxReach>
+#endif
+#if defined(BRCM_SAI_SDK_GTE_13_0) ||            \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) && \
+     !defined(BRCM_SAI_SDK_XGS_AND_DNX))
+      ,
+      std::optional<Attributes::TxPrecodingAttr>,
+      std::optional<Attributes::RxPrecodingAttr>
 #endif
       >;
 };

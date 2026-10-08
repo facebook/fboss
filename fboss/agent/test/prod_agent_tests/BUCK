@@ -11,6 +11,10 @@ cpp_library(
         "ProdAgentTests.cpp",
         "ProdInvariantTests.cpp",
     ],
+    headers = [
+        "ProdAgentTests.h",
+        "ProdInvariantTests.h",
+    ],
     link_whole = True,
     # Will need symbols from bcm, sai layers. Those
     # will come when we build bcm/sai link test bins

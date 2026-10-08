@@ -149,3 +149,56 @@ TEST_F(LagManagerTest, updateMembers) {
   EXPECT_THROW(
       saiManagerTable->lagManager().isLagMember(PortID(100)), FbossError);
 }
+
+/*
+ * A LAG that carries a router interface of its own need not be a member of any
+ * VLAN. Such a LAG gets no port vlan id, no vlan membership and no bridge
+ * port. Ports are set up without VLANs here so addLag takes that path.
+ */
+class LagManagerNoVlanTest : public ManagerTestBase {
+ public:
+  void SetUp() override {
+    setupStage = SetupStage::PORT;
+    ManagerTestBase::SetUp();
+    intf0 = testInterfaces[0];
+  }
+
+  TestInterface intf0;
+};
+
+TEST_F(LagManagerNoVlanTest, addLagWithoutVlan) {
+  auto swAggregatePort = makeAggregatePort(intf0);
+  std::ignore = saiManagerTable->lagManager().addLag(swAggregatePort);
+
+  // Previously this aborted: addLag CHECKed that the member port was in a
+  // VLAN.
+  auto handle =
+      saiManagerTable->lagManager().getLagHandle(swAggregatePort->getID());
+  ASSERT_NE(handle, nullptr);
+  ASSERT_NE(handle->lag, nullptr);
+  EXPECT_EQ(handle->vlanId, std::nullopt);
+  EXPECT_EQ(handle->bridgePort, nullptr);
+}
+
+TEST_F(LagManagerNoVlanTest, noBridgePortForLagWithoutVlan) {
+  auto swAggregatePort = makeAggregatePort(intf0);
+  std::ignore = saiManagerTable->lagManager().addLag(swAggregatePort);
+
+  // A routed LAG does no l2 forwarding, so this is a no op rather than an
+  // attempt to bridge a LAG that is in no VLAN.
+  saiManagerTable->lagManager().addBridgePort(swAggregatePort);
+  auto handle =
+      saiManagerTable->lagManager().getLagHandle(swAggregatePort->getID());
+  EXPECT_EQ(handle->bridgePort, nullptr);
+}
+
+TEST_F(LagManagerNoVlanTest, removeLagWithoutVlan) {
+  auto swAggregatePort = makeAggregatePort(intf0);
+  std::ignore = saiManagerTable->lagManager().addLag(swAggregatePort);
+
+  // Teardown must not try to remove vlan membership that was never created.
+  saiManagerTable->lagManager().removeLag(swAggregatePort);
+  EXPECT_EQ(
+      saiManagerTable->lagManager().getLagHandleIf(swAggregatePort->getID()),
+      nullptr);
+}

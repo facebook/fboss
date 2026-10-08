@@ -9,8 +9,10 @@
  */
 
 #include <folly/IPAddress.h>
+#include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/PTPHeader.h"
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -32,7 +34,7 @@ namespace facebook::fboss {
  * same port, RX timestamp applied. The packet is now forwarded out of egress
  * port, TX timestamp applied.
  *  4. Packet is received back on egress port, now forward the same to CPU,
- * capture the packet and check for CF field in the packet.
+ * capture the packet and check for CF field and the UDP checksum in the packet.
  *  5. Run for each port pairs.
  */
 class AgentHwPtpTcProvisionTests : public AgentHwTest {
@@ -164,6 +166,26 @@ class AgentHwPtpTcProvisionTests : public AgentHwTest {
         std::move(ptpPkt), portDescriptor, std::nullopt);
   }
 
+  // A transparent clock rewrites correctionField inside the PTP payload, so it
+  // must also fix up the UDP checksum. Over IPv6 that checksum is mandatory, so
+  // a stale or zeroed one makes the receiving host drop the packet silently
+  // while every switch side counter stays clean (S701902).
+  void verifyUdpChecksum(
+      const UDPHeader& udpHdr,
+      const IPv6Hdr& ipHdr,
+      const folly::io::Cursor& ptpPayloadStart,
+      const PortID& injectPortID,
+      const PortID& dstPortID) {
+    ASSERT_GE(ptpPayloadStart.totalLength(), udpHdr.length - UDPHeader::size())
+        << "Truncated PTP packet, cannot verify UDP checksum";
+    // computeChecksum() treats the checksum field as zero, so its result is
+    // directly comparable with the value carried on the wire.
+    EXPECT_EQ(udpHdr.csum, udpHdr.computeChecksum(ipHdr, ptpPayloadStart))
+        << "Bad UDP checksum on PTP packet sent from "
+        << getPortName(injectPortID) << " and received on port "
+        << getPortName(dstPortID);
+  }
+
   uint64_t verifyPtpPkts(
       PTPMessageType ptpType,
       utility::SwSwitchPacketSnooper& snooper,
@@ -190,6 +212,10 @@ class AgentHwPtpTcProvisionTests : public AgentHwTest {
       }
       IPv6Hdr ipHdr(pktCursor);
       auto dstIp = ipHdr.dstAddr;
+      // Cursor now sits at the UDP header, parsing it advances to the start of
+      // the PTP payload, which is where computeChecksum() expects to begin.
+      UDPHeader udpHdr;
+      udpHdr.parse(&pktCursor);
       // use dstMac and dstIP to find the dst port and inject port
       auto dstPortIdx = getPortIndexFromNexthopMac(dstMac);
       auto injectPortIdx = getPortIndexFromDstIp(dstIp);
@@ -208,6 +234,8 @@ class AgentHwPtpTcProvisionTests : public AgentHwTest {
       EXPECT_EQ(PTPVersion::PTP_V2, ptpHdr.getPtpVersion());
       EXPECT_EQ(PTP_DELAY_REQUEST_MSG_SIZE, ptpHdr.getPtpMessageLength());
       EXPECT_GT(cfInNsecs, 0);
+      verifyUdpChecksum(
+          udpHdr, ipHdr, pktCursor, ports[injectPortIdx], ports[dstPortIdx]);
     }
     return cfInNsecs;
   }

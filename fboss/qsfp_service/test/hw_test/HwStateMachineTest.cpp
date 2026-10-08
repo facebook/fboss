@@ -532,6 +532,36 @@ TEST_F(HwStateMachineTest, CheckPortStatusUpdated) {
               }
             }
           }
+
+          // Also verify backplane XPHY ports (no transceiver): on retimer-only
+          // platforms (Ladakh/Leh) these are most ports, so the loop above
+          // would pass vacuously. PortManager mode only; mirrors
+          // CheckPortsProgrammed.
+          if (FLAGS_port_manager_mode) {
+            auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
+            if (phyManager) {
+              auto expectedPortState = up ? PortStateMachineState::PORT_UP
+                                          : PortStateMachineState::PORT_DOWN;
+              for (const auto& portId : phyManager->getXphyPorts()) {
+                // Already checked in the transceiver loop above.
+                if (utility::getTranscieverIdx(portId, getHwQsfpEnsemble())
+                        .has_value()) {
+                  continue;
+                }
+                if (!phyManager->getProgrammedProfile(portId).has_value()) {
+                  continue;
+                }
+                auto portState =
+                    qsfpServiceHandler->getPortManager()->getPortState(portId);
+                EXPECT_EQ(portState, expectedPortState)
+                    << "Backplane XPHY port:" << portId
+                    << " doesn't have expected state="
+                    << apache::thrift::util::enumNameSafe(expectedPortState)
+                    << " but actual state="
+                    << apache::thrift::util::enumNameSafe(portState);
+              }
+            }
+          }
         };
 
     // First set all ports up
@@ -606,8 +636,10 @@ TEST_F(HwStateMachineTest, CheckTransceiverRemoved) {
       }
     }
 
+    // Tunable optics take ~100s for datapath activation. Thus wait sufficient
+    // time for the transceivers to complete transceiver programming state
     WITH_RETRIES_N_TIMED(
-        10 /* retries */,
+        30 /* retries */,
         std::chrono::milliseconds(10000) /* msBetweenRetry */,
         EXPECT_EVENTUALLY_TRUE(refreshStateMachinesTillMeetAllStates(
             expectedStates,
@@ -699,11 +731,10 @@ TEST_F(HwStateMachineTest, CheckTransceiverRemediated) {
       }
     }
 
-    // Due to some platforms are easy to have i2c issue which causes the current
-    // refresh not work as expected. Adding enough retries to make sure that we
-    // at least can meet all `expectedStates` after 10 times.
+    // Tunable optics take ~100s for datapath activation. Thus wait sufficient
+    // time for the transceivers to complete transceiver programming state
     WITH_RETRIES_N_TIMED(
-        10 /* retries */,
+        30 /* retries */,
         std::chrono::milliseconds(10000) /* msBetweenRetry */,
         EXPECT_EVENTUALLY_TRUE(refreshStateMachinesTillMeetAllStates(
             expectedStates,

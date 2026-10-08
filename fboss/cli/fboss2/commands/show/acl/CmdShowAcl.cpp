@@ -18,6 +18,7 @@
 #include <vector>
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
+#include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 
 namespace facebook::fboss {
@@ -103,6 +104,10 @@ void CmdShowAcl::printOutput(const RetType& model, std::ostream& out) {
       if (aclEntry.lookupClassL2().has_value()) {
         out << "   lookup class L2: "
             << folly::copy(aclEntry.lookupClassL2().value()) << std::endl;
+      }
+      if (aclEntry.lookupClassPort().has_value()) {
+        out << "   lookup class port: " << aclEntry.lookupClassPort().value()
+            << std::endl;
       }
       out << "   action: " << aclEntry.actionType().value() << std::endl;
       if (folly::copy(aclEntry.enabled().value())) {
@@ -191,6 +196,10 @@ RetType CmdShowAcl::createModel(facebook::fboss::AclTableThrift entries) {
         aclDetails.lookupClassL2() = static_cast<int16_t>(
             *apache::thrift::get_pointer(entry.lookupClassL2()));
       }
+      if (apache::thrift::get_pointer(entry.lookupClassPort())) {
+        aclDetails.lookupClassPort() = utils::getAclLookupClassPortStr(
+            entry.lookupClassPort().to_optional());
+      }
       aclDetails.actionType() = entry.actionType().value();
       if (apache::thrift::get_pointer(entry.enabled())) {
         aclDetails.enabled() = *apache::thrift::get_pointer(entry.enabled());
@@ -222,6 +231,7 @@ RetType CmdShowAcl::sampleModel() {
   acl2.priority() = 4;
   acl2.actionType() = "permit";
   acl2.enabled() = 1;
+  acl2.lookupClassPort() = "Restricted";
 
   cli::AclEntry acl3;
   acl3.name() = "ttld-interconnect";

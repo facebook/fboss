@@ -16,6 +16,8 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
+#include <utility>
+
 namespace facebook::fboss {
 
 SaiAclTableGroupManager::SaiAclTableGroupManager(
@@ -56,17 +58,24 @@ AclTableGroupSaiId SaiAclTableGroupManager::addAclTableGroup(
     const std::shared_ptr<AclTableGroup>& addedAclTableGroup) {
   sai_acl_stage_t saiAclStage =
       cfgAclStageToSaiAclStage(addedAclTableGroup->getID());
+  const auto bindPoint = addedAclTableGroup->getBindPoint();
 
   // If we already store a handle for this this Acl Table group, fail to add a
   // new one.
-  auto handle = getAclTableGroupHandle(saiAclStage);
+  auto handle = getAclTableGroupHandle(saiAclStage, bindPoint);
   if (handle) {
     throw FbossError(
-        "attempted to add a duplicate aclTableGroup: ", saiAclStage);
+        "attempted to add a duplicate aclTableGroup for stage: ",
+        saiAclStage,
+        ", bind point: ",
+        apache::thrift::util::enumNameSafe(bindPoint));
   }
 
   auto& aclTableGroupStore = saiStore_->get<SaiAclTableGroupTraits>();
-  std::vector<sai_int32_t> bindPointList{SAI_ACL_BIND_POINT_TYPE_SWITCH};
+  std::vector<sai_int32_t> bindPointList{
+      bindPoint == cfg::AclTableGroupBindPoint::PORT
+          ? SAI_ACL_BIND_POINT_TYPE_PORT
+          : SAI_ACL_BIND_POINT_TYPE_SWITCH};
   sai_int32_t type = SAI_ACL_TABLE_GROUP_TYPE_PARALLEL;
 
   SaiAclTableGroupTraits::AdapterHostKey adapterHostKey{
@@ -78,13 +87,16 @@ AclTableGroupSaiId SaiAclTableGroupManager::addAclTableGroup(
       aclTableGroupStore.setObject(adapterHostKey, attributes);
   auto aclTableGroupHandle = std::make_unique<SaiAclTableGroupHandle>();
   aclTableGroupHandle->aclTableGroup = saiAclTableGroup;
-  auto [it, inserted] =
-      handles_.emplace(saiAclStage, std::move(aclTableGroupHandle));
+  auto [it, inserted] = handles_.emplace(
+      std::make_pair(saiAclStage, bindPoint), std::move(aclTableGroupHandle));
   CHECK(inserted);
 
-  if (saiAclStage == SAI_ACL_STAGE_INGRESS) {
+  if (bindPoint == cfg::AclTableGroupBindPoint::SWITCH &&
+      saiAclStage == SAI_ACL_STAGE_INGRESS) {
     managerTable_->switchManager().setIngressAcl();
-  } else if (saiAclStage == SAI_ACL_STAGE_EGRESS) {
+  } else if (
+      bindPoint == cfg::AclTableGroupBindPoint::SWITCH &&
+      saiAclStage == SAI_ACL_STAGE_EGRESS) {
     CHECK(platform_->getAsic()->isSupported(
         HwAsic::Feature::INGRESS_POST_LOOKUP_ACL_TABLE))
         << apache::thrift::util::enumNameSafe(
@@ -98,39 +110,40 @@ AclTableGroupSaiId SaiAclTableGroupManager::addAclTableGroup(
 
 const SaiAclTableGroupHandle* FOLLY_NULLABLE
 SaiAclTableGroupManager::getAclTableGroupHandle(
-    sai_acl_stage_t aclStage) const {
-  return getAclTableGroupHandleImpl(aclStage);
-}
-
-SaiAclTableGroupHandle* FOLLY_NULLABLE
-SaiAclTableGroupManager::getAclTableGroupHandle(sai_acl_stage_t aclStage) {
-  return getAclTableGroupHandleImpl(aclStage);
-}
-
-SaiAclTableGroupHandle* FOLLY_NULLABLE
-SaiAclTableGroupManager::getAclTableGroupHandleImpl(
-    sai_acl_stage_t aclStage) const {
-  auto itr = handles_.find(aclStage);
+    sai_acl_stage_t aclStage,
+    cfg::AclTableGroupBindPoint bindPoint) const {
+  auto itr = handles_.find({aclStage, bindPoint});
   if (itr == handles_.end()) {
     return nullptr;
   }
   if (!itr->second || !itr->second->aclTableGroup) {
-    XLOG(FATAL) << "invalid null Acl table group for: " << aclStage;
+    XLOG(FATAL) << "invalid null Acl table group for stage: " << aclStage;
   }
   return itr->second.get();
 }
 
+SaiAclTableGroupHandle* FOLLY_NULLABLE
+SaiAclTableGroupManager::getAclTableGroupHandle(
+    sai_acl_stage_t aclStage,
+    cfg::AclTableGroupBindPoint bindPoint) {
+  return const_cast<SaiAclTableGroupHandle*>(
+      std::as_const(*this).getAclTableGroupHandle(aclStage, bindPoint));
+}
+
 AclTableGroupMemberSaiId SaiAclTableGroupManager::addAclTableGroupMember(
     sai_acl_stage_t aclStage,
+    cfg::AclTableGroupBindPoint bindPoint,
     AclTableSaiId aclTableSaiId,
-    const std::string& aclTableName) {
+    const std::string& aclTableName,
+    sai_uint32_t aclTablePriority) {
   CHECK(platform_->getAsic()->isSupported(HwAsic::Feature::ACL_TABLE_GROUP));
 
   // If we attempt to add member to a group that does not exist, fail.
-  auto aclTableGroupHandle = getAclTableGroupHandle(aclStage);
+  auto aclTableGroupHandle = getAclTableGroupHandle(aclStage, bindPoint);
   if (!aclTableGroupHandle) {
     throw FbossError(
-        "attempted to add AclTable to a group that does not exist: ", aclStage);
+        "attempted to add AclTable to a group that does not exist for stage: ",
+        aclStage);
   }
 
   // If we already store a handle for this this Acl Table group member, fail to
@@ -151,16 +164,7 @@ AclTableGroupMemberSaiId SaiAclTableGroupManager::addAclTableGroupMember(
   SaiAclTableGroupMemberTraits::Attributes::TableId aclTableIdAttribute{
       aclTableSaiId};
 
-  /*
-   * TODO(skhare)
-   * Priority is valid for SEQUENTIAL ACL table groups only, while we only use
-   * PARALLEL ACL groups today.
-   * But Priority field is mandatory as per SAI spec, so set it to some value.
-   * In future, if we support SEQUENTIAL ACL groups, read MINIMUM and MAXIMUM
-   * PRIORITY Switch attribute and use as appropriate below.
-   */
-  SaiAclTableGroupMemberTraits::Attributes::Priority priority{
-      SAI_SWITCH_ATTR_ACL_TABLE_MINIMUM_PRIORITY};
+  SaiAclTableGroupMemberTraits::Attributes::Priority priority{aclTablePriority};
 
   SaiAclTableGroupMemberTraits::AdapterHostKey adapterHostKey{
       aclTableGroupIdAttribute, aclTableIdAttribute, priority};
@@ -181,9 +185,10 @@ AclTableGroupMemberSaiId SaiAclTableGroupManager::addAclTableGroupMember(
 
 void SaiAclTableGroupManager::removeAclTableGroupMember(
     sai_acl_stage_t aclStage,
+    cfg::AclTableGroupBindPoint bindPoint,
     const std::string& aclTableName) {
   // If we attempt to remove member from a group that does not exist, fail.
-  auto aclTableGroupHandle = getAclTableGroupHandle(aclStage);
+  auto aclTableGroupHandle = getAclTableGroupHandle(aclStage, bindPoint);
   if (!aclTableGroupHandle) {
     throw FbossError(
         "attempted to remove AclTable from a group that does not exist: ",

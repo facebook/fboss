@@ -7,11 +7,9 @@ thrift_library(
     name = "led_mapping",
     languages = [
         "cpp2",
-        "py-deprecated",
         "python",
     ],
     py3_namespace = "neteng.fboss.lib.led",
-    py_base_module = "neteng.fboss.lib.led",
     thrift_cpp2_options = [
         "json",
     ],

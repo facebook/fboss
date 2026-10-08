@@ -11,6 +11,7 @@ load(
     "SAI_LEABA_IMPLS",
     "SAI_NVIDIA_IMPLS",
     "get_link_group_map",
+    # @oss-disable[end= ]: "sai_impl_target_compatible_with",
     "to_impl_bin_name",
     "to_impl_lib_name",
 )
@@ -37,6 +38,7 @@ cpp_library(
         "AgentArsSprayTest.cpp",
         "AgentEcmpSpilloverTests.cpp",
         "AgentFlowletSwitchingTests.cpp",
+        "AgentFrrScaleTests.cpp",
     ],
     headers = [
         "AgentArsBase.h",
@@ -45,13 +47,16 @@ cpp_library(
     ],
     link_whole = True,
     deps = [
+        "fbsource//third-party/googletest:gtest",
         "//fboss/agent:agent_dir_util",
         "//fboss/agent:asic_utils",
         "//fboss/agent:ecmp_resource_manager",
         "//fboss/agent:fboss-error",
+        "//fboss/agent:fboss-types",
         "//fboss/agent:fib_helpers",
         "//fboss/agent:packet",
         "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/packet:packet_factory",
         "//fboss/agent/test:agent_ensemble",
         "//fboss/agent/test:utils",
@@ -67,6 +72,7 @@ cpp_library(
         "//fboss/lib:common_file_utils",
         "//fboss/lib:common_utils",
         "//fboss/lib/config:fboss_config_utils",
+        "//folly:conv",
     ],
     exported_deps = [
         "//fboss/agent:agent_features",
@@ -151,6 +157,7 @@ cpp_library(
     name = "agent_qos_test_src",
     srcs = [
         "Agent2QueueToOlympicQoSTests.cpp",
+        "AgentDeviceBufferGuaranteeTests.cpp",
         "AgentDscpQueueMappingTests.cpp",
         "AgentEgressQueueScalingFactorTests.cpp",
         "AgentNetworkAIQosSchedulerTests.cpp",
@@ -180,8 +187,10 @@ cpp_library(
         "//fboss/agent/test/utils:network_ai_qos_utils",
         "//fboss/agent/test/utils:olympic_qos_utils",
         "//fboss/agent/test/utils:pfc_test_utils",
+        "//fboss/agent/test/utils:port_test_utils",
         "//fboss/agent/test/utils:queue_test_utils",
         "//fboss/agent/test/utils:traffic_policy_utils",
+        "//folly:string",
     ],
     exported_deps = [
         "//fboss/agent:packet",
@@ -205,6 +214,7 @@ cpp_library(
     # :golden_dataAndroid, which is wrong for this non-Android host test. Keep :golden_data.
     name = "agent_hw_test_src",
     srcs = [
+        "AgentAccessPolicyAclTests.cpp",
         "AgentAclCounterTests.cpp",
         "AgentAclInDiscardCounterTests.cpp",
         "AgentAclPriorityTests.cpp",
@@ -235,6 +245,7 @@ cpp_library(
         "AgentHwAclMatchActionsTest.cpp",
         "AgentHwAclQualifierTest.cpp",
         "AgentHwAclStatTests.cpp",
+        "AgentHwCbfcTest.cpp",
         "AgentHwLinkDebounceTests.cpp",
         "AgentHwLlrTest.cpp",
         "AgentHwMirrorTests.cpp",
@@ -259,6 +270,7 @@ cpp_library(
         "AgentMPLSHeadEndTests.cpp",
         "AgentMPLSMidpointTests.cpp",
         "AgentMPLSTests.cpp",
+        "AgentMPLSTtlTests.cpp",
         "AgentMacLearningAndNeighborResolutionTests.cpp",
         "AgentMacLearningTests.cpp",
         "AgentMemoryUsageTests.cpp",
@@ -271,6 +283,7 @@ cpp_library(
         "AgentMirrorOnDropXgsImpl.cpp",
         "AgentMirroringTests.cpp",
         "AgentMmuTuningTests.cpp",
+        "AgentMySidAdjFrrRouteTests.cpp",
         "AgentNeighborTests.cpp",
         "AgentOverflowTestBase.cpp",
         "AgentPacketSendTests.cpp",
@@ -278,8 +291,10 @@ cpp_library(
         "AgentPfcConfigTest.cpp",
         "AgentPfcTests.cpp",
         "AgentPortBandWidthTests.cpp",
+        "AgentPortBoundIngressAclTests.cpp",
         "AgentPortLedTests.cpp",
         "AgentPortProfileTests.cpp",
+        "AgentPortlessInterfaceScopeTests.cpp",
         "AgentPrbsTests.cpp",
         "AgentQueuePerHostL2Tests.cpp",
         "AgentQueuePerHostRouteTests.cpp",
@@ -312,13 +327,17 @@ cpp_library(
         "AgentTunnelMgrTests.cpp",
     ],
     headers = [
+        "AgentAccessPolicyAclTestBase.h",
         "AgentArsBase.h",
+        "AgentConfigSetupTest.h",
+        "AgentDropTestBase.h",
         "AgentMPLSDataplaneTest.h",
         "AgentMPLSDataplaneTestUtils.h",
         "AgentMirrorOnDropStatelessTest.h",
         "AgentMirrorOnDropTajoImpl.h",
         "AgentMirrorOnDropTestBase.h",
         "AgentMirrorOnDropXgsImpl.h",
+        "AgentOverflowTestBase.h",
         "AgentRollbackTests.h",
         "AgentTestAddressConstants.h",
         "AgentTestEcmpConstants.h",
@@ -374,6 +393,7 @@ cpp_library(
         "//fboss/agent/test:resourcelibutil",
         "//fboss/agent/test:route_scale_gen",
         "//fboss/agent/test:test_ensemble_if",
+        "//fboss/agent/test/utils:access_policy_acl_test_utils",
         "//fboss/agent/test/utils:acl_test_utils",
         "//fboss/agent/test/utils:aqm_test_utils",
         "//fboss/agent/test/utils:asic_test_utils",
@@ -467,6 +487,7 @@ cpp_library(
 cpp_library(
     name = "agent_scale_test_src",
     srcs = [
+        "AgentAccessPolicyAclStressTests.cpp",
         "AgentAclScaleTests.cpp",
         "AgentEcmpScaleTests.cpp",
         "AgentHwPortStressTests.cpp",
@@ -477,20 +498,18 @@ cpp_library(
         "AgentVoqSwitchScaleTests.cpp",
     ],
     headers = [
+        "AgentAccessPolicyAclTestBase.h",
         "AgentVoqSwitchFullScaleDsfTests.h",
         "AgentVoqSwitchTests.h",
     ],
     link_whole = True,
     deps = [
-        "fbsource//third-party/fmt:fmt",
         "//fboss/agent:ecmp_resource_manager",
         "//fboss/agent:fboss-error",
-        "//fboss/agent/packet:packet_factory",
+        "//fboss/agent/hw:hardware_stats-cpp2-types",
         "//fboss/agent/test:production_features-cpp2-types",
         "//fboss/agent/test:route_scale_gen",
         "//fboss/agent/test/utils:acl_scale_test_utils",
-        "//fboss/agent/test/utils:acl_test_utils",
-        "//fboss/agent/test/utils:config_utils",
         "//fboss/agent/test/utils:ecmp_resource_mgr_test_utils",
         "//fboss/agent/test/utils:fabric_test_utils",
         "//fboss/agent/test/utils:mirror_test_utils",
@@ -498,19 +517,40 @@ cpp_library(
         "//fboss/agent/test/utils:voq_test_utils",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//fboss/agent:agent_features",
         "//fboss/agent:asic_utils",
+        "//fboss/agent:core",
         "//fboss/agent:fabric_connectivity_manager",
+        "//fboss/agent:packet",
+        "//fboss/agent:utils",
         "//fboss/agent/hw/test:config_factory",
+        "//fboss/agent/packet:ether_type",
+        "//fboss/agent/packet:ipproto",
+        "//fboss/agent/packet:packet",
+        "//fboss/agent/packet:packet_factory",
         "//fboss/agent/state:state",
         "//fboss/agent/test:agent_hw_test",
         "//fboss/agent/test:ecmp_helper",
+        "//fboss/agent/test:resourcelibutil",
         "//fboss/agent/test:utils",
+        "//fboss/agent/test/utils:access_policy_acl_test_utils",
+        "//fboss/agent/test/utils:acl_test_utils",
+        "//fboss/agent/test/utils:config_utils",
         "//fboss/agent/test/utils:copp_test_utils",
         "//fboss/agent/test/utils:dsf_config_utils",
         "//fboss/agent/test/utils:load_balancer_test_utils",
         "//fboss/agent/test/utils:network_ai_qos_utils",
+        "//fboss/agent/test/utils:packet_snooper",
+        "//fboss/agent/test/utils:pkt_test_utils",
         "//fboss/agent/test/utils:scale_test_utils",
+        "//fboss/lib:common_utils",
         "//folly:network_address",
+        "//folly:string",
+        "//folly/io:iobuf",
+    ],
+    external_deps = [
+        "gflags",
     ],
 )
 
@@ -560,6 +600,7 @@ cpp_binary(
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
         ],
+        # @oss-disable[end= ]: target_compatible_with = sai_impl_target_compatible_with(sdk),
         versions = to_versions(sdk),
         deps = [
             "fbsource//third-party/glog:glog",
@@ -601,6 +642,7 @@ _sai_agent_hw_test_prefix = "sai_agent_hw_test"
             "--unresolved-symbols=ignore-all",
             "--rpath='$ORIGIN'",
         ],
+        # @oss-disable[end= ]: target_compatible_with = sai_impl_target_compatible_with(sai_impl),
         versions = to_versions(sai_impl),
         deps = [
             ":agent_hw_test_src",
@@ -641,6 +683,7 @@ _sai_scale_test_configs = [
             "--unresolved-symbols=ignore-all",
             "--rpath='$ORIGIN'",
         ],
+        # @oss-disable[end= ]: target_compatible_with = sai_impl_target_compatible_with(sai_impl),
         versions = to_versions(sai_impl),
         deps = [
             "fbsource//third-party/googletest:gtest",
@@ -678,7 +721,10 @@ _sai_agent_provision_test_prefix = "sai_agent_provision_test"
             "--unresolved-symbols=ignore-all",
             "--rpath='$ORIGIN'",
         ],
-        versions = to_versions(sai_impl),
+        # @oss-disable[end= ]: target_compatible_with = sai_impl_target_compatible_with(sai_impl),
+        # Runs in the NetOS fwdstack container, which only ships the py3.12
+        # runtime; the diag shell embeds libpython.
+        versions = dict(to_versions(sai_impl), python = "3.12"),
         deps = [
             "fbsource//third-party/googletest:gtest",
             ":agent_hw_provision_test_src",
@@ -692,5 +738,5 @@ _sai_agent_provision_test_prefix = "sai_agent_provision_test"
         ]
         + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
     )
-    for sai_impl in SAI_BRCM_IMPLS + SAI_LEABA_IMPLS
+    for sai_impl in SAI_BRCM_IMPLS + SAI_LEABA_IMPLS + SAI_NVIDIA_IMPLS
 ]

@@ -137,6 +137,9 @@ class AgentDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
 
   void dscpMappingVerifyHelper(int kQueueId, int16_t kDscp) {
     for (bool frontPanel : {false, true}) {
+      if (frontPanel) {
+        learnSrcMacOnEcmpTxPortIfPending(kDefaultEcmpWidth);
+      }
       auto beforeQueueOutPkts =
           folly::copy(getLatestPortStats(this->portIdToTest())
                           .queueOutPackets_()
@@ -267,6 +270,9 @@ class AgentAclAndDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
       for (bool frontPanel : {false, true}) {
         XLOG(DBG2) << "verify send packets "
                    << (frontPanel ? "out of port" : "switched");
+        if (frontPanel) {
+          learnSrcMacOnEcmpTxPortIfPending(kDefaultEcmpWidth);
+        }
         auto beforeQueueOutPkts =
             folly::copy(getLatestPortStats(this->portIdToTest())
                             .queueOutPackets_()
@@ -339,6 +345,9 @@ class AgentAclConflictAndDscpQueueMappingTest
       for (bool frontPanel : {false, true}) {
         XLOG(DBG2) << "verify send packets "
                    << (frontPanel ? "out of port" : "switched");
+        if (frontPanel) {
+          learnSrcMacOnEcmpTxPortIfPending(kDefaultEcmpWidth);
+        }
         auto beforeQueueOutPktsAcl =
             folly::copy(getLatestPortStats(this->portIdToTest())
                             .queueOutPackets_()

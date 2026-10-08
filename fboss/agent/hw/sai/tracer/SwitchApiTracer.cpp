@@ -107,6 +107,9 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _SwitchMap{
     SAI_ATTR_MAP(Switch, AsicTemperatureList),
     SAI_ATTR_MAP(Switch, NumTemperatureSensors),
     SAI_ATTR_MAP(Switch, SwitchingMode),
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+    SAI_ATTR_MAP(Switch, LinkUpDebounceTimeout),
+#endif
 
 };
 

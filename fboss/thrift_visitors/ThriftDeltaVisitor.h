@@ -178,7 +178,7 @@ struct ThriftDeltaVisitor<apache::thrift::type::map<KeyTag, MappedTag>> {
     }
 
     for (const auto& [key, val] : newNode) {
-      if (oldNode.find(key) == oldNode.end()) {
+      if (!oldNode.contains(key)) {
         // only look at keys that didn't exist. First loop should handle all
         // replacement deltas
         hasDifferences = true;

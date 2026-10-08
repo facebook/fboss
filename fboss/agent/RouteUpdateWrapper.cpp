@@ -82,10 +82,10 @@ void RouteUpdateWrapper::addRoute(ClientID clientId, const MplsRoute& route) {
 void RouteUpdateWrapper::addRoute(
     ClientID clientId,
     MplsLabel label,
-    const RouteNextHopEntry& entry) {
+    const RouteNextHopSet& nhops) {
   MplsRoute tempRoute;
   tempRoute.topLabel() = label;
-  tempRoute.nextHops() = util::fromRouteNextHopSet(entry.getNextHopSet());
+  tempRoute.nextHops() = util::fromRouteNextHopSet(nhops);
   addRoute(clientId, std::move(tempRoute));
 }
 

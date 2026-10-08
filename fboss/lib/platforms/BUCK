@@ -95,6 +95,9 @@ cpp_library(
         "PlatformProductInfo.cpp",
         "facebook/PlatformProductInfo.cpp",
     ],
+    headers = [
+        "PlatformProductInfo.h",
+    ],
     deps = [
         "fbsource//third-party/re2:re2",
         ":fruid_fields",

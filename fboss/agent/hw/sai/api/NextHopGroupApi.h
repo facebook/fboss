@@ -133,6 +133,29 @@ struct SaiNextHopGroupTraits {
         sai_uint32_t,
         AttributeArsNextHopGroupMetaData,
         SaiIntDefault<sai_uint32_t>>;
+    struct AttributeSplitHorizonEnable {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SplitHorizonEnable = SaiExtensionAttribute<
+        bool,
+        AttributeSplitHorizonEnable,
+        StdNullOptDefault<bool>>;
+
+    struct AttributeArsFailPktCount {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using ArsFailPktCount = SaiExtensionAttribute<
+        sai_uint64_t,
+        AttributeArsFailPktCount,
+        SaiIntDefault<sai_uint64_t>>;
+
+    struct AttributeArsPortReassignCount {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using ArsPortReassignCount = SaiExtensionAttribute<
+        sai_uint64_t,
+        AttributeArsPortReassignCount,
+        SaiIntDefault<sai_uint64_t>>;
   };
 
   using AdapterKey = NextHopGroupSaiId;
@@ -148,7 +171,8 @@ struct SaiNextHopGroupTraits {
       std::optional<Attributes::HashAlgorithm>,
       std::optional<Attributes::HierarchicalNextHop>
 #endif
-      >;
+      ,
+      std::optional<Attributes::SplitHorizonEnable>>;
 };
 
 SAI_ATTRIBUTE_NAME(NextHopGroup, NextHopMemberList)
@@ -161,6 +185,9 @@ SAI_ATTRIBUTE_NAME(NextHopGroup, HashAlgorithm)
 SAI_ATTRIBUTE_NAME(NextHopGroup, HierarchicalNextHop)
 #endif
 SAI_ATTRIBUTE_NAME(NextHopGroup, ArsNextHopGroupMetaData)
+SAI_ATTRIBUTE_NAME(NextHopGroup, SplitHorizonEnable)
+SAI_ATTRIBUTE_NAME(NextHopGroup, ArsFailPktCount)
+SAI_ATTRIBUTE_NAME(NextHopGroup, ArsPortReassignCount)
 
 struct SaiNextHopGroupMemberTraits {
   static constexpr sai_object_type_t ObjectType =

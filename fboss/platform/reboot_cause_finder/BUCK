@@ -31,13 +31,19 @@ cpp_library(
     ],
     deps = [
         "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/re2:re2",
+        "//fboss/lib:rest-client",
+        "//folly:conv",
         "//folly:dynamic",
         "//folly:file_util",
+        "//folly:string",
         "//folly/logging:logging",
+        "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
     exported_deps = [
         "//fboss/platform/reboot_cause_finder/if:reboot_cause_config-cpp2-types",
+        "//folly:range",
     ],
     external_deps = ["gflags"],
     exported_external_deps = [
@@ -56,6 +62,7 @@ cpp_binary(
         "//fb303:logging",
         "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/helpers:init",
+        "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
 )

@@ -8,6 +8,9 @@ cpp_library(
     srcs = [
         "AddressUtil.cpp",
     ],
+    headers = [
+        "AddressUtil.h",
+    ],
     exported_deps = [
         "//folly:network_address",
         "//folly:string",
@@ -41,6 +44,9 @@ cpp_library(
     srcs = [
         "Types.cpp",
     ],
+    headers = [
+        "Types.h",
+    ],
     exported_deps = [
         "//fboss/agent:fboss-types",
     ],
@@ -69,6 +75,7 @@ cpp_library(
         "FirmwareApi.h",
         "HashApi.h",
         "HostifApi.h",
+        "IsolationGroupApi.h",
         "LagApi.h",
         "LoggingUtil.h",
         "MacsecApi.h",
@@ -104,6 +111,7 @@ cpp_library(
         "Types.h",
         "UdfApi.h",
         "VendorSwitchApi.h",
+        "VirtualChannelApi.h",
         "VirtualRouterApi.h",
         "VlanApi.h",
         "WredApi.h",

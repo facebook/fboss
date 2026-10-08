@@ -9,28 +9,41 @@
  */
 #pragma once
 
-#include "fboss/cli/fboss2/CmdHandler.h"
-#include "fboss/cli/fboss2/CmdLocalOptions.h"
-
 #include <string>
 #include <string_view>
 #include <vector>
+
+#include "fboss/cli/fboss2/CmdHandler.h"
+#include "fboss/cli/fboss2/CmdLocalOptions.h"
 
 namespace facebook::fboss {
 
 inline constexpr std::string_view kConfigGenAgentCommand = "config_gen_agent";
 inline const std::string kConfigGenAgentPlatform = "--platform";
 inline const std::string kConfigGenAgentProfile = "--profile";
+inline const std::string kConfigGenAgentFbossRoot = "--fboss-root";
+inline const std::string kConfigGenAgentAsicConfigFile = "--asic-config-file";
+inline const std::string kConfigGenAgentAsicConfigType = "--asic-config-type";
+inline const std::string kConfigGenAgentReferenceConfigFile =
+    "--reference-config-file";
 inline const std::string kConfigGenAgentOutputDirectory = "--output-dir";
 
 struct CmdConfigGenAgentTraits : public WriteCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
+  static constexpr bool IS_LOCAL_COMMAND = true;
   using ObjectArgType = std::monostate;
   using RetType = std::string;
   std::vector<utils::LocalOption> LocalOptions = {
-      {kConfigGenAgentPlatform, "Target platform", "wedge800bact"},
-      {kConfigGenAgentProfile, "Configuration profile", "hw-test"},
+      {kConfigGenAgentPlatform, "Target platform [required]"},
+      {kConfigGenAgentProfile, "ASIC configuration profile [default: default]"},
+      {kConfigGenAgentFbossRoot, "Path to the fboss source root [required]"},
+      {kConfigGenAgentAsicConfigFile,
+       "ASIC configuration file overriding the generated profile artifact"},
+      {kConfigGenAgentAsicConfigType,
+       "Type of --asic-config-file: key_value, json, or yaml"},
+      {kConfigGenAgentReferenceConfigFile,
+       "Agent configuration to compare with the generated output"},
       {kConfigGenAgentOutputDirectory,
        "Directory in which to create agent.conf"},
   };
@@ -46,7 +59,10 @@ class CmdConfigGenAgent
  public:
   using RetType = CmdConfigGenAgentTraits::RetType;
 
+  // Reads the command options and returns the path of the generated agent.conf.
   RetType queryClient(const HostInfo& hostInfo);
+
+  // Prints the generated configuration path for the caller.
   void printOutput(const RetType& outputPath);
 };
 

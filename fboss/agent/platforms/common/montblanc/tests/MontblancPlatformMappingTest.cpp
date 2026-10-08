@@ -9,7 +9,6 @@
  */
 
 #include "fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.h"
-#include "fboss/agent/platforms/common/montblanc/MontblancPrecodingPlatformMapping.h"
 
 #include <set>
 
@@ -68,20 +67,8 @@ std::set<int> extendedReachTransceivers(const PlatformMapping& mapping) {
 
 } // namespace
 
-// The base montblanc mapping must construct with the default flags
-// (FLAGS_montblanc_precoding defaults to false) and must not enable precoding
-// anywhere.
-TEST(MontblancPlatformMappingTest, defaultConstructsWithoutPrecoding) {
+TEST(MontblancPlatformMappingTest, defaultPrecodesDownlinksOnly) {
   MontblancPlatformMapping mapping;
-  EXPECT_FALSE(mapping.getPlatformPorts().empty());
-  EXPECT_TRUE(precodedTransceivers(mapping).empty());
-  EXPECT_TRUE(extendedReachTransceivers(mapping).empty());
-}
-
-// The precoding variant blob must parse and enable precoding and RX_REACH on
-// exactly the downlink transceivers, never on uplink ports.
-TEST(MontblancPlatformMappingTest, precodingVariantPrecodesDownlinksOnly) {
-  MontblancPlatformMapping mapping(kJsonPrecodingPlatformMappingStr);
   EXPECT_FALSE(mapping.getPlatformPorts().empty());
   EXPECT_EQ(precodedTransceivers(mapping), downlinkTransceivers());
   EXPECT_EQ(extendedReachTransceivers(mapping), downlinkTransceivers());

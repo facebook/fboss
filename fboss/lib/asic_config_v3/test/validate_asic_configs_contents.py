@@ -139,6 +139,8 @@ class TestValidateAsicConfigV3Contents(unittest.TestCase):
         self,
         paths: AsicConfigPaths,
         materialized_relative_path: Optional[str],
+        platform: str,
+        variant: str,
         output_filename: str,
     ) -> tuple[str, str]:
         if materialized_relative_path:
@@ -149,8 +151,14 @@ class TestValidateAsicConfigV3Contents(unittest.TestCase):
                 materialized_path
             )
 
+        reference_filename = output_filename
+        if output_filename.endswith(".json"):
+            reference_variant = "" if variant == "default" else variant
+            reference_filename = self._output_filename(
+                platform, reference_variant, ".materialized_JSON"
+            )
         synced_relative_path = os.path.join(
-            self._SYNCED_ASIC_CONFIG_DIR, output_filename
+            self._SYNCED_ASIC_CONFIG_DIR, reference_filename
         )
         synced_path = os.path.join(paths.fboss_root, synced_relative_path)
         with open(synced_path, encoding="utf-8") as f:
@@ -276,7 +284,21 @@ class TestValidateAsicConfigV3Contents(unittest.TestCase):
         output_dir: str,
     ) -> tuple[Optional[GeneratedOutput], Optional[VariantVerification]]:
         display_variant = variant or "<default>"
-        output_filename = self._output_filename(platform, variant, ".yml")
+        try:
+            generator = get_generator(platform, variant, platform_config, paths)
+        except Exception as error:
+            return (
+                None,
+                VariantVerification(
+                    ComparisonRecord(
+                        platform, variant, "<not compared>", "GENERATION_ERROR"
+                    ),
+                    error=f"{platform}/{display_variant}: generation failed: {error}",
+                ),
+            )
+        output_filename = self._output_filename(
+            platform, variant, generator.output_extension
+        )
         generated_path = os.path.join(output_dir, output_filename)
         try:
             with open(generated_path, encoding="utf-8") as f:
@@ -306,7 +328,6 @@ class TestValidateAsicConfigV3Contents(unittest.TestCase):
             return GeneratedOutput(output_filename, checked_in), None
 
         try:
-            generator = get_generator(platform, variant, platform_config, paths)
             generated = generator.generate()
         except Exception as error:
             return (
@@ -316,23 +337,6 @@ class TestValidateAsicConfigV3Contents(unittest.TestCase):
                         platform, variant, "<not compared>", "GENERATION_ERROR"
                     ),
                     error=f"{platform}/{display_variant}: generation failed: {error}",
-                ),
-            )
-
-        expected_output_filename = self._output_filename(
-            platform, variant, generator.output_extension
-        )
-        if output_filename != expected_output_filename:
-            return (
-                None,
-                VariantVerification(
-                    ComparisonRecord(
-                        platform, variant, "<not compared>", "GENERATION_ERROR"
-                    ),
-                    error=(
-                        f"{platform}/{display_variant}: expected YAML output but "
-                        f"generator uses {generator.output_extension}"
-                    ),
                 ),
             )
 
@@ -368,7 +372,11 @@ class TestValidateAsicConfigV3Contents(unittest.TestCase):
         )
         try:
             reference_path, reference = self._read_reference(
-                paths, materialized_relative_path, output_filename
+                paths,
+                materialized_relative_path,
+                platform,
+                variant,
+                output_filename,
             )
         except FileNotFoundError as error:
             return VariantVerification(
@@ -540,8 +548,7 @@ def main() -> None:
         action="store_true",
         help=(
             "Compare the checked-in generated files against their references "
-            "instead of regenerating them. Skips the generators entirely, so "
-            "it does not catch generator regressions."
+            "instead of regenerating them. Does not catch generator regressions."
         ),
     )
     args = parser.parse_args()

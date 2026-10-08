@@ -198,6 +198,7 @@ add_fbthrift_cpp_library(
     qsfp_state_cpp2
     qsfp_stats_cpp2
     sensor_service_stats_cpp2
+    te_srv6_agent_stats_cpp2
 )
 
 add_library(thriftpath_lib

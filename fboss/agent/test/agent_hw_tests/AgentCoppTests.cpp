@@ -121,21 +121,16 @@ class AgentCoppTest : public AgentHwTest {
 
   cfg::SwitchConfig getTrunkInitialConfig(const AgentEnsemble& ensemble) const {
     auto switchId = this->getCurrentSwitchIdForTesting();
-    auto asic = checkSameAndGetAsic(
-        ensemble.getL3Asics(), static_cast<int32_t>(switchId));
     auto interfacePorts = ensemble.masterLogicalInterfacePortIds(switchId);
-    auto cfg = utility::oneL3IntfTwoPortConfig(
-        ensemble.getPlatformMapping(),
-        asic,
-        interfacePorts[0],
-        interfacePorts[1],
-        ensemble.supportsAddRemovePort(),
-        asic->desiredLoopbackModes(),
-        ensemble.getSw()->getPlatformType());
+    std::vector<PortID> members;
+    for (auto port : {interfacePorts[0], interfacePorts[1]}) {
+      members.emplace_back(port);
+    }
+    auto cfg = utility::oneAggregatePortPerInterfaceConfig(
+        ensemble.getSw(), members, {{AggregatePortID(1), members}});
     utility::setDefaultCpuTrafficPolicyConfig(
         cfg, ensemble.getL3Asics(), ensemble.isSai());
     utility::addCpuQueueConfig(cfg, ensemble.getL3Asics(), ensemble.isSai());
-    utility::addAggPort(1, {interfacePorts[0], interfacePorts[1]}, &cfg);
     return cfg;
   }
 
@@ -311,6 +306,14 @@ class AgentCoppTest : public AgentHwTest {
     auto vlanId = getVlanIDForTx();
     auto destinationMac = dstMac.value_or(
         getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()));
+    if (outOfPort) {
+      // Same SA makeTCPTxPacket derives.
+      learnL2EntryIfPending(
+          destinationMac.isUnicast()
+              ? folly::MacAddress::fromHBO(destinationMac.u64HBO() + 1)
+              : folly::MacAddress("00:00:01:02:03:04"),
+          portIdsForTest()[0]);
+    }
     auto sendAndInspect = [=, this]() {
       auto pkt = utility::makeTCPTxPacket(
           getSw(),
@@ -2108,8 +2111,8 @@ TEST_F(AgentCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
                                     utility::kCoppLowPriQueueId) *
           (1 + kVariance);
       WITH_RETRIES({
-        auto voqWaterMarkBytes =
-            getLatestCpuSysPortStats().value().get_queueWatermarkBytes_();
+        auto voqWaterMarkBytes = folly::copy(
+            getLatestCpuSysPortStats().value().queueWatermarkBytes_().value());
         auto lowPriorityWaterMarkBytes =
             voqWaterMarkBytes.at(utility::kCoppLowPriQueueId);
         XLOG(DBG2) << "low priority cpu voq watermark counter "

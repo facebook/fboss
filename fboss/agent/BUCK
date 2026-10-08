@@ -54,7 +54,6 @@ thrift_library(
     languages = [
         "cpp2",
         "go",
-        "py-deprecated",
         "py3-deprecated",
         "rust",
         "python",
@@ -63,9 +62,7 @@ thrift_library(
         thrift_plugin_thriftpath(),
     ],
     py3_namespace = "neteng.fboss",
-    py_base_module = "neteng.fboss",
     thrift_cpp2_options = "json,reflection",
-    thrift_py_options = "json,sort_keys",
     thrift_rust_options = [
         "deprecated_default_enum_min_i32",
         "serde",
@@ -85,7 +82,6 @@ thrift_library(
     },
     languages = [
         "cpp2",
-        "py-deprecated",
         "py3-deprecated",
         "go",
         "rust",
@@ -95,10 +91,8 @@ thrift_library(
         thrift_plugin_thriftpath(),
     ],
     py3_namespace = "neteng.fboss",
-    py_base_module = "neteng.fboss",
     rust_gen_metadata = True,
     thrift_cpp2_options = "json,reflection",
-    thrift_py_options = "json,sort_keys",
     thrift_srcs = {"agent_info.thrift": []},
     deps = [
         "//thrift/annotation:thrift",
@@ -189,7 +183,6 @@ thrift_library(
     },
     languages = [
         "cpp2",
-        "py-deprecated",
         "py3-deprecated",
         "go",
         "rust",
@@ -199,10 +192,8 @@ thrift_library(
         thrift_plugin_thriftpath(),
     ],
     py3_namespace = "neteng.fboss",
-    py_base_module = "neteng.fboss",
     rust_gen_metadata = True,
     thrift_cpp2_options = "json,reflection",
-    thrift_py_options = "json,sort_keys",
     thrift_srcs = {"switch_reachability.thrift": []},
     deps = [
         "//thrift/annotation:thrift",
@@ -282,6 +273,7 @@ cpp_library(
         "facebook/SetupThrift.cpp",
     ],
     headers = [
+        "SetupThrift.h",
         "facebook/SetupThrift.h",
     ],
     deps = [
@@ -289,9 +281,12 @@ cpp_library(
         "//common/services/cpp:thrift_acl_checker_module_config",
         "//common/services/cpp:thrift_aclchecker_handler_factory",
         "//common/services/cpp:tls",
+        "//fboss/facebook/thrift_acl:simple_acl_handler",
         "//fboss/lib:thrift_method_rate_limit_setup",
         "//fboss/lib:thrift_service_utils",
         "//fboss/lib/thrift_service_client:thrift-service-client",
+        "//fboss/platform/helpers:platform_thrift_acceptor",
+        "//fboss/platform/helpers:platform_thrift_acceptor_util",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/async:multiplex_async_processor",
     ],
@@ -408,6 +403,9 @@ cpp_library(
         "Main.cpp",
         "facebook/Main.cpp",
     ],
+    headers = [
+        "Main.h",
+    ],
     exported_deps = [
         ":agent_initializer_h",
         ":fboss_common_init",
@@ -422,6 +420,10 @@ cpp_library(
     srcs = [
         "CommonInit.cpp",
         "Main.cpp",
+    ],
+    headers = [
+        "CommonInit.h",
+        "Main.h",
     ],
     deps = [
         ":fboss_init_h",
@@ -638,6 +640,9 @@ cpp_library(
     srcs = [
         "AsicUtils.cpp",
     ],
+    headers = [
+        "AsicUtils.h",
+    ],
     exported_deps = [
         "//fboss/agent/hw/switch_asics:switch_asics",
     ],
@@ -665,6 +670,11 @@ cpp_library(
         "LabelFibUtils.cpp",
         "Utils.cpp",
         "facebook/Utils.cpp",
+    ],
+    headers = [
+        "AlpmUtils.h",
+        "LabelFibUtils.h",
+        "Utils.h",
     ],
     deps = [
         "fbsource//third-party/re2:re2",
@@ -710,6 +720,10 @@ cpp_library(
     name = "lacp_types",
     srcs = [
         "LacpTypes.cpp",
+    ],
+    headers = [
+        "LacpTypes.h",
+        "LacpTypes-defs.h",
     ],
     deps = [
         "//fboss/agent/if:ctrl-cpp2-types",
@@ -771,6 +785,12 @@ cpp_library(
         "facebook/AggregatePortStats.cpp",
         "facebook/SwitchStats.cpp",
     ],
+    headers = [
+        "AggregatePortStats.h",
+        "InterfaceStats.h",
+        "PortStats.h",
+        "SwitchStats.h",
+    ],
     deps = [
         "//fb303:service_data",
         "//fboss/agent/state:state",
@@ -782,6 +802,7 @@ cpp_library(
     exported_deps = [
         ":agent_stats-cpp2-types",
         ":fboss-types",
+        ":switch_config-cpp2-types",
         "//fb303:thread_cached_service_data",
         "//fb303/detail:quantile_stat_wrappers",
         "//fboss/lib:common_utils",
@@ -796,6 +817,9 @@ cpp_library(
 cpp_library(
     name = "apply_thrift_config",
     srcs = ["ApplyThriftConfig.cpp"],
+    headers = [
+        "ApplyThriftConfig.h",
+    ],
     deps = [
         "fbsource//third-party/fmt:fmt",
         ":asic_utils",
@@ -876,6 +900,9 @@ cpp_library(
     srcs = [
         "FibHelpers.cpp",
     ],
+    headers = [
+        "FibHelpers.h",
+    ],
     deps = ["//fboss/agent/rib:standalone_rib"],
     exported_deps = [
         ":agent_features",
@@ -893,6 +920,10 @@ cpp_library(
     srcs = [
         "EcmpResourceManager.cpp",
         "EcmpResourceManagerConfig.cpp",
+    ],
+    headers = [
+        "EcmpResourceManager.h",
+        "EcmpResourceManagerConfig.h",
     ],
     deps = [
         ":agent_features",
@@ -914,6 +945,9 @@ cpp_library(
     srcs = [
         "ShelManager.cpp",
     ],
+    headers = [
+        "ShelManager.h",
+    ],
     deps = [
         ":fib_helpers",
         ":utils",
@@ -927,9 +961,30 @@ cpp_library(
 )
 
 cpp_library(
+    name = "pbr_acl_manager",
+    srcs = [
+        "PbrAclManager.cpp",
+    ],
+    headers = [
+        "PbrAclManager.h",
+    ],
+    deps = [
+        ":fboss-error",
+        ":hwswitch_matcher",
+        ":switch_config-cpp2-types",
+        "//fboss/agent/state:nodebase",
+        "//fboss/agent/state:state",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
     name = "state_delta_logger",
     srcs = [
         "StateDeltaLogger.cpp",
+    ],
+    headers = [
+        "StateDeltaLogger.h",
     ],
     deps = [
         "//fboss/agent/state:state",
@@ -946,6 +1001,9 @@ cpp_library(
     name = "switch_state_delta_logger",
     srcs = [
         "SwitchStateDeltaLogger.cpp",
+    ],
+    headers = [
+        "SwitchStateDeltaLogger.h",
     ],
     deps = [
         ":state_delta_log-cpp2-types",
@@ -1116,22 +1174,84 @@ cpp_library(
         "ndp/IPv6RouteAdvertiser.cpp",
     ],
     headers = [
+        "AclNexthopHandler.h",
+        "ApplyThriftConfig.h",
+        "ArpCache.h",
+        "ArpHandler.h",
+        "CpuLatencyManager.h",
+        "DHCPv4Handler.h",
+        "DHCPv6Handler.h",
+        "DsfSession.h",
+        "DsfStateUpdaterUtil.h",
+        "DsfSubscriber.h",
+        "DsfSubscription.h",
+        "DsfUpdateValidator.h",
+        "EncapIndexAllocator.h",
+        "FabricLinkMonitoring.h",
+        "FabricLinkMonitoringManager.h",
         "FsdbSyncer.h",
         "HwAsicTable.h",
         "HwSwitchConnectionStatusTable.h",
+        "IPHeaderV4.h",
+        "IPv4Handler.h",
+        "IPv6Handler.h",
+        "LacpController.h",
+        "LacpMachines.h",
+        "LacpTypes.h",
+        "LacpTypes-defs.h",
+        "LinkAggregationManager.h",
+        "LinkConnectivityProcessor.h",
+        "LldpManager.h",
+        "LoadBalancerConfigApplier.h",
+        "LookupClassRouteUpdater.h",
+        "LookupClassUpdater.h",
+        "MKAServiceManager.h",
+        "MPLSHandler.h",
+        "MacTableManager.h",
+        "MacTableUtils.h",
+        "MirrorManager.h",
+        "MirrorManagerImpl.h",
+        "MultiHwSwitchHandler.h",
         "MultiSwitchFb303Stats.h",
         "MultiSwitchPacketStreamMap.h",
+        "MySidNeighborObserver.h",
+        "NdpCache.h",
         "NeighborCache.h",
         "NeighborCacheEntry.h",
         "NeighborCacheImpl.h",
         "NeighborCacheImpl-defs.h",
         "NeighborTableDeltaCallbackGenerator.h",
+        "NeighborUpdater.h",
         "NeighborUpdater-defs.h",
+        "NeighborUpdaterImpl.h",
+        "NeighborUpdaterNoopImpl.h",
+        "NextHopResolver.h",
         "NlError.h",
         "PacketLogger.h",
+        "PacketStreamHandler.h",
+        "PortUpdateHandler.h",
+        "RemoteNeighborUpdater.h",
+        "ResolvedNexthopMonitor.h",
+        "ResolvedNexthopProbe.h",
+        "ResolvedNexthopProbeScheduler.h",
+        "RouteUpdateLogger.h",
+        "RouteUpdateLoggingPrefixTracker.h",
+        "StaticL2ForNeighborObserver.h",
+        "StaticL2ForNeighborSwSwitchUpdater.h",
+        "StaticL2ForNeighborUpdater.h",
+        "SwSwitch.h",
+        "SwSwitchMySidUpdater.h",
+        "SwSwitchRouteUpdateWrapper.h",
         "SwitchInfoTable.h",
+        "SwitchStats.h",
+        "SwitchStatsObserver.h",
+        "TamManager.h",
+        "TeFlowNexthopHandler.h",
+        "TunIntf.h",
         "TunIntfBase.h",
+        "TunManager.h",
         "facebook/ScubaRouteLogger.h",
+        "ndp/IPv6RouteAdvertiser.h",
     ],
     exported_deps = [
         "fbsource//third-party/boost:boost_container",
@@ -1172,6 +1292,7 @@ cpp_library(
         ":monolithic_hw_switch_handler",
         ":packet",
         ":packet_observer",
+        ":pbr_acl_manager",
         ":pfc_utils",
         ":phy_snapshot_lib",
         ":remote_intf_route_auditor",
@@ -1305,6 +1426,9 @@ cpp_library(
     name = "handler",
     srcs = [
         "ThriftHandler.cpp",
+    ],
+    headers = [
+        "ThriftHandler.h",
     ],
     deps = [
         "fbsource//third-party/fmt:fmt",
@@ -1520,8 +1644,13 @@ cpp_library(
         "HwSwitch.cpp",
         "HwSwitchRouteUpdateWrapper.cpp",
     ],
+    headers = [
+        "HwSwitch.h",
+        "HwSwitchRouteUpdateWrapper.h",
+    ],
     deps = [
         "fbsource//third-party/re2:re2",
+        ":agent_features",
         ":fboss-error",
         ":load_agent_config",
         ":tx_packet_utils",
@@ -1563,6 +1692,9 @@ cpp_library(
     srcs = [
         "AsyncLogger.cpp",
     ],
+    headers = [
+        "AsyncLogger.h",
+    ],
     exported_deps = [
         ":async_logger_base",
     ],
@@ -1572,6 +1704,9 @@ cpp_library(
     name = "async_logger_base",
     srcs = [
         "AsyncLoggerBase.cpp",
+    ],
+    headers = [
+        "AsyncLoggerBase.h",
     ],
     deps = [
         ":fboss-error",
@@ -1604,6 +1739,9 @@ cpp_library(
     name = "sflow_shim_utils",
     srcs = [
         "SflowShimUtils.cpp",
+    ],
+    headers = [
+        "SflowShimUtils.h",
     ],
     exported_deps = [
         "//folly/io:iobuf",
@@ -1891,6 +2029,9 @@ cpp_library(
     srcs = [
         "RouteUpdateWrapper.cpp",
     ],
+    headers = [
+        "RouteUpdateWrapper.h",
+    ],
     deps = [
         ":address_utils",
         "//fboss/agent/rib:fib_updater",
@@ -1925,6 +2066,7 @@ cpp_library(
         "mnpu/FdbEventSyncer.h",
         "mnpu/HwSwitchStatsSinkClient.h",
         "mnpu/IpcHealthMonitor.h",
+        "mnpu/LinkChangeEventSyncer.h",
         "mnpu/OperDeltaSyncer.h",
         "mnpu/RxPktEventSyncer.h",
         "mnpu/SplitAgentThriftSyncer.h",
@@ -2119,6 +2261,9 @@ cpp_library(
     srcs = [
         "FileBasedWarmbootUtils.cpp",
     ],
+    headers = [
+        "FileBasedWarmbootUtils.h",
+    ],
     deps = [
         ":agent_dir_util",
         ":hw_asic_table",
@@ -2142,6 +2287,9 @@ cpp_library(
     srcs = [
         "ThriftBasedWarmbootUtils.cpp",
     ],
+    headers = [
+        "ThriftBasedWarmbootUtils.h",
+    ],
     deps = [
         ":hw_asic_table",
         ":hw_switch_thrift_client_table",
@@ -2158,6 +2306,9 @@ cpp_library(
     name = "sw_switch_warmboot_helper",
     srcs = [
         "SwSwitchWarmBootHelper.cpp",
+    ],
+    headers = [
+        "SwSwitchWarmBootHelper.h",
     ],
     deps = [
         ":agent_dir_util",
@@ -2220,6 +2371,7 @@ cpp_library(
         "facebook/AgentPreStartConfig.cpp",
     ],
     headers = [
+        "AgentPreStartExec.h",
         "facebook/AgentPreStartConfig.h",
     ],
     deps = [
@@ -2278,6 +2430,9 @@ cpp_library(
         "AgentFsdbSyncManager.cpp",
         "AgentFsdbSyncManager-computeOperDelta.cpp",
     ],
+    headers = [
+        "AgentFsdbSyncManager.h",
+    ],
     deps = [
         ":switch_state-cpp2-types",
         "//fboss/fsdb/common:utils",
@@ -2290,6 +2445,7 @@ cpp_library(
         "//fboss/agent/state:state",
         "//fboss/fsdb/client:fsdb_syncer",
         "//fboss/fsdb/if:fsdb_model",
+        "//fboss/lib/phy:phy-cpp2-types",
     ],
 )
 
@@ -2297,6 +2453,9 @@ cpp_library(
     name = "agent_command_executor",
     srcs = [
         "AgentCommandExecutor.cpp",
+    ],
+    headers = [
+        "AgentCommandExecutor.h",
     ],
     deps = ["//fboss/lib:common_utils"],
     exported_deps = [],
@@ -2306,6 +2465,9 @@ cpp_library(
     name = "agent_features",
     srcs = [
         "AgentFeatures.cpp",
+    ],
+    headers = [
+        "AgentFeatures.h",
     ],
     deps = [":voq_constants"],
     exported_deps = [],
@@ -2319,6 +2481,9 @@ cpp_library(
     srcs = [
         "LoadBalancerUtils.cpp",
     ],
+    headers = [
+        "LoadBalancerUtils.h",
+    ],
     deps = ["//folly/hash:hash"],
     exported_deps = [
         ":switch_config-cpp2-types",
@@ -2330,6 +2495,9 @@ cpp_library(
     name = "hw_asic_table",
     srcs = [
         "HwAsicTable.cpp",
+    ],
+    headers = [
+        "HwAsicTable.h",
     ],
     deps = [
         ":fboss-error",
@@ -2347,6 +2515,9 @@ cpp_library(
     srcs = [
         "TestUtils.cpp",
     ],
+    headers = [
+        "TestUtils.h",
+    ],
     deps = [
         ":agent_dir_util",
         ":load_agent_config",
@@ -2363,6 +2534,9 @@ cpp_library(
     name = "tx_packet_utils",
     srcs = [
         "TxPacketUtils.cpp",
+    ],
+    headers = [
+        "TxPacketUtils.h",
     ],
     exported_deps = [
         ":hw_asic_table",
@@ -2420,6 +2594,11 @@ cpp_library(
         "ResourceAccountant.cpp",
         "ValidateInterfaceDelta.cpp",
         "ValidateStateUpdate.cpp",
+    ],
+    headers = [
+        "ResourceAccountant.h",
+        "ValidateInterfaceDelta.h",
+        "ValidateStateUpdate.h",
     ],
     deps = [
         ":fboss-error",

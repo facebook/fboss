@@ -59,14 +59,23 @@ cpp_library(
         "utils/GpioUtils.cpp",
         "utils/HwmonUtils.cpp",
         "utils/I2CUtils.cpp",
+        "utils/IdpromUtils.cpp",
         "utils/KmodUtils.cpp",
         "utils/WatchdogUtils.cpp",
+    ],
+    headers = [
+        "utils/CdevUtils.h",
+        "utils/GpioUtils.h",
+        "utils/HwmonUtils.h",
+        "utils/I2CUtils.h",
+        "utils/IdpromUtils.h",
+        "utils/KmodUtils.h",
+        "utils/WatchdogUtils.h",
     ],
     deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
         "fbsource//third-party/re2:re2",
-        ":bsp_test_environment",
         ":fbiob_device_config-cpp2-types",
         "//fboss/platform/helpers:platform_utils",
         "//fboss/platform/platform_manager:fan_cpld_manager",
@@ -74,12 +83,16 @@ cpp_library(
         "//fboss/platform/platform_manager:i2c_explorer",
         "//fboss/platform/platform_manager:i2c_misc",
         "//fboss/platform/platform_manager:pci_explorer",
+        "//fboss/platform/platform_manager:pm_unit_identity",
         "//fboss/platform/platform_manager:system_interface",
+        "//fboss/platform/weutil:fboss_eeprom_lib",
         "//folly:file_util",
         "//folly:format",
+        "//folly:scope_guard",
         "//folly/logging:logging",
     ],
     exported_deps = [
+        ":bsp_test_environment",
         ":bsp_tests_runtime_config-cpp2-types",
         "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
     ],
@@ -98,6 +111,9 @@ cpp_binary(
         "LedTests.cpp",
         "WatchdogTests.cpp",
         "XcvrTests.cpp",
+    ],
+    headers = [
+        "BspTest.h",
     ],
     deps = [
         "fbsource//third-party/fmt:fmt",
@@ -126,6 +142,7 @@ cpp_unittest(
     deps = [
         ":bsp_test_environment",
         "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/platform_manager:utils",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
@@ -136,6 +153,10 @@ cpp_library(
     srcs = [
         "BspTestEnvironment.cpp",
         "RuntimeConfigBuilder.cpp",
+    ],
+    headers = [
+        "BspTestEnvironment.h",
+        "RuntimeConfigBuilder.h",
     ],
     deps = [
         "//fboss/platform/config_lib:config_lib",

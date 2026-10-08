@@ -20,6 +20,7 @@
 #include "fboss/agent/hw/sai/fake/FakeSaiHash.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiHostif.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiInSegEntryManager.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiIsolationGroup.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiLag.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiMacsec.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiMirror.h"
@@ -39,6 +40,7 @@
 #include "fboss/agent/hw/sai/fake/FakeSaiTam.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiTunnel.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiUdf.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiVirtualChannel.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiVirtualRouter.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiVlan.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiWred.h"
@@ -75,6 +77,7 @@ struct FakeSai {
   FakeHostifUserDefinedTrapManager hostIfUserDefinedTrapManager;
   FakeHostifTrapGroupManager hostifTrapGroupManager;
   FakeInSegEntryManager inSegEntryManager;
+  FakeIsolationGroupManager isolationGroupManager;
   FakeNeighborManager neighborManager;
   FakeMirrorManager mirrorManager;
   FakeLagManager lagManager;
@@ -98,6 +101,8 @@ struct FakeSai {
   FakeUdfMatchManager udfMatchManager;
   FakeVirtualRouterManager virtualRouteManager;
   FakeVlanManager vlanManager;
+  FakeVirtualChannelManager virtualChannelManager;
+  FakeCbfcCreditProfileManager cbfcCreditProfileManager;
   FakeWredManager wredManager;
   FakeTamManager tamManager;
   FakeTamEventManager tamEventManager;

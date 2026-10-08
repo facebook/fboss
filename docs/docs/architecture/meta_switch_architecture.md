@@ -533,6 +533,10 @@ Below table shows the supported IPMI transports:
 
 * There should be dedicated I2C bus / MDIO bus to optics, through FPGA.
 * There shall NEVER be any I2C mux in between optics and FPGA.
+* For the I2C buses to OSFP ports, both 100KHz and 400KHz I2C clock frequencies
+  must be verified during the NPI phase.
+  * 400KHz shall be configured as the default bus speed, either in the
+    FPGA/CPLD firmware, or in the platform's `platform_manager.json`.
 
 ## 7. Rack Monitoring
 

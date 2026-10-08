@@ -7,7 +7,6 @@ cpp_library(
     name = "fsdb-syncer",
     srcs = [
         "QsfpFsdbSyncManager.cpp",
-        "facebook/QsfpFsdbSyncManager.cpp",
     ],
     headers = [
         "QsfpFsdbSyncManager.h",

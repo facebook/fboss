@@ -87,6 +87,18 @@ class PortManager {
     return phyManager_.get();
   }
 
+  void releasePhyManager() {
+    if (phyManager_) {
+      // Suppressing ASAN warnings as this is expected behavior
+      __attribute__((unused)) auto* leakedPhyManager = phyManager_.release();
+#ifndef IS_OSS
+#if __has_feature(address_sanitizer)
+      folly::lsan_ignore_object(leakedPhyManager);
+#endif
+#endif
+    }
+  }
+
   void programXphyPort(PortID portId, cfg::PortProfileID portProfileId);
 
   // Marked virtual for MockPortManager testing.
@@ -108,7 +120,8 @@ class PortManager {
   void setPortLoopbackState(
       const std::string& /* portName */,
       phy::PortComponent /* component */,
-      bool /* setLoopback */);
+      bool /* setLoopback */,
+      phy::LoopbackMode mode = phy::LoopbackMode::INPUT);
 
   void setPortAdminState(
       const std::string& /* portName */,

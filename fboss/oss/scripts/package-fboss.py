@@ -5,10 +5,17 @@ import argparse
 import glob
 import os
 import pathlib
+import re
 import shutil
+import stat
 import subprocess
 import tempfile
-from typing import ClassVar
+from typing import ClassVar, TYPE_CHECKING
+
+if TYPE_CHECKING or __package__:
+    from .platform_descriptor_utils import copy_platform_descriptors
+else:
+    from platform_descriptor_utils import copy_platform_descriptors
 
 OPT_ARG_SCRATCH_PATH = "--scratch-path"
 OPT_ARG_COPY_ROOT_LIBS = "--copy-root-libs"
@@ -46,6 +53,7 @@ class PackageFboss:
     BIN = "bin"
     LIB = "lib"
     DATA = "share"
+    NPU_SDK_METADATA_FILENAME = "npu_sdk_metadata.json"
 
     # Suffix for getdeps output location
     INSTALLED = "installed"
@@ -120,11 +128,11 @@ class PackageFboss:
         # entries *within* a copied directory, not the root passed to copytree.
         skip_dirs = {"unittests", "tests", "__pycache__"}
         src_files = os.listdir(run_scripts_path)
+        script_pkg_path = os.path.join(tmp_dir_name, PackageFboss.BIN)
         for file_name in src_files:
             if file_name in skip_dirs:
                 continue
             full_file_name = os.path.join(run_scripts_path, file_name)
-            script_pkg_path = os.path.join(tmp_dir_name, PackageFboss.BIN)
             # run_test.py imports the fboss_test_runner package, so directories
             # (the package and its subpackages) must be copied too, not skipped.
             if os.path.isdir(full_file_name):
@@ -138,6 +146,12 @@ class PackageFboss:
             else:
                 shutil.copy(full_file_name, script_pkg_path)
                 print(f"Copied {full_file_name} to {script_pkg_path}")
+
+        npu_sdk_utils_path = os.path.join(
+            os.path.dirname(run_scripts_path), "npu_sdk_utils.py"
+        )
+        shutil.copy(npu_sdk_utils_path, script_pkg_path)
+        print(f"Copied {npu_sdk_utils_path} to {script_pkg_path}")
 
     def _copy_run_configs(self, tmp_dir_name):
         run_configs_path = self.get_fboss_subdirectory("fboss/oss/scripts/run_configs")
@@ -313,6 +327,11 @@ class PackageFboss:
                 effective_binaries = binaries if binaries else os.listdir(project_dir)
 
                 for binary in effective_binaries:
+                    if (
+                        name == PackageFboss.FBOSS
+                        and binary == PackageFboss.NPU_SDK_METADATA_FILENAME
+                    ):
+                        continue
                     bin_abs_path = os.path.join(project_dir, binary)
                     if self._is_python_dir_executable(bin_abs_path):
                         dst = os.path.join(bin_pkg_path, binary)
@@ -331,6 +350,7 @@ class PackageFboss:
 
                     # retrieve dependencies using ldd
                     dependencies = self._get_dependency_paths(bin_abs_path)
+                    dependencies |= self._sdk_sibling_libs(dependencies)
                     for lib_abs_path in dependencies:
                         try:
                             shutil.copy(lib_abs_path, lib_pkg_path)
@@ -338,13 +358,37 @@ class PackageFboss:
                         except OSError:
                             print(f"Skipping library {lib_abs_path}")
 
+                if name == PackageFboss.FBOSS:
+                    self._copy_npu_sdk_metadata(project_dir, tmp_dir_name)
+
         self._copy_run_scripts(tmp_dir_name)
         self._copy_run_configs(tmp_dir_name)
         self._copy_configs(tmp_dir_name)
+        copy_platform_descriptors(
+            pathlib.Path(self.get_fboss_subdirectory("fboss/configs/platforms")),
+            pathlib.Path(tmp_dir_name),
+        )
         self._copy_known_bad_tests(tmp_dir_name)
         self._copy_unsupported_tests(tmp_dir_name)
         self._copy_production_features(tmp_dir_name)
         self._copy_completion_scripts(tmp_dir_name)
+
+    def _copy_npu_sdk_metadata(self, project_dir: str, tmp_dir_name: str) -> None:
+        metadata_path = os.path.join(
+            project_dir, PackageFboss.NPU_SDK_METADATA_FILENAME
+        )
+        if not os.path.isfile(metadata_path):
+            return
+        if stat.S_IMODE(os.stat(metadata_path).st_mode) != 0o444:
+            raise RuntimeError(f"NPU SDK metadata must be read-only: {metadata_path}")
+
+        destination = os.path.join(
+            tmp_dir_name,
+            PackageFboss.DATA,
+            PackageFboss.NPU_SDK_METADATA_FILENAME,
+        )
+        shutil.copy2(metadata_path, destination)
+        print(f"Copied {metadata_path} to {destination}")
 
     @staticmethod
     def _is_python_dir_executable(path: str) -> bool:
@@ -370,6 +414,29 @@ class PackageFboss:
                 os.environ["LD_LIBRARY_PATH"] = lib_paths
         except subprocess.CalledProcessError:
             print("Unable to update LD_LIBRARY_PATH, libs may be missing!")
+
+    def _sdk_sibling_libs(self, dependencies: set[str]) -> set[str]:
+        """
+        Shared libraries shipped beside a dynamically linked libsai_impl.so. An
+        NPU SDK may dlopen these (for example per-device libraries), so ldd does
+        not report them.
+        """
+        siblings = set()
+        for lib in dependencies:
+            if os.path.basename(lib) != "libsai_impl.so":
+                continue
+            sdk_dir = os.path.dirname(lib)
+            for name in os.listdir(sdk_dir):
+                path = os.path.join(sdk_dir, name)
+                # libfoo.so or libfoo.so.1.2, not libfoo.so.debug or *.so.bak.
+                if (
+                    re.fullmatch(r".+\.so(\.\d+)*", name)
+                    and os.path.isfile(path)
+                    and path not in self.dependencies
+                ):
+                    siblings.add(path)
+        self.dependencies |= siblings
+        return siblings
 
     def _get_dependency_paths(self, path_to_binary: str) -> {str}:
         """

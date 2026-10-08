@@ -7,10 +7,10 @@
 #include "fboss/cli/fboss2/commands/show/bgp/CmdShowVersionBgp.h"
 #include "fboss/cli/fboss2/commands/show/bgp/changelist/CmdShowBgpChangelist.h"
 #include "fboss/cli/fboss2/commands/show/bgp/config/CmdShowConfigRunningBgp.h"
+#include "fboss/cli/fboss2/commands/show/bgp/fibnexthops/CmdShowBgpFibNexthops.h"
 #include "fboss/cli/fboss2/commands/show/bgp/health/CmdShowBgpHealth.h"
 #include "fboss/cli/fboss2/commands/show/bgp/holdtimers/CmdShowBgpHoldTimers.h"
 #include "fboss/cli/fboss2/commands/show/bgp/neighbors/CmdShowBgpNeighbors.h"
-#include "fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedDryRun.h"
 #include "fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedPostPolicy.h"
 #include "fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedPrePolicy.h"
 #include "fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedRejected.h"
@@ -59,6 +59,11 @@ const CommandTree& kBaseAdditionalCommandTree() {
          commandHandler<CmdShowBgpChangelist>,
          argTypeHandler<CmdShowBgpChangelistTraits>},
 
+        {"fib-nexthops",
+         "Show unique nexthop sets in submitted BGP FIB-out state",
+         commandHandler<CmdShowBgpFibNexthops>,
+         argTypeHandler<CmdShowBgpFibNexthopsTraits>},
+
         {"config",
          "Show BGP configuration",
          {{"running",
@@ -87,11 +92,7 @@ const CommandTree& kBaseAdditionalCommandTree() {
          argTypeHandler<CmdShowBgpNeighborsTraits>,
          {{"advertised",
            "Show BGP advertised routes",
-           {{"dry-run",
-             "Show BGP advertised routes (dry-run)",
-             commandHandler<BgpNeighborsAdvertisedDryRun>,
-             argTypeHandler<BgpNeighborsAdvertisedDryRunTraits>},
-            {"post-policy",
+           {{"post-policy",
              "Show BGP advertised routes (post-policy)",
              commandHandler<BgpNeighborsAdvertisedPostPolicy>,
              argTypeHandler<BgpNeighborsAdvertisedPostPolicyTraits>},
@@ -212,6 +213,7 @@ const CommandTree& kBaseAdditionalCommandTree() {
          "Show BGP summary",
          commandHandler<CmdShowBgpSummary>,
          argTypeHandler<CmdShowBgpSummaryTraits>,
+         localOptionsHandler<CmdShowBgpSummaryTraits>,
          {{"egress",
            "Show BGP summary egress",
            commandHandler<CmdShowBgpSummaryEgress>,

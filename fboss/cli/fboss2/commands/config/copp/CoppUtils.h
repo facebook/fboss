@@ -18,10 +18,10 @@
 
 namespace facebook::fboss {
 
-// Shared vocabulary for the copp cpu-queue commands, used by both the
+// Shared vocabulary for the copp queue commands, used by both the
 // `config` and `delete` command trees so queue-id parsing and lookup live
 // in one place.
-namespace copp_cpu_queue {
+namespace copp_queue {
 
 // CPU queue IDs are a small platform-bounded set; reject anything that is
 // clearly out of range before touching the config. The actual per-ASIC cap
@@ -32,11 +32,11 @@ constexpr int16_t kMaxCpuQueueId = 255;
 int16_t parseQueueId(const std::string& s, std::string_view context);
 
 // Return an iterator to the cpuQueues entry with `id`, or end().
-std::vector<cfg::PortQueue>::iterator findCpuQueue(
+std::vector<cfg::PortQueue>::iterator findQueue(
     std::vector<cfg::PortQueue>& queues,
     int16_t id);
 
-} // namespace copp_cpu_queue
+} // namespace copp_queue
 
 // Shared vocabulary for the copp reason commands, used by both the `config`
 // and `delete` command trees so reason-name parsing stays consistent.

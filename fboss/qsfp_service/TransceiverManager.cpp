@@ -90,7 +90,6 @@ constexpr auto kWarmBootFlag = "can_warm_boot";
 constexpr auto kWarmbootStateFileName = "qsfp_service_state";
 static constexpr auto kStateMachineThreadHeartbeatMissed =
     "state_machine_thread_heartbeat_missed";
-constexpr int kSecAfterModuleOutOfReset = 2;
 // A CPO module presents up to (max CMIS banks) x (host lanes per bank) global
 // host lanes. Expressed as a product so the cap tracks a future change to the
 // bank capacity or per-bank lane count instead of a magic 32. (This is the
@@ -983,7 +982,8 @@ void TransceiverManager::triggerTransceiverEventsForAgentConfigChangeEvent(
     }
   }
   waitForAllBlockingStateUpdateDone(results);
-  XLOG(INFO) << "triggerAgentConfigChangeEvent has " << numResetToDiscovered
+  XLOG(INFO) << "triggerTransceiverEventsForAgentConfigChangeEvent has "
+             << numResetToDiscovered
              << " transceivers state machines set back to discovered, "
              << numResetToNotPresent << " set back to not_present";
   configAppliedInfo_ = newConfigAppliedInfo;
@@ -2734,9 +2734,13 @@ std::pair<bool, std::vector<std::string>> TransceiverManager::areAllPortsDown(
 
 bool TransceiverManager::isRunningAsicPrbs(TransceiverID tcvr) const {
   auto ports = getAllPlatformPorts(tcvr);
+  // Hold a single locked view for the whole scan so the cache can't be
+  // wholesale-swapped out (see updateNpuPortStatusCache()) between the
+  // find() and the end()-check/dereference below.
+  auto lockedNpuPortStatusCache = npuPortStatusCache_.rlock();
   for (const auto& port : ports) {
-    auto npuPortStatusCacheItr = npuPortStatusCache_.rlock()->find(port);
-    if (npuPortStatusCacheItr == npuPortStatusCache_.rlock()->end()) {
+    auto npuPortStatusCacheItr = lockedNpuPortStatusCache->find(port);
+    if (npuPortStatusCacheItr == lockedNpuPortStatusCache->end()) {
       continue;
     }
     if (npuPortStatusCacheItr->second.asicPrbsEnabled) {
@@ -3538,7 +3542,8 @@ void TransceiverManager::getPauseRemediationUntil(
 void TransceiverManager::setPortLoopbackState(
     std::string portName,
     phy::PortComponent component,
-    bool setLoopback) {
+    bool setLoopback,
+    phy::LoopbackMode mode) {
   auto swPort = getPortIDByPortName(portName);
   if (!swPort.has_value()) {
     throw FbossError(
@@ -3559,11 +3564,22 @@ void TransceiverManager::setPortLoopbackState(
 
   if (component == phy::PortComponent::GB_SYSTEM ||
       component == phy::PortComponent::GB_LINE) {
+    if (mode != phy::LoopbackMode::INPUT) {
+      throw FbossError(
+          fmt::format(
+              "Loopback mode {} is not supported on {}",
+              apache::thrift::util::enumNameSafe(mode),
+              apache::thrift::util::enumNameSafe(component)));
+    }
+    if (!getPhyManager()) {
+      throw FbossError(
+          "Unable to set xphy loopback state when PhyManager is not set");
+    }
     getPhyManager()->setPortLoopbackState(
         PortID(swPort.value()), component, setLoopback);
   } else {
     setPortLoopbackStateTransceiver(
-        swPort.value(), portName, component, setLoopback);
+        swPort.value(), portName, component, setLoopback, mode);
   }
 }
 
@@ -3571,13 +3587,15 @@ void TransceiverManager::setPortLoopbackStateTransceiver(
     PortID portId,
     std::string portName,
     phy::PortComponent component,
-    bool setLoopback) {
+    bool setLoopback,
+    phy::LoopbackMode mode) {
   // Get the Transceiver ID
   auto tcvrId = getTransceiverID(portId);
   if (!tcvrId.has_value()) {
     throw FbossError(
         fmt::format(
-            "setInterfaceTxRx: Transceiver not found for port {}", portName));
+            "setPortLoopbackStateTransceiver: Transceiver not found for port {}",
+            portName));
   }
 
   auto lockedTransceivers = transceivers_.rlock();
@@ -3585,10 +3603,10 @@ void TransceiverManager::setPortLoopbackStateTransceiver(
       it != lockedTransceivers->end()) {
     if (component == phy::PortComponent::TRANSCEIVER_LINE) {
       it->second->setTransceiverLoopback(
-          portName, phy::Side::LINE, setLoopback);
+          portName, phy::Side::LINE, setLoopback, mode);
     } else {
       it->second->setTransceiverLoopback(
-          portName, phy::Side::SYSTEM, setLoopback);
+          portName, phy::Side::SYSTEM, setLoopback, mode);
     }
   }
 }

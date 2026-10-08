@@ -39,6 +39,7 @@ enum CoreType {
   J4SIM_NIF = 11, // J4Sim
   J4_NIF = 12, // J4 NIF
   J4_FE = 13, // J4 Fabric
+  P200 = 14, // m5120
 
   // Transceivers
   OSFP = 100,
@@ -176,4 +177,8 @@ struct StaticMapping {
   1: map<i32, TxRxLaneInfo> phy_lane_map;
   2: map<i32, TxRxLaneInfo> polarity_swap_map;
   3: list<ConnectionPair> az_connections;
+  // Per-NPU view of fields 1/2, which are keyed by core_id alone and so
+  // collapse both NPUs of a multi-NPU platform into one key space.
+  4: optional map<i32, map<i32, TxRxLaneInfo>> phy_lane_map_by_chip;
+  5: optional map<i32, map<i32, TxRxLaneInfo>> polarity_swap_map_by_chip;
 }

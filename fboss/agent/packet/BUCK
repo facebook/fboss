@@ -22,6 +22,24 @@ cpp_library(
         "TCPHeader.cpp",
         "UDPHeader.cpp",
     ],
+    headers = [
+        "ArpHdr.h",
+        "DHCPv4Packet.h",
+        "DHCPv6Packet.h",
+        "EthHdr.h",
+        "ICMPExtHdr.h",
+        "ICMPHdr.h",
+        "IPv4Hdr.h",
+        "IPv6Hdr.h",
+        "LlcHdr.h",
+        "MPLSHdr.h",
+        "NDP.h",
+        "NDPRouterAdvertisement.h",
+        "PTPHeader.h",
+        "PktUtil.h",
+        "TCPHeader.h",
+        "UDPHeader.h",
+    ],
     deps = [
         "fbsource//third-party/fmt:fmt",
         "//fboss/agent:dhcpv4_options_of_interest",
@@ -48,6 +66,9 @@ cpp_library(
     srcs = [
         "SflowStructs.cpp",
     ],
+    headers = [
+        "SflowStructs.h",
+    ],
     exported_deps = [
         "//folly:exception_string",
         "//folly:network_address",
@@ -60,6 +81,9 @@ cpp_library(
     srcs = [
         "IpfixHeader.cpp",
     ],
+    headers = [
+        "IpfixHeader.h",
+    ],
     deps = [":hdr_parse_error"],
     exported_deps = [
         "//folly/io:iobuf",
@@ -70,6 +94,9 @@ cpp_library(
     name = "pktutil",
     srcs = [
         "PktUtil.cpp",
+    ],
+    headers = [
+        "PktUtil.h",
     ],
     deps = [
         "fbsource//third-party/fmt:fmt",
@@ -90,6 +117,14 @@ cpp_library(
         "PktFactory.cpp",
         "TCPPacket.cpp",
         "UDPDatagram.cpp",
+    ],
+    headers = [
+        "EthFrame.h",
+        "IPPacket.h",
+        "MPLSPacket.h",
+        "PktFactory.h",
+        "TCPPacket.h",
+        "UDPDatagram.h",
     ],
     deps = [
         ":ipproto",

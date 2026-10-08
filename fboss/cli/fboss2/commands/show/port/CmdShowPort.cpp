@@ -125,6 +125,7 @@ CmdShowPort::getAcceptedFilterValues() {
       {"adminState", {"Enabled", "Disabled"}},
       {"linkState", {"Up", "Down"}},
       {"activeState", {"Active", "Inactive", "--"}},
+      {"userMetaData", {"Unconstrained", "Restricted", "Blocked", "--"}},
   };
 }
 
@@ -427,6 +428,10 @@ RetType CmdShowPort::createModel(
         portDetails.llrRxStatus() =
             apache::thrift::util::enumNameSafe(*llrRxStatus);
       }
+      portDetails.userMetaData() = utils::getAclLookupClassPortStr(
+          portInfo.userMetaData().to_optional());
+      portDetails.ingressAclTable() =
+          portInfo.ingressAclTableName().to_optional().value_or("--");
       portDetails.speed() =
           utils::getSpeedGbps(folly::copy(portInfo.speedMbps().value()));
       portDetails.profileId() = portInfo.profileID().value();
@@ -621,6 +626,12 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
       }
       detailedOutput.emplace_back(
           fmt::format(
+              "User metadata:  \t\t {}", portInfo.userMetaData().value()));
+      detailedOutput.emplace_back(
+          fmt::format(
+              "Ingress ACL table:\t\t {}", portInfo.ingressAclTable().value()));
+      detailedOutput.emplace_back(
+          fmt::format(
               "Unicast queues: \t\t {}",
               folly::to<std::string>(
                   folly::copy(portInfo.numUnicastQueues().value()))));
@@ -757,6 +768,8 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
         "Core Id",
         "Virtual device Id",
         "Cable Len meters",
+        "UserMetaData",
+        "IngressAclTable",
     });
 
     for (auto const& portInfo : model.portEntries().value()) {
@@ -784,7 +797,9 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
            getStyledErrors(portInfo.activeErrors().value()),
            portInfo.coreId().value(),
            portInfo.virtualDeviceId().value(),
-           portInfo.cableLengthMeters().value()});
+           portInfo.cableLengthMeters().value(),
+           portInfo.userMetaData().value(),
+           portInfo.ingressAclTable().value()});
     }
     out << table << std::endl;
   }
@@ -816,6 +831,8 @@ CmdShowPort::RetType CmdShowPort::sampleModel() {
   port1.virtualDeviceId() = "--";
   port1.cableLengthMeters() = "--";
   port1.activeStateMismatch() = false;
+  port1.userMetaData() = "Restricted";
+  port1.ingressAclTable() = "AccessPolicyBlockTable";
 
   cli::PortEntry port2;
   port2.id() = 3;
@@ -836,6 +853,8 @@ CmdShowPort::RetType CmdShowPort::sampleModel() {
   port2.virtualDeviceId() = "--";
   port2.cableLengthMeters() = "--";
   port2.activeStateMismatch() = false;
+  port2.userMetaData() = "--";
+  port2.ingressAclTable() = "--";
 
   cli::PortEntry port3;
   port3.id() = 5;
@@ -856,6 +875,8 @@ CmdShowPort::RetType CmdShowPort::sampleModel() {
   port3.virtualDeviceId() = "--";
   port3.cableLengthMeters() = "--";
   port3.activeStateMismatch() = false;
+  port3.userMetaData() = "Unconstrained";
+  port3.ingressAclTable() = "--";
 
   model.portEntries() = {port1, port2, port3};
   return model;

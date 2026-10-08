@@ -580,26 +580,39 @@ TEST_F(FibInfoTest, GetNextHopSetIdRefCountsFromRoutes) {
 
   auto makeFwdInfo = [&makeNextHop](
                          const std::string& ip,
-                         std::optional<NextHopSetID> clientId,
                          std::optional<NextHopSetID> resolvedId,
                          std::optional<NextHopSetID> normalizedId) {
     RouteNextHopEntry fwd(
         RouteNextHopEntry::NextHopSet{makeNextHop(ip)}, AdminDistance::EBGP);
-    fwd.setClientNextHopSetID(clientId);
     fwd.setResolvedNextHopSetID(resolvedId);
     fwd.setNormalizedResolvedNextHopSetID(normalizedId);
     return fwd;
   };
+  auto setBestEntry = [&makeNextHop](
+                          const auto& route,
+                          const std::string& ip,
+                          std::optional<NextHopSetID> clientId) {
+    RouteNextHopEntry nonPreferredEntry(
+        RouteNextHopEntry::NextHopSet{makeNextHop(ip)}, AdminDistance::IBGP);
+    std::optional<NextHopSetID> nonPreferredId{NextHopSetID(999)};
+    nonPreferredEntry.setClientNextHopSetID(nonPreferredId);
+    route->update(ClientID::OPENR, nonPreferredEntry);
+    RouteNextHopEntry entry(
+        RouteNextHopEntry::NextHopSet{makeNextHop(ip)}, AdminDistance::EBGP);
+    entry.setClientNextHopSetID(clientId);
+    route->update(ClientID::BGPD, entry);
+  };
 
-  auto fwd1 = makeFwdInfo("10.0.0.1", clientId1, resolvedId1, normalizedId1);
-  auto fwd2 = makeFwdInfo("10.0.0.2", clientId2, resolvedId2, normalizedId2);
-  auto fwd3 = makeFwdInfo("2001:db8::1", clientId3, resolvedId3, normalizedId3);
+  auto fwd1 = makeFwdInfo("10.0.0.1", resolvedId1, normalizedId1);
+  auto fwd2 = makeFwdInfo("10.0.0.2", resolvedId2, normalizedId2);
+  auto fwd3 = makeFwdInfo("2001:db8::1", resolvedId3, normalizedId3);
 
   ForwardingInformationBaseV4 fibV4;
   auto route1 = std::make_shared<RouteV4>(
       RouteFields<folly::IPAddressV4>(
           RoutePrefixV4{folly::IPAddressV4("10.0.0.0"), 24})
           .toThrift());
+  setBestEntry(route1, "10.0.0.1", clientId1);
   route1->setResolved(fwd1);
   fibV4.addNode(route1);
 
@@ -607,6 +620,7 @@ TEST_F(FibInfoTest, GetNextHopSetIdRefCountsFromRoutes) {
       RouteFields<folly::IPAddressV4>(
           RoutePrefixV4{folly::IPAddressV4("192.168.1.0"), 24})
           .toThrift());
+  setBestEntry(route2, "10.0.0.2", clientId2);
   route2->setResolved(fwd2);
   fibV4.addNode(route2);
   fibContainer->setFib(fibV4.clone());
@@ -616,6 +630,7 @@ TEST_F(FibInfoTest, GetNextHopSetIdRefCountsFromRoutes) {
       RouteFields<folly::IPAddressV6>(
           RoutePrefixV6{folly::IPAddressV6("2001:db8::"), 64})
           .toThrift());
+  setBestEntry(route3, "2001:db8::1", clientId3);
   route3->setResolved(fwd3);
   fibV6.addNode(route3);
   fibContainer->setFib(fibV6.clone());
@@ -624,6 +639,7 @@ TEST_F(FibInfoTest, GetNextHopSetIdRefCountsFromRoutes) {
   fibInfo->resetFibsMap(fibsMap);
 
   auto refCounts = fibInfo->getNextHopSetIdRefCountsFromRoutes();
+  EXPECT_EQ(refCounts.count(NextHopSetID(999)), 0);
   // clientId1(10): client(route1) = 1
   EXPECT_EQ(refCounts[clientId1], 1);
   // clientId2(20): client(route2) = 1
@@ -661,7 +677,6 @@ TEST_F(FibInfoTest, GetNextHopSetIdRefCountsFromRoutesRecursiveResolution) {
       AdminDistance::EBGP);
   std::optional<NextHopSetID> clientOpt = namedNhgClientId;
   std::optional<NextHopSetID> resolvedOpt = resolvedLinkLocalId;
-  fwd.setClientNextHopSetID(clientOpt);
   fwd.setResolvedNextHopSetID(resolvedOpt);
   fwd.setNormalizedResolvedNextHopSetID(resolvedOpt);
 
@@ -670,6 +685,12 @@ TEST_F(FibInfoTest, GetNextHopSetIdRefCountsFromRoutesRecursiveResolution) {
       RouteFields<folly::IPAddressV6>(
           RoutePrefixV6{folly::IPAddressV6("2001:db8::"), 48})
           .toThrift());
+  RouteNextHopEntry clientEntry(
+      RouteNextHopEntry::NextHopSet{makeNextHop("2001:db8::1")},
+      AdminDistance::EBGP);
+  clientEntry.setClientNextHopSetID(clientOpt);
+  clientEntry.setNamedNextHopGroup("nhg1");
+  route->update(ClientID::BGPD, clientEntry);
   route->setResolved(fwd);
   fibV6.addNode(route);
   fibContainer->setFib(fibV6.clone());

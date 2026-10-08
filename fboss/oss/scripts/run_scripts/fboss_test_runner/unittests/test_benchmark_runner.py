@@ -29,6 +29,8 @@ def args():
     a.sai = True
     a.qsfp = False
     a.agent_run_mode = "mono"
+    a.config = None
+    a.run_on_reference_board = False
     return a
 
 

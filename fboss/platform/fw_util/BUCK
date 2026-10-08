@@ -34,6 +34,12 @@ cpp_library(
         "FwUtilVersionHandler.cpp",
         "fw_util_helpers.cpp",
     ],
+    headers = [
+        "ConfigValidator.h",
+        "FwUtilImpl.h",
+        "FwUtilVersionHandler.h",
+        "fw_util_helpers.h",
+    ],
     deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/re2:re2",

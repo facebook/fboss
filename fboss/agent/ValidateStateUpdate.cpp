@@ -11,6 +11,7 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/DeltaFunctions.h"
+#include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchSettings.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -92,26 +93,139 @@ bool StateUpdateValidator::isEcmpWidthUpdateValid(
   return isValid;
 }
 
+bool StateUpdateValidator::isLlrConfigUpdateValid(
+    const StateDelta& delta) const {
+  bool isValid = true;
+  // An LLR profile cannot be retuned or unbound under a running agent. Draining
+  // the port first does not help: the SDK refuses the rebind even with the port
+  // admin disabled and both LLR modes cleared beforehand (CS00012478409).
+  //
+  // The rule enforced here is not "coldboot only": a StateDelta carries no boot
+  // type, and no validator in this file reads one. It is the first bind on a
+  // port that is still down, which is the shape a coldboot takes, since ports
+  // exist carrying cfg::PortState::DISABLED before config is applied. A runtime
+  // update of that same shape is therefore accepted too. That is safe -- the
+  // port is down on the old side and SaiPortManager holds the enable until the
+  // profile is attached -- but it does mean a first bind can land without a
+  // coldboot.
+  //
+  // Everything else needs a coldboot: retuning a bound profile, unbinding one,
+  // or binding onto a port that is already up, where the attach would land on
+  // a port hardware considers enabled.
+  forEachChanged(
+      delta.getPortsDelta(),
+      [&isValid](
+          const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
+        if (!llrConfigChanged(oldPort, newPort) ||
+            (!oldPort->getLlrConfigName().has_value() &&
+             !oldPort->isEnabled())) {
+          return;
+        }
+        XLOG(ERR) << "LLR config on port " << newPort->getID()
+                  << " cannot change on a running agent; a coldboot is required"
+                  << " to change LLR config";
+        isValid = false;
+      });
+  return isValid;
+}
+namespace {
+std::string linkUpHoldoffStr(const shared_ptr<facebook::fboss::Port>& port) {
+  auto holdoffTimeMs = port->getPortUpHoldoffTimeMs();
+  return holdoffTimeMs.has_value() ? std::to_string(*holdoffTimeMs) + "ms"
+                                   : "no hold";
+}
+
+bool hasSameLinkUpHoldoff(
+    const shared_ptr<SwitchState>& state,
+    const SwitchIdScopeResolver* resolver,
+    SwitchID switchId) {
+  shared_ptr<Port> firstPort;
+  for (const auto& portMap : std::as_const(*state->getPorts())) {
+    for (const auto& port : std::as_const(*portMap.second)) {
+      if (port.second->getPortType() != cfg::PortType::INTERFACE_PORT) {
+        continue;
+      }
+      // Each ASIC programs its own SWITCH_WIDE hold, so only compare ports
+      // that belong to this switch.
+      if (resolver && !resolver->scope(port.second).has(switchId)) {
+        continue;
+      }
+      if (!firstPort) {
+        firstPort = port.second;
+        continue;
+      }
+      if (port.second->getPortUpHoldoffTimeMs() !=
+          firstPort->getPortUpHoldoffTimeMs()) {
+        XLOG(ERR) << "portUpHoldoffTimeMs is a switch wide timer on this ASIC, "
+                  << "but port " << port.second->getName() << " asks for "
+                  << linkUpHoldoffStr(port.second) << " while port "
+                  << firstPort->getName() << " asks for "
+                  << linkUpHoldoffStr(firstPort) << " on switch " << switchId;
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+// A hold-off the SDK will not take fails the set at the ASIC, so reject it
+// while the update can still be turned away. 0 is always accepted: it is how a
+// config asks for no hold at all.
+bool hasAcceptedLinkUpHoldoff(
+    const shared_ptr<SwitchState>& state,
+    const HwAsic::AcceptedValues& acceptedMs,
+    const SwitchIdScopeResolver* resolver,
+    SwitchID switchId) {
+  for (const auto& portMap : std::as_const(*state->getPorts())) {
+    for (const auto& port : std::as_const(*portMap.second)) {
+      // Each ASIC enforces its own accepted values, so only check ports that
+      // belong to this switch.
+      if (resolver && !resolver->scope(port.second).has(switchId)) {
+        continue;
+      }
+      auto holdoffTimeMs = port.second->getPortUpHoldoffTimeMs();
+      if (!holdoffTimeMs.has_value() || *holdoffTimeMs == 0) {
+        continue;
+      }
+      if (!acceptedMs.accepts(*holdoffTimeMs)) {
+        XLOG(ERR) << "portUpHoldoffTimeMs " << *holdoffTimeMs << "ms on port "
+                  << port.second->getName()
+                  << " is not a value this ASIC accepts, " << acceptedMs.str()
+                  << "ms on switch " << switchId;
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+} // namespace
+
 bool isStateUpdateValidCommon(
     const StateDelta& delta,
-    const HwAsicTable* hwAsicTable) {
+    const HwAsicTable* hwAsicTable,
+    const SwitchIdScopeResolver* resolver) {
   bool isValid = true;
   bool isEcnProbabilisticMarkingSupported =
       hwAsicTable->isFeatureSupportedOnAllAsic(
           HwAsic::Feature::ECN_PROBABILISTIC_MARKING);
+  bool isEmptyAclMatcherSupported = hwAsicTable->isFeatureSupportedOnAllAsic(
+      HwAsic::Feature::EMPTY_ACL_MATCHER);
 
   forEachChanged(
       delta.getAclsDelta(),
       [&](const shared_ptr<AclEntry>& /* oldAcl */,
           const shared_ptr<AclEntry>& newAcl) {
-        isValid = isValid && newAcl->hasMatcher();
+        isValid =
+            isValid && (isEmptyAclMatcherSupported || newAcl->hasMatcher());
         if (!isValid) {
           XLOG(ERR) << "Changed acl " << newAcl->getID() << " has no matcher";
         }
         return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
       },
       [&](const shared_ptr<AclEntry>& addAcl) {
-        isValid = isValid && addAcl->hasMatcher();
+        isValid =
+            isValid && (isEmptyAclMatcherSupported || addAcl->hasMatcher());
         if (!isValid) {
           XLOG(ERR) << "Newly added acl " << addAcl->getID()
                     << " has no matcher";
@@ -143,6 +257,22 @@ bool isStateUpdateValidCommon(
         return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
       },
       [&](const shared_ptr<Port>& /* delport */) {});
+
+  for (const auto& [switchId, asic] : hwAsicTable->getHwAsics()) {
+    if (asic->isSupported(HwAsic::Feature::SWITCH_WIDE_LINK_UP_DEBOUNCE) &&
+        !hasSameLinkUpHoldoff(delta.newState(), resolver, switchId)) {
+      isValid = false;
+    }
+  }
+
+  for (const auto& [switchId, asic] : hwAsicTable->getHwAsics()) {
+    auto acceptedMs = asic->getAcceptedLinkUpHoldoffTimeMs();
+    if (acceptedMs.has_value() &&
+        !hasAcceptedLinkUpHoldoff(
+            delta.newState(), *acceptedMs, resolver, switchId)) {
+      isValid = false;
+    }
+  }
 
   // Ensure only one sflow mirror session is configured
   std::set<std::string> ingressMirrors;
@@ -310,6 +440,11 @@ bool StateUpdateValidator::isValidUpdate(
     return false;
   }
 
+  if (!isLlrConfigUpdateValid(delta)) {
+    XLOG(ERR) << "State update is not valid.";
+    return false;
+  }
+
   if (!resourceAccountant_->isValidUpdate(delta)) {
     stats->resourceAccountantRejectedUpdates();
     XLOG(ERR) << "State updated rejected by resource accountant.";
@@ -339,7 +474,7 @@ bool StateUpdateValidator::isValidUpdate(
 }
 
 bool StateUpdateValidator::isValidUpdateCommon(const StateDelta& delta) {
-  if (!isStateUpdateValidCommon(delta, asicTable_)) {
+  if (!isStateUpdateValidCommon(delta, asicTable_, scopeResolver_)) {
     return false;
   }
   if (!intfDeltaValidator_.isValidDelta(delta)) {

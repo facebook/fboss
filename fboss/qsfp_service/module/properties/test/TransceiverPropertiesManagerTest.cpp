@@ -67,6 +67,8 @@ TEST_F(TransceiverPropertiesManagerTest, DefaultConfigAllCodesKnown) {
   EXPECT_TRUE(
       TransceiverPropertiesManager::isKnown(MediaInterfaceCode::DR4_2x800G));
   EXPECT_TRUE(
+      TransceiverPropertiesManager::isKnown(MediaInterfaceCode::DR8_800G));
+  EXPECT_TRUE(
       TransceiverPropertiesManager::isKnown(
           MediaInterfaceCode::FR4_LPO_2x400G));
 }
@@ -77,6 +79,39 @@ TEST_F(TransceiverPropertiesManagerTest, DR4_2x800G_Properties) {
   auto code = MediaInterfaceCode::DR4_2x800G;
   EXPECT_EQ(TransceiverPropertiesManager::getNumHostLanes(code), 8);
   EXPECT_EQ(TransceiverPropertiesManager::getNumMediaLanes(code), 8);
+}
+
+TEST_F(TransceiverPropertiesManagerTest, DR8_800G_Properties) {
+  initDefault();
+
+  auto code = MediaInterfaceCode::DR8_800G;
+  EXPECT_EQ(TransceiverPropertiesManager::getNumHostLanes(code), 8);
+  EXPECT_EQ(TransceiverPropertiesManager::getNumMediaLanes(code), 8);
+  EXPECT_EQ(
+      TransceiverPropertiesManager::deriveSmfCode(0x56, {0}, 0x52, 500), code);
+}
+
+TEST_F(TransceiverPropertiesManagerTest, DR8_800G_4x200GCombination) {
+  initDefault();
+
+  const auto& props =
+      TransceiverPropertiesManager::getProperties(MediaInterfaceCode::DR8_800G);
+  ASSERT_EQ(props.supportedSpeedCombinations()->size(), 3);
+  EXPECT_EQ(
+      props.supportedSpeedCombinations()[2].combinationName(), "4x200G-DR2");
+  ASSERT_EQ(props.supportedSpeedCombinations()[2].ports()->size(), 4);
+  for (int i = 0; i < 4; ++i) {
+    const auto& port = props.supportedSpeedCombinations()[2].ports()[i];
+    EXPECT_EQ(*port.speed(), cfg::PortSpeed::TWOHUNDREDG);
+    EXPECT_EQ(*port.hostLanes()->start(), i * 2);
+    EXPECT_EQ(*port.hostLanes()->count(), 2);
+    EXPECT_EQ(*port.mediaLanes()->start(), i * 2);
+    EXPECT_EQ(*port.mediaLanes()->count(), 2);
+    EXPECT_EQ(
+        port.mediaLaneCode()->smfCode().value(),
+        SMFMediaInterfaceCode::DR2_200G);
+    EXPECT_EQ(*port.mediaInterfaceCode(), MediaInterfaceCode::DR2_200G);
+  }
 }
 
 TEST_F(TransceiverPropertiesManagerTest, TwoPort400G_Properties) {

@@ -154,6 +154,9 @@ void BcmAclEntry::createAclQualifiers() {
         hw_->getUnit(), handle_, acl_->getL4DstPort().value(), 0xFFFF);
     bcmCheckError(rv, "failed to add L4 Dst Port field");
   }
+  if (acl_->getTcpFlagsMask()) {
+    throw FbossError("tcpFlagsMask is not supported on BcmSwitch");
+  }
   if (acl_->getTcpFlagsBitMap()) {
     rv = bcm_field_qualify_TcpControl(
         hw_->getUnit(), handle_, acl_->getTcpFlagsBitMap().value(), 0xFF);
@@ -383,6 +386,10 @@ void BcmAclEntry::createAclActions() {
           hw_->getUnit(), handle_, bcmFieldActionDrop, 0, 0);
       bcmCheckError(rv, "failed to add field action");
       break;
+    case cfg::AclActionType::DENY_DATA_AND_CONTROL_PLANE:
+      throw FbossError(
+          "AclActionType DENY_DATA_AND_CONTROL_PLANE is not supported by the native BCM "
+          "implementation");
     default:
       throw FbossError("Unrecognized action ", act);
   }

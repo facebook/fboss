@@ -16,6 +16,9 @@
 
 #include <gmock/gmock.h>
 
+#include <chrono>
+#include <thread>
+
 namespace {
 std::string kPortName = "eth1/1/1";
 }
@@ -334,6 +337,31 @@ TEST_F(QsfpModuleTest, updateQsfpDataFull) {
   qsfp_->actualUpdateQsfpData(true);
 }
 
+TEST_F(QsfpModuleTest, periodicRefreshSkippedWhenInfoIsFresh) {
+  gflags::FlagSaver flagSaver;
+  gflags::SetCommandLineOptionWithMode(
+      "qsfp_data_refresh_interval", "10", gflags::SET_FLAGS_VALUE);
+  qsfp_->refresh();
+
+  EXPECT_CALL(*qsfp_, updateQsfpData(_)).Times(0);
+  qsfp_->refresh();
+}
+
+TEST_F(QsfpModuleTest, periodicRefreshNotStarvedByOutOfBandReads) {
+  gflags::FlagSaver flagSaver;
+  gflags::SetCommandLineOptionWithMode(
+      "qsfp_data_refresh_interval", "1", gflags::SET_FLAGS_VALUE);
+  qsfp_->refresh();
+  /* sleep override */
+  std::this_thread::sleep_for(std::chrono::milliseconds(1100));
+
+  // Out-of-band read like a failing programTransceiver() retry does
+  qsfp_->actualUpdateQsfpData(false);
+
+  EXPECT_CALL(*qsfp_, updateQsfpData(_)).Times(1);
+  qsfp_->refresh();
+}
+
 TEST_F(QsfpModuleTest, readTransceiver) {
   // Skip the length field and confirm that the length of data in response is 1.
   // Page is also skipped so there should not be a write to byte 127.
@@ -520,6 +548,22 @@ TEST_F(QsfpModuleTest, getFirmwareUpgradeData) {
   transceiverManager_->refreshStateMachines();
   qsfp_->useActualGetTransceiverInfo();
   EXPECT_TRUE(transceiverManager_->getFirmwareUpgradeData(*qsfp_).has_value());
+}
+
+TEST_F(QsfpModuleTest, getFwStorageHandlePrefersQsfpConfig) {
+  qsfp_->overrideVendorPN(getFakePartNumber());
+  transceiverManager_->refreshStateMachines();
+  qsfp_->useActualGetTransceiverInfo();
+  EXPECT_EQ(qsfp_->getFwStorageHandle(), getFakeFwStorageHandle());
+}
+
+TEST_F(QsfpModuleTest, getFwStorageHandleUnknownPartNumber) {
+  // Not in the qsfp config nor in the built in map, so neither source can
+  // resolve it.
+  qsfp_->overrideVendorPN("PART-NUMBER-IN-NEITHER-MAP");
+  transceiverManager_->refreshStateMachines();
+  qsfp_->useActualGetTransceiverInfo();
+  EXPECT_EQ(qsfp_->getFwStorageHandle(), "");
 }
 
 TEST_F(QsfpModuleTest, cdbFwDownloadStartBufferOverflowProtection) {

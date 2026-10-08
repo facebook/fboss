@@ -1,6 +1,11 @@
 #
 # Copyright 2004-present Facebook. All Rights Reserved.
 #
+# This is the source of truth for QsfpServiceConfig. A hand-maintained mirror
+# lives at configerator source/neteng/fboss/coop/inputs/qsfp_service_config.thrift
+# and is what produces the configs deserialized here. There is no automated sync,
+# so any change to this struct needs a matching configerator diff with identical
+# field IDs.
 namespace cpp2 facebook.fboss.cfg
 namespace go neteng.fboss.qsfp_service_config
 namespace py neteng.fboss.qsfp_service_config
@@ -79,6 +84,9 @@ struct Firmware {
 struct TransceiverFirmware {
   // Transceiver Part Number to Firmware version(s) map
   1: map<string, Firmware> versionsMap;
+
+  // Transceiver Part Number to its firmware handle in fboss_firmware.yaml map
+  2: map<string, string> fwHandleMap;
 }
 
 struct TransceiverI2cLogging {
@@ -88,7 +96,7 @@ struct TransceiverI2cLogging {
   4: i32 bufferSlots;
 }
 
-// Center optical channel frequnecy can be specified in either of the following ways
+// Center optical channel frequency can be specified in either of the following ways
 // 1. Frequency in MHz
 // 2. Channel number
 union CenterFrequencyConfig {
@@ -117,6 +125,40 @@ struct OpticalChannelConfig {
   // (disabled). Only programmed on modules that implement the register; a
   // module that doesn't advertise support is left untouched (no error).
   4: i32 rxConsActHoldOffTimerMs = 0;
+}
+
+enum TransceiverDspType {
+  MARVELL_SPICA_5NM = 1,
+  MARVELL_SPICA_PLUS = 2,
+  BRCM_GEMERA = 3,
+  BRCM_PORTOFINO = 4,
+  MARVELL_SPICA_GEN2 = 5,
+  // LPO (linear pluggable optics) modules have no DSP at all. Kept as an
+  // explicit type rather than omitting the module, so an LPO part resolves
+  // to a known zero delay instead of falling through as "unknown".
+  NO_DSP_LPO = 6,
+}
+
+struct TransceiverDspDelayInfo {
+  1: i32 txDelayNs;
+  2: i32 rxDelayNs;
+  3: i32 txErrorNs;
+  4: i32 rxErrorNs;
+}
+
+struct TransceiverDelayConstants {
+  // DSP type to delay values
+  1: map<TransceiverDspType, TransceiverDspDelayInfo> dspDelayMap;
+  // Transceiver MPN to DSP type
+  2: map<string, TransceiverDspType> mpnToDspMap;
+}
+
+// Static per transceiver data that qsfp_service cannot read off the module.
+// Everything in here is keyed by part number, so the configerator to OSS sync
+// job strips the whole field. Add internal only transceiver data here rather
+// than as a new top level field, so it stays out of OSS by default.
+struct TransceiverProperties {
+  1: optional TransceiverDelayConstants delayConstants;
 }
 
 struct QsfpServiceConfig {
@@ -155,4 +197,7 @@ struct QsfpServiceConfig {
   // Map of thrift API name to Rate limit in thrift API queries per second.
   // Methods not present in the map are not rate limited.
   10: map<string, double> thriftApiToRateLimitInQps = {};
+
+  // Absent in OSS, where the sync job strips it. Consumers must handle that.
+  11: optional TransceiverProperties transceiverProperties;
 }

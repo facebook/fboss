@@ -494,7 +494,9 @@ bool HwTestThriftHandler::isAclEntrySame(
         aclFieldTcpFlagsGot.getDataAndMask();
 
     if (tcpFlagsDataGot != swAcl->getTcpFlagsBitMap().value() ||
-        tcpFlagsMaskGot != SaiAclTableManager::kTcpFlagsMask) {
+        tcpFlagsMaskGot !=
+            swAcl->getTcpFlagsMask().value_or(
+                SaiAclTableManager::kTcpFlagsMask)) {
       return false;
     }
   }

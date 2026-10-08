@@ -71,6 +71,8 @@ add_library(state
   fboss/agent/state/InterfaceMap.cpp
   fboss/agent/state/InterfaceMapDelta.cpp
   fboss/agent/state/IpTunnel.cpp
+  fboss/agent/state/IsolationGroup.cpp
+  fboss/agent/state/IsolationGroupMap.cpp
   fboss/agent/state/LabelForwardingInformationBase.cpp
   fboss/agent/state/LlrConfig.cpp
   fboss/agent/state/LlrConfigMap.cpp
@@ -89,6 +91,7 @@ add_library(state
   fboss/agent/state/NdpResponseEntry.cpp
   fboss/agent/state/NdpResponseTable.cpp
   fboss/agent/state/NdpTable.cpp
+  fboss/agent/state/PbrUtils.cpp
   fboss/agent/state/Port.cpp
   fboss/agent/state/PortMap.cpp
   fboss/agent/state/PortFlowletConfig.cpp
@@ -125,7 +128,6 @@ add_library(state
   fboss/agent/state/UdfGroupMap.cpp
   fboss/agent/state/UdfPacketMatcher.cpp
   fboss/agent/state/UdfPacketMatcherMap.cpp
-  fboss/agent/state/IpTunnel.cpp
   fboss/agent/state/IpTunnelMap.cpp
   fboss/agent/state/Vlan.cpp
   fboss/agent/state/VlanMap.cpp

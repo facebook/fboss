@@ -9,6 +9,9 @@ cpp_library(
         "QsfpClient.cpp",
         "facebook/QsfpClient.cpp",
     ],
+    headers = [
+        "QsfpClient.h",
+    ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     deps = [
         "//common/fbwhoami:fb_who_am_i",
@@ -35,6 +38,9 @@ cpp_library(
     name = "qsfp-cache",
     srcs = [
         "QsfpCache.cpp",
+    ],
+    headers = [
+        "QsfpCache.h",
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     deps = [

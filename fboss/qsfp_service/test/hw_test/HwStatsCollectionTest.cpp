@@ -32,6 +32,7 @@ TEST_F(HwTest, publishStats) {
   getHwQsfpEnsemble()->getWedgeManager()->publishI2cTransactionStats();
 
   auto counterKeys = fb303::fbData->getCounterKeys();
+#ifndef IS_OSS
   auto anyInterfaceCounter = [&counterKeys](const std::string& suffix) {
     return std::any_of(
         counterKeys.begin(), counterKeys.end(), [&suffix](const auto& key) {
@@ -52,6 +53,7 @@ TEST_F(HwTest, publishStats) {
       << "qsfp.interface.<portName>.portStateMachineState counters "
       << (portManager ? "missing in" : "published outside")
       << " Port Manager mode";
+#endif
 
   // A PhyManager is constructed for every platform of an XPHY capable family,
   // but the XPHYs themselves only exist on the PIMs that carry them, so having
@@ -124,18 +126,23 @@ class HwXphyPortStatsCollectionTest : public HwExternalPhyPortTest {
 
     auto verify = [&]() {
       getHwQsfpEnsemble()->getQsfpServiceHandler()->updateAllXphyPortsStats();
-      /* sleep override */
-      sleep(getSleepSeconds(
-          getHwQsfpEnsemble()->getWedgeManager()->getPlatformType()));
+
+      auto allStatsCollectionDone = [this, &availableXphyPorts]() {
+        for (const auto& [port, _] : availableXphyPorts) {
+          if (!getHwQsfpEnsemble()->getPhyManager()->isXphyStatsCollectionDone(
+                  port)) {
+            return false;
+          }
+        }
+        return true;
+      };
+      WITH_RETRIES_N_TIMED(
+          30 /* retries */,
+          std::chrono::milliseconds(10000) /* msBetweenRetry */,
+          { EXPECT_EVENTUALLY_TRUE(allStatsCollectionDone()); });
 
       auto counterKeys = fb303::fbData->getCounterKeys();
-      // Now check the stats collection future job is done.
       for (const auto& [port, _] : availableXphyPorts) {
-        EXPECT_TRUE(
-            getHwQsfpEnsemble()->getPhyManager()->isXphyStatsCollectionDone(
-                port))
-            << "port:" << port << " xphy stats collection is not done";
-
         // Verify fb303 has the XPHY FEC counters
         auto portName =
             getHwQsfpEnsemble()->getQsfpServiceHandler()->getPortNameByPortId(

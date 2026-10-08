@@ -437,12 +437,25 @@ std::optional<InterfaceID> BaseEcmpSetupHelper<AddrT, NextHopT>::getInterface(
         return intf->getID();
       }
     }
-    for (auto intfs : std::as_const(*state->getInterfaces())) {
-      for (auto intf : std::as_const(*intfs.second)) {
+    for (const auto& intfs : std::as_const(*state->getInterfaces())) {
+      for (const auto& intf : std::as_const(*intfs.second)) {
         if (intf.second->getType() != cfg::InterfaceType::PORT) {
           continue;
         }
-        if (intf.second->getPortID() == port.phyPortID()) {
+        if (intf.second->getPortIDf() == port.phyPortID()) {
+          return intf.second->getID();
+        }
+      }
+    }
+  } else if (port.isAggregatePort()) {
+    // An interface bound to the aggregate port itself. Platforms that put
+    // their aggregates in a vlan resolve above, via getVlan().
+    for (const auto& intfs : std::as_const(*state->getInterfaces())) {
+      for (const auto& intf : std::as_const(*intfs.second)) {
+        if (intf.second->getType() != cfg::InterfaceType::PORT) {
+          continue;
+        }
+        if (intf.second->getAggregatePortIDf() == port.aggPortID()) {
           return intf.second->getID();
         }
       }

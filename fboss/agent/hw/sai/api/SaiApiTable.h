@@ -20,6 +20,7 @@
 #include "fboss/agent/hw/sai/api/FirmwareApi.h"
 #include "fboss/agent/hw/sai/api/HashApi.h"
 #include "fboss/agent/hw/sai/api/HostifApi.h"
+#include "fboss/agent/hw/sai/api/IsolationGroupApi.h"
 #include "fboss/agent/hw/sai/api/LagApi.h"
 #include "fboss/agent/hw/sai/api/MacsecApi.h"
 #include "fboss/agent/hw/sai/api/MirrorApi.h"
@@ -43,6 +44,7 @@
 #include "fboss/agent/hw/sai/api/TunnelApi.h"
 #include "fboss/agent/hw/sai/api/UdfApi.h"
 #include "fboss/agent/hw/sai/api/VendorSwitchApi.h"
+#include "fboss/agent/hw/sai/api/VirtualChannelApi.h"
 #include "fboss/agent/hw/sai/api/VirtualRouterApi.h"
 #include "fboss/agent/hw/sai/api/VlanApi.h"
 #include "fboss/agent/hw/sai/api/WredApi.h"
@@ -98,6 +100,8 @@ class SaiApiTable {
 
   const HostifApi& hostifApi() const;
 
+  const IsolationGroupApi& isolationGroupApi() const;
+
   const MirrorApi& mirrorApi() const;
 
   const MplsApi& mplsApi() const;
@@ -127,6 +131,10 @@ class SaiApiTable {
   const SystemPortApi& systemPortApi() const;
 
   const UdfApi& udfApi() const;
+
+#if defined(SAI_CBFC_SUPPORTED)
+  const VirtualChannelApi& virtualChannelApi() const;
+#endif
 
   const VirtualRouterApi& virtualRouterApi() const;
 
@@ -192,6 +200,7 @@ class SaiApiTable {
 #endif
       std::unique_ptr<HashApi>,
       std::unique_ptr<HostifApi>,
+      std::unique_ptr<IsolationGroupApi>,
       std::unique_ptr<NextHopApi>,
       std::unique_ptr<NextHopGroupApi>,
       std::unique_ptr<MirrorApi>,
@@ -207,6 +216,9 @@ class SaiApiTable {
       std::unique_ptr<SwitchApi>,
       std::unique_ptr<SystemPortApi>,
       std::unique_ptr<UdfApi>,
+#if defined(SAI_CBFC_SUPPORTED)
+      std::unique_ptr<VirtualChannelApi>,
+#endif
       std::unique_ptr<VirtualRouterApi>,
       std::unique_ptr<VlanApi>,
       std::unique_ptr<WredApi>,

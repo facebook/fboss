@@ -18,6 +18,7 @@ add_executable(api_test
     fboss/agent/hw/sai/api/tests/FdbApiTest.cpp
     fboss/agent/hw/sai/api/tests/HashApiTest.cpp
     fboss/agent/hw/sai/api/tests/HostifApiTest.cpp
+    fboss/agent/hw/sai/api/tests/IsolationGroupApiTest.cpp
     fboss/agent/hw/sai/api/tests/LagApiTest.cpp
     fboss/agent/hw/sai/api/tests/LoggingUtilTest.cpp
     fboss/agent/hw/sai/api/tests/MacsecApiTest.cpp
@@ -39,6 +40,7 @@ add_executable(api_test
     fboss/agent/hw/sai/api/tests/Srv6ApiTest.cpp
     fboss/agent/hw/sai/api/tests/TunnelApiTest.cpp
     fboss/agent/hw/sai/api/tests/UdfApiTest.cpp
+    fboss/agent/hw/sai/api/tests/VirtualChannelApiTest.cpp
     fboss/agent/hw/sai/api/tests/VirtualRouterApiTest.cpp
     fboss/agent/hw/sai/api/tests/VlanApiTest.cpp
     fboss/agent/hw/sai/api/tests/WredApiTest.cpp

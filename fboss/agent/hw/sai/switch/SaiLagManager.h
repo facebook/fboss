@@ -21,7 +21,9 @@ struct SaiLagHandle {
   std::map<PortSaiId, std::shared_ptr<SaiLagMember>> members{};
   std::shared_ptr<SaiBridgePort> bridgePort{};
   uint32_t minimumLinkCount{0};
-  VlanID vlanId{};
+  // A LAG that carries a router interface of its own need not be a member of
+  // any VLAN, in which case it has no port vlan id and no bridge port.
+  std::optional<VlanID> vlanId{};
   std::unique_ptr<utility::HwTrunkCounters> counters;
 };
 

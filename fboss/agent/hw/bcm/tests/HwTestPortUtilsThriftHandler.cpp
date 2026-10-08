@@ -68,6 +68,13 @@ void HwTestThriftHandler::getPortLlrInfo(
   throw FbossError("getPortLlrInfo is not implemented in bcm");
 }
 
+void HwTestThriftHandler::getPortVcInfo(
+    ::facebook::fboss::utility::PortVcInfo& /*portVcInfo*/,
+    int32_t /*port*/) {
+  // CBFC is a SAI-only feature today; no BCM-native implementation.
+  throw FbossError("getPortVcInfo is not implemented in bcm");
+}
+
 bool HwTestThriftHandler::verifyPortLedStatus(int /*portId*/, bool /*status*/) {
   return true;
 }

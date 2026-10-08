@@ -63,6 +63,8 @@ class PacketSnooper : public PacketObserverIf {
   // EthFrame.
   std::optional<std::unique_ptr<folly::IOBuf>> waitForPacketBuf(
       uint32_t timeout_s = 0);
+  // Whether a matching packet has arrived, without waiting for one.
+  bool receivedPacket();
   void ignoreUnclaimedRxPkts() {
     ignoreUnclaimedRxPkts_ = true;
   }

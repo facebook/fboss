@@ -24,6 +24,7 @@
 #include "fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h"
 #include "fboss/cli/fboss2/commands/set/fanhold/CmdSetFanHold.h"
 #include "fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h"
+#include "fboss/cli/fboss2/commands/set/interface/loopback/CmdSetInterfaceLoopback.h"
 #include "fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/set/interface/prbs/state/CmdSetInterfacePrbsState.h"
 #include "fboss/cli/fboss2/commands/set/port/CmdSetPort.h"
@@ -50,6 +51,7 @@
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h"
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.h"
 #include "fboss/cli/fboss2/commands/show/fabric/topology/CmdShowFabricTopology.h"
+#include "fboss/cli/fboss2/commands/show/fb303counters/CmdShowFb303Counters.h"
 #include "fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h"
 #include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbOperState.h"
 #include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbOperStats.h"
@@ -78,6 +80,8 @@
 #include "fboss/cli/fboss2/commands/show/interface/prbs/stats/CmdShowInterfacePrbsStats.h"
 #include "fboss/cli/fboss2/commands/show/interface/status/CmdShowInterfaceStatus.h"
 #include "fboss/cli/fboss2/commands/show/interface/traffic/CmdShowInterfaceTraffic.h"
+#include "fboss/cli/fboss2/commands/show/interface/transceiver/CmdShowInterfaceTransceiver.h"
+#include "fboss/cli/fboss2/commands/show/interface/transceiver/performancemonitoring/CmdShowInterfaceTransceiverPerformanceMonitoring.h"
 #include "fboss/cli/fboss2/commands/show/l2/CmdShowL2.h"
 #include "fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h"
 #include "fboss/cli/fboss2/commands/show/mac/CmdShowMacAddrToBlock.h"
@@ -157,6 +161,14 @@ const CommandTree& kCommandTree() {
        commandHandler<CmdShowAggregatePort>,
        validFilterHandler<CmdShowAggregatePort>,
        argTypeHandler<CmdShowAggregatePortTraits>},
+
+      {"show",
+       "fb303-counters",
+       "Show raw fb303 counters from a FBOSS service",
+       commandHandler<CmdShowFb303Counters>,
+       validFilterHandler<CmdShowFb303Counters>,
+       argTypeHandler<CmdShowFb303CountersTraits>,
+       localOptionsHandler<CmdShowFb303CountersTraits>},
 
       {"show",
        "arp",
@@ -381,6 +393,18 @@ const CommandTree& kCommandTree() {
                  commandHandler<CmdShowInterfacePrbsStats>,
                  argTypeHandler<CmdShowInterfacePrbsStatsTraits>},
             }},
+           {"transceiver",
+            "Show Transceiver information for the interface",
+            commandHandler<CmdShowInterfaceTransceiver>,
+            argTypeHandler<CmdShowInterfaceTransceiverTraits>,
+            {
+                {"performance-monitoring",
+                 "Show transceiver VDM performance monitoring stats",
+                 commandHandler<
+                     CmdShowInterfaceTransceiverPerformanceMonitoring>,
+                 argTypeHandler<
+                     CmdShowInterfaceTransceiverPerformanceMonitoringTraits>},
+            }},
        }},
       {"show",
        "transceiver",
@@ -405,6 +429,7 @@ const CommandTree& kCommandTree() {
        "Show Route information",
        commandHandler<CmdShowRoute>,
        argTypeHandler<CmdShowRouteTraits>,
+       localOptionsHandler<CmdShowRouteTraits>,
        {{"counters",
          "Show route counters",
          commandHandler<CmdShowRouteCounters>,
@@ -583,15 +608,21 @@ const CommandTree& kCommandTree() {
           commandHandler<CmdSetInterface>,
           argTypeHandler<CmdSetInterfaceTraits>,
           {{
-              "prbs",
-              "Set PRBS properties",
-              commandHandler<CmdSetInterfacePrbs>,
-              argTypeHandler<CmdSetInterfacePrbsTraits>,
-              {{"state",
-                "Set PRBS state",
-                commandHandler<CmdSetInterfacePrbsState>,
-                argTypeHandler<CmdSetInterfacePrbsStateTraits>}},
-          }},
+               "prbs",
+               "Set PRBS properties",
+               commandHandler<CmdSetInterfacePrbs>,
+               argTypeHandler<CmdSetInterfacePrbsTraits>,
+               {{"state",
+                 "Set PRBS state",
+                 commandHandler<CmdSetInterfacePrbsState>,
+                 argTypeHandler<CmdSetInterfacePrbsStateTraits>}},
+           },
+           {
+               "loopback",
+               "Set loopback mode: <component> <enable|disable>",
+               commandHandler<CmdSetInterfaceLoopback>,
+               argRegistrar<CmdSetInterfaceLoopbackTraits>,
+           }},
       },
       {"set",
        "port",

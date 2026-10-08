@@ -32,18 +32,21 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
+#include "fboss/cli/fboss2/commands/config/QueueConfigUtils.h"
 #include "fboss/cli/fboss2/commands/config/interface/InterfaceIpUtils.h"
 #include "fboss/cli/fboss2/commands/config/interface/ProfileValidation.h"
-#include "fboss/cli/fboss2/commands/config/qos/PortQueueConfigUtils.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fboss/cli/fboss2/utils/InterfaceList.h"
-#include "fboss/lib/config/AgentConfigUtils.h"
+#include "fboss/cli/fboss2/utils/LookupClassUtils.h"
+#include "fboss/lib/config/agent/PortConfigUtils.h"
 
 namespace facebook::fboss {
 
 namespace {
+
+using lookup_class::parseLookupClassId;
 // Set of known attribute names (lowercase for case-insensitive comparison).
 // The lldp-expected-* names come from the shared lldpAttrToTag() list so the
 // config and delete commands cannot drift apart.
@@ -215,8 +218,8 @@ std::string applyProfileImpl(
     // Removing a port must not be applied on a live agent (crashes the SwAgent
     // -- see T281221621); escalate the commit to a coldboot.
     if (actionLevel != nullptr) {
-      *actionLevel =
-          std::max(*actionLevel, cli::ConfigActionLevel::AGENT_COLDBOOT);
+      *actionLevel = std::max(
+          *actionLevel, cli::ConfigActionLevel::DISRUPTIVE_SERVICE_RESTART);
     }
   }
 
@@ -382,81 +385,6 @@ bool applyLoopbackMode(
     }
   }
   return changed;
-}
-
-// Port.lookupClasses drives queue-per-host (MH-NIC) neighbor classification,
-// so only the CLASS_QUEUE_PER_HOST_QUEUE_* classes are configurable here.
-// The other AclLookupClass members (CLASS_DROP, DST_CLASS_L3_LOCAL_*, ...)
-// are assigned by the agent itself; putting one of them in a port's list
-// would make LookupClassUpdater tag neighbors with an agent-reserved class.
-bool isQueuePerHostClass(cfg::AclLookupClass lookupClass) {
-  return lookupClass >= cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 &&
-      lookupClass <= cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_9;
-}
-
-// Human-readable list of every configurable lookup class as "<id> (<name>)".
-std::string validLookupClasses() {
-  std::vector<std::string> entries;
-  for (const auto value :
-       apache::thrift::TEnumTraits<cfg::AclLookupClass>::values) {
-    if (!isQueuePerHostClass(value)) {
-      continue;
-    }
-    entries.push_back(
-        fmt::format(
-            "{} ({})",
-            static_cast<int>(value),
-            apache::thrift::util::enumNameSafe(value)));
-  }
-  return folly::join(", ", entries);
-}
-
-// Parses a single lookup-class token: a numeric id (e.g. "10") or an enum
-// name (e.g. "CLASS_QUEUE_PER_HOST_QUEUE_0", case-insensitive). Only
-// queue-per-host classes are accepted.
-cfg::AclLookupClass parseLookupClassId(const std::string& token) {
-  cfg::AclLookupClass lookupClass{
-      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0};
-  int32_t classId = 0;
-  if (folly::tryTo<int32_t>(token).hasValue()) {
-    classId = folly::to<int32_t>(token);
-    lookupClass = static_cast<cfg::AclLookupClass>(classId);
-    if (apache::thrift::TEnumTraits<cfg::AclLookupClass>::findName(
-            lookupClass) == nullptr) {
-      throw std::invalid_argument(
-          fmt::format(
-              "Invalid lookup-class value '{}'. Valid values: {}",
-              token,
-              validLookupClasses()));
-    }
-  } else {
-    std::string tokenUpper = token;
-    std::transform(
-        tokenUpper.begin(),
-        tokenUpper.end(),
-        tokenUpper.begin(),
-        [](unsigned char c) { return static_cast<char>(std::toupper(c)); });
-    if (!apache::thrift::TEnumTraits<cfg::AclLookupClass>::findValue(
-            tokenUpper, &lookupClass)) {
-      throw std::invalid_argument(
-          fmt::format(
-              "Invalid lookup-class value '{}': must be a numeric id or class "
-              "name. Valid values: {}",
-              token,
-              validLookupClasses()));
-    }
-  }
-
-  if (!isQueuePerHostClass(lookupClass)) {
-    throw std::invalid_argument(
-        fmt::format(
-            "Invalid lookup-class value '{}': {} is reserved for agent use. "
-            "Valid values: {}",
-            token,
-            apache::thrift::util::enumNameSafe(lookupClass),
-            validLookupClasses()));
-  }
-  return lookupClass;
 }
 
 // Parses a comma-separated list of lookup classes
@@ -631,9 +559,10 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
   utils::InterfaceList resolved(std::vector<std::string>{});
   // The commit action level required by this command, escalated by attribute
   // handlers as needed. Starts HITLESS (reloadConfig); a profile change that
-  // removes a port escalates it to AGENT_COLDBOOT, because applying a port
-  // removal on a live agent can crash the SwAgent (LookupClassRouteUpdater
-  // dereferences the removed port's now-absent interface). See T281221621.
+  // removes a port escalates it to DISRUPTIVE_SERVICE_RESTART, because applying
+  // a port removal on a live agent can crash the SwAgent
+  // (LookupClassRouteUpdater dereferences the removed port's now-absent
+  // interface). See T281221621.
   cli::ConfigActionLevel actionLevel = cli::ConfigActionLevel::HITLESS;
   if (profileValue.has_value()) {
     results.push_back(

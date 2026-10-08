@@ -163,6 +163,8 @@ struct RouteDetails {
   12: optional list<common.NextHopThrift> overridenNextHops;
   13: optional i64 resolvedNextHopSetID;
   14: optional i64 normalizedResolvedNextHopSetID;
+  // Resolved next hops before hardware normalization.
+  15: optional list<common.NextHopThrift> resolvedNextHops;
 }
 
 struct MplsRouteDetails {
@@ -468,6 +470,14 @@ struct PortInfoThrift {
   // profile bound on an LLR-capable ASIC.
   35: optional hardware_stats.LlrTxStatus llrTxStatus;
   36: optional hardware_stats.LlrRxStatus llrRxStatus;
+
+  // Lookup class assigned to packets ingressing on this port. Mirrors
+  // switch_config.Port.userMetaData. Unset when the port has no class ID.
+  37: optional switch_config.AclLookupClassPort userMetaData;
+
+  // Ingress ACL table bound directly to this port. Mirrors
+  // switch_config.Port.ingressAclTableName. Unset when no table is bound.
+  38: optional string ingressAclTableName;
 }
 
 // Port queueing configuration
@@ -736,6 +746,10 @@ struct AclEntryThrift {
   22: optional byte lookupClassL2;
   23: optional bool enabled;
   24: optional list<string> udfGroups;
+
+  // Ingress port class ID this entry matches on. Mirrors
+  // switch_config.AclEntry.lookupClassPort.
+  25: optional switch_config.AclLookupClassPort lookupClassPort;
 }
 
 struct AclTableThrift {
@@ -1455,17 +1469,23 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
 
   /*
    * API to add named next hop groups, named next hop group with same name will be replaced
+   * With combineDuplicatedNextHops, next hops repeated within a group are collapsed into a
+   * single weighted next hop instead of the repeats being dropped.
    */
   void addNamedNextHopGroups(
     1: list<common.NextHopGroup> nextHopGroups,
+    2: bool combineDuplicatedNextHops = false,
   ) throws (1: fboss.FbossBaseError error);
 
   /*
    * API to add named next hop groups, named next hop group with same name will be replaced
+   * With combineDuplicatedNextHops, next hops repeated within a group are collapsed into a
+   * single weighted next hop instead of the repeats being dropped.
    * Deprecated. Use addNamedNextHopGroups.
    */
   void addOrUpdateNamedNextHopGroups(
     1: list<common.NextHopGroup> nextHopGroups,
+    2: bool combineDuplicatedNextHops = false,
   ) throws (1: fboss.FbossBaseError error);
 
   /*
@@ -1477,16 +1497,21 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
 
   /*
    * API to get next hop groups
+   * With replicateWeightedNexthops, a next hop carrying weight w > 1 is
+   * expanded back into w next hops, undoing combineDuplicatedNextHops.
    */
-  list<common.NextHopGroup> getNextHopGroups() throws (
-    1: fboss.FbossBaseError error,
-  );
+  list<common.NextHopGroup> getNextHopGroups(
+    1: bool replicateWeightedNexthops = false,
+  ) throws (1: fboss.FbossBaseError error);
 
   /*
    * API to get named next hop groups, optionally filtered by name
+   * With replicateWeightedNexthops, a next hop carrying weight w > 1 is
+   * expanded back into w next hops, undoing combineDuplicatedNextHops.
    */
   list<common.NextHopGroup> getNamedNextHopGroups(
     1: list<string> names,
+    2: bool replicateWeightedNexthops = false,
   ) throws (1: fboss.FbossBaseError error);
 
   /*
@@ -1711,8 +1736,9 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    * Delete Adjacency FRR.
    *
    * protectedObject:
-   *  non-existing (never added by addAdjacencyFrr): throws error
-   *  existing: removes FRR protection
+   *  non-existing MySID: throws error
+   *  existing MySID without FRR protection: no-op
+   *  existing MySID with FRR protection: removes FRR protection
    *
    * FrrProtectedObject is a union. Fill either protected uA mySID or MPLS
    * label.

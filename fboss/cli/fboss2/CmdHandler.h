@@ -80,6 +80,7 @@ struct BaseCommandTraits {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   static constexpr bool ALLOW_FILTERING = false;
   static constexpr bool ALLOW_AGGREGATION = false;
+  static constexpr bool IS_LOCAL_COMMAND = false;
   static constexpr CliReadWriteMode CLI_READ_WRITE_MODE =
       CliReadWriteMode::CLI_MODE_WRITE;
   std::vector<utils::LocalOption> LocalOptions = {};
@@ -133,6 +134,22 @@ inline constexpr bool kHasCliDocs =
     (detail::HasTraitsCliDescription<Cmd>::value ||
      detail::HasClassCliDescription<Cmd>::value) &&
     detail::HasCliSampleModel<Cmd>::value;
+
+// Enforced at the commandHandler<T>() bind point (forward-declared in
+// CmdList.h): every read ("show") command must carry the CLI reference-wiki
+// hooks unless explicitly grandfathered with CliDocsExempt. No-op for write
+// commands.
+template <typename T>
+void assertReadCommandDocumented() {
+  if constexpr (
+      T::Traits::CLI_READ_WRITE_MODE == CliReadWriteMode::CLI_MODE_READ) {
+    static_assert(
+        kHasCliDocs<T> || std::is_base_of_v<CliDocsExempt, typename T::Traits>,
+        "fboss2 'show' command is missing CLI reference-wiki hooks: add a "
+        "description() to its Traits and a static sampleModel() to the command "
+        "class, or tag its Traits with CliDocsExempt to defer.");
+  }
+}
 
 template <typename CmdTypeT, typename CmdTypeTraits>
 class CmdHandler {
@@ -211,7 +228,12 @@ class CmdHandler {
     } catch (std::invalid_argument const& err) {
       errStr = folly::to<std::string>("Invalid argument: ", err.what());
     } catch (std::exception const& err) {
-      errStr = folly::to<std::string>("Thrift call failed: '", err.what(), "'");
+      if constexpr (CmdTypeTraits::IS_LOCAL_COMMAND) {
+        errStr = err.what();
+      } else {
+        errStr =
+            folly::to<std::string>("Thrift call failed: '", err.what(), "'");
+      }
     }
     if (!parsedFilters.empty()) {
       result = filterOutput<CmdTypeT>(result, parsedFilters, validFilterMap);

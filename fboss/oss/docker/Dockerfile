@@ -38,6 +38,7 @@ RUN dnf install -y 'dnf-command(config-manager)' && \
     bzip2 bzip2-devel cmake double-conversion double-conversion-devel gperf \
     libcurl-devel libcurl-minimal libdwarf libdwarf-devel libevent-devel \
     libffi libffi-devel libnghttp2 libnghttp2-devel libnl3 libnl3-devel \
+    jemalloc jemalloc-devel \
     libsodium-devel libsodium-static libunwind libunwind-devel libusb libusb-devel \
     libzstd libzstd-devel lz4-devel ncurses-devel ninja-build \
     openssl openssl-devel openssl-libs \
@@ -57,7 +58,7 @@ RUN if [ "$FBOSS_META_ENV" = "1" ]; then \
 # must use the same Python version consistently.
 RUN dnf install -y python3.12 python3.12-devel python3.12-pip && \
     update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 100
-RUN ln -s /usr/bin/python3 /usr/bin/python && \
+RUN ln -sf /usr/bin/python3 /usr/bin/python && \
     ln -sf /usr/bin/pip3.12 /usr/bin/pip
 
 # Necessary for using update-alternatives.
@@ -103,7 +104,7 @@ RUN if [ "$USE_CLANG" = "true" ]; then \
     rm -rf build
 
 # The following libraries are needed for building SDK
-RUN dnf install -y doxygen aspell libyaml-devel vim-common libnsl libnsl2-devel glibc-static libstdc++-static hostname
+RUN dnf install -y doxygen aspell aspell-en libyaml-devel vim-common libnsl libnsl2-devel glibc-static libstdc++-static hostname
 
 # Install libyaml.a for SDK purposes
 RUN git clone https://github.com/yaml/libyaml.git && \

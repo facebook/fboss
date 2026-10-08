@@ -178,7 +178,6 @@ target_link_libraries(utils
   j4sim_platform_mapping
   saintpaul_platform_mapping
   blackwolf800banw_platform_mapping
-  m4062nhp_platform_mapping
   icecube800banw_platform_mapping
   icecube800bc_platform_mapping
   icetea800bc_platform_mapping
@@ -261,6 +260,15 @@ target_link_libraries(shel_manager
   fib_helpers
   state
   ${GTEST}
+)
+
+add_library(pbr_acl_manager
+  fboss/agent/PbrAclManager.cpp
+)
+
+target_link_libraries(pbr_acl_manager
+  fboss_error
+  state
 )
 
 add_library(fsdb_adapted_sub_manager
@@ -386,6 +394,7 @@ target_link_libraries(
 
 set(core_libs
   agent_config_cpp2
+  agent_features
   switchinfo_utils
   stats
   utils
@@ -452,6 +461,7 @@ set(core_libs
   thrift_method_rate_limit
   thrift_service_utils
   shel_manager
+  pbr_acl_manager
   state_delta_logger
   switch_state_delta_logger
   dsfnode_utils
@@ -554,6 +564,7 @@ add_library(hw_switch
 )
 
 target_link_libraries(hw_switch
+  agent_features
   fboss_types
   ctrl_cpp2
   fboss_cpp2

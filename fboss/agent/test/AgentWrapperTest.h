@@ -40,6 +40,10 @@ class AgentWrapperTest : public ::testing::Test {
   void setupDrainFiles();
   void cleanupDrainFiles();
   std::vector<std::string> getDrainFiles() const;
+  std::vector<int> getHwSwitchIndices() const;
+
+  std::vector<std::string> getAgentUnits() const;
+  void stopHwAgents();
 
   bool isSai() const;
   bool skipTest() const;

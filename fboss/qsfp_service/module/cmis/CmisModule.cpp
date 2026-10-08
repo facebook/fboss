@@ -53,8 +53,8 @@ constexpr uint8_t kBankSelectByteOffset = 126;
 constexpr uint8_t kPageSelectByteOffset = 127;
 
 constexpr int kUsecBetweenPowerModeFlap = 100000;
-constexpr int kUsecBetweenLaneInit = 10000;
-constexpr int kUsecDiagSelectLatchWaitPrbs = 200000;
+constexpr int kUsecBetweenLaneInit = 10000; // 10ms
+constexpr int kUsecDiagSelectLatchWaitPrbs = 350000; // 350 ms
 constexpr int kUsecAfterAppProgramming = 500000;
 constexpr int kUsecDatapathStateUpdateTime = 10000000; // 10 seconds
 constexpr int kUsecDatapathStatePollTime = 500000; // 500 ms
@@ -361,10 +361,10 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
      {CmisPages::PAGE13, 175, 1}},
     {CmisField::REF_CLK_CTRL, {CmisPages::PAGE13, 176, 1}},
     {CmisField::BER_CTRL, {CmisPages::PAGE13, 177, 1}},
-    {CmisField::HOST_NEAR_LB_EN, {CmisPages::PAGE13, 180, 1}},
-    {CmisField::MEDIA_NEAR_LB_EN, {CmisPages::PAGE13, 181, 1}},
-    {CmisField::HOST_FAR_LB_EN, {CmisPages::PAGE13, 182, 1}},
-    {CmisField::MEDIA_FAR_LB_EN, {CmisPages::PAGE13, 183, 1}},
+    {CmisField::MEDIA_OUTPUT_LB_EN, {CmisPages::PAGE13, 180, 1}},
+    {CmisField::MEDIA_INPUT_LB_EN, {CmisPages::PAGE13, 181, 1}},
+    {CmisField::HOST_OUTPUT_LB_EN, {CmisPages::PAGE13, 182, 1}},
+    {CmisField::HOST_INPUT_LB_EN, {CmisPages::PAGE13, 183, 1}},
     {CmisField::REF_CLK_LOSS, {CmisPages::PAGE13, 206, 1}},
     {CmisField::HOST_CHECKER_GATING_COMPLETE, {CmisPages::PAGE13, 208, 1}},
     {CmisField::MEDIA_CHECKER_GATING_COMPLETE, {CmisPages::PAGE13, 209, 1}},
@@ -375,6 +375,8 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     // Page 14h
     {CmisField::PAGE_UPPER14H, {CmisPages::PAGE14, 128, 128}},
     {CmisField::DIAG_SEL, {CmisPages::PAGE14, 128, 1}},
+    {CmisField::HOST_MODE_MISMATCH, {CmisPages::PAGE14, 130, 1}},
+    {CmisField::MEDIA_MODE_MISMATCH, {CmisPages::PAGE14, 131, 1}},
     {CmisField::HOST_LANE_GENERATOR_LOL_LATCH, {CmisPages::PAGE14, 136, 1}},
     {CmisField::MEDIA_LANE_GENERATOR_LOL_LATCH, {CmisPages::PAGE14, 137, 1}},
     {CmisField::HOST_LANE_CHECKER_LOL_LATCH, {CmisPages::PAGE14, 138, 1}},
@@ -421,6 +423,8 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::PAGE_UPPER45H, {CmisPages::PAGE45, 128, 128}},
     // Page 45h, Byte 129 - Host Lane Provisioning Advertisement
     {CmisField::HOST_LANE_PROV_AD, {CmisPages::PAGE45, 129, 1}},
+    // Page C0h, Byte 131 - Host Lane Ethernet Control
+    {CmisField::HOST_LANE_ETH_CTRL, {CmisPages::PAGEC0, 131, 1}},
 };
 
 CmisField laneToAppSelField(const std::set<uint8_t>& lanes) {
@@ -669,8 +673,11 @@ CmisModule::CmisModule(
     std::shared_ptr<const TransceiverConfig> cfg,
     bool supportRemediate,
     std::string tcvrName)
-    : QsfpModule(std::move(portNames), qsfpImpl, std::move(tcvrName)),
-      tcvrConfig_(std::move(cfg)),
+    : QsfpModule(
+          std::move(portNames),
+          qsfpImpl,
+          std::move(tcvrName),
+          std::move(cfg)),
       supportRemediate_(supportRemediate) {}
 
 CmisModule::~CmisModule() {}
@@ -816,6 +823,29 @@ void CmisModule::writeCmisField(
       data,
       POST_I2C_WRITE_DELAY_US,
       CAST_TO_INT(field));
+}
+
+uint8_t CmisModule::readModifyWriteCmisField(
+    CmisField field,
+    uint8_t mask,
+    uint8_t value,
+    bool skipBankAndPageChange,
+    std::optional<uint8_t> bank) {
+  int dataLength, dataPage, dataOffset;
+  getQsfpFieldAddress(field, dataPage, dataOffset, dataLength);
+  if (dataLength != 1) {
+    throw FbossError(
+        fmt::format(
+            "Read-modify-write of field {} needs a one byte field, got {:d} bytes",
+            apache::thrift::util::enumNameSafe(field),
+            dataLength));
+  }
+
+  uint8_t data;
+  readCmisField(field, &data, skipBankAndPageChange, bank);
+  data = (data & ~mask) | (value & mask);
+  writeCmisField(field, &data, skipBankAndPageChange, bank);
+  return data;
 }
 
 FlagLevels CmisModule::getQsfpSensorFlags(CmisField fieldName, int offset) {
@@ -1059,6 +1089,11 @@ ThermalMargins CmisModule::getThermalMargins() {
         static_cast<int8_t>(getSettingsValue(CmisField::LASER_TEMP_MARGIN));
   }
   return margins;
+}
+
+bool CmisModule::isModeMismatchSupported() const {
+  const auto diagsCapability = getDiagsCapability();
+  return diagsCapability.has_value() && *diagsCapability->modeMismatchFlag();
 }
 
 /*
@@ -1664,11 +1699,19 @@ bool CmisModule::getSignalsPerMediaLane(
     return false;
   }
 
+  // Hoisted: getDiagsCapability() copies the whole DiagsCapability under a
+  // lock, so it must not be called per lane.
+  const bool modeMismatchSupported = isModeMismatchSupported();
+
   for (int lane = 0; lane < signals.size(); lane++) {
     signals[lane].lane() = lane;
     signals[lane].rxLos() = getLaneFlagSet(CmisField::RX_LOS_FLAG, lane);
     signals[lane].rxLol() = getLaneFlagSet(CmisField::RX_LOL_FLAG, lane);
     signals[lane].txFault() = getLaneFlagSet(CmisField::TX_FAULT_FLAG, lane);
+    if (modeMismatchSupported) {
+      signals[lane].modeMismatch() =
+          getLaneFlagSet(CmisField::MEDIA_MODE_MISMATCH, lane);
+    }
   }
 
   return true;
@@ -1684,6 +1727,10 @@ bool CmisModule::getSignalsPerHostLane(std::vector<HostLaneSignals>& signals) {
     return false;
   }
 
+  // Hoisted: getDiagsCapability() copies the whole DiagsCapability under a
+  // lock, so it must not be called per lane.
+  const bool modeMismatchSupported = isModeMismatchSupported();
+
   for (int lane = 0; lane < signals.size(); lane++) {
     signals[lane].lane() = lane;
     signals[lane].dataPathDeInit() =
@@ -1693,6 +1740,10 @@ bool CmisModule::getSignalsPerHostLane(std::vector<HostLaneSignals>& signals) {
     signals[lane].txLol() = getLaneFlagSet(CmisField::TX_LOL_FLAG, lane);
     signals[lane].txAdaptEqFault() =
         getLaneFlagSet(CmisField::TX_EQ_FLAG, lane);
+    if (modeMismatchSupported) {
+      signals[lane].modeMismatch() =
+          getLaneFlagSet(CmisField::HOST_MODE_MISMATCH, lane);
+    }
   }
 
   return true;
@@ -2731,7 +2782,7 @@ DOMDataUnion CmisModule::getDOMDataUnion() {
           IOBuf::wrapBufferAsValue(page27_[0].data(), MAX_QSFP_PAGE_SIZE);
     }
   }
-  cmisData.timeCollected() = lastRefreshTime_;
+  cmisData.timeCollected() = lastQsfpDataUpdateTime_;
   DOMDataUnion data;
   data.cmis() = cmisData;
   return data;
@@ -2765,7 +2816,7 @@ void CmisModule::updateQsfpData(bool allPages) {
     QSFP_LOG(DBG2, this) << "Performing " << ((allPages) ? "full" : "partial")
                          << " qsfp data cache refresh";
     readCmisField(CmisField::PAGE_LOWER, lowerPage_);
-    lastRefreshTime_ = std::time(nullptr);
+    lastQsfpDataUpdateTime_ = std::time(nullptr);
     dirty_ = false;
     setQsfpFlatMem();
     cacheMaxNumBanks();
@@ -4035,6 +4086,9 @@ void CmisModule::programTunableModule(
   // Disable TX and RX squelch on all lanes
   disableTxRxSquelchForTunableOptics();
 
+  // Workaround to set PCS to AM Transparent: T289920421
+  setPcsToAmTransparent();
+
   switch (centerFreq->getType()) {
     case cfg::CenterFrequencyConfig::Type::frequencyMhz: {
       frequencyMhz = centerFreq->frequencyMhz().value();
@@ -4621,6 +4675,18 @@ void CmisModule::setDiagsCapability() {
             (data & FieldMasks::LOOPBACK_SYS_SUPPOR_MASK) ? true : false;
         diags.loopbackLine() =
             (data & FieldMasks::LOOPBACK_LINE_SUPPORT_MASK) ? true : false;
+        LoopbackCapability lbCap;
+        lbCap.mediaSideOutput() = data & FieldMasks::LOOPBACK_MEDIA_OUTPUT_MASK;
+        lbCap.mediaSideInput() = data & FieldMasks::LOOPBACK_MEDIA_INPUT_MASK;
+        lbCap.hostSideOutput() = data & FieldMasks::LOOPBACK_HOST_OUTPUT_MASK;
+        lbCap.hostSideInput() = data & FieldMasks::LOOPBACK_HOST_INPUT_MASK;
+        lbCap.perLaneHostSide() =
+            data & FieldMasks::LOOPBACK_PER_LANE_HOST_MASK;
+        lbCap.perLaneMediaSide() =
+            data & FieldMasks::LOOPBACK_PER_LANE_MEDIA_MASK;
+        lbCap.simultaneousHostAndMediaSide() =
+            data & FieldMasks::LOOPBACK_SIMULTANEOUS_HOST_MEDIA_MASK;
+        diags.loopbackCapability() = lbCap;
 
         readFromCacheOrHw(CmisField::PATTERN_CHECKER_CAPABILITY, &data);
         diags.prbsLine() =
@@ -5366,6 +5432,16 @@ void CmisModule::resetDataPath(const std::string& portName) {
   resetDataPathWithFunc(portName);
 }
 
+void CmisModule::resetDatapathProgrammingStateLocked() {
+  if (portDatapathStates_.empty()) {
+    return;
+  }
+  QSFP_LOG(INFO, this) << fmt::format(
+      "Discarding datapath programming state for {} port(s) after module reset",
+      portDatapathStates_.size());
+  portDatapathStates_.clear();
+}
+
 bool CmisModule::dataPathProgram(
     const std::string& portName,
     uint8_t hostLaneMask,
@@ -5418,16 +5494,19 @@ bool CmisModule::dataPathProgram(
             CmisLaneState>{CmisLaneState::ACTIVATED, CmisLaneState::DATAPATH_INITIALIZED}
       : std::vector<CmisLaneState>{CmisLaneState::DEACTIVATED};
 
-  // Wait for operation to complete, retry every 500ms, up to 20 loops
-  const auto kMaxRetries =
-      (kUsecDatapathStateUpdateTime) / (kUsecDatapathStatePollTime);
-  int retryCount = 0;
-  while (!isDatapathUpdated(hostLaneMask, targetStates, bank) &&
-         retryCount < kMaxRetries) {
-    /* sleep override */
-    usleep(kUsecDatapathStatePollTime);
-    retryCount++;
-  }
+  // Give the operation a single poll interval to progress, then check once. We
+  // do not block for the whole datapath time here: dataPathProgram is called
+  // repeatedly (the transceiver state machine re-fires programming each
+  // refresh, and HAL tests poll), progStartTimer persists in
+  // portDatapathStates_ so each call resumes without re-triggering the
+  // datapath, and expectedDelayUsec above is the cumulative deadline across
+  // those attempts. A datapath that needs longer than this single poll is
+  // simply confirmed on a later refresh, once the hardware has finished -- the
+  // programming itself still completes in the hardware's own time. Polling only
+  // briefly keeps the module lock from being held for long on a slow (e.g. ZR)
+  // optic.
+  /* sleep override */
+  usleep(kUsecDatapathStatePollTime);
 
   if (isDatapathUpdated(hostLaneMask, targetStates, bank)) {
     // Mark operation as done
@@ -5838,14 +5917,15 @@ bool CmisModule::upgradeFirmwareLockedImpl(FbossFirmware* fbossFw) const {
 /*
  * setTransceiverLoopbackLocked
  *
- * Sets or resets the loopback on the given lanes for the SW Port on system
- * or line side of the Transceiver. The System side loopback set should bring
- * up the NPU port. The Line side loopback set should bring up the peer port.
+ * Sets or resets the loopback on the given lanes for the SW Port. side selects
+ * the host (SYSTEM) or media (LINE) side of the module, and mode selects the
+ * input or output loopback on that side (CMIS page 13h bytes 180-183).
  */
 void CmisModule::setTransceiverLoopbackLocked(
     const std::string& portName,
     phy::Side side,
-    bool setLoopback) {
+    bool setLoopback,
+    phy::LoopbackMode mode) {
   // Get the list of lanes to disable/enable the loopback
   auto tcvrLanes = getTcvrLanesForPort(portName, side);
   if (tcvrLanes.empty()) {
@@ -5856,18 +5936,44 @@ void CmisModule::setTransceiverLoopbackLocked(
     return;
   }
 
-  // Check if the module supports system or line side loopback
-  if (!isTransceiverFeatureSupported(TransceiverFeature::LOOPBACK, side)) {
-    throw FbossError(
-        fmt::format(
-            "Module {:s} does not support transceiver Loopback on {:s}",
-            portName,
-            ((side == phy::Side::LINE) ? "Line" : "System")));
+  const bool hostSide = (side == phy::Side::SYSTEM);
+  const bool input = (mode == phy::LoopbackMode::INPUT);
+  CmisField regField;
+  bool supported = false;
+  std::optional<LoopbackCapability> lbCap;
+  {
+    auto diagsCapability = diagsCapability_.rlock();
+    if (diagsCapability->has_value()) {
+      lbCap = (*diagsCapability)->loopbackCapability().to_optional();
+    }
+  }
+  if (hostSide && input) {
+    regField = CmisField::HOST_INPUT_LB_EN;
+    supported = lbCap && *lbCap->hostSideInput();
+  } else if (hostSide) {
+    regField = CmisField::HOST_OUTPUT_LB_EN;
+    supported = lbCap && *lbCap->hostSideOutput();
+  } else if (input) {
+    regField = CmisField::MEDIA_INPUT_LB_EN;
+    supported = lbCap && *lbCap->mediaSideInput();
+  } else {
+    regField = CmisField::MEDIA_OUTPUT_LB_EN;
+    supported = lbCap && *lbCap->mediaSideOutput();
   }
 
-  auto regField = (side == phy::Side::SYSTEM) ? CmisField::MEDIA_FAR_LB_EN
-                                              : CmisField::MEDIA_NEAR_LB_EN;
-  uint8_t hostOrMediaInputLbEnable;
+  if (!supported) {
+    // Nothing can be enabled in an unsupported loopback, so there is nothing
+    // to clear; this keeps "disable all loopbacks" callers simple.
+    if (!setLoopback) {
+      return;
+    }
+    throw FbossError(
+        fmt::format(
+            "Module {:s} does not support {:s} side {:s} loopback",
+            portName,
+            hostSide ? "host" : "media",
+            apache::thrift::util::enumNameSafe(mode)));
+  }
 
   // A port's lanes are confined to one bank; the loopback enable register is
   // per-bank, so reduce the lanes to intra-bank offsets and select that bank.
@@ -5887,12 +5993,41 @@ void CmisModule::setTransceiverLoopbackLocked(
     intraBankLanes.insert(laneInBank(lane));
   }
 
-  readCmisField(regField, &hostOrMediaInputLbEnable, false, bank);
+  if (setLoopback && !*lbCap->simultaneousHostAndMediaSide()) {
+    // Refuse rather than silently clear a loopback on the opposite side.
+    auto oppositeSide = hostSide ? phy::Side::LINE : phy::Side::SYSTEM;
+    std::map<uint8_t, uint8_t> oppositeLaneMaskPerBank;
+    for (auto lane : getTcvrLanesForPort(portName, oppositeSide)) {
+      oppositeLaneMaskPerBank[laneToBank(lane)] |= (1 << laneInBank(lane));
+    }
+    auto oppositeFields = hostSide
+        ? std::array<
+              CmisField,
+              2>{CmisField::MEDIA_OUTPUT_LB_EN, CmisField::MEDIA_INPUT_LB_EN}
+        : std::array<CmisField, 2>{
+              CmisField::HOST_OUTPUT_LB_EN, CmisField::HOST_INPUT_LB_EN};
+    for (const auto& [oppositeBank, laneMask] : oppositeLaneMaskPerBank) {
+      for (auto field : oppositeFields) {
+        uint8_t enabled;
+        readCmisField(field, &enabled, false, oppositeBank);
+        if (enabled & laneMask) {
+          throw FbossError(
+              fmt::format(
+                  "Module {:s} does not support simultaneous host and media side loopback; disable the {:s} side loopback first",
+                  portName,
+                  hostSide ? "media" : "host"));
+        }
+      }
+    }
+  }
 
-  hostOrMediaInputLbEnable = setTxChannelMask(
-      intraBankLanes, std::nullopt, !setLoopback, hostOrMediaInputLbEnable);
+  uint8_t lbEnable;
+  readCmisField(regField, &lbEnable, false, bank);
 
-  writeCmisField(regField, &hostOrMediaInputLbEnable, false, bank);
+  lbEnable =
+      setTxChannelMask(intraBankLanes, std::nullopt, !setLoopback, lbEnable);
+
+  writeCmisField(regField, &lbEnable, false, bank);
 }
 
 /*

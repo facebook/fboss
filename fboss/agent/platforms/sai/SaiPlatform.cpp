@@ -902,7 +902,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 
   std::optional<SaiSwitchTraits::Attributes::SdkDumpRateLimitWindow>
       sdkDumpRateLimitWindow{std::nullopt};
-#if defined(SAI_VERSION_12_2_0_0_DNX_ODP)
+#if defined(SAI_SDK_DUMP_RATE_LIMIT_SUPPORTED)
   sdkDumpRateLimitWindow = FLAGS_sdk_dump_rate_limit_window_ms;
 #endif
 
@@ -1007,6 +1007,12 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       measureCableLengths, // enable cable propagation delay measurement
       portCl72RetryEnable, // enable CL72 link training retry
       std::nullopt, // switching mode (store-and-forward / cut-through)
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+      // Link up debounce timeout. Derived from the per-port
+      // portUpHoldoffTimeMs config, so it is programmed by SaiPortManager
+      // once the port config is known rather than at switch create.
+      std::nullopt,
+#endif
 #if defined(SAI_BRCM_PAI_IMPL)
       std::nullopt, // SyncLock
       std::nullopt, // SyncUnlock
@@ -1048,6 +1054,15 @@ const std::set<sai_api_t>& SaiPlatform::getDefaultSwitchAsicSupportedApis()
   static auto apis = SaiApiTable::getInstance()->getFullApiList();
   // Macsec is not currently supported in the broadcom sai sdk
   apis.erase(facebook::fboss::MacsecApi::ApiType);
+  /*
+   * Only query the isolation group api where the asic is declared to support
+   * isolation groups. Querying an api the adapter does not implement fails
+   * SaiApiTable::queryApis, and that takes agent init down entirely -- not just
+   * isolation group functionality -- so the default has to be to leave it out.
+   */
+  if (!getAsic()->isSupported(HwAsic::Feature::ISOLATION_GROUP)) {
+    apis.erase(facebook::fboss::IsolationGroupApi::ApiType);
+  }
   return apis;
 }
 const std::set<sai_api_t>& SaiPlatform::getDefaultPhyAsicSupportedApis() const {

@@ -193,6 +193,13 @@ SaiPortTraits::Attributes::AttributeCrcErrorDetect::operator()() {
   return SAI_PORT_ATTR_CRC_ERROR_TOKEN_DETECT;
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeExtOperStatusLatch::operator()() {
+  return SAI_PORT_ATTR_EXT_FAKE_OPER_STATUS_LATCH;
+}
+#endif
+
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeRxLaneSquelchEnable::operator()() {
   return SAI_PORT_ATTR_RX_LANE_SQUELCH_ENABLE;
@@ -1123,21 +1130,6 @@ SaiArsProfileTraits::Attributes::AttributeArsMaxGroups::operator()() {
   return SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_ARS_MAX_GROUPS;
 }
 
-std::optional<sai_attr_id_t> SaiArsProfileTraits::Attributes::
-    AttributeArsAlternateMembersRouteMetaData::operator()() {
-  return SAI_ARS_PROFILE_ATTR_ROUTE_ARS_ALTERNATE_MEMBERS_META_DATA;
-}
-
-std::optional<sai_attr_id_t>
-SaiArsProfileTraits::Attributes::AttributeArsRouteMetaDataMask::operator()() {
-  return SAI_ARS_PROFILE_ATTR_ROUTE_ARS_META_DATA_MASK;
-}
-
-std::optional<sai_attr_id_t> SaiArsProfileTraits::Attributes::
-    AttributeArsPrimaryMembersRouteMetaData::operator()() {
-  return SAI_ARS_PROFILE_ATTR_ROUTE_ARS_PRIMARY_MEMBERS_META_DATA;
-}
-
 std::optional<sai_attr_id_t>
 SaiArsProfileTraits::Attributes::AttributeArsBaseIndex::operator()() {
   return SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_ARS_BASE_INDEX;
@@ -1154,6 +1146,21 @@ std::optional<sai_attr_id_t> SaiNextHopGroupTraits::Attributes::
 }
 
 std::optional<sai_attr_id_t>
+SaiNextHopGroupTraits::Attributes::AttributeSplitHorizonEnable::operator()() {
+  return SAI_NEXT_HOP_GROUP_ATTR_SPLIT_HORIZON_ENABLE;
+}
+
+std::optional<sai_attr_id_t>
+SaiNextHopGroupTraits::Attributes::AttributeArsFailPktCount::operator()() {
+  return SAI_NEXT_HOP_GROUP_ATTR_ARS_FAIL_PKT_COUNT;
+}
+
+std::optional<sai_attr_id_t>
+SaiNextHopGroupTraits::Attributes::AttributeArsPortReassignCount::operator()() {
+  return SAI_NEXT_HOP_GROUP_ATTR_ARS_PORT_REASSIGN_COUNT;
+}
+
+std::optional<sai_attr_id_t>
 SaiAclEntryTraits::Attributes::AttributeActionL3SwitchCancel::operator()() {
   return SAI_ACL_ENTRY_ATTR_ACTION_L3_SWITCH_CANCEL;
 }
@@ -1164,11 +1171,6 @@ SaiAclEntryTraits::Attributes::AttributeFieldRouteDestination::operator()() {
 }
 
 std::optional<sai_attr_id_t>
-SaiAclEntryTraits::Attributes::AttributeLabelExtendedWrapper::operator()() {
-  return SAI_ACL_ENTRY_ATTR_EXT_LABEL_EXTENDED;
-}
-
-std::optional<sai_attr_id_t>
 SaiArsTraits::Attributes::AttributeNextHopGroupType::operator()() {
   return SAI_ARS_ATTR_EXTENSION_NEXT_HOP_GROUP_TYPE;
 }
@@ -1176,6 +1178,26 @@ SaiArsTraits::Attributes::AttributeNextHopGroupType::operator()() {
 std::optional<sai_attr_id_t>
 SaiArsTraits::Attributes::AttributeSourcePortPrune::operator()() {
   return SAI_ARS_ATTR_EXTENSION_SOURCE_PORT_PRUNE;
+}
+
+std::optional<sai_attr_id_t>
+SaiArsTraits::Attributes::AttributeEcmpMemberCount::operator()() {
+  return SAI_ARS_ATTR_EXTENSION_ECMP_MEMBER_COUNT;
+}
+
+std::optional<sai_attr_id_t>
+SaiArsTraits::Attributes::AttributeMaxAltMembersPerGroup::operator()() {
+  return SAI_ARS_ATTR_MAX_ALT_MEMEBERS_PER_GROUP;
+}
+
+std::optional<sai_attr_id_t>
+SaiArsTraits::Attributes::AttributeMaxPrimaryMembersPerGroup::operator()() {
+  return SAI_ARS_ATTR_MAX_PRIMARY_MEMEBERS_PER_GROUP;
+}
+
+std::optional<sai_attr_id_t>
+SaiArsTraits::Attributes::AttributeCommonMembersThresholdCount::operator()() {
+  return SAI_ARS_ATTR_EXTENSION_COMMON_MEMBERS_THRESHOLD_COUNT;
 }
 #endif
 

@@ -28,7 +28,39 @@ class ArsApiTest : public ::testing::Test {
   SaiArsTraits::CreateAttributes getArsAttributes(
       sai_int32_t mode = SAI_ARS_MODE_FLOWLET_QUALITY,
       std::optional<sai_uint32_t> idleTime = std::nullopt,
-      std::optional<sai_uint32_t> maxFlows = std::nullopt) const {
+      std::optional<sai_uint32_t> maxFlows = std::nullopt,
+      std::optional<sai_uint32_t> ecmpMemberCount = std::nullopt,
+      std::optional<sai_uint32_t> maxAltMembersPerGroup = std::nullopt,
+      std::optional<sai_uint32_t> maxPrimaryMembersPerGroup = std::nullopt,
+      std::optional<sai_uint32_t> commonMembersThresholdCount =
+          std::nullopt) const {
+    std::optional<SaiArsTraits::Attributes::EcmpMemberCount>
+        ecmpMemberCountAttr = std::nullopt;
+    if (ecmpMemberCount) {
+      ecmpMemberCountAttr =
+          SaiArsTraits::Attributes::EcmpMemberCount{*ecmpMemberCount};
+    }
+    std::optional<SaiArsTraits::Attributes::MaxAltMembersPerGroup>
+        maxAltMembersPerGroupAttr = std::nullopt;
+    if (maxAltMembersPerGroup) {
+      maxAltMembersPerGroupAttr =
+          SaiArsTraits::Attributes::MaxAltMembersPerGroup{
+              *maxAltMembersPerGroup};
+    }
+    std::optional<SaiArsTraits::Attributes::MaxPrimaryMembersPerGroup>
+        maxPrimaryMembersPerGroupAttr = std::nullopt;
+    if (maxPrimaryMembersPerGroup) {
+      maxPrimaryMembersPerGroupAttr =
+          SaiArsTraits::Attributes::MaxPrimaryMembersPerGroup{
+              *maxPrimaryMembersPerGroup};
+    }
+    std::optional<SaiArsTraits::Attributes::CommonMembersThresholdCount>
+        commonMembersThresholdCountAttr = std::nullopt;
+    if (commonMembersThresholdCount) {
+      commonMembersThresholdCountAttr =
+          SaiArsTraits::Attributes::CommonMembersThresholdCount{
+              *commonMembersThresholdCount};
+    }
     return SaiArsTraits::CreateAttributes{
         SaiArsTraits::Attributes::Mode{mode},
         SaiArsTraits::Attributes::IdleTime{idleTime.value_or(kIdleTime())},
@@ -38,7 +70,11 @@ class ArsApiTest : public ::testing::Test {
         SaiArsTraits::Attributes::AlternatePathCost{kAlternatePathCost()},
         SaiArsTraits::Attributes::AlternatePathBias{kAlternatePathBias()},
         std::nullopt, // NextHopGroupType
-        std::nullopt}; // SourcePortPrune
+        std::nullopt, // SourcePortPrune
+        ecmpMemberCountAttr,
+        maxAltMembersPerGroupAttr,
+        maxPrimaryMembersPerGroupAttr,
+        commonMembersThresholdCountAttr};
   }
 
   ArsSaiId createArs() const {
@@ -69,6 +105,22 @@ class ArsApiTest : public ::testing::Test {
     return 25;
   }
 
+  sai_uint32_t kEcmpMemberCount() const {
+    return 256;
+  }
+
+  sai_uint32_t kMaxAltMembersPerGroup() const {
+    return 8;
+  }
+
+  sai_uint32_t kMaxPrimaryMembersPerGroup() const {
+    return 248;
+  }
+
+  sai_uint32_t kCommonMembersThresholdCount() const {
+    return 4;
+  }
+
   std::shared_ptr<FakeSai> fs;
   std::unique_ptr<ArsApi> arsApi;
 };
@@ -76,6 +128,76 @@ class ArsApiTest : public ::testing::Test {
 TEST_F(ArsApiTest, createArs) {
   auto arsId = createArs();
   checkArs(arsId);
+}
+
+// EcmpMemberCount sizes the DLB super group behind a virtual ARS group.
+TEST_F(ArsApiTest, createArsWithEcmpMemberCount) {
+  auto arsId = arsApi->create<SaiArsTraits>(
+      getArsAttributes(
+          SAI_ARS_MODE_FLOWLET_QUALITY,
+          std::nullopt,
+          std::nullopt,
+          kEcmpMemberCount()),
+      0);
+  checkArs(arsId);
+  EXPECT_EQ(
+      arsApi->getAttribute(arsId, SaiArsTraits::Attributes::EcmpMemberCount{}),
+      kEcmpMemberCount());
+}
+
+// MaxAltMembersPerGroup reserves part of the group for alternate members.
+TEST_F(ArsApiTest, createArsWithMaxAltMembersPerGroup) {
+  auto arsId = arsApi->create<SaiArsTraits>(
+      getArsAttributes(
+          SAI_ARS_MODE_FLOWLET_QUALITY,
+          std::nullopt,
+          std::nullopt,
+          kEcmpMemberCount(),
+          kMaxAltMembersPerGroup()),
+      0);
+  checkArs(arsId);
+  EXPECT_EQ(
+      arsApi->getAttribute(
+          arsId, SaiArsTraits::Attributes::MaxAltMembersPerGroup{}),
+      kMaxAltMembersPerGroup());
+}
+
+// MaxPrimaryMembersPerGroup covers the rest of the group width.
+TEST_F(ArsApiTest, createArsWithMaxPrimaryMembersPerGroup) {
+  auto arsId = arsApi->create<SaiArsTraits>(
+      getArsAttributes(
+          SAI_ARS_MODE_FLOWLET_QUALITY,
+          std::nullopt,
+          std::nullopt,
+          kEcmpMemberCount(),
+          kMaxAltMembersPerGroup(),
+          kMaxPrimaryMembersPerGroup()),
+      0);
+  checkArs(arsId);
+  EXPECT_EQ(
+      arsApi->getAttribute(
+          arsId, SaiArsTraits::Attributes::MaxPrimaryMembersPerGroup{}),
+      kMaxPrimaryMembersPerGroup());
+}
+
+// CommonMembersThresholdCount controls when a shared member is promoted to an
+// alternate member of the super group.
+TEST_F(ArsApiTest, createArsWithCommonMembersThresholdCount) {
+  auto arsId = arsApi->create<SaiArsTraits>(
+      getArsAttributes(
+          SAI_ARS_MODE_FLOWLET_QUALITY,
+          std::nullopt,
+          std::nullopt,
+          kEcmpMemberCount(),
+          kMaxAltMembersPerGroup(),
+          kMaxPrimaryMembersPerGroup(),
+          kCommonMembersThresholdCount()),
+      0);
+  checkArs(arsId);
+  EXPECT_EQ(
+      arsApi->getAttribute(
+          arsId, SaiArsTraits::Attributes::CommonMembersThresholdCount{}),
+      kCommonMembersThresholdCount());
 }
 
 // Mode, IdleTime and MaxFlows are part of SaiArsTraits::AdapterHostKey, so

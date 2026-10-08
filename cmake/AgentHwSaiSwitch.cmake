@@ -45,6 +45,7 @@ set(SAI_SWITCH_SRC
   fboss/agent/hw/sai/switch/SaiUdfManager.cpp
   fboss/agent/hw/sai/switch/SaiVlanManager.cpp
   fboss/agent/hw/sai/switch/SaiVirtualRouterManager.cpp
+  fboss/agent/hw/sai/switch/SaiVirtualChannelManager.cpp
   fboss/agent/hw/sai/switch/SaiWredManager.cpp
 )
 
@@ -80,10 +81,10 @@ elseif (SAI_BRCM_IMPL)
     fboss/agent/hw/sai/switch/npu/bcm/SaiSwitchManager.cpp
     fboss/agent/hw/sai/switch/npu/bcm/SaiBufferManager.cpp
     fboss/agent/hw/sai/switch/npu/bcm/oss/SaiSwitchManager.cpp
+    fboss/agent/hw/sai/switch/npu/bcm/SaiFirmwareManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiAclTableManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiArsProfileManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiVendorSwitchManager.cpp
-    fboss/agent/hw/sai/switch/oss/SaiFirmwareManager.cpp
   )
 elseif (CHENAB_SAI_SDK)
 # Chenab-TODO: Use non-default files here

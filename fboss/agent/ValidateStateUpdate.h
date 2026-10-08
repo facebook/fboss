@@ -24,7 +24,8 @@ bool hasValidPortQueues(
 
 bool isStateUpdateValidCommon(
     const StateDelta& delta,
-    const HwAsicTable* hwAsicTable);
+    const HwAsicTable* hwAsicTable,
+    const SwitchIdScopeResolver* resolver);
 bool isStateUpdateValidMultiSwitch(
     const StateDelta& delta,
     const SwitchIdScopeResolver* resolver,
@@ -54,6 +55,7 @@ class StateUpdateValidator {
 
  private:
   bool isEcmpWidthUpdateValid(const StateDelta& delta) const;
+  bool isLlrConfigUpdateValid(const StateDelta& delta) const;
   bool isValidUpdateCommon(const StateDelta& delta);
   bool isValidUpdateMultiSwitch(const StateDelta& delta) const;
 

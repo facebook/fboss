@@ -1,0 +1,45 @@
+{
+  "i2cBusIgnore": [],
+  "i2cDumpDevices": [
+    "/run/devmap/sensors/AMBIENT_TEMP",
+    "/run/devmap/sensors/CHASSIS_REAR_TMP75"
+  ],
+  "psus": [],
+  "gpios": [
+    {
+      "path": "/run/devmap/gpiochips/SMB_PCA",
+      "lines": [
+        {
+          "name": "SCD_DONE",
+          "lineIndex": 0
+        },
+        {
+          "name": "OVER_TEMP_L",
+          "lineIndex": 1
+        },
+        {
+          "name": "SYS_PGOOD",
+          "lineIndex": 2
+        },
+        {
+          "name": "SCD_INIT_L",
+          "lineIndex": 3
+        },
+        {
+          "name": "SCD_CRC_ERR",
+          "lineIndex": 4
+        },
+        {
+          "name": "SCD_PRG_L",
+          "lineIndex": 8
+        },
+        {
+          "name": "SCD_RESET_L",
+          "lineIndex": 15
+        }
+      ]
+    }
+  ],
+  "pems": [],
+  "fanspinners": []
+}

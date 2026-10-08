@@ -77,6 +77,17 @@ cpp_unittest(
 )
 
 cpp_unittest(
+    name = "pm_unit_identity_test",
+    srcs = [
+        "PmUnitIdentityTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/platform/platform_manager:pm_unit_identity",
+    ],
+)
+
+cpp_unittest(
     name = "utils_test",
     srcs = [
         "UtilsTest.cpp",
@@ -161,6 +172,8 @@ cpp_unittest(
         "fbsource//third-party/range-v3:range-v3",
         "//fb303:service_data",
         "//fboss/platform/platform_manager:pkg_manager",
+        "//folly:file_util",
+        "//folly/testing:test_util",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
 )

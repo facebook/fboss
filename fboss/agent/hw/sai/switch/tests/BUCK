@@ -75,6 +75,13 @@ switch_manager_unittest(
 )
 
 switch_manager_unittest(
+    name = "virtual_channel_manager_test",
+    srcs = [
+        "VirtualChannelManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
     name = "fdb_manager_test",
     srcs = [
         "FdbManagerTest.cpp",

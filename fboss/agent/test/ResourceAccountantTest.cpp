@@ -24,6 +24,26 @@
 
 namespace {
 constexpr auto ecmpWeight = 1;
+
+facebook::fboss::ResolvedNextHop roleNextHop(
+    const std::string& address,
+    int interfaceId,
+    facebook::fboss::NextHopRole role,
+    facebook::fboss::NextHopWeight weight = ecmpWeight) {
+  return facebook::fboss::ResolvedNextHop(
+      folly::IPAddress(address),
+      facebook::fboss::InterfaceID(interfaceId),
+      weight,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      {},
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      role);
+}
 } // namespace
 
 namespace facebook::fboss {
@@ -39,11 +59,25 @@ class ResourceAccountantTest : public ::testing::Test {
         switchIdToSwitchInfo, std::nullopt, switchIdToDsfNodes);
     scopeResolver_ =
         std::make_unique<SwitchIdScopeResolver>(switchIdToSwitchInfo);
-    resourceAccountant_ = std::make_unique<ResourceAccountant>(
-        asicTable_.get(), scopeResolver_.get());
+    makeResourceAccountant();
     nextHopIDManager_ = std::make_unique<NextHopIDManager>();
     FLAGS_ecmp_width = getMaxEcmpWidth();
     initState();
+  }
+  void makeResourceAccountant() {
+    resourceAccountant_ = std::make_unique<ResourceAccountant>(
+        asicTable_.get(), scopeResolver_.get());
+  }
+  void setSplitHorizon(cfg::EcmpGroupType groupType, bool enabled) {
+    cfg::EcmpGroupSettings settings;
+    settings.enableSplitHorizon() = enabled;
+    auto switchSettings = std::make_shared<SwitchSettings>();
+    switchSettings->setEcmpGroupSettings({{groupType, settings}});
+    auto multiSwitchSettings = std::make_shared<MultiSwitchSettings>();
+    multiSwitchSettings->addNode(getScope().matcherString(), switchSettings);
+    state_ = state_->clone();
+    state_->resetSwitchSettings(multiSwitchSettings);
+    state_->publish();
   }
   void initState() {
     state_ = std::make_shared<SwitchState>();
@@ -611,6 +645,309 @@ TEST_F(
   EXPECT_TRUE(this->resourceAccountant_
                   ->checkAndUpdateGenericEcmpResource<folly::IPAddressV6>(
                       routes[0], false /* add */, state_));
+}
+
+TEST_F(ResourceAccountantTest, protectionEcmpResourceAccounting) {
+  std::vector<NextHop> protectionNextHopList{
+      roleNextHop("1.1.1.1", 1, NextHopRole::PRIMARY)};
+  for (int i = 0; i < 8; ++i) {
+    protectionNextHopList.emplace_back(roleNextHop(
+        folly::to<std::string>("1.1.2.", i + 1), i + 2, NextHopRole::BACKUP));
+  }
+  const RouteNextHopSet protectionNextHops(
+      protectionNextHopList.begin(), protectionNextHopList.end());
+  const RouteNextHopEntry entry(protectionNextHops, AdminDistance::EBGP);
+  const auto route1 = makeV6Route(
+      {folly::IPAddressV6("400::1"), 128}, entry, protectionNextHops);
+  const auto route2 = makeV6Route(
+      {folly::IPAddressV6("400::2"), 128}, entry, protectionNextHops);
+  const auto initialMemberUsage = resourceAccountant_->ecmpMemberUsage_;
+
+  EXPECT_TRUE(resourceAccountant_->checkAndUpdateGenericEcmpResource(
+      route1, true /* add */, state_));
+  // One group keyed by the full set, charged only for its single primary.
+  EXPECT_EQ(resourceAccountant_->ecmpGroupRefMap_.size(), 1);
+  EXPECT_EQ(
+      resourceAccountant_->ecmpGroupRefMap_.find(protectionNextHops)
+          ->second.refCountNonVirtual,
+      1);
+  EXPECT_EQ(resourceAccountant_->ecmpMemberUsage_, initialMemberUsage + 1);
+
+  EXPECT_TRUE(resourceAccountant_->checkAndUpdateGenericEcmpResource(
+      route2, true /* add */, state_));
+  EXPECT_EQ(resourceAccountant_->ecmpGroupRefMap_.size(), 1);
+  EXPECT_EQ(
+      resourceAccountant_->ecmpGroupRefMap_.find(protectionNextHops)
+          ->second.refCountNonVirtual,
+      2);
+  EXPECT_EQ(resourceAccountant_->ecmpMemberUsage_, initialMemberUsage + 1);
+
+  EXPECT_TRUE(resourceAccountant_->checkAndUpdateGenericEcmpResource(
+      route1, false /* add */, state_));
+  EXPECT_TRUE(resourceAccountant_->checkAndUpdateGenericEcmpResource(
+      route2, false /* add */, state_));
+  EXPECT_TRUE(resourceAccountant_->ecmpGroupRefMap_.empty());
+  EXPECT_EQ(resourceAccountant_->ecmpMemberUsage_, initialMemberUsage);
+}
+
+TEST_F(ResourceAccountantTest, protectionEcmpResourceSharing) {
+  const auto initialMemberUsage = resourceAccountant_->ecmpMemberUsage_;
+  const RouteNextHopSet protectionNextHops1{
+      roleNextHop("2.1.1.1", 1, NextHopRole::BACKUP),
+      roleNextHop("2.1.1.2", 2, NextHopRole::BACKUP),
+      roleNextHop("2.1.2.1", 3, NextHopRole::PRIMARY)};
+  const RouteNextHopSet protectionNextHops2{
+      roleNextHop("2.1.1.1", 1, NextHopRole::BACKUP),
+      roleNextHop("2.1.1.2", 2, NextHopRole::BACKUP),
+      roleNextHop("2.1.2.2", 4, NextHopRole::PRIMARY)};
+  const RouteNextHopEntry entry1(protectionNextHops1, AdminDistance::EBGP);
+  const RouteNextHopEntry entry2(protectionNextHops2, AdminDistance::EBGP);
+  const auto route1 = makeV6Route(
+      {folly::IPAddressV6("500::1"), 128}, entry1, protectionNextHops1);
+  const auto route2 = makeV6Route(
+      {folly::IPAddressV6("500::2"), 128}, entry2, protectionNextHops2);
+  const auto route3 = makeV6Route(
+      {folly::IPAddressV6("500::3"), 128}, entry2, protectionNextHops2);
+
+  EXPECT_TRUE(resourceAccountant_->checkAndUpdateGenericEcmpResource(
+      route1, true /* add */, state_));
+  EXPECT_TRUE(resourceAccountant_->checkAndUpdateGenericEcmpResource(
+      route2, true /* add */, state_));
+  // Distinct protection sets are independent groups, each charged for its one
+  // primary. The backups they have in common cost nothing either way.
+  EXPECT_EQ(resourceAccountant_->ecmpGroupRefMap_.size(), 2);
+  EXPECT_EQ(resourceAccountant_->ecmpMemberUsage_, initialMemberUsage + 2);
+
+  // A second route on the same set only bumps the reference count.
+  EXPECT_TRUE(resourceAccountant_->checkAndUpdateGenericEcmpResource(
+      route3, true /* add */, state_));
+  EXPECT_EQ(resourceAccountant_->ecmpGroupRefMap_.size(), 2);
+  EXPECT_EQ(
+      resourceAccountant_->ecmpGroupRefMap_.find(protectionNextHops2)
+          ->second.refCountNonVirtual,
+      2);
+  EXPECT_EQ(resourceAccountant_->ecmpMemberUsage_, initialMemberUsage + 2);
+
+  EXPECT_TRUE(resourceAccountant_->checkAndUpdateGenericEcmpResource(
+      route1, false /* add */, state_));
+  EXPECT_TRUE(resourceAccountant_->checkAndUpdateGenericEcmpResource(
+      route2, false /* add */, state_));
+  EXPECT_TRUE(resourceAccountant_->checkAndUpdateGenericEcmpResource(
+      route3, false /* add */, state_));
+  EXPECT_TRUE(resourceAccountant_->ecmpGroupRefMap_.empty());
+  EXPECT_EQ(resourceAccountant_->ecmpMemberUsage_, initialMemberUsage);
+}
+
+TEST_F(ResourceAccountantTest, protectionEcmpResourceEdgeCases) {
+  const auto initialMemberUsage = resourceAccountant_->ecmpMemberUsage_;
+  const RouteNextHopSet singletonBackup{
+      roleNextHop("3.1.1.1", 1, NextHopRole::BACKUP)};
+  const auto singletonRoute = makeV6Route(
+      {folly::IPAddressV6("600::1"), 128},
+      {singletonBackup, AdminDistance::EBGP},
+      singletonBackup);
+  EXPECT_TRUE(resourceAccountant_->checkAndUpdateGenericEcmpResource(
+      singletonRoute, true /* add */, state_));
+  EXPECT_TRUE(resourceAccountant_->ecmpGroupRefMap_.empty());
+  EXPECT_EQ(resourceAccountant_->ecmpMemberUsage_, initialMemberUsage);
+
+  const RouteNextHopSet multiplePrimaries{
+      roleNextHop("3.1.3.1", 5, NextHopRole::PRIMARY),
+      roleNextHop("3.1.3.2", 6, NextHopRole::PRIMARY),
+      roleNextHop("3.1.3.3", 7, NextHopRole::BACKUP)};
+  const auto multiPrimaryRoute = makeV6Route(
+      {folly::IPAddressV6("600::3"), 128},
+      {multiplePrimaries, AdminDistance::EBGP},
+      multiplePrimaries);
+  // Only the two primaries are charged as members.
+  EXPECT_TRUE(resourceAccountant_->checkAndUpdateGenericEcmpResource(
+      multiPrimaryRoute, true /* add */, state_));
+  EXPECT_EQ(resourceAccountant_->ecmpGroupRefMap_.size(), 1);
+  EXPECT_EQ(resourceAccountant_->ecmpMemberUsage_, initialMemberUsage + 2);
+  EXPECT_TRUE(resourceAccountant_->checkAndUpdateGenericEcmpResource(
+      multiPrimaryRoute, false /* add */, state_));
+  EXPECT_TRUE(resourceAccountant_->ecmpGroupRefMap_.empty());
+  EXPECT_EQ(resourceAccountant_->ecmpMemberUsage_, initialMemberUsage);
+
+  // The same weighted primaries without a backup are an ordinary ECMP group
+  // and still pay the asic's UCMP cost.
+  const RouteNextHopSet weightedPrimariesOnly{
+      roleNextHop("3.1.4.1", 8, NextHopRole::PRIMARY, 2),
+      roleNextHop("3.1.4.2", 9, NextHopRole::PRIMARY, 2)};
+  const auto weightedPrimariesRoute = makeV6Route(
+      {folly::IPAddressV6("600::4"), 128},
+      {weightedPrimariesOnly, AdminDistance::EBGP},
+      weightedPrimariesOnly);
+  EXPECT_TRUE(resourceAccountant_->checkAndUpdateGenericEcmpResource(
+      weightedPrimariesRoute, true /* add */, state_));
+  const auto weightedPrimariesUsage =
+      resourceAccountant_->ecmpMemberUsage_ - initialMemberUsage;
+  EXPECT_TRUE(resourceAccountant_->checkAndUpdateGenericEcmpResource(
+      weightedPrimariesRoute, false /* add */, state_));
+
+  const RouteNextHopSet weightedProtection{
+      roleNextHop("3.1.4.1", 8, NextHopRole::PRIMARY, 2),
+      roleNextHop("3.1.4.2", 9, NextHopRole::PRIMARY, 2),
+      roleNextHop("3.1.4.3", 10, NextHopRole::BACKUP, 1)};
+  const auto weightedRoute = makeV6Route(
+      {folly::IPAddressV6("600::5"), 128},
+      {weightedProtection, AdminDistance::EBGP},
+      weightedProtection);
+  EXPECT_TRUE(resourceAccountant_->checkAndUpdateGenericEcmpResource(
+      weightedRoute, true /* add */, state_));
+  EXPECT_EQ(resourceAccountant_->ecmpGroupRefMap_.size(), 1);
+  // Sai leaves protection members unweighted, so the two primaries cost one
+  // member each rather than the asic's UCMP cost.
+  EXPECT_EQ(resourceAccountant_->ecmpMemberUsage_, initialMemberUsage + 2);
+  EXPECT_GT(weightedPrimariesUsage, 2);
+  EXPECT_TRUE(resourceAccountant_->checkAndUpdateGenericEcmpResource(
+      weightedRoute, false /* add */, state_));
+  EXPECT_TRUE(resourceAccountant_->ecmpGroupRefMap_.empty());
+  EXPECT_EQ(resourceAccountant_->ecmpMemberUsage_, initialMemberUsage);
+}
+
+TEST_F(ResourceAccountantTest, protectionEcmpResourceLimits) {
+  const auto initialMemberUsage = resourceAccountant_->ecmpMemberUsage_;
+  std::vector<std::shared_ptr<RouteV6>> routes;
+  // Each protection route is one group holding its single primary, so filling
+  // to the group limit takes as many routes as the asic allows groups.
+  for (uint64_t i = 0; i < getMaxEcmpGroups(); ++i) {
+    const RouteNextHopSet protectionNextHops{
+        roleNextHop(
+            folly::to<std::string>("10.1.", i + 1, ".1"),
+            (2 * i) + 1,
+            NextHopRole::PRIMARY),
+        roleNextHop(
+            folly::to<std::string>("10.1.", i + 1, ".2"),
+            (2 * i) + 2,
+            NextHopRole::BACKUP)};
+    routes.push_back(makeV6Route(
+        {folly::IPAddressV6(folly::to<std::string>("800::", i + 1)), 128},
+        {protectionNextHops, AdminDistance::EBGP},
+        protectionNextHops));
+    EXPECT_TRUE(resourceAccountant_->checkAndUpdateGenericEcmpResource(
+        routes.back(), true /* add */, state_));
+  }
+
+  EXPECT_EQ(resourceAccountant_->ecmpGroupRefMap_.size(), getMaxEcmpGroups());
+  EXPECT_EQ(
+      resourceAccountant_->ecmpMemberUsage_,
+      initialMemberUsage + getMaxEcmpGroups());
+  // Sitting exactly on the asic limit passes the intermediate check but not
+  // the percentage based one.
+  EXPECT_TRUE(
+      resourceAccountant_->checkEcmpResource(true /* intermediateState */));
+  EXPECT_FALSE(
+      resourceAccountant_->checkEcmpResource(false /* intermediateState */));
+
+  for (const auto& route : routes) {
+    EXPECT_TRUE(resourceAccountant_->checkAndUpdateGenericEcmpResource(
+        route, false /* add */, state_));
+  }
+  EXPECT_TRUE(resourceAccountant_->ecmpGroupRefMap_.empty());
+  EXPECT_EQ(resourceAccountant_->ecmpMemberUsage_, initialMemberUsage);
+}
+
+TEST_F(ResourceAccountantTest, protectionEcmpResourceLifecycle) {
+  const auto initialMemberUsage = resourceAccountant_->ecmpMemberUsage_;
+  const RouteNextHopSet ordinaryNextHops{
+      roleNextHop("11.1.1.1", 1, NextHopRole::PRIMARY),
+      roleNextHop("11.1.1.2", 2, NextHopRole::PRIMARY)};
+  const RouteNextHopSet protectionNextHops{
+      roleNextHop("11.1.2.1", 3, NextHopRole::PRIMARY),
+      roleNextHop("11.1.2.2", 4, NextHopRole::BACKUP)};
+  const auto ordinaryRoute = makeV6Route(
+      {folly::IPAddressV6("900::1"), 128},
+      {ordinaryNextHops, AdminDistance::EBGP},
+      ordinaryNextHops);
+  const auto protectionRoute = makeV6Route(
+      {folly::IPAddressV6("900::1"), 128},
+      {protectionNextHops, AdminDistance::EBGP},
+      protectionNextHops);
+
+  EXPECT_TRUE(resourceAccountant_->checkAndUpdateGenericEcmpResource(
+      ordinaryRoute, true /* add */, state_));
+  EXPECT_TRUE(resourceAccountant_->checkAndUpdateGenericEcmpResource(
+      protectionRoute, true /* add */, state_));
+  EXPECT_TRUE(resourceAccountant_->checkAndUpdateGenericEcmpResource(
+      ordinaryRoute, false /* add */, state_));
+  EXPECT_EQ(resourceAccountant_->ecmpGroupRefMap_.size(), 1);
+  EXPECT_EQ(resourceAccountant_->ecmpMemberUsage_, initialMemberUsage + 1);
+
+  EXPECT_TRUE(resourceAccountant_->checkAndUpdateGenericEcmpResource(
+      ordinaryRoute, true /* add */, state_));
+  EXPECT_TRUE(resourceAccountant_->checkAndUpdateGenericEcmpResource(
+      protectionRoute, false /* add */, state_));
+  EXPECT_EQ(resourceAccountant_->ecmpGroupRefMap_.size(), 1);
+  EXPECT_EQ(resourceAccountant_->ecmpMemberUsage_, initialMemberUsage + 2);
+  EXPECT_TRUE(resourceAccountant_->checkAndUpdateGenericEcmpResource(
+      ordinaryRoute, false /* add */, state_));
+  EXPECT_EQ(resourceAccountant_->ecmpMemberUsage_, initialMemberUsage);
+}
+
+TEST_F(ResourceAccountantTest, protectionEcmpResourceArsExcluded) {
+  FLAGS_dlbResourceCheckEnable = true;
+  FLAGS_flowletSwitchingEnable = true;
+  resourceAccountant_->setMinWidthForArsVirtualGroup(2);
+  resourceAccountant_->setMaxArsVirtualGroups(256);
+  resourceAccountant_->setMaxArsVirtualGroupWidth(256);
+  const RouteNextHopSet protectionNextHops{
+      roleNextHop("4.1.1.1", 1, NextHopRole::PRIMARY),
+      roleNextHop("4.1.1.2", 2, NextHopRole::BACKUP),
+      roleNextHop("4.1.1.3", 3, NextHopRole::BACKUP)};
+  const auto route = makeV6Route(
+      {folly::IPAddressV6("700::1"), 128},
+      {protectionNextHops, AdminDistance::EBGP},
+      protectionNextHops);
+
+  EXPECT_TRUE(resourceAccountant_->checkAndUpdateEcmpResource(
+      route, true /* add */, state_));
+  EXPECT_TRUE(resourceAccountant_->arsEcmpGroupRefMap_.empty());
+  EXPECT_EQ(resourceAccountant_->virtualArsGroupCount_, 0);
+  EXPECT_TRUE(resourceAccountant_->virtualArsSuperGroupMemberRefMap_.empty());
+}
+
+TEST_F(ResourceAccountantTest, arsEcmpResourceSourcePortPrune) {
+  FLAGS_dlbResourceCheckEnable = true;
+  FLAGS_flowletSwitchingEnable = true;
+  const RouteNextHopSet ecmpNextHops{
+      ResolvedNextHop(folly::IPAddress("20.1.1.1"), InterfaceID(1), ecmpWeight),
+      ResolvedNextHop(
+          folly::IPAddress("20.1.1.2"), InterfaceID(2), ecmpWeight)};
+  const auto route = makeV6Route(
+      {folly::IPAddressV6("b00::1"), 128},
+      {ecmpNextHops, AdminDistance::EBGP},
+      ecmpNextHops);
+
+  // Without split horizon: one DLB group and one ECMP group, sharing the two
+  // members between them.
+  EXPECT_TRUE(
+      resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
+          route, true /* add */, state_));
+  EXPECT_EQ(resourceAccountant_->arsEcmpGroupRefMap_.size(), 1);
+  EXPECT_EQ(resourceAccountant_->getEcmpGroupUsage(), 1);
+  EXPECT_EQ(resourceAccountant_->ecmpMemberUsage_, 2);
+
+  // Split horizon pairs the DLB group with a secondary plain ECMP group, each
+  // holding its own copy of the members. The DLB group count is unchanged.
+  makeResourceAccountant();
+  setSplitHorizon(cfg::EcmpGroupType::ARS, true);
+  EXPECT_TRUE(
+      resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
+          route, true /* add */, state_));
+  EXPECT_EQ(resourceAccountant_->arsEcmpGroupRefMap_.size(), 1);
+  EXPECT_EQ(resourceAccountant_->ecmpGroupRefMap_.size(), 1);
+  // The DLB group and its secondary plain ECMP group.
+  EXPECT_EQ(resourceAccountant_->getEcmpGroupUsage(), 2);
+  EXPECT_EQ(resourceAccountant_->ecmpMemberUsage_, 4);
+
+  EXPECT_TRUE(
+      resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
+          route, false /* add */, state_));
+  EXPECT_TRUE(resourceAccountant_->arsEcmpGroupRefMap_.empty());
+  EXPECT_TRUE(resourceAccountant_->ecmpGroupRefMap_.empty());
+  EXPECT_EQ(resourceAccountant_->getEcmpGroupUsage(), 0);
+  EXPECT_EQ(resourceAccountant_->ecmpMemberUsage_, 0);
 }
 
 TEST_F(ResourceAccountantTest, checkAndUpdateArsEcmpResource) {

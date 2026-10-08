@@ -84,10 +84,14 @@ cpp_library(
     srcs = [
         "RestClient.cpp",
     ],
+    headers = [
+        "RestClient.h",
+    ],
     deps = [
         "fbsource//third-party/curl:curl",
         "//fboss/agent:fboss-error",
         "//folly:file_util",
+        "//folly:string",
         "//folly/logging:logging",
     ],
     exported_deps = [
@@ -99,6 +103,9 @@ cpp_library(
     name = "bmc-rest-client",
     srcs = [
         "BmcRestClient.cpp",
+    ],
+    headers = [
+        "BmcRestClient.h",
     ],
     deps = ["//folly:network_address"],
     exported_deps = [
@@ -119,6 +126,9 @@ cpp_library(
         "LogThriftCall.cpp",
         "facebook/LogThriftCall.cpp",
     ],
+    headers = [
+        "LogThriftCall.h",
+    ],
     deps = [
         ":thrift_call_duration_logger",
         "//infrasec/authorization:simple_identity_util",
@@ -138,6 +148,9 @@ cpp_library(
     name = "alert_logger",
     srcs = [
         "AlertLogger.cpp",
+    ],
+    headers = [
+        "AlertLogger.h",
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
@@ -218,6 +231,7 @@ cpp_library(
         "FunctionCallTimeReporter.cpp",
     ],
     headers = [
+        "FunctionCallTimeReporter.h",
         "PhysicalMemory.h",
     ],
     deps = [
@@ -369,6 +383,9 @@ cpp_library(
     name = "devmap",
     srcs = [
         "DevMap.cpp",
+    ],
+    headers = [
+        "DevMap.h",
     ],
     deps = [
         "fbsource//third-party/fmt:fmt",

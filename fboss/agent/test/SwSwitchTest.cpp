@@ -12,13 +12,16 @@
 
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/FbossHwUpdateError.h"
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/MultiSwitchFb303Stats.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/ValidateStateUpdate.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/LlrConfig.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -152,6 +155,104 @@ TEST_F(SwSwitchTest, VerifyEcmpWidthChangeRejected) {
       StateDelta(baseState, withEcmpWidth(baseState, 128))));
 }
 
+namespace {
+std::shared_ptr<LlrConfig> makeLlrConfig(
+    const std::string& name,
+    int32_t outstandingBytesMax = 105800) {
+  auto llr = std::make_shared<LlrConfig>(name);
+  llr->setOutstandingFramesMax(1654);
+  llr->setOutstandingBytesMax(outstandingBytesMax);
+  llr->setReplayTimerMax(5000);
+  llr->setReplayCountMax(2);
+  llr->setPcsLostTimeout(1000);
+  llr->setDataAgeTimeout(200000);
+  llr->setInitFrameAction(cfg::LlrFrameAction::BEST_EFFORT);
+  llr->setFlushFrameAction(cfg::LlrFrameAction::BLOCK);
+  llr->setReInitOnFlush(true);
+  llr->setCtlosTargetSpacing(2048);
+  return llr;
+}
+} // namespace
+
+TEST_F(SwSwitchTest, VerifyLlrConfigChangeRejected) {
+  ON_CALL(*getMockHw(sw), isValidStateUpdate(_))
+      .WillByDefault(testing::Return(true));
+
+  const PortID kTestPort{1};
+  auto withAdminState = [kTestPort](
+                            const std::shared_ptr<SwitchState>& base,
+                            cfg::PortState adminState) {
+    auto state = base->clone();
+    state->getPorts()->getNodeIf(kTestPort)->modify(&state)->setAdminState(
+        adminState);
+    state->publish();
+    return state;
+  };
+  // description gives the port a field to change independently of LLR, so the
+  // port lands in the delta even when its LLR config is untouched.
+  auto withLlr = [kTestPort](
+                     const std::shared_ptr<SwitchState>& base,
+                     const std::string& name,
+                     const std::string& description,
+                     cfg::PortState adminState,
+                     int32_t outstandingBytesMax = 105800) {
+    auto state = base->clone();
+    auto port = state->getPorts()->getNodeIf(kTestPort)->modify(&state);
+    port->setLlrConfigName(name);
+    port->setLlrConfig(makeLlrConfig(name, outstandingBytesMax));
+    port->setDescription(description);
+    port->setAdminState(adminState);
+    state->publish();
+    return state;
+  };
+  constexpr auto kUp = cfg::PortState::ENABLED;
+  constexpr auto kDown = cfg::PortState::DISABLED;
+
+  auto enabledNoLlr = withAdminState(sw->getState(), kUp);
+  auto disabledNoLlr = withAdminState(sw->getState(), kDown);
+  auto enabledLlr = withLlr(enabledNoLlr, "llr_default", "a", kUp);
+  auto disabledLlr = withLlr(disabledNoLlr, "llr_default", "a", kDown);
+
+  // A rebuilt profile node holding identical config is not a change, so it is
+  // allowed even on an enabled port. updateLlrConfigs replaces every node in
+  // the map whenever any profile changes, so the port ends up pointing at a new
+  // node with the same contents.
+  EXPECT_TRUE(sw->isValidStateUpdate(
+      StateDelta(enabledLlr, withLlr(enabledLlr, "llr_default", "b", kUp))));
+
+  // The one legal transition is the first bind on a port that is still down,
+  // which is how the coldboot config arrives. The port may stay down...
+  EXPECT_TRUE(sw->isValidStateUpdate(StateDelta(disabledNoLlr, disabledLlr)));
+
+  // ...or come up in the same update, since SaiPortManager holds the enable
+  // until the profile is attached.
+  EXPECT_TRUE(sw->isValidStateUpdate(StateDelta(
+      disabledNoLlr, withLlr(disabledNoLlr, "llr_default", "a", kUp))));
+
+  // Binding onto a port that is already up is rejected: the attach would land
+  // on a port hardware considers enabled.
+  EXPECT_FALSE(sw->isValidStateUpdate(StateDelta(enabledNoLlr, enabledLlr)));
+
+  // Once a port carries a profile, nothing may change it. Not a different
+  // profile, not a retune under the same name...
+  EXPECT_FALSE(sw->isValidStateUpdate(
+      StateDelta(enabledLlr, withLlr(enabledLlr, "llr_other", "a", kUp))));
+  EXPECT_FALSE(sw->isValidStateUpdate(StateDelta(
+      enabledLlr, withLlr(enabledLlr, "llr_default", "a", kUp, 64000))));
+
+  // ...and not unbinding it.
+  EXPECT_FALSE(sw->isValidStateUpdate(StateDelta(enabledLlr, disabledNoLlr)));
+
+  // Draining the port in the same update does not make any of those legal. The
+  // SDK refuses the rebind with the port admin disabled and both LLR modes
+  // cleared beforehand (CS00012478409), so there is nothing to gain by allowing
+  // it and finding out from hardware.
+  EXPECT_FALSE(sw->isValidStateUpdate(
+      StateDelta(enabledLlr, withLlr(enabledLlr, "llr_other", "a", kDown))));
+  EXPECT_FALSE(sw->isValidStateUpdate(
+      StateDelta(disabledLlr, withLlr(disabledLlr, "llr_other", "a", kDown))));
+}
+
 TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
   ON_CALL(*getMockHw(sw), isValidStateUpdate(_))
       .WillByDefault(testing::Return(true));
@@ -171,7 +272,7 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
 
   EXPECT_TRUE(sw->isValidStateUpdate(StateDelta(stateV0, stateV1)));
 
-  // ACL without any qualifier should fail validation
+  // Empty ACL matcher validity is ASIC-dependent.
   auto stateV2 = stateV0->clone();
   auto acls2 = stateV2->getAcls()->modify(&stateV2);
 
@@ -180,7 +281,12 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
 
   stateV2->publish();
 
-  EXPECT_FALSE(sw->isValidStateUpdate(StateDelta(stateV0, stateV2)));
+  const auto emptyAclMatcherSupported =
+      sw->getHwAsicTable()->isFeatureSupportedOnAllAsic(
+          HwAsic::Feature::EMPTY_ACL_MATCHER);
+  EXPECT_EQ(
+      sw->isValidStateUpdate(StateDelta(stateV0, stateV2)),
+      emptyAclMatcherSupported);
 
   // PortQueue with valid WRED probability
   auto stateV3 = stateV0->clone();

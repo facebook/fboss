@@ -9,6 +9,9 @@ cpp_library(
     srcs = [
         "TestUtils.cpp",
     ],
+    headers = [
+        "TestUtils.h",
+    ],
     deps = [
         "//folly:file_util",
         "//folly/testing:test_util",

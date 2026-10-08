@@ -267,6 +267,11 @@ std::optional<utility::EthFrame> PacketSnooper::waitForPacket(
   return ret;
 }
 
+bool PacketSnooper::receivedPacket() {
+  std::lock_guard<std::mutex> lock(mtx_);
+  return !receivedFrames_.empty();
+}
+
 SwSwitchPacketSnooper::SwSwitchPacketSnooper(
     SwSwitch* sw,
     const std::string& name,

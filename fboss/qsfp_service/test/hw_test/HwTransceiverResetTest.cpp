@@ -50,7 +50,9 @@ class HwTransceiverResetTest : public HwTransceiverTest {
               isPortUp_ /* up */, true /* enabled */);
     }
 
-    waitTillCabledTcvrProgrammed(10 /* numRetries */, isPortUp_ /* portUp */);
+    // Tunable optics take ~100s for datapath activation. Thus wait sufficient
+    // time for the transceivers to complete transceiver programming state
+    waitTillCabledTcvrProgrammed(30 /* numRetries */, isPortUp_ /* portUp */);
   }
 
   // Verify that the transceiver's module state is correct based on the

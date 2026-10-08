@@ -66,6 +66,9 @@ cpp_library(
     srcs = [
         "PlatformNameLib.cpp",
     ],
+    headers = [
+        "PlatformNameLib.h",
+    ],
     deps = [
         "//fb303:service_data",
         "//folly:string",
@@ -82,6 +85,9 @@ cpp_library(
     srcs = [
         "PlatformUtils.cpp",
     ],
+    headers = [
+        "PlatformUtils.h",
+    ],
     deps = [
         "//folly:subprocess",
         "//folly/logging:logging",
@@ -94,6 +100,9 @@ cpp_library(
     name = "platform_fs_utils",
     srcs = [
         "PlatformFsUtils.cpp",
+    ],
+    headers = [
+        "PlatformFsUtils.h",
     ],
     deps = [
         "//folly:file_util",

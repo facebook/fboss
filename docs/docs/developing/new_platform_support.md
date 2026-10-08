@@ -36,7 +36,8 @@ Follow [Platform Mapping Config Generation](https://facebook.github.io/fboss/doc
 In addition to the existing CSVs, provide a `PLATFORM_platform_descriptor.csv` describing the
 platform identity (system vendor, `PlatformType`, product-name prefixes, mode names, and ASIC
 type). The generator writes **both** `platform_mapping.json` and `platform_descriptor.json`
-into `fboss/lib/platform_mapping_v2/generated_platform_mappings/<system_vendor>/<platform_name>/`.
+beside the platform inputs in
+`fboss/configs/platforms/<vendor>/<platform>/platform_mapping/generated/`.
 
 ### 3. Deploy the descriptor tree and run with the flag
 
@@ -91,7 +92,7 @@ above; add them only if your platform needs behavior beyond the generic path.
 2. Add a new entry to the `toString(PlatformType mode)` function in [fboss/lib/platforms/PlatformMode.h](https://github.com/facebook/fboss/blob/main/fboss/lib/platforms/PlatformMode.h).
 3. Add a new entry to `initMode()` in [fboss/lib/platforms/PlatformProductInfo.cpp](https://github.com/facebook/fboss/blob/main/fboss/lib/platforms/PlatformProductInfo.cpp).
 4. Add a new switch case for your platform to `initPlatformMapping()` in [fboss/agent/platforms/common/PlatformMappingUtils.cpp](https://github.com/facebook/fboss/blob/main/fboss/agent/platforms/common/PlatformMappingUtils.cpp#L124).
-6. Based on your files created in [Platform Mapping Config Generation](https://facebook.github.io/fboss/docs/developing/platform_mapping/), create a new folder and add all platform mapping CSV files to [fboss/lib/platform_mapping_v2/platforms/{PLATFORM}/](https://github.com/facebook/fboss/tree/main/fboss/lib/platform_mapping_v2/platforms).
+6. Based on your files created in [Platform Mapping Config Generation](https://facebook.github.io/fboss/docs/developing/platform_mapping/), add all platform mapping CSV files under `fboss/configs/platforms/<system_vendor>/<platform>/platform_mapping/`.
 7. Similarly, create a new folder and add a source file and header for your platform mapping. This requires copying the generated platform mapping JSON into `kJsonPlatformMappingStr` within the `.cpp` file.
    - `fboss/agent/platforms/common/{PLATFORM}/{PLATFORM}PlatformMapping.h` [Header example](https://github.com/facebook/fboss/blob/main/fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.h)
    - `fboss/agent/platforms/common/{PLATFORM}/{PLATFORM}PlatformMapping.cpp` [Source example](https://github.com/facebook/fboss/blob/main/fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.cpp)

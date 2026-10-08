@@ -92,7 +92,9 @@ class TestRunTestMultiTypeIteration:
             ),
             patch.object(platform_runner, "_filter_tests", side_effect=lambda t: t),
             patch.object(
-                platform_runner, "_backup_and_modify_config", side_effect=lambda c: c
+                platform_runner,
+                "_prepare_config_for_run",
+                side_effect=lambda: None,
             ),
             patch.object(platform_runner, "_run_tests", return_value=[]),
             patch.object(platform_runner, "_print_output_summary"),

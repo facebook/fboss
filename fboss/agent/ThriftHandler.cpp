@@ -78,6 +78,7 @@
 #include <folly/io/IOBuf.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
+#include <algorithm>
 #include <memory>
 #include <thread>
 
@@ -172,6 +173,34 @@ UnicastRoute toUnicastRoute(
     tempRoute.overrideNextHops() = std::move(*overrideNextHops);
   }
   return tempRoute;
+}
+
+template <typename RouteT>
+RouteDetails toRouteDetails(
+    const std::shared_ptr<SwitchState>& state,
+    const std::shared_ptr<RouteT>& route,
+    const ClientNextHopsResolver& resolveClient) {
+  auto details = route->toRouteDetails(
+      getNonOverrideNormalizedNextHops(state, route->getForwardInfo()),
+      getNormalizedNextHops(state, route->getForwardInfo()),
+      resolveClient);
+  details.resolvedNextHops() = std::vector<NextHopThrift>();
+  auto preNormalizationNextHops = getNextHops(state, route->getForwardInfo());
+  const auto& bestEntry = route->getBestEntry().second;
+  if (bestEntry) {
+    auto clientNextHops = getClientNextHops(state, *bestEntry);
+    if (!clientNextHops.empty() &&
+        std::all_of(
+            clientNextHops.begin(), clientNextHops.end(), [](const auto& nhop) {
+              return nhop.isResolved();
+            })) {
+      preNormalizationNextHops = std::move(clientNextHops);
+    }
+  }
+  for (const auto& nhop : preNormalizationNextHops) {
+    details.resolvedNextHops()->push_back(nhop.toThrift());
+  }
+  return details;
 }
 
 void fillPortStats(
@@ -467,6 +496,12 @@ void getPortInfoHelper(
        facebook::fboss::cfg::PortDrainState::DRAINED);
   portInfo.expectedNeighborReachability() =
       port->getExpectedNeighborValues()->toThrift();
+  if (auto userMetaData = port->getUserMetaData()) {
+    portInfo.userMetaData() = *userMetaData;
+  }
+  if (auto ingressAclTableName = port->getIngressAclTableName()) {
+    portInfo.ingressAclTableName() = *ingressAclTableName;
+  }
 }
 
 LacpPortRateThrift fromLacpPortRate(facebook::fboss::cfg::LacpPortRate rate) {
@@ -533,10 +568,17 @@ AclEntryThrift populateAclEntryThrift(const AclEntry& aclEntry) {
   *aclEntryThrift.srcIpPrefixLength() = aclEntry.getSrcIp().second;
   *aclEntryThrift.dstIp() = toBinaryAddress(aclEntry.getDstIp().first);
   *aclEntryThrift.dstIpPrefixLength() = aclEntry.getDstIp().second;
-  *aclEntryThrift.actionType() =
-      aclEntry.getActionType() == facebook::fboss::cfg::AclActionType::DENY
-      ? "deny"
-      : "permit";
+  switch (aclEntry.getActionType()) {
+    case facebook::fboss::cfg::AclActionType::DENY:
+      *aclEntryThrift.actionType() = "deny";
+      break;
+    case facebook::fboss::cfg::AclActionType::DENY_DATA_AND_CONTROL_PLANE:
+      *aclEntryThrift.actionType() = "deny_data_and_control_plane";
+      break;
+    case facebook::fboss::cfg::AclActionType::PERMIT:
+      *aclEntryThrift.actionType() = "permit";
+      break;
+  }
   if (aclEntry.getProto()) {
     aclEntryThrift.proto() = aclEntry.getProto().value();
   }
@@ -572,6 +614,9 @@ AclEntryThrift populateAclEntryThrift(const AclEntry& aclEntry) {
   }
   if (aclEntry.isEnabled()) {
     aclEntryThrift.enabled() = aclEntry.isEnabled().value();
+  }
+  if (aclEntry.getLookupClassPort()) {
+    aclEntryThrift.lookupClassPort() = aclEntry.getLookupClassPort().value();
   }
   return aclEntryThrift;
 }
@@ -786,6 +831,27 @@ std::optional<std::string> getDefaultSrv6TunnelId(
     }
   }
   return std::nullopt;
+}
+
+// Adjacency FRR is implemented only for uA MySIDs. Every other arm of the
+// union must be rejected here: an unset union would otherwise reach the RIB
+// as an empty update, which mutates nothing and reports success even though
+// no protection was installed.
+void ensureFrrProtectedObjectIsMySid(
+    const facebook::fboss::FrrProtectedObject& protectedObject) {
+  switch (protectedObject.getType()) {
+    case facebook::fboss::FrrProtectedObject::Type::mySid:
+      return;
+    case facebook::fboss::FrrProtectedObject::Type::mplsLabel:
+      throw facebook::fboss::FbossError(
+          "Adj FRR protection not implemented for MPLS labels");
+    case facebook::fboss::FrrProtectedObject::Type::__EMPTY__:
+      throw facebook::fboss::FbossError(
+          "FrrProtectedObject must specify the protected uA mySID");
+  }
+  throw facebook::fboss::FbossError(
+      "Unknown FrrProtectedObject type ",
+      static_cast<int>(protectedObject.getType()));
 }
 
 } // namespace
@@ -1115,8 +1181,22 @@ static void populateInterfaceDetail(
   *interfaceDetail.interfaceId() = intf->getID();
   switch (intf->getType()) {
     case cfg::InterfaceType::PORT: {
-      auto port = state->getPorts()->getNode(intf->getPortID());
-      interfaceDetail.portNames()->emplace_back(port->getName());
+      // A port router interface is bound to either a physical port or an
+      // aggregate port, in which case it covers all of the members.
+      if (auto aggregatePortID = intf->getAggregatePortIDf()) {
+        auto aggPort = state->getAggregatePorts()->getNodeIf(*aggregatePortID);
+        if (aggPort) {
+          for (const auto& subport : aggPort->sortedSubports()) {
+            auto port = state->getPorts()->getNodeIf(subport.portID);
+            if (port) {
+              interfaceDetail.portNames()->emplace_back(port->getName());
+            }
+          }
+        }
+      } else {
+        auto port = state->getPorts()->getNode(intf->getPortID());
+        interfaceDetail.portNames()->emplace_back(port->getName());
+      }
     } break;
     case cfg::InterfaceType::VLAN: {
       *interfaceDetail.vlanId() = intf->getVlanID();
@@ -1143,7 +1223,11 @@ static void populateInterfaceDetail(
     } break;
   }
   if (intf->getType() == cfg::InterfaceType::PORT) {
-    *interfaceDetail.portId() = intf->getPortID();
+    if (auto aggregatePortID = intf->getAggregatePortIDf()) {
+      interfaceDetail.aggregatePortId() = *aggregatePortID;
+    } else {
+      *interfaceDetail.portId() = intf->getPortID();
+    }
   }
   *interfaceDetail.routerId() = intf->getRouterID();
   *interfaceDetail.mtu() = intf->getMtu();
@@ -1739,19 +1823,56 @@ void ThriftHandler::setInterfacesPrbs(
 }
 
 void ThriftHandler::addAdjacencyFrr(
-    std::unique_ptr<FrrProtectedObject>,
-    std::unique_ptr<std::vector<NextHopThrift>>) {
+    std::unique_ptr<FrrProtectedObject> protectedObject,
+    std::unique_ptr<std::vector<NextHopThrift>> backupNextHops) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
+  ensureFrrProtectedObjectIsMySid(*protectedObject);
+  if (backupNextHops->empty()) {
+    throw FbossError(
+        "Adjacency FRR requires at least one backup next hop; use "
+        "deleteAdjacencyFrr to remove protection");
+  }
 
-  // TODO add support
-  throw FbossError("addAdjacencyFrr Not supported");
+  auto rib = sw_->getRib();
+  if (!rib) {
+    throw FbossError("RIB not initialized");
+  }
+  for (auto& nextHop : *backupNextHops) {
+    nextHop.role() = NextHopRole::BACKUP;
+  }
+  std::vector<MySidFrrProtectionUpdate> toAddOrUpdate{MySidFrrProtectionUpdate{
+      .mySidPrefix =
+          facebook::network::toCIDRNetwork(*protectedObject->mySid_ref()),
+      .nextHops = util::toRouteNextHopSet(
+          *backupNextHops, true /* allowV6NonLinkLocal */),
+  }};
+  auto ribMySidToSwitchStateFunc =
+      createRibMySidToSwitchStateFunction(std::nullopt);
+  rib->updateMySidFrrProtection(
+      sw_->getScopeResolver(),
+      toAddOrUpdate,
+      {},
+      ribMySidToSwitchStateFunc,
+      sw_);
 }
 
-void ThriftHandler::deleteAdjacencyFrr(std::unique_ptr<FrrProtectedObject>) {
+void ThriftHandler::deleteAdjacencyFrr(
+    std::unique_ptr<FrrProtectedObject> protectedObject) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
+  ensureFrrProtectedObjectIsMySid(*protectedObject);
 
-  // TODO add support
-  throw FbossError("deleteAdjacencyFrr Not supported");
+  auto rib = sw_->getRib();
+  if (!rib) {
+    throw FbossError("RIB not initialized");
+  }
+  std::vector<folly::CIDRNetwork> toDelete{
+      facebook::network::toCIDRNetwork(*protectedObject->mySid_ref())};
+  auto ribMySidToSwitchStateFunc =
+      createRibMySidToSwitchStateFunction(std::nullopt);
+  rib->updateMySidFrrProtection(
+      sw_->getScopeResolver(), {}, toDelete, ribMySidToSwitchStateFunc, sw_);
 }
 
 void ThriftHandler::clearPortPrbsStats(
@@ -1940,7 +2061,7 @@ void ThriftHandler::setPortLoopbackMode(
   auto newLoopbackMode = toLoopbackMode(mode);
 
   if (port->getLoopbackMode() == newLoopbackMode) {
-    XLOG(DBG2) << "setPortState: port already set to lb mode : "
+    XLOG(DBG2) << "setPortLoopbackMode: port already set to lb mode : "
                << static_cast<int>(newLoopbackMode);
     return;
   }
@@ -2154,11 +2275,15 @@ void ThriftHandler::getRouteTableDetails(std::vector<RouteDetails>& routes) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   auto state = sw_->getState();
+  ClientNextHopsResolver resolveClient =
+      [&state](const RouteNextHopEntry& entry) {
+        return getClientNextHops(state, entry);
+      };
   forAllRoutes(
-      state, [&routes, &state](const RouterID& /*rid*/, const auto& route) {
-        routes.emplace_back(route->toRouteDetails(
-            getNonOverrideNormalizedNextHops(state, route->getForwardInfo()),
-            getNormalizedNextHops(state, route->getForwardInfo())));
+      state,
+      [&routes, &state, &resolveClient](
+          const RouterID& /*rid*/, const auto& route) {
+        routes.emplace_back(toRouteDetails(state, route, resolveClient));
       });
 }
 
@@ -2219,20 +2344,20 @@ void ThriftHandler::getIpRouteDetails(
   ensureConfigured(__func__);
   folly::IPAddress ipAddr = toIPAddress(*addr);
   auto state = sw_->getState();
+  ClientNextHopsResolver resolveClient =
+      [&state](const RouteNextHopEntry& entry) {
+        return getClientNextHops(state, entry);
+      };
 
   if (ipAddr.isV4()) {
     auto match = sw_->longestMatch(state, ipAddr.asV4(), RouterID(vrfId));
     if (match && match->isResolved()) {
-      route = match->toRouteDetails(
-          getNonOverrideNormalizedNextHops(state, match->getForwardInfo()),
-          getNormalizedNextHops(state, match->getForwardInfo()));
+      route = toRouteDetails(state, match, resolveClient);
     }
   } else {
     auto match = sw_->longestMatch(state, ipAddr.asV6(), RouterID(vrfId));
     if (match && match->isResolved()) {
-      route = match->toRouteDetails(
-          getNonOverrideNormalizedNextHops(state, match->getForwardInfo()),
-          getNormalizedNextHops(state, match->getForwardInfo()));
+      route = toRouteDetails(state, match, resolveClient);
     }
   }
 }
@@ -3066,7 +3191,8 @@ void ThriftHandler::getMplsRouteTableByClient(
     int16_t clientId) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
-  auto labelFib = sw_->getState()->getLabelForwardingInformationBase();
+  auto state = sw_->getState();
+  auto labelFib = state->getLabelForwardingInformationBase();
   for (const auto& iter : std::as_const(*labelFib)) {
     for (const auto& [_, entry] : std::as_const(*iter.second)) {
       auto labelNextHopEntry = entry->getEntryForClient(ClientID(clientId));
@@ -3076,8 +3202,8 @@ void ThriftHandler::getMplsRouteTableByClient(
       MplsRoute mplsRoute;
       mplsRoute.topLabel() = entry->getID();
       mplsRoute.adminDistance() = labelNextHopEntry->getAdminDistance();
-      mplsRoute.nextHops() =
-          util::fromRouteNextHopSet(labelNextHopEntry->getNextHopSet());
+      mplsRoute.nextHops() = util::fromRouteNextHopSet(
+          getMplsClientNextHops(state, *labelNextHopEntry));
       mplsRoutes.emplace_back(std::move(mplsRoute));
     }
   }
@@ -3102,12 +3228,18 @@ void ThriftHandler::getMplsRouteDetails(
     MplsLabel topLabel) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
+  auto state = sw_->getState();
   const auto entry =
-      sw_->getState()->getLabelForwardingInformationBase()->getNode(topLabel);
+      state->getLabelForwardingInformationBase()->getNode(topLabel);
+  ClientNextHopsResolver resolveClient =
+      [&state](const RouteNextHopEntry& entry) {
+        return getMplsClientNextHops(state, entry);
+      };
   mplsRouteDetail.topLabel() = entry->getID();
-  mplsRouteDetail.nextHopMulti() = entry->getEntryForClients().toThriftLegacy();
+  mplsRouteDetail.nextHopMulti() =
+      entry->getEntryForClients().toThriftLegacy(std::nullopt, resolveClient);
   const auto& fwd = entry->getForwardInfo();
-  for (const auto& nh : fwd.getNextHopSet()) {
+  for (const auto& nh : getMplsNextHops(state, fwd)) {
     mplsRouteDetail.nextHops()->push_back(nh.toThrift());
   }
   *mplsRouteDetail.adminDistance() = fwd.getAdminDistance();
@@ -3323,20 +3455,25 @@ void ThriftHandler::getTeFlowTableDetails(
 }
 
 void ThriftHandler::addNamedNextHopGroups(
-    std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups) {
+    std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups,
+    bool combineDuplicatedNextHops) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
-  addNamedNextHopGroupsImpl(__func__, std::move(nextHopGroups));
+  addNamedNextHopGroupsImpl(
+      __func__, std::move(nextHopGroups), combineDuplicatedNextHops);
 }
 
 void ThriftHandler::addOrUpdateNamedNextHopGroups(
-    std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups) {
+    std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups,
+    bool combineDuplicatedNextHops) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
-  addNamedNextHopGroupsImpl(__func__, std::move(nextHopGroups));
+  addNamedNextHopGroupsImpl(
+      __func__, std::move(nextHopGroups), combineDuplicatedNextHops);
 }
 
 void ThriftHandler::addNamedNextHopGroupsImpl(
     folly::StringPiece function,
-    std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups) {
+    std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups,
+    bool combineDuplicatedNextHops) {
   ensureConfigured(function);
 
   auto* rib = sw_->getRib();
@@ -3372,7 +3509,9 @@ void ThriftHandler::addNamedNextHopGroupsImpl(
     groups.emplace_back(
         *group.name(),
         util::toRouteNextHopSet(
-            *group.nexthops(), true /* allowV6NonLinkLocal */));
+            *group.nexthops(),
+            true /* allowV6NonLinkLocal */,
+            combineDuplicatedNextHops));
   }
 
   // RIB handles allocation + route reprogramming on the RIB thread.
@@ -3429,7 +3568,9 @@ std::optional<NhgFibContext> getNhgFibContext(
 
 } // namespace
 
-void ThriftHandler::getNextHopGroups(std::vector<NextHopGroup>& result) {
+void ThriftHandler::getNextHopGroups(
+    std::vector<NextHopGroup>& result,
+    bool replicateWeightedNexthops) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
 
@@ -3455,6 +3596,7 @@ void ThriftHandler::getNextHopGroups(std::vector<NextHopGroup>& result) {
     }
 
     NextHopGroup thriftGroup;
+    thriftGroup.id() = setId;
     if (isNamed) {
       thriftGroup.name() = nameIter->second;
       auto refCountIter = refCounts.find(NextHopSetID(setId));
@@ -3466,12 +3608,8 @@ void ThriftHandler::getNextHopGroups(std::vector<NextHopGroup>& result) {
 
     try {
       auto nextHops = ctx->fibInfo->resolveNextHopSetFromId(setId);
-      std::vector<NextHopThrift> nexthopsThrift;
-      nexthopsThrift.reserve(nextHops.size());
-      for (const auto& hop : nextHops) {
-        nexthopsThrift.push_back(hop.toThrift());
-      }
-      thriftGroup.nexthops() = std::move(nexthopsThrift);
+      thriftGroup.nexthops() =
+          util::fromNextHops(nextHops, replicateWeightedNexthops);
       result.push_back(std::move(thriftGroup));
     } catch (const FbossError& e) {
       XLOG(ERR) << "Failed to resolve nexthops for NextHopSetId " << setId
@@ -3482,7 +3620,8 @@ void ThriftHandler::getNextHopGroups(std::vector<NextHopGroup>& result) {
 
 void ThriftHandler::getNamedNextHopGroups(
     std::vector<NextHopGroup>& result,
-    std::unique_ptr<std::vector<std::string>> names) {
+    std::unique_ptr<std::vector<std::string>> names,
+    bool replicateWeightedNexthops) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
 
@@ -3508,16 +3647,13 @@ void ThriftHandler::getNamedNextHopGroups(
     foundNames.insert(name);
     NextHopGroup thriftGroup;
     thriftGroup.name() = name;
+    thriftGroup.id() = nextHopSetId;
     thriftGroup.isProgrammed() =
         refCounts.count(NextHopSetID(nextHopSetId)) > 0;
     try {
       auto nextHops = ctx->fibInfo->resolveNextHopSetFromId(nextHopSetId);
-      std::vector<NextHopThrift> nexthopsThrift;
-      nexthopsThrift.reserve(nextHops.size());
-      for (const auto& hop : nextHops) {
-        nexthopsThrift.push_back(hop.toThrift());
-      }
-      thriftGroup.nexthops() = std::move(nexthopsThrift);
+      thriftGroup.nexthops() =
+          util::fromNextHops(nextHops, replicateWeightedNexthops);
       result.push_back(std::move(thriftGroup));
     } catch (const FbossError& e) {
       XLOG(ERR) << "Failed to resolve nexthops for named group '" << name

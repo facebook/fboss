@@ -34,6 +34,8 @@
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/IpTunnelMap.h"
+#include "fboss/agent/state/IsolationGroup.h"
+#include "fboss/agent/state/IsolationGroupMap.h"
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/state/LlrConfig.h"
 #include "fboss/agent/state/LlrConfigMap.h"
@@ -77,6 +79,8 @@ class BufferPoolCfgMap;
 class FlowletSwitchingConfig;
 class PortFlowletCfg;
 class PortFlowletCfgMap;
+class IsolationGroup;
+class IsolationGroupMap;
 class LlrConfig;
 class LlrConfigMap;
 
@@ -156,6 +160,10 @@ RESOLVE_STRUCT_MEMBER(
     MultiSwitchAclTableGroupMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
+    switch_state_tags::portAclTableGroupMaps,
+    MultiSwitchAclTableGroupMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
     switch_state_tags::dsfNodesMap,
     MultiSwitchDsfNodeMap);
 RESOLVE_STRUCT_MEMBER(
@@ -198,6 +206,10 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::llrCfgMaps,
     MultiSwitchLlrConfigMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::isolationGroupMaps,
+    MultiSwitchIsolationGroupMap);
 /*
  * SwitchState stores the current switch configuration.
  *
@@ -302,10 +314,15 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       const;
 
   const std::shared_ptr<MultiSwitchAclTableGroupMap>& getAclTableGroups() const;
+  const std::shared_ptr<MultiSwitchAclTableGroupMap>& getPortAclTableGroups()
+      const;
 
   std::chrono::seconds getArpTimeout() const;
 
   std::shared_ptr<const AclMap> getAclsForTable(
+      cfg::AclStage aclStage,
+      const std::string& tableName) const;
+  std::shared_ptr<const AclTable> getAclTable(
       cfg::AclStage aclStage,
       const std::string& tableName) const;
 
@@ -329,6 +346,9 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       const;
 
   const std::shared_ptr<MultiSwitchLlrConfigMap> getLlrConfigs() const;
+
+  const std::shared_ptr<MultiSwitchIsolationGroupMap> getIsolationGroups()
+      const;
 
   std::chrono::seconds getNdpTimeout() const;
 
@@ -427,6 +447,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       const std::shared_ptr<MultiSwitchClassBasedPolicyMap>& policies);
   void resetAclTableGroups(
       std::shared_ptr<MultiSwitchAclTableGroupMap> multiAclTableGroups);
+  void resetPortAclTableGroups(
+      std::shared_ptr<MultiSwitchAclTableGroupMap> portAclTableGroups);
   void resetSflowCollectors(
       const std::shared_ptr<MultiSwitchSflowCollectorMap>& collectors);
   void resetQosPolicies(
@@ -443,6 +465,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       std::shared_ptr<MultiSwitchTransceiverMap> transceivers);
   void resetPortFlowletCfgs(std::shared_ptr<MultiSwitchPortFlowletCfgMap> cfgs);
   void resetLlrConfigs(std::shared_ptr<MultiSwitchLlrConfigMap> cfgs);
+  void resetIsolationGroups(
+      std::shared_ptr<MultiSwitchIsolationGroupMap> groups);
   void resetSystemPorts(
       const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts);
   void resetRemoteSystemPorts(
@@ -525,5 +549,10 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   using BaseT::BaseT;
   friend class CloneAllocator;
 };
+
+// Returns the ECMP width from SwitchSettings.ecmpWidth (config-sourced), or
+// FLAGS_ecmp_width when the state carries no value. The single accessor used by
+// FIB, RIB, and warm-boot code so ECMP-width sourcing lives in one place.
+uint32_t getEcmpWidth(const std::shared_ptr<SwitchState>& state);
 
 } // namespace facebook::fboss

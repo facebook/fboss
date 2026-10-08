@@ -171,7 +171,13 @@ void IPv6RAImpl::sendRouteAdvertisement() {
       portDescriptor =
           PortDescriptor(getPortID(*intf->getSystemPortID(), sw_->getState()));
     } else if (intf->getType() == cfg::InterfaceType::PORT) {
-      portDescriptor = PortDescriptor(intf->getPortID());
+      // A port router interface is bound to either a physical port or an
+      // aggregate port.
+      if (auto aggregatePortID = intf->getAggregatePortIDf()) {
+        portDescriptor = PortDescriptor(*aggregatePortID);
+      } else {
+        portDescriptor = PortDescriptor(intf->getPortID());
+      }
     }
   } else {
     XLOG(ERR) << " Skip sending router advertisement for non "

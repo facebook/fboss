@@ -48,6 +48,7 @@ struct NextHopInfo {
   7: optional list<string> srv6SegmentList;
   8: optional i32 cost;
   9: bool isBackup = false;
+  10: optional i32 preNormalizationWeight;
 }
 
 struct ClientAndNextHops {
@@ -66,6 +67,7 @@ struct RouteEntry {
   2: list<NextHopInfo> nextHops;
   3: string overridenEcmpMode;
   4: optional list<NextHopInfo> overridenNextHops;
+  5: string addressFamily;
 }
 
 struct RouteDetailEntry {

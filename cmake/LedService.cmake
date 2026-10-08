@@ -64,6 +64,7 @@ add_library(led_manager_lib
   fboss/led_service/MontblancLedManager.cpp
   fboss/led_service/Icecube800banwLedManager.cpp
   fboss/led_service/Icecube800bcLedManager.cpp
+  fboss/led_service/M4052ACTMLedManager.cpp
   fboss/led_service/M4062nhpLedManager.cpp
   fboss/led_service/Icetea800bcLedManager.cpp
   fboss/led_service/Meru800biaLedManager.cpp
@@ -112,7 +113,6 @@ target_link_libraries(led_manager_lib
   montblanc_platform_mapping
   icecube800banw_platform_mapping
   icecube800bc_platform_mapping
-  m4062nhp_platform_mapping
   icetea800bc_platform_mapping
   meru800bia_platform_mapping
   meru800bfa_platform_mapping
@@ -123,7 +123,6 @@ target_link_libraries(led_manager_lib
   leh800bcls_platform_mapping
   wedge400_fpga
   wedge400_platform_mapping
-  wedge800cact_platform_mapping
   yamp_platform_mapping
   platform_mapping_utils
   product_info
@@ -132,6 +131,7 @@ target_link_libraries(led_manager_lib
   fsdb_stream_client
   fsdb_pub_sub
   fsdb_flags
+  fsdb_model
 )
 
 add_library(led_core_lib

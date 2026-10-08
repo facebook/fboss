@@ -104,6 +104,9 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::TECH_SUPPORT:
     case HwAsic::Feature::TEMPERATURE_MONITORING:
     case HwAsic::Feature::ASIC_RESET_NOTIFICATIONS:
+    case HwAsic::Feature::ECN:
+    case HwAsic::Feature::SAI_ECN_WRED:
+    case HwAsic::Feature::QUEUE_ECN_COUNTER:
       return true;
     // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
@@ -149,6 +152,8 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::FEC_DIAG_COUNTERS:
     case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:
     case HwAsic::Feature::SAI_MPLS_TTL_1_TRAP:
+    case HwAsic::Feature::SAI_ACL_MPLS_LABEL0_TTL:
+    case HwAsic::Feature::SAI_MPLS_NEXTHOP_OUTSEG_TYPE:
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
     case HwAsic::Feature::EXACT_MATCH:
     case HwAsic::Feature::RX_FREQUENCY_PPM:
@@ -210,6 +215,7 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PFC_WATCHDOG_TIMER_GRANULARITY:
     case HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS:
     case HwAsic::Feature::ROUTER_INTERFACE_STATISTICS:
+    case HwAsic::Feature::AGGREGATE_PORT_ROUTER_INTERFACE:
     case HwAsic::Feature::CPU_PORT_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::ACL_SET_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::SET_NEXT_HOP_GROUP_HASH_ALGORITHM:
@@ -261,9 +267,6 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     // enabled once SDK support is available
     case HwAsic::Feature::VOQ_LATENCY_WATERMARK_BIN:
     case HwAsic::Feature::EGRESS_GVOQ_WATERMARK_BYTES:
-    case HwAsic::Feature::QUEUE_ECN_COUNTER:
-    case HwAsic::Feature::SAI_ECN_WRED:
-    case HwAsic::Feature::ECN:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
     case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
@@ -287,11 +290,16 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::CREDIT_WATCHDOG:
     case HwAsic::Feature::VOQ_DELETE_COUNTER:
     case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
+    case HwAsic::Feature::CBFC:
     case HwAsic::Feature::LINK_LAYER_RETRANSMISSION:
     case HwAsic::Feature::PORT_DEBOUNCE:
+    case HwAsic::Feature::SWITCH_WIDE_LINK_UP_DEBOUNCE:
     case HwAsic::Feature::ACL_DST_IPV6_WORD_QUALIFIERS:
     case HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS:
     case HwAsic::Feature::NEXT_HOP_GROUP_MEMBER_MONITORED_OBJECT:
+    case HwAsic::Feature::RX_PACKET_TYPE:
+    case HwAsic::Feature::ISOLATION_GROUP:
+    case HwAsic::Feature::ACL_ENTRY_OUT_PORT_QUALIFIER:
       return false;
   }
   return false;

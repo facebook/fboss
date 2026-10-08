@@ -58,6 +58,7 @@ class RibRouteUpdater {
       IPv6NetworkToRouteMap* v6Routes,
       NextHopIDManager* nextHopIDManager,
       MySidTable* mySidTable,
+      uint32_t ecmpWidth,
       RouterID routerID = RouterID(0));
 
   RibRouteUpdater(
@@ -66,6 +67,7 @@ class RibRouteUpdater {
       LabelToRouteMap* mplsRoutes,
       NextHopIDManager* nextHopIDManager,
       MySidTable* mySidTable,
+      uint32_t ecmpWidth,
       RouterID routerID = RouterID(0));
 
   struct RouteEntry {
@@ -227,6 +229,7 @@ class RibRouteUpdater {
   LabelToRouteMap* mplsRoutes_{nullptr};
   NextHopIDManager* nextHopIDManager_{nullptr};
   MySidTable* mySidTable_{nullptr};
+  uint32_t ecmpWidth_;
   RouterID routerID_{0};
   std::unordered_set<void*> needsResolution_;
   std::unordered_set<void*> resolving_;

@@ -316,6 +316,9 @@ cpp_library(
     # the multi_switch benchmark binary and breaking the @mode/opt link.
     name = "hw_init_and_exit_benchmark_helper",
     srcs = ["HwInitAndExitBenchmarkHelper.cpp"],
+    headers = [
+        "HwInitAndExitBenchmarkHelper.h",
+    ],
     undefined_symbols = True,
     deps = [
         "//fboss/agent:apply_thrift_config",
@@ -483,10 +486,14 @@ agent_benchmark_lib(
     name = "hw_flowlet_stats_collection_speed",
     srcs = ["HwFlowletStatsCollectionBenchmark.cpp"],
     deps = [
-        "//fboss/agent:platform_base",
+        "fbsource//third-party/googletest:gtest",
+        ":hw_stats_collection_benchmark_helper",
         "//fboss/agent/test:agent_ensemble",
         "//fboss/agent/test/utils:config_utils",
+        "//fboss/agent/test/utils:scale_test_utils",
+        "//fboss/lib:common_utils",
         "//folly:network_address",
+        "//folly/logging:logging",
     ],
     extra_deps = [
         "//fboss/agent/hw/test:hw_test_ecmp_utils",
@@ -523,6 +530,9 @@ agent_benchmark_lib(
         "HwSwitchReachabilityChangeBenchmarkHelper.cpp",
         "HwSwitchReachabilityChangeFabricBenchmark.cpp",
         "HwSwitchReachabilityChangeVoqBenchmark.cpp",
+    ],
+    headers = [
+        "HwSwitchReachabilityChangeBenchmarkHelper.h",
     ],
     deps = [
         "fbsource//third-party/fmt:fmt",
@@ -714,6 +724,7 @@ agent_benchmark_lib(
         "//fboss/agent:agent_features",
         "//fboss/agent:asic_utils",
         "//fboss/agent:core",
+        "//fboss/agent:handler",
         "//fboss/agent:utils",
         "//fboss/agent/benchmarks:mono_agent_benchmarks",
         "//fboss/agent/state:state",

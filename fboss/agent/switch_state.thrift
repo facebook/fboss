@@ -25,6 +25,14 @@ struct VlanInfo {
   2: bool priorityTagged;
 }
 
+struct PortVcFields {
+  1: i16 id;
+  2: optional string name;
+  3: bool senderEnable = false;
+  4: bool receiverEnable = false;
+  5: optional i64 reservedCreditSize;
+}
+
 struct PortPgFields {
   1: i16 id;
   2: i32 minLimitBytes;
@@ -196,6 +204,14 @@ struct PortFields {
   74: optional string ingressAclTableName;
   // Lookup class assigned to packets arriving on this port.
   75: optional switch_config.AclLookupClassPort userMetaData;
+  76: optional string cbfcConfigName;
+  77: optional list<PortVcFields> virtualChannels;
+  78: optional i64 cbfcSenderCreditLimit;
+  // Name of the isolation group whose members traffic ingressing this port is
+  // not forwarded to. Only the name is stored: a change to the group's
+  // membership does not change the port, and is handled off the isolation
+  // group map delta instead.
+  79: optional string isolationGroup;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -241,7 +257,6 @@ struct MatchAction {
   10: optional switch_config.UserDefinedTrapAction userDefinedTrap;
   11: optional switch_config.FlowletAction flowletAction;
   12: optional switch_config.SetEcmpHashAction ecmpHashAction;
-  13: optional bool enableAlternateArsMembers;
   14: optional i64 redirectNextHopGroupId;
 }
 
@@ -292,6 +307,8 @@ struct AclEntryFields {
   36: optional i64 dstIpV6Word3;
   37: optional i64 dstIpV6Word2;
   38: optional switch_config.AclLookupClassPort lookupClassPort;
+  39: optional AclTtl mplsLabel0Ttl;
+  40: optional byte tcpFlagsMask;
 }
 
 struct NamedNextHopGroupAndID {
@@ -303,6 +320,7 @@ struct ClassBasedPolicyFields {
   1: string name;
   2: NamedNextHopGroupAndID defaultNextHopGroup;
   3: map<common.ForwardingClass, NamedNextHopGroupAndID> class2NextHopGroup;
+  4: bool referenced;
 }
 
 enum NeighborState {
@@ -468,6 +486,13 @@ struct LlrFields {
   11: i32 ctlosTargetSpacing;
 }
 
+struct IsolationGroupFields {
+  1: string id;
+  2: switch_config.IsolationGroupType type;
+  // cfg::Port.logicalID of each isolated member.
+  3: set<i32> memberPorts;
+}
+
 struct BlockedNeighbor {
   1: i16 blockNeighborVlanID;
   2: Address.BinaryAddress blockNeighborIP;
@@ -596,6 +621,7 @@ struct RouteNextHopsMulti {
   2: map<ctrl.ClientID, RouteNextHopEntry> client2NextHopEntry;
 }
 
+@fboss_common.AllowSkipThriftCow
 struct RouteFields {
   1: RoutePrefix prefix;
   2: RouteNextHopsMulti nexthopsmulti;
@@ -618,9 +644,7 @@ struct LabelForwardingEntryFields {
 
 struct FibContainerFields {
   1: i16 vrf;
-  @fboss_common.AllowSkipThriftCow
   2: map<string, RouteFields> fibV4;
-  @fboss_common.AllowSkipThriftCow
   3: map<string, RouteFields> fibV6;
 }
 
@@ -719,6 +743,8 @@ struct QosPolicyFields {
   7: optional map<i16, i16> pfcPriorityToPgId;
   8: optional map<i16, i16> trafficClassToVoqId;
   9: optional TrafficClassToQosAttributeMap pcpMap;
+  10: optional map<i16, i16> trafficClassToVcId;
+  11: optional map<i16, i16> queueToVcId;
 }
 
 struct SocketAddress {
@@ -925,6 +951,10 @@ struct SwitchState {
   125: map<SwitchIdList, map<string, Srv6TunnelFields>> srv6TunnelMaps;
   126: map<SwitchIdList, map<string, MySidFields>> mySidMaps;
   127: map<SwitchIdList, map<string, LlrFields>> llrCfgMaps;
+  130: map<
+    SwitchIdList,
+    map<string, IsolationGroupFields>
+  > isolationGroupMaps;
   128: map<
     SwitchIdList,
     map<string, ClassBasedPolicyFields>

@@ -38,7 +38,8 @@ bool RouteFields<AddrT>::operator==(const RouteFields& rf) const {
 template <typename AddrT>
 RouteDetails RouteFields<AddrT>::toRouteDetails(
     const RouteNextHopSet& nhopSet,
-    const std::optional<RouteNextHopSet>& normalizedNhopSet) const {
+    const std::optional<RouteNextHopSet>& normalizedNhopSet,
+    const ClientNextHopsResolver& resolveClientNextHops) const {
   RouteDetails rd;
   if constexpr (
       std::is_same_v<folly::IPAddressV6, AddrT> ||
@@ -66,7 +67,8 @@ RouteDetails RouteFields<AddrT>::toRouteDetails(
 
   // Add the multi-nexthops
   auto bestEntry = getBestEntry();
-  rd.nextHopMulti() = nexthopsmulti().toThriftLegacy(bestEntry.first);
+  rd.nextHopMulti() =
+      nexthopsmulti().toThriftLegacy(bestEntry.first, resolveClientNextHops);
   rd.isConnected() = isConnected();
   // add counter id
   if (fwd().getCounterID().has_value()) {
@@ -186,9 +188,11 @@ template struct RouteFields<LabelID>;
 template <typename AddrT>
 RouteDetails Route<AddrT>::toRouteDetails(
     const RouteNextHopSet& nhopSet,
-    const std::optional<RouteNextHopSet>& normalizedNhopSet) const {
+    const std::optional<RouteNextHopSet>& normalizedNhopSet,
+    const ClientNextHopsResolver& resolveClientNextHops) const {
   RouteFields<AddrT> fields{this->toThrift()};
-  return fields.toRouteDetails(nhopSet, normalizedNhopSet);
+  return fields.toRouteDetails(
+      nhopSet, normalizedNhopSet, resolveClientNextHops);
 }
 
 template <typename AddrT>

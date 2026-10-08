@@ -145,6 +145,8 @@ class SaiRouterInterfaceManager {
       const InterfaceID& swId) const;
   SaiPortRouterInterfaceTraits::Attributes::PortId getPortId(
       const std::shared_ptr<Interface>& swInterface);
+  SaiPortRouterInterfaceTraits::Attributes::PortId getAggregatePortId(
+      const std::shared_ptr<Interface>& swInterface);
   SaiPortRouterInterfaceTraits::Attributes::PortId getSystemPortId(
       const std::shared_ptr<Interface>& swInterface);
 

@@ -8,12 +8,14 @@
  *
  */
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
+#include "fboss/agent/state/MatchAction.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "folly/IPAddress.h"
@@ -613,21 +615,6 @@ TEST(Acl, AclGeneration) {
       ->ecmpHashAction()
       ->switchingMode() = cfg::SwitchingMode::FIXED_ASSIGNMENT;
 
-  // Add ACL with enableAlternateArsMembers action
-  config.acls()->resize(8);
-  *config.acls()[7].name() = "acl8";
-  config.acls()[7].proto() = kUdpProto;
-  config.acls()[7].l4DstPort() = 2048;
-
-  config.dataPlaneTrafficPolicy()->matchToAction()->resize(6);
-  *config.dataPlaneTrafficPolicy()->matchToAction()[5].matcher() = "acl8";
-  *config.dataPlaneTrafficPolicy()->matchToAction()[5].action() =
-      cfg::MatchAction();
-  config.dataPlaneTrafficPolicy()
-      ->matchToAction()[5]
-      .action()
-      ->enableAlternateArsMembers() = true;
-
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(stateV1, nullptr);
   auto acls = stateV1->getAcls();
@@ -683,13 +670,6 @@ TEST(Acl, AclGeneration) {
           ->getAclAction()
           ->cref<switch_state_tags::ecmpHashAction>()
           ->cref<switch_config_tags::switchingMode>()
-          ->cref());
-  EXPECT_TRUE(acls->getNodeIf("acl8")->getAclAction() != nullptr);
-  EXPECT_EQ(
-      true,
-      acls->getNodeIf("acl8")
-          ->getAclAction()
-          ->cref<switch_state_tags::enableAlternateArsMembers>()
           ->cref());
 }
 
@@ -1455,6 +1435,29 @@ TEST(Acl, PbrFieldsQualifier) {
       qualifiers.end());
 }
 
+TEST(Acl, ActionTypeDenyDataAndControlPlane) {
+  FLAGS_enable_acl_table_group = false;
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  registerPort(stateV0, PortID(1), "port1", scope());
+
+  cfg::SwitchConfig config;
+  config.ports()->resize(1);
+  preparedMockPortConfig(config.ports()[0], 1);
+  config.acls()->resize(1);
+  *config.acls()[0].name() = "acl0";
+  config.acls()[0].l4DstPort() = 179;
+  *config.acls()[0].actionType() =
+      cfg::AclActionType::DENY_DATA_AND_CONTROL_PLANE;
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  auto acl = stateV1->getAcl("acl0");
+  ASSERT_NE(nullptr, acl);
+  EXPECT_EQ(
+      cfg::AclActionType::DENY_DATA_AND_CONTROL_PLANE, acl->getActionType());
+}
+
 TEST(Acl, L4DstPortRangeValidation) {
   FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
@@ -1530,6 +1533,91 @@ TEST(Acl, L4DstPortRangeValidation) {
     EXPECT_EQ(*acl->getL4DstPortRange()->minimum(), 1000);
     EXPECT_EQ(*acl->getL4DstPortRange()->maximum(), 2000);
   }
+}
+
+TEST(Acl, TcpFlagsMaskValidation) {
+  FLAGS_enable_acl_table_group = false;
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  registerPort(stateV0, PortID(1), "port1", scope());
+
+  auto makeConfig = [](std::optional<int16_t> tcpFlagsBitMap,
+                       std::optional<int16_t> tcpFlagsMask) {
+    cfg::SwitchConfig config;
+    config.ports()->resize(1);
+    preparedMockPortConfig(config.ports()[0], 1);
+    config.acls()->resize(1);
+    *config.acls()[0].name() = "acl0";
+    *config.acls()[0].actionType() = cfg::AclActionType::DENY;
+    config.acls()[0].proto() = 6;
+    if (tcpFlagsBitMap) {
+      config.acls()[0].tcpFlagsBitMap() = *tcpFlagsBitMap;
+    }
+    if (tcpFlagsMask) {
+      config.acls()[0].tcpFlagsMask() = *tcpFlagsMask;
+    }
+    return config;
+  };
+  auto expectRejected = [&](std::optional<int16_t> tcpFlagsBitMap,
+                            std::optional<int16_t> tcpFlagsMask) {
+    auto config = makeConfig(tcpFlagsBitMap, tcpFlagsMask);
+    EXPECT_THROW(
+        publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+  };
+
+  // The bitmap must fit in the 8-bit TCP flags field.
+  expectRejected(256, std::nullopt);
+  // A negative bitmap is not a valid set of flags.
+  expectRejected(-1, std::nullopt);
+  // A mask has nothing to apply to without a bitmap.
+  expectRejected(std::nullopt, 0x12);
+  // A zero mask compares no flags, so the rule would match all TCP.
+  expectRejected(0x02, 0);
+  // A negative mask is not a valid set of flags.
+  expectRejected(0x02, -1);
+  // 0x40 (ECE) is past the six flags a mask may cover.
+  expectRejected(0x02, 0x40);
+  // The state field is a byte, so this must not be truncated to 0x12.
+  expectRejected(0x02, 0x112);
+  // 0x08 (PSH) is outside the mask, so it would never be compared.
+  expectRejected(0x0A, 0x12);
+
+  auto config = makeConfig(0x02, 0x12);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  auto acl = stateV1->getAcl("acl0");
+  ASSERT_NE(nullptr, acl);
+  EXPECT_EQ(acl->getTcpFlagsBitMap(), 0x02);
+  EXPECT_EQ(acl->getTcpFlagsMask(), 0x12);
+}
+
+TEST(Acl, TcpFlagsMaskChange) {
+  FLAGS_enable_acl_table_group = false;
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  registerPort(stateV0, PortID(1), "port1", scope());
+
+  cfg::SwitchConfig config;
+  config.ports()->resize(1);
+  preparedMockPortConfig(config.ports()[0], 1);
+  config.acls()->resize(1);
+  *config.acls()[0].name() = "acl0";
+  *config.acls()[0].actionType() = cfg::AclActionType::DENY;
+  config.acls()[0].proto() = 6;
+  config.acls()[0].tcpFlagsBitMap() = 0x02;
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  EXPECT_EQ(stateV1->getAcl("acl0")->getTcpFlagsMask(), std::nullopt);
+
+  config.acls()[0].tcpFlagsMask() = 0x12;
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  ASSERT_NE(nullptr, stateV2);
+  EXPECT_EQ(stateV2->getAcl("acl0")->getTcpFlagsMask(), 0x12);
+
+  config.acls()[0].tcpFlagsMask().reset();
+  auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
+  ASSERT_NE(nullptr, stateV3);
+  EXPECT_EQ(stateV3->getAcl("acl0")->getTcpFlagsMask(), std::nullopt);
 }
 
 TEST(Acl, DstIpV6WordValidation) {
@@ -1626,4 +1714,132 @@ TEST(Acl, DstIpV6WordValidation) {
     config.acls()[0].dstIpV6Word3() = 0x12345678;
     EXPECT_THROW(applyConfig(&config), FbossError);
   }
+}
+
+namespace {
+
+std::shared_ptr<AclEntry> makeAclEntryWithCounter(
+    const std::optional<std::string>& counterName,
+    uint8_t dscp = 0x24) {
+  auto entry = std::make_shared<AclEntry>(1, std::string("acl0"));
+  entry->setDscp(dscp);
+  entry->setActionType(cfg::AclActionType::PERMIT);
+  if (counterName.has_value()) {
+    MatchAction action;
+    cfg::TrafficCounter counter;
+    counter.name() = *counterName;
+    counter.types() = {cfg::CounterType::PACKETS};
+    action.setTrafficCounter(counter);
+    entry->setAclAction(action);
+  }
+  return entry;
+}
+
+} // namespace
+
+TEST(Acl, onlyCounterChangedCounterRenamed) {
+  EXPECT_TRUE(onlyCounterChanged(
+      makeAclEntryWithCounter("counter1"),
+      makeAclEntryWithCounter("counter2")));
+}
+
+TEST(Acl, onlyCounterChangedCounterAdded) {
+  EXPECT_TRUE(onlyCounterChanged(
+      makeAclEntryWithCounter(std::nullopt),
+      makeAclEntryWithCounter("counter1")));
+}
+
+TEST(Acl, onlyCounterChangedCounterRemoved) {
+  EXPECT_TRUE(onlyCounterChanged(
+      makeAclEntryWithCounter("counter1"),
+      makeAclEntryWithCounter(std::nullopt)));
+}
+
+TEST(Acl, onlyCounterChangedCounterTypesChanged) {
+  auto oldEntry = makeAclEntryWithCounter("counter1");
+  auto newEntry = makeAclEntryWithCounter("counter1");
+  MatchAction action;
+  cfg::TrafficCounter counter;
+  counter.name() = "counter1";
+  counter.types() = {cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+  action.setTrafficCounter(counter);
+  newEntry->setAclAction(action);
+
+  EXPECT_TRUE(onlyCounterChanged(oldEntry, newEntry));
+}
+
+TEST(Acl, onlyCounterChangedNothingChanged) {
+  EXPECT_FALSE(onlyCounterChanged(
+      makeAclEntryWithCounter("counter1"),
+      makeAclEntryWithCounter("counter1")));
+}
+
+TEST(Acl, onlyCounterChangedNothingChangedNoCounter) {
+  EXPECT_FALSE(onlyCounterChanged(
+      makeAclEntryWithCounter(std::nullopt),
+      makeAclEntryWithCounter(std::nullopt)));
+}
+
+TEST(Acl, onlyCounterChangedQualifierChangedToo) {
+  EXPECT_FALSE(onlyCounterChanged(
+      makeAclEntryWithCounter("counter1", 0x24),
+      makeAclEntryWithCounter("counter2", 0x30)));
+}
+
+TEST(Acl, onlyCounterChangedOnlyQualifierChanged) {
+  EXPECT_FALSE(onlyCounterChanged(
+      makeAclEntryWithCounter("counter1", 0x24),
+      makeAclEntryWithCounter("counter1", 0x30)));
+}
+
+TEST(Acl, onlyCounterChangedNonCounterActionChangedToo) {
+  auto oldEntry = makeAclEntryWithCounter("counter1");
+  auto newEntry = makeAclEntryWithCounter(std::nullopt);
+  MatchAction action;
+  cfg::TrafficCounter counter;
+  counter.name() = "counter2";
+  counter.types() = {cfg::CounterType::PACKETS};
+  action.setTrafficCounter(counter);
+  action.setIngressMirror("mirror0");
+  newEntry->setAclAction(action);
+
+  EXPECT_FALSE(onlyCounterChanged(oldEntry, newEntry));
+}
+
+TEST(Acl, PrioAclMapHoldsSharedPbrPriority) {
+  // 1. Two PBR entries at the one shared priority, told apart only by name.
+  auto acls = std::make_shared<AclMap>();
+  acls->addNode(
+      std::make_shared<AclEntry>(
+          FLAGS_pbr_acl_priority, std::string("policyA_tc1")));
+  acls->addNode(
+      std::make_shared<AclEntry>(
+          FLAGS_pbr_acl_priority, std::string("policyA_tc2")));
+
+  // 2. Both survive: before the name joined the key this threw duplicate node
+  // ID, which reaches XLOG(FATAL) via getAclsDelta on every state update.
+  PrioAclMap prioAcls;
+  prioAcls.addAcls(acls);
+  EXPECT_EQ(prioAcls.size(), 2);
+}
+
+TEST(Acl, PrioAclMapRenameIsAddAndRemove) {
+  // 1. Same priority, different name -- a config ACL rename.
+  auto makePrioAcls = [](const std::string& name) {
+    auto acls = std::make_shared<AclMap>();
+    acls->addNode(std::make_shared<AclEntry>(1, name));
+    auto prioAcls = std::make_unique<PrioAclMap>();
+    prioAcls->addAcls(acls);
+    return prioAcls;
+  };
+
+  // 2. The name is always part of the key, so a rename is a distinct add and
+  // remove rather than one changed event.
+  AclMapDelta delta(makePrioAcls("zzz"), makePrioAcls("aaa"));
+  int changed = 0, addedOrRemoved = 0;
+  for (const auto& entry : delta) {
+    (entry.getOld() && entry.getNew()) ? ++changed : ++addedOrRemoved;
+  }
+  EXPECT_EQ(changed, 0);
+  EXPECT_EQ(addedOrRemoved, 2);
 }

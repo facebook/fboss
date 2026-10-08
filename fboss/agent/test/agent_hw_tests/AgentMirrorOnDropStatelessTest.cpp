@@ -47,7 +47,7 @@ std::unique_ptr<MirrorOnDropImpl> createMirrorOnDropImpl(cfg::AsicType type) {
   switch (type) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
-      return std::make_unique<XgsMirrorOnDropImpl>();
+      return std::make_unique<XgsMirrorOnDropImpl>(type);
     case cfg::AsicType::ASIC_TYPE_YUBA: // gibraltar
     case cfg::AsicType::ASIC_TYPE_G202X: // graphene200
       return std::make_unique<TajoMirrorOnDropImpl>();

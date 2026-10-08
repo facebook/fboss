@@ -40,6 +40,7 @@ void FakeSai::clear() {
   fs->hostIfUserDefinedTrapManager.clear();
   fs->hostifTrapGroupManager.clear();
   fs->inSegEntryManager.clear();
+  fs->isolationGroupManager.clearWithMembers();
   fs->neighborManager.clear();
   fs->mirrorManager.clear();
   fs->nextHopManager.clear();
@@ -185,6 +186,11 @@ sai_status_t sai_api_query(sai_api_t sai_api_id, void** api_method_table) {
           (sai_hostif_api_t**)api_method_table);
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_API_ISOLATION_GROUP:
+      facebook::fboss::populate_isolation_group_api(
+          (sai_isolation_group_api_t**)api_method_table);
+      res = SAI_STATUS_SUCCESS;
+      break;
     case SAI_API_LAG:
       facebook::fboss::populate_lag_api((sai_lag_api_t**)api_method_table);
       res = SAI_STATUS_SUCCESS;
@@ -270,6 +276,11 @@ sai_status_t sai_api_query(sai_api_t sai_api_id, void** api_method_table) {
       break;
     case SAI_API_WRED:
       facebook::fboss::populate_wred_api((sai_wred_api_t**)api_method_table);
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_API_VIRTUAL_CHANNEL:
+      facebook::fboss::populate_virtual_channel_api(
+          (sai_virtual_channel_api_t**)api_method_table);
       res = SAI_STATUS_SUCCESS;
       break;
     case SAI_API_TAM:

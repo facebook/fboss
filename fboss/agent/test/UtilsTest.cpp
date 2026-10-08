@@ -47,6 +47,87 @@ TEST_F(UtilsTest, getPortsForInterface) {
   EXPECT_GT(getPortsForInterface(InterfaceID(1), sw->getState()).size(), 0);
 }
 
+class UtilsAggregatePortInterfaceTest : public ::testing::Test {
+ public:
+  void SetUp() override {
+    auto config = testConfigAWithAggregatePortInterface();
+    handle = createTestHandle(&config);
+    sw = handle->getSw();
+    auto aggPort = sw->getState()->getAggregatePorts()->getNode(
+        AggregatePortID(kAggregatePortKey));
+    for (const auto& subport : aggPort->sortedSubports()) {
+      memberPorts.push_back(subport.portID);
+    }
+  }
+
+  bool isMember(PortID portID) const {
+    return std::find(memberPorts.begin(), memberPorts.end(), portID) !=
+        memberPorts.end();
+  }
+
+  SwSwitch* sw{nullptr};
+  std::unique_ptr<HwTestHandle> handle{nullptr};
+  std::vector<PortID> memberPorts;
+};
+
+TEST_F(UtilsAggregatePortInterfaceTest, getPortsForInterface) {
+  auto state = sw->getState();
+  ASSERT_EQ(memberPorts.size(), 2);
+
+  // The interface bound to the aggregate stands for all of its members.
+  auto ports =
+      getPortsForInterface(InterfaceID(kAggregatePortInterfaceID), state);
+  EXPECT_EQ(
+      std::set<PortID>(ports.begin(), ports.end()),
+      std::set<PortID>(memberPorts.begin(), memberPorts.end()));
+
+  // Interfaces bound to a physical port still stand for that one port.
+  for (const auto& [_, intfMap] : std::as_const(*state->getInterfaces())) {
+    for (const auto& [_, intf] : std::as_const(*intfMap)) {
+      if (intf->getID() == InterfaceID(kAggregatePortInterfaceID)) {
+        continue;
+      }
+      EXPECT_EQ(getPortsForInterface(intf->getID(), state).size(), 1);
+    }
+  }
+}
+
+TEST_F(UtilsAggregatePortInterfaceTest, getInterfacePortToReach) {
+  // An address on the aggregate's subnet is reached over one of its members,
+  // rather than over a port the interface is not bound to.
+  for (const auto& addr :
+       {folly::IPAddress("2601:db00:2110:3100::2"),
+        folly::IPAddress("100.0.100.2")}) {
+    auto port = getInterfacePortToReach(sw->getState(), addr);
+    ASSERT_TRUE(port.has_value()) << "no port to reach " << addr;
+    EXPECT_TRUE(isMember(*port))
+        << addr << " reached over non member port " << *port;
+  }
+}
+
+TEST_F(UtilsAggregatePortInterfaceTest, getInterfaceIDForPort) {
+  auto state = sw->getState();
+
+  // Every member port resolves to the interface bound to the aggregate ...
+  for (auto portID : memberPorts) {
+    EXPECT_EQ(
+        getInterfaceIDForPort(portID, state),
+        InterfaceID(kAggregatePortInterfaceID));
+  }
+
+  // ... and no port outside the aggregate does.
+  for (const auto& [_, portMap] : std::as_const(*state->getPorts())) {
+    for (const auto& [_, port] : std::as_const(*portMap)) {
+      if (isMember(port->getID())) {
+        continue;
+      }
+      EXPECT_NE(
+          getInterfaceIDForPort(port->getID(), state),
+          InterfaceID(kAggregatePortInterfaceID));
+    }
+  }
+}
+
 TEST_F(UtilsTest, AddTrapPacketAcl) {
   auto state = sw->getState();
   auto config = testConfigA();

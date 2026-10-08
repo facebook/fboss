@@ -798,6 +798,32 @@ TEST_F(SwitchApiTest, setPacketDropTypeEgressList) {
   EXPECT_THROW(switchApi->setAttribute(switchId, dropTypes), SaiApiError);
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+TEST_F(SwitchApiTest, testLinkUpDebounceTimeout) {
+  // Defaults to no debounce
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::LinkUpDebounceTimeout{}),
+      0);
+
+  constexpr sai_uint32_t kTimeoutUs = 50000;
+  switchApi->setAttribute(
+      switchId, SaiSwitchTraits::Attributes::LinkUpDebounceTimeout{kTimeoutUs});
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::LinkUpDebounceTimeout{}),
+      kTimeoutUs);
+
+  // Back to no debounce
+  switchApi->setAttribute(
+      switchId, SaiSwitchTraits::Attributes::LinkUpDebounceTimeout{0});
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::LinkUpDebounceTimeout{}),
+      0);
+}
+#endif
+
 TEST_F(SwitchApiTest, testSwitchingMode) {
   // Test default value (STORE_AND_FORWARD)
   EXPECT_EQ(

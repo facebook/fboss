@@ -71,7 +71,8 @@ function(BUILD_ALL_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
 
   # Mono benchmark binary
   add_executable(sai_all_benchmarks-${SAI_IMPL_NAME} /dev/null)
-  add_sai_sdk_dependencies(sai_all_benchmarks-${SAI_IMPL_NAME})
+  add_sai_sdk_dependencies(
+    sai_all_benchmarks-${SAI_IMPL_NAME} "${SAI_IMPL_ARG}")
   target_link_libraries(sai_all_benchmarks-${SAI_IMPL_NAME}
     -Wl,--whole-archive
     mono_sai_agent_benchmarks_main
@@ -90,7 +91,8 @@ function(BUILD_ALL_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
 
   # Multi-switch benchmark binary
   add_executable(sai_multi_switch_all_benchmarks-${SAI_IMPL_NAME} /dev/null)
-  add_sai_sdk_dependencies(sai_multi_switch_all_benchmarks-${SAI_IMPL_NAME})
+  add_sai_sdk_dependencies(
+    sai_multi_switch_all_benchmarks-${SAI_IMPL_NAME} "${SAI_IMPL_ARG}")
   target_link_libraries(sai_multi_switch_all_benchmarks-${SAI_IMPL_NAME}
     -Wl,--whole-archive
     multi_switch_sai_agent_benchmarks_main

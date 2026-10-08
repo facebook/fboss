@@ -13,6 +13,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/hw/sai/api/AclApi.h"
 #include "fboss/agent/hw/sai/api/AdapterKeySerializers.h"
+#include "fboss/agent/hw/sai/api/IsolationGroupApi.h"
 #include "fboss/agent/hw/sai/api/LagApi.h"
 #include "fboss/agent/hw/sai/api/LoggingUtil.h"
 #include "fboss/agent/hw/sai/api/NextHopGroupApi.h"
@@ -53,6 +54,12 @@ template <>
 struct AdapterHostKeyWarmbootRecoverable<SaiUdfGroupTraits> : std::false_type {
 };
 
+// Keyed by the FBOSS isolation group name, which the adapter knows nothing
+// about, so it must be serialized into warm boot state.
+template <>
+struct AdapterHostKeyWarmbootRecoverable<SaiIsolationGroupTraits>
+    : std::false_type {};
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 template <>
 struct AdapterHostKeyWarmbootRecoverable<SaiSrv6SidListTraits>
@@ -72,6 +79,16 @@ struct AdapterHostKeyWarmbootRecoverable<SaiSrv6TunnelTraits>
 template <>
 struct AdapterHostKeyWarmbootRecoverable<SaiWredTraits> : std::false_type {};
 
+#endif
+
+#if defined(CHENAB_SAI_SDK)
+// A LAG is keyed on SAI_LAG_ATTR_LABEL, which this adapter accepts on create
+// but never stores: the label setter is a no op and there is no getter at all.
+// Every LAG therefore reads back an all zero label, so two of them collide on
+// one AdapterHostKey and warm boot aborts on reload. Serialize the key into
+// warm boot state and restore it verbatim rather than re-deriving it from HW.
+template <>
+struct AdapterHostKeyWarmbootRecoverable<SaiLagTraits> : std::false_type {};
 #endif
 
 /*
@@ -677,6 +694,8 @@ class SaiStore {
       SaiObjectStore<SaiUdfMatchTraits>,
       SaiObjectStore<SaiVlanTraits>,
       SaiObjectStore<SaiVlanMemberTraits>,
+      SaiObjectStore<SaiIsolationGroupTraits>,
+      SaiObjectStore<SaiIsolationGroupMemberTraits>,
       SaiObjectStore<SaiRouteTraits>,
       SaiObjectStore<SaiVlanRouterInterfaceTraits>,
       SaiObjectStore<SaiMplsRouterInterfaceTraits>,
@@ -708,6 +727,10 @@ class SaiStore {
       SaiObjectStore<SaiPortConnectorTraits>,
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
       SaiObjectStore<SaiPortLlrProfileTraits>,
+#endif
+#if defined(SAI_CBFC_SUPPORTED)
+      SaiObjectStore<SaiVirtualChannelTraits>,
+      SaiObjectStore<SaiCbfcCreditProfileTraits>,
 #endif
       SaiObjectStore<SaiWredTraits>,
       SaiObjectStore<SaiTamTraits>,

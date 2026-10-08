@@ -313,6 +313,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // TC to Priority Group map
       std::nullopt, // PFC Priority to Queue map
       std::nullopt, // PFC Priority to Priority Group map
+#if defined(SAI_CBFC_SUPPORTED)
+      std::nullopt, // TC to VC map
+      std::nullopt, // Queue to VC map
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
       std::nullopt,
 #endif
@@ -364,6 +368,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #endif
       std::nullopt, // PfcPauseDurationOverride
       std::nullopt, // Ingress ACL
+      std::nullopt, // IsolationGroup
       std::nullopt, // Metadata
   };
 }
@@ -494,7 +499,9 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     const std::shared_ptr<SaiPortSerdes>& /* serdes */,
     bool /* zeroPreemphasis */,
     const std::optional<std::string>& customCollection,
-    bool /* skipSerdesProgramming */) {
+    bool /* skipSerdesProgramming */,
+    bool /* txPrecodingEnabled */,
+    bool /* rxPrecodingEnabled */) {
   SaiPortSerdesTraits::CreateAttributes attrs;
 
   SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType txPre1;

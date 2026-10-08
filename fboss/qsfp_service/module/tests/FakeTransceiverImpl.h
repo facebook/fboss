@@ -268,9 +268,10 @@ class Cmis2x800GDr4Cmis50Transceiver
   explicit Cmis2x800GDr4Cmis50Transceiver(int module, TransceiverManager* mgr);
 };
 
-// Cmis2x800GDr4 custom-feature variant running out of thermal headroom: all
-// three Meta custom latched flags (Lower Memory Byte 67) are asserted and both
-// thermal margins (Bytes 68-69) are negative.
+// Cmis2x800GDr4 custom-feature variant running out of thermal headroom and
+// mismatched against the host: all three Meta custom latched flags (Lower
+// Memory Byte 67) are asserted, both thermal margins (Bytes 68-69) are
+// negative, and Page 14h Bytes 130-131 flag per-lane mode mismatches.
 class Cmis2x800GDr4NegativeMarginTransceiver
     : public Cmis2x800GDr4CustomFeatureTransceiver {
  public:

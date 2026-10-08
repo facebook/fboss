@@ -93,6 +93,10 @@ if ($ENV{SAI_TAJO_IMPL})
   message(STATUS "ENV SAI_TAJO_IMPL is set")
   set (SAI_TAJO_IMPL ON)
 endif()
+if (SAI_TAJO_IMPL)
+  # Code checks TAJO_SDK directly; SAI_SDK_VERSION only defines the selector.
+  add_definitions(-DTAJO_SDK)
+endif()
 
 option(SAI_BRCM_IMPL "Build SAI api with BRCM-SAI extensions" OFF)
 if ($ENV{SAI_BRCM_IMPL})
@@ -149,8 +153,8 @@ if (NOT $ENV{SAI_VERSION} EQUAL "")
   message(STATUS "ENV SAI_VERSION is set")
   set (SAI_VERSION $ENV{SAI_VERSION})
 else()
-  message(STATUS "ENV SAI_VERSION is not set, using default:1.18.1")
-  set (SAI_VERSION "1.18.1")
+  message(STATUS "ENV SAI_VERSION is not set, using default:1.19.0")
+  set (SAI_VERSION "1.19.0")
 endif()
 
 option(BUILD_SAI_FAKE_LINK_TEST "Building of SAI Fake Link Test binaries" OFF)
@@ -291,7 +295,7 @@ find_package(Glog REQUIRED)
 include_directories(${GLOG_INCLUDE_DIRS})
 find_package(folly CONFIG REQUIRED)
 include_directories(${FOLLY_INCLUDE_DIR})
-find_package(Boost REQUIRED COMPONENTS container filesystem)
+find_package(Boost REQUIRED COMPONENTS container filesystem regex)
 include_directories(${Boost_INCLUDE_DIR})
 find_package(fb303 CONFIG REQUIRED)
 find_package(fizz CONFIG REQUIRED)
@@ -300,8 +304,6 @@ find_package(wangle CONFIG REQUIRED)
 find_package(FBThrift CONFIG REQUIRED COMPONENTS)
 find_package(range-v3 REQUIRED)
 include_directories(${FB303_INCLUDE_DIR})
-find_path(FATAL_INCLUDE_DIR NAMES fatal/portability.h)
-include_directories(${FATAL_INCLUDE_DIR})
 
 
 find_library(NLOHMANN_JSON nlohmann-json)
@@ -314,7 +316,14 @@ include_directories(${Python3_INCLUDE_DIR})
 if (SAI_BRCM_PAI_IMPL)
   set(SAI_INCLUDE_DIR "${SAI_BRCM_PAI_IMPL_INC_DIR}/sai/inc")
 else()
-  find_path(SAI_INCLUDE_DIR NAMES sai.h)
+  # An NPU SDK may also ship the SAI headers it was built against, as sai/inc/
+  # beside its library, which run-getdeps.py stages as lib/. Prefer those.
+  find_path(SAI_SDK_HEADERS_DIR NAMES lib/sai/inc/sai.h)
+  if (SAI_SDK_HEADERS_DIR)
+    set(SAI_INCLUDE_DIR "${SAI_SDK_HEADERS_DIR}/lib/sai/inc")
+  else()
+    find_path(SAI_INCLUDE_DIR NAMES sai.h)
+  endif()
 endif()
 include_directories(${SAI_INCLUDE_DIR})
 message(STATUS "Found SAI Include dir: ${SAI_INCLUDE_DIR}")
@@ -693,6 +702,13 @@ add_fbthrift_cpp_library(
     reflection
   DEPENDS
     sensor_service_cpp2
+)
+add_fbthrift_cpp_library(
+  te_srv6_agent_stats_cpp2
+  fboss/fsdb/if/te_srv6_agent/te_srv6_agent_stats.thrift
+  OPTIONS
+    json
+    reflection
 )
 add_fbthrift_cpp_library(
   phy_cpp2
@@ -1436,6 +1452,7 @@ set(FBOSS_EXPORTED_TARGETS
   switch_state_cpp2 agent_config_cpp2 agent_info_cpp2
   switch_reachability_cpp2
   qsfp_state_cpp2 qsfp_stats_cpp2 sensor_service_stats_cpp2
+  te_srv6_agent_stats_cpp2
   # Leaf thrift deps of the FsdbOperStateRoot COW model, transitively
   # required by downstream consumers that link it (BGP++ NeighborWatcher
   # FsdbCowStateSubManager). Headers ship via the include dir, but the
@@ -1563,13 +1580,21 @@ add_dependencies(fboss_platform_services
   fixmyfboss
   # Unit Tests
   platform_config_lib_config_lib_test
+  reboot_cause_finder_impl_test
   platform_manager_device_path_resolver_test
   platform_manager_platform_explorer_test
   platform_data_corral_sw_test
   platform_manager_utils_test
+  platform_manager_pm_unit_identity_test
   platform_helpers_platform_name_lib_test
   platform_helpers_platform_fs_utils_test
   platform_helpers_platform_utils_test
+  platform_checks_local_host_test
+  platform_checks_remote_host_test
+  platform_checks_platform_name_test
+  platform_helpers_expect_session_test
+  platform_checks_management_plane_checks_test
+  platform_checks_bmc_checks_test
   platform_manager_data_store_test
   platform_manager_config_validator_test
   platform_manager_presence_checker_test
@@ -1588,9 +1613,13 @@ add_dependencies(fboss_platform_services
   sensor_service_hw_test
   weutil_hw_test
   platform_hw_test
+  platform_checks_bmc_reachable_check_test
   platform_manager_hw_test
   cross_config_validator_test
   fw_util_hw_test
+  fixmyfboss_result_printer_test
+  fixmyfboss_check_runner_test
+  fixmyfboss_check_environment_test
 )
 
 add_custom_target(qsfp_targets)
@@ -1743,3 +1772,34 @@ endif()
 
 # FBOSS Image Builder distro_cli tests
 include(cmake/FbossImageDistroCliTests.cmake)
+
+# Match fbcode's default allocator for non-sanitized binaries. Apply this after
+# all target definitions so only final executables, rather than every shared
+# library, acquire the allocator dependency. The generated object defines
+# jemalloc startup defaults supported by distro builds; MALLOC_CONF can still
+# override individual options at process launch.
+if (NOT WITH_ASAN)
+  find_library(FBOSS_JEMALLOC_LIBRARY NAMES jemalloc)
+  if (NOT FBOSS_JEMALLOC_LIBRARY)
+    message(FATAL_ERROR "jemalloc is required for non-ASAN FBOSS builds")
+  endif()
+
+  add_library(fboss_jemalloc_config OBJECT
+    fboss/oss/JemallocConfig.cpp
+  )
+
+  get_property(FBOSS_BUILD_TARGETS DIRECTORY PROPERTY BUILDSYSTEM_TARGETS)
+  foreach(FBOSS_BUILD_TARGET ${FBOSS_BUILD_TARGETS})
+    get_target_property(FBOSS_BUILD_TARGET_TYPE ${FBOSS_BUILD_TARGET} TYPE)
+    if (FBOSS_BUILD_TARGET_TYPE STREQUAL "EXECUTABLE")
+      target_sources(
+        ${FBOSS_BUILD_TARGET}
+        PRIVATE $<TARGET_OBJECTS:fboss_jemalloc_config>
+      )
+      target_link_libraries(
+        ${FBOSS_BUILD_TARGET}
+        ${FBOSS_JEMALLOC_LIBRARY}
+      )
+    endif()
+  endforeach()
+endif()

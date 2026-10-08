@@ -92,6 +92,10 @@ class MockFbossCtrlAgent : public apache::thrift::ServiceHandler<FbossCtrl> {
   MOCK_METHOD(void, getPortStatus, (PortStatusMap, Ports));
   MOCK_METHOD(void, getHwAgentConnectionStatus, (HwAgentStatusMap));
   MOCK_METHOD(void, getMultiSwitchRunState, (MultiSwitchRunState&));
+  MOCK_METHOD(
+      void,
+      getRegexExportedValues,
+      ((std::map<std::string, std::string>&), std::unique_ptr<std::string>));
   MOCK_METHOD(void, listHwObjects, (Out, HwObjects, bool));
   MOCK_METHOD(SSLType, getSSLPolicy, ());
   MOCK_METHOD(void, setPortState, (int32_t, bool));
@@ -119,6 +123,10 @@ class MockFbossCtrlAgent : public apache::thrift::ServiceHandler<FbossCtrl> {
       void,
       getRouteTable,
       (std::vector<facebook::fboss::UnicastRoute>&));
+  MOCK_METHOD(
+      void,
+      getRouteTableByClient,
+      (std::vector<facebook::fboss::UnicastRoute>&, int16_t));
   MOCK_METHOD3(
       getIpRouteDetails,
       void(
@@ -149,11 +157,13 @@ class MockFbossCtrlAgent : public apache::thrift::ServiceHandler<FbossCtrl> {
   using InterfaceDetailMap =
       std::map<int32_t, facebook::fboss::InterfaceDetail>&;
   MOCK_METHOD(void, getAllInterfaces, (InterfaceDetailMap));
-  MOCK_METHOD(void, getNextHopGroups, (std::vector<NextHopGroup>&));
+  MOCK_METHOD(void, getNextHopGroups, (std::vector<NextHopGroup>&, bool));
   MOCK_METHOD(
       void,
       getNamedNextHopGroups,
-      (std::vector<NextHopGroup>&, std::unique_ptr<std::vector<std::string>>));
+      (std::vector<NextHopGroup>&,
+       std::unique_ptr<std::vector<std::string>>,
+       bool));
 };
 
 class MockFbossHwCtrlAgent
@@ -170,6 +180,8 @@ class MockFbossHwCtrlAgent
 class MockFbossQsfpService
     : public apache::thrift::ServiceHandler<QsfpService> {
  public:
+  using MacsecPortPhyMap = mka::MacsecPortPhyMap&;
+  using PortNames = std::unique_ptr<std::vector<std::string>>;
   using transceiverEntries =
       std::map<int32_t, facebook::fboss::TransceiverInfo>&;
   MOCK_METHOD2(
@@ -184,6 +196,8 @@ class MockFbossQsfpService
   MOCK_METHOD2(
       getAllPortSupportedProfiles,
       void(std::map<std::string, std::vector<cfg::PortProfileID>>&, bool));
+  MOCK_METHOD(void, getMacsecCapablePorts, (std::vector<int32_t>&));
+  MOCK_METHOD(void, macsecGetPhyPortInfo, (MacsecPortPhyMap, PortNames));
   MOCK_METHOD2(
       getSymbolErrorHistogram,
       void(CdbDatapathSymErrHistogram&, std::unique_ptr<std::string>));

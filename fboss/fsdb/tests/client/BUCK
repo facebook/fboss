@@ -34,12 +34,14 @@ cpp_unittest(
     name = "fsdb_pub_sub_tests",
     srcs = [
         "FsdbAddPatchSubscriptionPathsTest.cpp",
+        "FsdbHybridStateStorageTest.cpp",
         "FsdbPubSubManagerTest.cpp",
         "FsdbPubSubTest.cpp",
         "FsdbPublisherTest.cpp",
         "FsdbStreamClientTest.cpp",
     ],
     network_access = network_access_utils.all(),
+    supports_static_listing = False,
     deps = [
         "fbsource//third-party/fmt:fmt",
         ":fsdb_test_clients",
@@ -63,4 +65,5 @@ cpp_unittest(
         "//thrift/lib/cpp2/op:get",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
+    external_deps = ["gflags"],
 )

@@ -245,9 +245,15 @@ TEST_F(RouteTest, routeApi) {
   auto testRouteApi = [&](auto route) {
     EXPECT_TRUE(std::make_shared<RouteV6>(route.toThrift())->isSame(&route));
     EXPECT_EQ(pfx6, route.prefix());
+    // Locally built route with no IDs allocated, so read inline explicitly.
+    ClientNextHopsResolver readInline = [](const RouteNextHopEntry& entry) {
+      return entry.getNextHopSet();
+    };
     EXPECT_EQ(
-        route.toRouteDetails(route.getForwardInfo().getNextHopSet()),
-        route.toRouteDetails(route.getForwardInfo().getNextHopSet()));
+        route.toRouteDetails(
+            route.getForwardInfo().getNextHopSet(), std::nullopt, readInline),
+        route.toRouteDetails(
+            route.getForwardInfo().getNextHopSet(), std::nullopt, readInline));
     EXPECT_EQ(route.str(), route.str());
     EXPECT_EQ(route.flags(), 0);
     EXPECT_FALSE(route.isResolved());
@@ -2531,13 +2537,19 @@ TEST_F(UcmpTest, recursiveEcmpDuplicateIntf) {
  * Two interfaces: I1, I2
  * One route which requires resolution: R1
  * R1 has I1 and I2 as next hops with weights 0 (ECMP) and 1
- * expect R1 to resolve to ECMP between I1, I2
+ * expect R1 to resolve to I1:1, I2:1
+ *
+ * R1 states a weighting, so it is resolved by combineWeights rather than
+ * flattened. ECMP_WEIGHT counts as the single share normalizeNextHops would
+ * settle it at anyway, so I1 asks for exactly what I2 does and the two come
+ * out equal. The traffic split was already 1:1 before this; only the
+ * representation changed.
  */
-TEST_F(UcmpTest, mixedUcmpVsEcmp_EcmpWins) {
+TEST_F(UcmpTest, mixedUcmpAndEcmpKeepTheirWeights) {
   this->runRecursiveTest(
       {{UnresolvedNextHop(this->intfIp1, ECMP_WEIGHT),
         UnresolvedNextHop(this->intfIp2, 1)}},
-      {ECMP_WEIGHT, ECMP_WEIGHT});
+      {1, 1});
 }
 
 /*
@@ -2546,10 +2558,19 @@ TEST_F(UcmpTest, mixedUcmpVsEcmp_EcmpWins) {
  * R1 has R2 and R3 as next hops with weights 3 and 2
  * R2 has I1 and I2 as next hops with weights 5 and 4
  * R3 has I3 and I4 as next hops with ECMP
- * expect R1 to resolve to ECMP between I1, I2, I3, I4
+ * expect R1 to resolve to I1:5, I2:4, I3:3, I4:3
+ *
+ * R3 states no weighting, but that no longer discards R1's. Its two next
+ * hops take a share each, so R3's total is 2 rather than 0 and the LCM it
+ * feeds is no longer driven to zero. R2 and R3 end up with 9 and 6 shares,
+ * holding R1's 3:2, while R2's 5:4 and R3's even split both survive.
+ *
+ * Deliberately near-identical to recursiveMixedEcmpKeepsParentWeights, which
+ * differs only in R3 being {ECMP, 1} rather than {ECMP, ECMP}. Both describe
+ * an even split within R3, so both must resolve the same way.
  */
-TEST_F(UcmpTest, recursiveEcmpPropagatesUp) {
-  this->runTwoDeepRecursiveTest({{3, 2}, {5, 4}, {0, 0}}, {0, 0, 0, 0});
+TEST_F(UcmpTest, recursiveEcmpChildKeepsParentWeights) {
+  this->runTwoDeepRecursiveTest({{3, 2}, {5, 4}, {0, 0}}, {5, 4, 3, 3});
 }
 
 /*
@@ -2558,10 +2579,19 @@ TEST_F(UcmpTest, recursiveEcmpPropagatesUp) {
  * R1 has R2 and R3 as next hops with weights 3 and 2
  * R2 has I1 and I2 as next hops with weights 5 and 4
  * R3 has I3 and I4 as next hops with weights 0 (ECMP) and 1
- * expect R1 to resolve to ECMP between I1, I2, I3, I4
+ * expect R1 to resolve to I1:5, I2:4, I3:3, I4:3
+ *
+ * I3 at ECMP_WEIGHT asks for the same single share I4 does, so R3 splits
+ * evenly and reaches R1 with a total of 2 rather than 0. R1's 3:2 survives
+ * as 9:6, R2's 5:4 survives, and R3's even split survives both when R3 is
+ * resolved directly and when it is reached through R1.
+ *
+ * Deliberately near-identical to recursiveEcmpChildKeepsParentWeights: R3
+ * being {ECMP, 1} rather than {ECMP, ECMP} describes the same even split, so
+ * the two must agree.
  */
-TEST_F(UcmpTest, recursiveMixedEcmpPropagatesUp) {
-  this->runTwoDeepRecursiveTest({{3, 2}, {5, 4}, {0, 1}}, {0, 0, 0, 0});
+TEST_F(UcmpTest, recursiveMixedEcmpKeepsParentWeights) {
+  this->runTwoDeepRecursiveTest({{3, 2}, {5, 4}, {0, 1}}, {5, 4, 3, 3});
 }
 
 /*
@@ -2570,10 +2600,19 @@ TEST_F(UcmpTest, recursiveMixedEcmpPropagatesUp) {
  * R1 has R2 and R3 as next hops with ECMP
  * R2 has I1 and I2 as next hops with weights 5 and 4
  * R3 has I3 and I4 as next hops with weights 3 and 2
- * expect R1 to resolve to ECMP between I1, I2, I3, I4
+ * expect R1 to resolve to I1:25, I2:20, I3:27, I4:18
+ *
+ * R1 states no weighting of its own, which is not the same as asking for an
+ * even one across everything below it. R2 and R3 are weighted, so their
+ * splits are kept and scaled against each other: both end up with 45 shares,
+ * giving R2 and R3 the equal share R1 does imply, while 5:4 holds within R2
+ * as 25:20 and 3:2 within R3 as 27:18.
+ *
+ * Flattening these to ECMP would have served all four interfaces equally,
+ * which is neither split anyone asked for.
  */
-TEST_F(UcmpTest, recursiveEcmpPropagatesDown) {
-  this->runTwoDeepRecursiveTest({{0, 0}, {5, 4}, {3, 2}}, {0, 0, 0, 0});
+TEST_F(UcmpTest, recursiveEcmpKeepsChildWeights) {
+  this->runTwoDeepRecursiveTest({{0, 0}, {5, 4}, {3, 2}}, {25, 20, 27, 18});
 }
 
 /*

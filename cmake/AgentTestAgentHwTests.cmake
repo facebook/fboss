@@ -15,6 +15,7 @@ configure_file(
 # QoS test library - tests related to QoS scheduling, DSCP mapping, watermarks
 add_library(agent_qos_test_src
   fboss/agent/test/agent_hw_tests/Agent2QueueToOlympicQoSTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentDeviceBufferGuaranteeTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDscpQueueMappingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentNetworkAIQosSchedulerTests.cpp
   fboss/agent/test/agent_hw_tests/AgentNetworkAIQosTests.cpp
@@ -29,6 +30,7 @@ add_library(agent_qos_test_src
 target_link_libraries(agent_qos_test_src
   agent_hw_test
   aqm_test_utils
+  port_test_utils
   config_factory
   copp_test_utils
   ecmp_helper
@@ -145,6 +147,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentLinkLocalForwardingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentLoadBalancerTests.cpp
   fboss/agent/test/agent_hw_tests/AgentHwLinkDebounceTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentHwCbfcTest.cpp
   fboss/agent/test/agent_hw_tests/AgentHwLlrTest.cpp
   fboss/agent/test/agent_hw_tests/AgentMacLearningTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMacLearningAndNeighborResolutionTests.cpp
@@ -158,9 +161,11 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentHwMirrorTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMirroringTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMirroringScaleTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentMySidAdjFrrRouteTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMPLSDataplaneTestUtils.cpp
   fboss/agent/test/agent_hw_tests/AgentMPLSHeadEndTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMPLSMidpointTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentMPLSTtlTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMPLSTests.cpp
   fboss/agent/test/agent_hw_tests/AgentNSFScaleTests.cpp
   fboss/agent/test/agent_hw_tests/AgentNeighborTests.cpp
@@ -173,6 +178,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentPortBandWidthTests.cpp
   fboss/agent/test/agent_hw_tests/AgentPortLedTests.cpp
   fboss/agent/test/agent_hw_tests/AgentPortProfileTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentPortlessInterfaceScopeTests.cpp
   fboss/agent/hw/test/HwTestPortUtils.cpp
   fboss/agent/test/agent_hw_tests/AgentPrbsTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAclCounterTests.cpp
@@ -196,6 +202,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentAclTableTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAclTableGroupTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAclTableGroupTrafficTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentAccessPolicyAclTests.cpp
   fboss/agent/test/agent_hw_tests/AgentHwResourceStatsTests.cpp
   fboss/agent/test/agent_hw_tests/AgentHwParityErrorTests.cpp
   fboss/agent/test/agent_hw_tests/AgentTrafficPfcTests.cpp
@@ -218,7 +225,6 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentRollbackTests.cpp
   fboss/agent/test/agent_hw_tests/AgentRouteRollbackTests.cpp
   fboss/agent/test/agent_hw_tests/AgentPacketStreamHandlerTests.cpp
-  fboss/agent/test/agent_hw_tests/AgentAclTableGroupTests.cpp
 )
 
 target_link_libraries(agent_hw_test_src
@@ -226,6 +232,7 @@ target_link_libraries(agent_hw_test_src
   agent_ars_test_src
   agent_qos_test_src
   agent_voq_test_src
+  access_policy_acl_test_utils
   acl_test_utils
   address_utils
   agent_test_utils
@@ -327,6 +334,7 @@ target_link_libraries(multi_switch_agent_hw_test
 )
 
 add_library(agent_scale_test_src
+  fboss/agent/test/agent_hw_tests/AgentAccessPolicyAclStressTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAclScaleTests.cpp
   fboss/agent/test/agent_hw_tests/AgentEcmpScaleTests.cpp
 )
@@ -339,6 +347,7 @@ target_link_libraries(agent_scale_test_src
   agent_hw_test_src
   ecmp_helper
   production_features_cpp2
+  access_policy_acl_test_utils
   acl_test_utils
   asic_test_utils
   scale_test_utils
@@ -372,7 +381,8 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     fboss/agent/test/agent_hw_tests/SaiAgentHwTest.cpp
   )
 
-  add_sai_sdk_dependencies(sai_agent_hw_test-${SAI_IMPL_NAME})
+  add_sai_sdk_dependencies(
+    sai_agent_hw_test-${SAI_IMPL_NAME} "${SAI_IMPL_ARG}")
 
   target_link_libraries(sai_agent_hw_test-${SAI_IMPL_NAME}
     -Wl,--whole-archive
@@ -417,7 +427,8 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     fboss/agent/test/agent_hw_tests/SaiAgentHwTest.cpp
   )
 
-  add_sai_sdk_dependencies(sai_agent_scale_test-${SAI_IMPL_NAME})
+  add_sai_sdk_dependencies(
+    sai_agent_scale_test-${SAI_IMPL_NAME} "${SAI_IMPL_ARG}")
 
   target_link_libraries(sai_agent_scale_test-${SAI_IMPL_NAME}
     -Wl,--whole-archive

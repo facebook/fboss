@@ -26,6 +26,42 @@ SaiArsTraits::Attributes::AttributeSourcePortPrune::operator()() {
   return std::nullopt;
 #endif
 }
+
+std::optional<sai_attr_id_t>
+SaiArsTraits::Attributes::AttributeEcmpMemberCount::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_15_4) && defined(BRCM_SAI_SDK_XGS)
+  return SAI_ARS_ATTR_EXTENSION_ECMP_MEMBER_COUNT;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiArsTraits::Attributes::AttributeMaxAltMembersPerGroup::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_15_4) && defined(BRCM_SAI_SDK_XGS)
+  return SAI_ARS_ATTR_MAX_ALT_MEMEBERS_PER_GROUP;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiArsTraits::Attributes::AttributeMaxPrimaryMembersPerGroup::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_15_4) && defined(BRCM_SAI_SDK_XGS)
+  return SAI_ARS_ATTR_MAX_PRIMARY_MEMEBERS_PER_GROUP;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiArsTraits::Attributes::AttributeCommonMembersThresholdCount::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_15_4) && defined(BRCM_SAI_SDK_XGS)
+  return SAI_ARS_ATTR_EXTENSION_COMMON_MEMBERS_THRESHOLD_COUNT;
+#else
+  return std::nullopt;
+#endif
+}
 #endif
 
 } // namespace facebook::fboss

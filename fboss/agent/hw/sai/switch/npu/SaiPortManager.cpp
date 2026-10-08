@@ -8,11 +8,13 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
+#include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiDebugCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/sai/switch/SaiVirtualChannelManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
@@ -29,6 +31,85 @@ DEFINE_bool(
 namespace facebook::fboss {
 
 namespace {
+// A profile cannot be attached to an administratively enabled port
+// (CS00012478409). Where LLR is about to be programmed on a port that config
+// wants enabled, force admin state down in the attributes the port object is
+// written from, and return true so the caller re-enables it once the profile is
+// bound.
+//
+// The port is not enabled in between, so the ordering costs no traffic and the
+// link up that follows is what arms LLR. A port config wants disabled needs no
+// hold: the attributes already carry that admin state, so the port object write
+// puts it down ahead of programLlr() on its own.
+//
+// Either way programLlr() runs on a port hardware considers disabled, which is
+// the invariant it needs. StateUpdateValidator keeps it by allowing only the
+// first bind on a port that is still down, leaving only the two cases above.
+bool holdAdminEnableForLlr(
+    bool programmingLlr,
+    const std::shared_ptr<Port>& swPort,
+    SaiPortTraits::CreateAttributes& attributes) {
+  if (!programmingLlr || !swPort->isEnabled()) {
+    return false;
+  }
+  std::get<std::optional<SaiPortTraits::Attributes::AdminState>>(attributes) =
+      SaiPortTraits::Attributes::AdminState{false};
+  return true;
+}
+
+// Whether programLlr() would write anything at all. Every decision taken on
+// its behalf has to agree with it: holding a port down for a write that never
+// happens is an admin state down/up cycle, and so a link flap, for nothing.
+bool llrSupported([[maybe_unused]] const SaiPlatform* platform) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  return platform->getAsic()->isSupported(
+      HwAsic::Feature::LINK_LAYER_RETRANSMISSION);
+#else
+  return false;
+#endif
+}
+
+// The LLR profile a port object is bound to. SAI_NULL_OBJECT_ID is what a port
+// unbound by an earlier programLlr() carries, and means the same to callers as
+// never having been programmed at all.
+std::optional<sai_object_id_t> boundLlrProfile(
+    [[maybe_unused]] const std::shared_ptr<SaiPort>& port) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  if (!port) {
+    return std::nullopt;
+  }
+  const auto& attr =
+      std::get<std::optional<SaiPortTraits::Attributes::LlrProfile>>(
+          port->attributes());
+  if (!attr.has_value() || attr->value() == SAI_NULL_OBJECT_ID) {
+    return std::nullopt;
+  }
+  return attr->value();
+#else
+  return std::nullopt;
+#endif
+}
+
+// The same, for a caller that also holds the port's handle. Two sources are
+// needed because neither covers both callers: addPortImpl has the attribute,
+// which attributesFromSaiStore carried over from the object reclaimed on warm
+// boot, but a handle it has only just constructed; changePortImpl has the
+// handle, but writes the port object from the SwitchState alone, which clears
+// the attribute before programLlr() gets to read it. The attribute wins where
+// both are set, being what was last written to hardware.
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+std::optional<sai_object_id_t> boundLlrProfile(
+    const SaiPortHandle* portHandle) {
+  if (auto fromPort = boundLlrProfile(portHandle->port)) {
+    return fromPort;
+  }
+  if (portHandle->llrProfile) {
+    return portHandle->llrProfile->adapterKey();
+  }
+  return std::nullopt;
+}
+#endif
+
 std::optional<SaiPortTraits::Attributes::SystemPortId> getSystemPortId(
     const SaiPlatform* platform,
     PortID portId) {
@@ -294,10 +375,24 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   auto handle = std::make_unique<SaiPortHandle>();
 
   auto& portStore = saiStore_->get<SaiPortTraits>();
+
+  const bool deferAdminEnable = holdAdminEnableForLlr(
+      llrSupported(platform_) &&
+          llrProfileBindingChanged(
+              boundLlrProfile(portStore.get(portKey)), swPort),
+      swPort,
+      attributes);
+
   auto saiPort = portStore.setObject(portKey, attributes, swPort->getID());
   handle->port = saiPort;
   programSerdes(saiPort, swPort, handle.get());
   programLlr(swPort, handle.get());
+  managerTable_->virtualChannelManager().programVirtualChannels(
+      swPort, saiPort->adapterKey());
+  if (deferAdminEnable) {
+    // Through the store, so its cached admin state tracks hardware.
+    saiPort->setOptionalAttribute(SaiPortTraits::Attributes::AdminState{true});
+  }
 
   if (swPort->isEnabled()) {
     HwBasePortFb303Stats::QueueId2Name queueId2Name{};
@@ -385,10 +480,6 @@ void SaiPortManager::changePortImpl(
   }
   SaiPortTraits::CreateAttributes oldAttributes = attributesFromSwPort(oldPort);
   SaiPortTraits::CreateAttributes newAttributes = attributesFromSwPort(newPort);
-  if (oldPort->getUserMetaData() && !newPort->getUserMetaData()) {
-    std::get<std::optional<SaiPortTraits::Attributes::Metadata>>(
-        newAttributes) = SaiPortTraits::Attributes::Metadata{0};
-  }
 
   if (createOnlyAttributeChanged(oldAttributes, newAttributes)) {
     XLOG(DBG2) << "Create only attribute (e.g. lane, speed etc.) changed for "
@@ -396,6 +487,13 @@ void SaiPortManager::changePortImpl(
     changePortByRecreate(oldPort, newPort);
     return;
   }
+
+  // Decided before the port object is written, since that write is what would
+  // otherwise enable the port ahead of programLlr().
+  const bool programLlrForPort =
+      llrSupported(platform_) && llrConfigChanged(oldPort, newPort);
+  const bool deferAdminEnable =
+      holdAdminEnableForLlr(programLlrForPort, newPort, newAttributes);
 
   SaiPortTraits::AdapterHostKey portKey{
       getPortAdapterHostKeyFromAttr(newAttributes)};
@@ -497,12 +595,15 @@ void SaiPortManager::changePortImpl(
     resetCableLength(newPort->getID());
   }
   changePortFlowletConfig(oldPort, newPort);
-  if (oldPort->getLlrConfig() != newPort->getLlrConfig() ||
-      oldPort->getLlrConfigName() != newPort->getLlrConfigName()) {
+  managerTable_->virtualChannelManager().programVirtualChannels(
+      newPort, saiPort->adapterKey());
+  if (programLlrForPort) {
     programLlr(newPort, existingPort);
-  } else if (newPort->isUp() != oldPort->isUp() && newPort->isUp()) {
-    // The LLR TX trigger only takes effect once the link is up.
-    reissueLlrModeRemote(existingPort);
+    if (deferAdminEnable) {
+      // Through the store, so its cached admin state tracks hardware.
+      saiPort->setOptionalAttribute(
+          SaiPortTraits::Attributes::AdminState{true});
+    }
   }
   changeClm(oldPort, newPort);
 }
@@ -577,6 +678,8 @@ void SaiPortManager::attributesFromSaiStore(
 #endif
   getAndSetAttribute(
       port->attributes(), attributes, SaiPortTraits::Attributes::TamObject{});
+  getAndSetAttribute(
+      port->attributes(), attributes, SaiPortTraits::Attributes::IngressAcl{});
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
   getAndSetAttribute(
       port->attributes(),
@@ -602,6 +705,24 @@ void SaiPortManager::attributesFromSaiStore(
         attributes,
         SaiPortTraits::Attributes::FabricSystemPort{});
   }
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  // LLR is programmed by programLlr(), not attributesFromSwPort(), which leaves
+  // all three nullopt. Without carrying them over, setObject() below overwrites
+  // the cached values with nullopt -- harmless in hardware, since
+  // setAttributeInHardware() ignores a nullopt, but it leaves programLlr()
+  // comparing every attribute against nullopt and so re-driving the whole
+  // disable/bind/enable sequence on a port whose LLR never changed.
+  getAndSetAttribute(
+      port->attributes(),
+      attributes,
+      SaiPortTraits::Attributes::LlrModeLocal{});
+  getAndSetAttribute(
+      port->attributes(),
+      attributes,
+      SaiPortTraits::Attributes::LlrModeRemote{});
+  getAndSetAttribute(
+      port->attributes(), attributes, SaiPortTraits::Attributes::LlrProfile{});
 #endif
 }
 
@@ -719,7 +840,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   }
   std::optional<sai_port_media_type_t> propagationDelayMediaType;
 #if defined(BRCM_SAI_SDK_DNX_GTE_14_0) || defined(BRCM_SAI_SDK_XGS_GTE_14_2)
-  if (platform_->getAsic()->isSupported(
+  // Setting an attribute whose id does not resolve on this SDK is a FATAL in
+  // SaiAttribute, so never populate it ahead of the id check.
+  if (SaiPortTraits::Attributes::AttributeCablePropagationDelayMediaType{}() &&
+      platform_->getAsic()->isSupported(
           HwAsic::Feature::CABLE_PROPOGATION_DELAY) &&
       managerTable_->switchManager().isMeasureCableLengthEnabled()) {
     if (swPort->getPortType() == cfg::PortType::HYPER_PORT_MEMBER ||
@@ -779,8 +903,16 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   if (platform_->getAsic()->portMtuSupported(swPort->getPortType())) {
     mtu = swPort->getMaxFrameSize();
   }
+  // 1. user metadata set    -> that value
+  // 2. none, port tagged    -> 0, a real clear. Unset would not clear it:
+  //    setObject() skips the hardware write for an unset optional but still
+  //    drops the value from the store, leaving the port tagged with nothing
+  //    left to re-drive it.
+  // 3. none, port untagged  -> unset, nothing to say.
+  // Cases 2 and 3 need a port that already exists. A new port has no handle
+  // yet and comes up untagged, so nothing is said at create.
   std::optional<SaiPortTraits::Attributes::Metadata> metadata;
-  if (auto userMetaData = swPort->getUserMetaData()) {
+  if (const auto userMetaData = swPort->getUserMetaData()) {
     const auto metadataValue = static_cast<uint32_t>(*userMetaData);
     auto range = SaiApiTable::getInstance()->switchApi().getAttribute(
         managerTable_->switchManager().getSwitchSaiId(),
@@ -796,6 +928,13 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
           "]");
     }
     metadata = SaiPortTraits::Attributes::Metadata{metadataValue};
+  } else if (const auto* portHandle = getPortHandle(swPort->getID())) {
+    const auto programmedMetadata =
+        std::get<std::optional<SaiPortTraits::Attributes::Metadata>>(
+            portHandle->port->attributes());
+    if (programmedMetadata && programmedMetadata->value() != 0) {
+      metadata = SaiPortTraits::Attributes::Metadata{0};
+    }
   }
   std::optional<SaiPortTraits::Attributes::PrbsPolynomial> prbsPolynomial =
       std::nullopt;
@@ -1027,6 +1166,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // TC to Priority Group map
         std::nullopt, // PFC Priority to Queue map
         std::nullopt, // PFC Priority to Priority Group map
+#if defined(SAI_CBFC_SUPPORTED)
+        std::nullopt, // TC to VC map
+        std::nullopt, // Queue to VC map
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
         std::nullopt,
 #endif
@@ -1080,6 +1223,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #endif
         std::nullopt, // PfcPauseDurationOverride
         std::nullopt, // Ingress ACL
+        std::nullopt, // IsolationGroup
         std::nullopt, // Metadata
     };
   }
@@ -1088,6 +1232,36 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     // vlan ID with value 0 is invalid
     vlanIdAttr.reset();
   }
+
+  // 1. table name set and programmed  -> that table's object id
+  // 2. table name set, not programmed -> unset. Ports are programmed before ACL
+  //    tables, so setIngressAcl() binds this later, after the ACL delta.
+  // 3. no table name, port bound      -> SAI_NULL_OBJECT_ID. Unset would not
+  //    unbind: setObject() skips the hardware write for an unset optional but
+  //    still drops the value from the store, leaving the port bound.
+  // 4. no table name, port unbound    -> unset, nothing to say.
+  // Only for a port that already exists. A new port has no handle;
+  // setIngressAcl() binds it later, once the ACL tables exist.
+  std::optional<SaiPortTraits::Attributes::IngressAcl> ingressAcl;
+  if (const auto* portHandle = getPortHandle(swPort->getID())) {
+    if (const auto aclTableName = swPort->getIngressAclTableName()) {
+      if (const auto* aclTableHandle =
+              managerTable_->aclTableManager().getAclTableHandle(
+                  *aclTableName)) {
+        ingressAcl = SaiPortTraits::Attributes::IngressAcl{
+            aclTableHandle->aclTable->adapterKey()};
+      }
+    } else if (std::get<std::optional<SaiPortTraits::Attributes::IngressAcl>>(
+                   portHandle->port->attributes())) {
+      ingressAcl = SaiPortTraits::Attributes::IngressAcl{SAI_NULL_OBJECT_ID};
+    }
+  }
+  XLOGF(
+      DBG2,
+      "Port {} ingress ACL table {} resolved to {}",
+      swPort->getID(),
+      swPort->getIngressAclTableName().value_or("none"),
+      ingressAcl);
 
   return SaiPortTraits::CreateAttributes{
 #if defined(BRCM_SAI_SDK_DNX)
@@ -1140,6 +1314,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // TC to Priority Group map
       std::nullopt, // PFC Priority to Queue map
       std::nullopt, // PFC Priority to Priority Group map
+#if defined(SAI_CBFC_SUPPORTED)
+      std::nullopt, // TC to VC map
+      std::nullopt, // Queue to VC map
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
       interFrameGap, // Inter Frame Gap
 #endif
@@ -1196,7 +1374,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #else
       std::nullopt, // PfcPauseDurationOverride
 #endif
-      std::nullopt, // Ingress ACL
+      ingressAcl,
+      std::nullopt, // IsolationGroup
       metadata,
   };
 }
@@ -1219,73 +1398,136 @@ static sai_int32_t cfgLlrFrameActionToSai(cfg::LlrFrameAction action) {
   }
   throw FbossError("Unknown cfg::LlrFrameAction: ", static_cast<int>(action));
 }
+
+static SaiPortLlrProfileTraits::CreateAttributes llrProfileAttributes(
+    const std::shared_ptr<LlrConfig>& cfg) {
+  return SaiPortLlrProfileTraits::CreateAttributes{
+      SaiPortLlrProfileTraits::Attributes::OutstandingFramesMax{
+          static_cast<sai_uint32_t>(cfg->getOutstandingFramesMax())},
+      SaiPortLlrProfileTraits::Attributes::OutstandingBytesMax{
+          static_cast<sai_uint32_t>(cfg->getOutstandingBytesMax())},
+      SaiPortLlrProfileTraits::Attributes::ReplayTimerMax{
+          static_cast<sai_uint32_t>(cfg->getReplayTimerMax())},
+      SaiPortLlrProfileTraits::Attributes::ReplayCountMax{
+          static_cast<sai_uint8_t>(cfg->getReplayCountMax())},
+      SaiPortLlrProfileTraits::Attributes::PcsLostTimeout{
+          static_cast<sai_uint32_t>(cfg->getPcsLostTimeout())},
+      SaiPortLlrProfileTraits::Attributes::DataAgeTimeout{
+          static_cast<sai_uint32_t>(cfg->getDataAgeTimeout())},
+      SaiPortLlrProfileTraits::Attributes::InitLlrFrameAction{
+          cfgLlrFrameActionToSai(cfg->getInitFrameAction())},
+      SaiPortLlrProfileTraits::Attributes::FlushLlrFrameAction{
+          cfgLlrFrameActionToSai(cfg->getFlushFrameAction())},
+      SaiPortLlrProfileTraits::Attributes::ReInitOnFlush{
+          cfg->getReInitOnFlush()},
+      SaiPortLlrProfileTraits::Attributes::CtlosTargetSpacing{
+          static_cast<sai_uint16_t>(cfg->getCtlosTargetSpacing())}};
+}
 #endif
+
+// Whether the LLR profile bound to a port in hardware differs from the one its
+// config resolves to. This is the SwitchState-level llrConfigChanged() asked at
+// the SAI layer, for callers that have no old Port to compare against.
+//
+// It is the only thing that decides whether LLR is written: programLlr() skips
+// its writes when the binding already matches, and addPortImpl() holds the
+// port's admin enable only when it does not, since a profile cannot be attached
+// or detached on an enabled port (CS00012478409).
+//
+// Matching is the warm boot case, where addPortImpl replays against a store
+// holding the object reclaimed from hardware on a port that is up and
+// forwarding. An existing port object is not on its own evidence of a match:
+// the flexport VCO path arrives with one too, pre-created by
+// createPortWithBasicAttributes() administratively enabled and carrying no
+// profile.
+bool SaiPortManager::llrProfileBindingChanged(
+    [[maybe_unused]] std::optional<sai_object_id_t> boundProfile,
+    [[maybe_unused]] const std::shared_ptr<Port>& swPort) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  // The OID config asks for, unset if it asks for no LLR. Resolving the profile
+  // by content key is what turns the config into an OID to compare against.
+  std::optional<sai_object_id_t> wanted;
+  auto llrConfig = swPort->getLlrConfig();
+  if (swPort->getLlrConfigName().has_value() && llrConfig.has_value()) {
+    SaiPortLlrProfileTraits::AdapterHostKey key =
+        llrProfileAttributes(llrConfig.value());
+    auto profile = saiStore_->get<SaiPortLlrProfileTraits>().get(key);
+    if (!profile) {
+      // Config wants a profile that has never been created, so whatever the
+      // port is bound to, it is not that one.
+      return true;
+    }
+    wanted = profile->adapterKey();
+  }
+  return boundProfile != wanted;
+#else
+  return false;
+#endif
+}
 
 // Program UEC Link Layer Retry (UE Spec 1.0.2 section 5.1) on a port from its
 // resolved LlrConfig. Creates a content-keyed SAI PORT_LLR_PROFILE (shared and
-// warm-boot reclaimed via SaiStore) and binds it to the port. When (re)enabling
-// or reconfiguring, modes are disabled first so the profile is configured while
-// LLR is not actively transmitting (SDK config-before-enable ordering).
+// warm-boot reclaimed via SaiStore) and binds it to the port. Modes are
+// disabled first so the profile is configured while LLR is not transmitting.
+//
+// The port must be administratively disabled on entry: a mode cannot be cleared
+// and a profile cannot be attached or detached on an enabled port
+// (CS00012478409). Both callers hold to that through holdAdminEnableForLlr(),
+// which forces admin state down in the attributes the port object is written
+// from and leaves the caller to enable it once this returns.
 void SaiPortManager::programLlr(
-    std::shared_ptr<Port> swPort,
-    SaiPortHandle* portHandle) {
+    [[maybe_unused]] std::shared_ptr<Port> swPort,
+    [[maybe_unused]] SaiPortHandle* portHandle) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
-  if (!platform_->getAsic()->isSupported(
-          HwAsic::Feature::LINK_LAYER_RETRANSMISSION)) {
+  if (!llrSupported(platform_)) {
     return;
   }
   auto llrConfig = swPort->getLlrConfig();
   const bool wantLlr =
       swPort->getLlrConfigName().has_value() && llrConfig.has_value();
-  // Nothing to program and nothing previously programmed: leave the port's LLR
-  // attributes untouched. Writing them (even to the disabled default) issues a
-  // set_port_attribute that returns NOT_SUPPORTED on SDK drops shipping
-  // the 1.18 headers without a runtime LLR implementation, which would crash
-  // normal (non-LLR) port bring-up.
-  if (!wantLlr && !portHandle->llrProfile) {
+
+  std::shared_ptr<SaiPortLlrProfile> profile;
+  if (wantLlr) {
+    auto attributes = llrProfileAttributes(llrConfig.value());
+    auto& store = saiStore_->get<SaiPortLlrProfileTraits>();
+    SaiPortLlrProfileTraits::AdapterHostKey key = attributes;
+    // Unconditional, and before the check below. On warm boot this reclaims the
+    // object the store loaded from hardware and claims its warm boot handle, so
+    // it is not swept as unreferenced -- which has to happen even on the path
+    // that writes nothing else.
+    profile = store.setObject(key, attributes);
+  }
+
+  // The binding already matches, so there is nothing to write. Rebinding an
+  // unchanged profile would tear down a live session for nothing:
+  // LlrModeLocal{false} stops acknowledging the partner, and LlrModeRemote is a
+  // one-shot LLR_INIT rather than a persistent enable (CS00012475411). This
+  // also covers a port that wants no LLR and has none, where touching the LLR
+  // attributes at all would issue a set_port_attribute that returns
+  // NOT_SUPPORTED on SDK drops shipping the 1.18 headers without a runtime LLR
+  // implementation, crashing normal port bring-up.
+  if (!llrProfileBindingChanged(boundLlrProfile(portHandle), swPort)) {
+    portHandle->llrProfile = std::move(profile);
     return;
   }
+
+  // Clear both LLR modes so the profile is bound while LLR is idle.
   portHandle->port->setOptionalAttribute(
       SaiPortTraits::Attributes::LlrModeLocal{false});
   portHandle->port->setOptionalAttribute(
       SaiPortTraits::Attributes::LlrModeRemote{false});
 
   if (wantLlr) {
-    const auto& cfg = llrConfig.value();
-    SaiPortLlrProfileTraits::CreateAttributes attributes{
-        SaiPortLlrProfileTraits::Attributes::OutstandingFramesMax{
-            static_cast<sai_uint32_t>(cfg->getOutstandingFramesMax())},
-        SaiPortLlrProfileTraits::Attributes::OutstandingBytesMax{
-            static_cast<sai_uint32_t>(cfg->getOutstandingBytesMax())},
-        SaiPortLlrProfileTraits::Attributes::ReplayTimerMax{
-            static_cast<sai_uint32_t>(cfg->getReplayTimerMax())},
-        SaiPortLlrProfileTraits::Attributes::ReplayCountMax{
-            static_cast<sai_uint8_t>(cfg->getReplayCountMax())},
-        SaiPortLlrProfileTraits::Attributes::PcsLostTimeout{
-            static_cast<sai_uint32_t>(cfg->getPcsLostTimeout())},
-        SaiPortLlrProfileTraits::Attributes::DataAgeTimeout{
-            static_cast<sai_uint32_t>(cfg->getDataAgeTimeout())},
-        SaiPortLlrProfileTraits::Attributes::InitLlrFrameAction{
-            cfgLlrFrameActionToSai(cfg->getInitFrameAction())},
-        SaiPortLlrProfileTraits::Attributes::FlushLlrFrameAction{
-            cfgLlrFrameActionToSai(cfg->getFlushFrameAction())},
-        SaiPortLlrProfileTraits::Attributes::ReInitOnFlush{
-            cfg->getReInitOnFlush()},
-        SaiPortLlrProfileTraits::Attributes::CtlosTargetSpacing{
-            static_cast<sai_uint16_t>(cfg->getCtlosTargetSpacing())}};
-    auto& store = saiStore_->get<SaiPortLlrProfileTraits>();
-    SaiPortLlrProfileTraits::AdapterHostKey key = attributes;
-    // Bind the port to the new profile before releasing the old handle: on a
-    // live reconfiguration (content change => new key) the assignment below
-    // drops the last reference to the old profile and removes it from HW, so
-    // the port must already reference the new profile to avoid pointing at a
-    // removed OID during the swap.
-    auto newLlrProfile = store.setObject(key, attributes);
+    // Bind before releasing the old handle: the move below drops the last
+    // reference to the old profile and removes it from hardware, so the port
+    // must not still point at that OID.
     portHandle->port->setOptionalAttribute(
-        SaiPortTraits::Attributes::LlrProfile{newLlrProfile->adapterKey()});
-    portHandle->llrProfile = std::move(newLlrProfile);
+        SaiPortTraits::Attributes::LlrProfile{profile->adapterKey()});
+    portHandle->llrProfile = std::move(profile);
     portHandle->port->setOptionalAttribute(
         SaiPortTraits::Attributes::LlrModeLocal{true});
+    // The port is down here, so this sets the mode bit without sending an
+    // LLR_INIT. brcm-sai 16.0EA4 re-arms it on link up (CS00012475411).
     portHandle->port->setOptionalAttribute(
         SaiPortTraits::Attributes::LlrModeRemote{true});
   } else {
@@ -1293,39 +1535,6 @@ void SaiPortManager::programLlr(
         SaiPortTraits::Attributes::LlrProfile{SAI_NULL_OBJECT_ID});
     portHandle->llrProfile.reset();
   }
-#else
-  (void)swPort;
-  (void)portHandle;
-#endif
-}
-
-// Re-assert LLR mode remote on a port that has just come up.
-//
-// SAI_PORT_ATTR_LLR_MODE_REMOTE is not a persistent enable: the SDK maps it
-// onto the MAC's one-shot, self-clearing SEND_TX_INIT trigger. programLlr()
-// asserts it at port creation, before link up, where bring-up consumes it and
-// no LLR_INIT is sent -- silently, as the field cannot be read back. Verified
-// on TU1: the same cycle leaves a link-down port at llr_active_tx = 0 and
-// brings a link-up port to 1.
-//
-// Raised with Broadcom as CS00012475411: whether the adapter host is expected
-// to re-apply mode remote on link up, or brcm-sai should, is unanswered, so
-// this works around it here.
-//
-// The false write is required: setOptionalAttribute elides a set whose value
-// already matches, and mode remote is already true in the store. Only remote
-// is cycled -- local is a persistent enable, and clearing it would stop this
-// port acknowledging the partner's frames.
-void SaiPortManager::reissueLlrModeRemote(
-    [[maybe_unused]] SaiPortHandle* portHandle) {
-#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
-  if (!portHandle->llrProfile) {
-    return;
-  }
-  portHandle->port->setOptionalAttribute(
-      SaiPortTraits::Attributes::LlrModeRemote{false});
-  portHandle->port->setOptionalAttribute(
-      SaiPortTraits::Attributes::LlrModeRemote{true});
 #endif
 }
 
@@ -1425,6 +1634,12 @@ void SaiPortManager::programSerdes(
   // attributes need to be programmed on other vendors
   bool skipSerdesProgramming = linkTrainingEnabled;
 
+  // TODO: Remove the flag fallback once precoding is populated in all port
+  // configs.
+  const auto txPrecodingEnabled =
+      FLAGS_montblanc_precoding || swPort->getTxPrecoding().value_or(false);
+  const auto rxPrecodingEnabled =
+      FLAGS_montblanc_precoding || swPort->getRxPrecoding().value_or(false);
   SaiPortSerdesTraits::CreateAttributes serdesAttributes =
       serdesAttributesFromSwPinConfigs(
           saiPort->adapterKey(),
@@ -1432,7 +1647,9 @@ void SaiPortManager::programSerdes(
           serdes,
           swPort->getZeroPreemphasis() && supportsZeroPreemphasis,
           swPort->getSerdesCustomCollection(),
-          skipSerdesProgramming);
+          skipSerdesProgramming,
+          txPrecodingEnabled,
+          rxPrecodingEnabled);
   if (serdes &&
       checkPortSerdesAttributes(serdes->attributes(), serdesAttributes)) {
     portHandle->serdes = serdes;
@@ -1479,12 +1696,24 @@ void SaiPortManager::programSerdes(
       std::get<std::optional<SaiPortSerdesTraits::Attributes::TxFirPost3>>(
           serdesAttributes) = std::nullopt;
     }
-    // set main txfir only first to avoid programming errors, see CS00012393198
-    auto attributes = serdesAttributes;
     auto newTxFirMain =
         std::get<std::optional<SaiPortSerdesTraits::Attributes::TxFirMain>>(
             serdesAttributes);
-    if (newTxFirMain.has_value()) {
+    if (swPort->getZeroPreemphasis() && supportsZeroPreemphasis &&
+        newTxFirMain.has_value()) {
+      // Broadcom rejects *creating* a port serdes object with TxFirMain set to
+      // 0. When zero preemphasis is requested (e.g. HW loopback tests) and the
+      // serdes is being created from scratch (such as during a VCO change that
+      // recreates the port), create it with only preemphasis set and leave the
+      // TX FIR taps unprogrammed. The setObject() below then programs the
+      // zeroed taps as an update, which the SDK does allow. This only matters
+      // when the profile actually has TX FIR taps; copper profiles have no
+      // TxFirMain and fall through to the path below.
+      createSerdesWithZeroPreemphasis(portHandle, swPort->getPinConfigs());
+    } else if (newTxFirMain.has_value()) {
+      // set main txfir only first to avoid programming errors, see
+      // CS00012393198
+      auto attributes = serdesAttributes;
       auto numLanes = newTxFirMain.value().value().size();
       SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType txPre1;
       txPre1.resize(numLanes, 0);
@@ -1503,73 +1732,6 @@ void SaiPortManager::programSerdes(
   }
   // create if serdes doesn't exist or update existing serdes
   portHandle->serdes = store.setObject(serdesKey, serdesAttributes);
-
-  // Set RX Reach if ASIC supports and platform mapping has a rxReach
-  // setting
-#if defined(BRCM_SAI_SDK_GTE_13_0)
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_SERDES_RX_REACH)) {
-    std::vector<phy::RxReach> rxReachVals;
-    for (const auto& pinConfig : swPort->getPinConfigs()) {
-      if (auto rx = pinConfig.rx()) {
-        if (auto rxReachOpt = rx->rxReach()) {
-          rxReachVals.push_back(rxReachOpt.value());
-        }
-      }
-    }
-    // RX reach is handled by link training
-    if (!rxReachVals.empty() && !linkTrainingEnabled) {
-      SaiPortSerdesTraits::Attributes::RxReach rxReach;
-      rxReach = getSaiRxReach(rxReachVals);
-      SaiApiTable::getInstance()->portApi().setAttribute(
-          portHandle->serdes->adapterKey(), rxReach);
-    }
-  }
-#endif
-#if defined(BRCM_SAI_SDK_GTE_13_0) || SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-  if (platform_->getAsic()->isSupported(
-          HwAsic::Feature::SAI_SERDES_PRECODING)) {
-    SaiPortSerdesTraits::Attributes::RxPrecodingAttr::ValueType rxPrecoding;
-    SaiPortSerdesTraits::Attributes::TxPrecodingAttr::ValueType txPrecoding;
-    for (const auto& pinConfig : swPort->getPinConfigs()) {
-      if (auto rx = pinConfig.rx()) {
-        if (auto precoding = rx->precoding()) {
-          rxPrecoding.push_back(precoding.value());
-        }
-      }
-      if (auto tx = pinConfig.tx()) {
-        if (auto precoding = tx->precoding()) {
-          txPrecoding.push_back(precoding.value());
-        }
-      }
-    }
-    // TODO: Remove the flag fallback once precoding is populated in all port
-    // configs.
-    const auto txPrecodingEnabled =
-        FLAGS_montblanc_precoding || swPort->getTxPrecoding().value_or(false);
-    const auto rxPrecodingEnabled =
-        FLAGS_montblanc_precoding || swPort->getRxPrecoding().value_or(false);
-    if (!rxPrecoding.empty() && rxPrecodingEnabled) {
-      SaiPortSerdesTraits::Attributes::RxPrecodingAttr rxPrecodingAttr{
-          rxPrecoding};
-      SaiApiTable::getInstance()->portApi().setAttribute(
-          portHandle->serdes->adapterKey(), rxPrecodingAttr);
-    }
-    if (!txPrecoding.empty() && txPrecodingEnabled) {
-      SaiPortSerdesTraits::Attributes::TxPrecodingAttr txPrecodingAttr{
-          txPrecoding};
-      SaiApiTable::getInstance()->portApi().setAttribute(
-          portHandle->serdes->adapterKey(), txPrecodingAttr);
-    }
-  }
-#else
-  if (platform_->getAsic()->isSupported(
-          HwAsic::Feature::SAI_SERDES_PRECODING)) {
-    XLOG_EVERY_MS(WARNING, 10000)
-        << "Port " << swPort->getID()
-        << ": SAI_SERDES_PRECODING is supported by the ASIC but no precoding "
-           "attribute is available on this SDK, skipping";
-  }
-#endif
 
   if (platform_->getAsic()->getAsicType() ==
           cfg::AsicType::ASIC_TYPE_TOMAHAWK5 &&
@@ -1597,15 +1759,13 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     const std::shared_ptr<SaiPortSerdes>& serdes,
     bool zeroPreemphasis,
     const std::optional<std::string>& customCollection,
-    bool skipSerdesProgramming) {
+    bool skipSerdesProgramming,
+    [[maybe_unused]] bool txPrecodingEnabled,
+    [[maybe_unused]] bool rxPrecodingEnabled) {
   SaiPortSerdesTraits::CreateAttributes attrs;
 
   std::get<SaiPortSerdesTraits::Attributes::PortId>(attrs) =
       static_cast<sai_object_id_t>(portSaiId);
-  if (skipSerdesProgramming) {
-    // PortId is mandatory to create the serdes object
-    return attrs;
-  }
 
   SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType txPre1;
   SaiPortSerdesTraits::Attributes::TxFirMain::ValueType txMain;
@@ -1673,11 +1833,33 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
       rxFfeLengthBitmap;
   SaiPortSerdesTraits::Attributes::RxFfeLmsDynamicGatingEn::ValueType
       rxFfeLmsDynamicGatingEn;
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+  std::vector<phy::RxReach> rxReach;
+#endif
+#if defined(BRCM_SAI_SDK_GTE_13_0) ||            \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) && \
+     !defined(BRCM_SAI_SDK_XGS_AND_DNX))
+  SaiPortSerdesTraits::Attributes::TxPrecodingAttr::ValueType txPrecoding;
+  SaiPortSerdesTraits::Attributes::RxPrecodingAttr::ValueType rxPrecoding;
+#endif
 
   // Now use pinConfigs from SW port as the source of truth
   [[maybe_unused]] auto numExpectedTxLanes = 0;
   auto numExpectedRxLanes = 0;
   for (const auto& pinConfig : pinConfigs) {
+#if defined(BRCM_SAI_SDK_GTE_13_0) ||            \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) && \
+     !defined(BRCM_SAI_SDK_XGS_AND_DNX))
+    if (auto tx = pinConfig.tx(); tx && tx->precoding()) {
+      txPrecoding.push_back(tx->precoding().value());
+    }
+    if (auto rx = pinConfig.rx(); rx && rx->precoding()) {
+      rxPrecoding.push_back(rx->precoding().value());
+    }
+#endif
+    if (skipSerdesProgramming) {
+      continue;
+    }
     if (auto tx = pinConfig.tx()) {
       ++numExpectedTxLanes;
       if (platform_->getAsic()->getAsicType() ==
@@ -1754,6 +1936,11 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     }
     if (auto rx = pinConfig.rx()) {
       ++numExpectedRxLanes;
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+      if (auto reach = rx->rxReach()) {
+        rxReach.push_back(reach.value());
+      }
+#endif
       if (auto ctlCode = rx->ctlCode()) {
         rxCtleCode.push_back(*ctlCode);
       }
@@ -1846,10 +2033,42 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     }
   };
 
+#if defined(BRCM_SAI_SDK_GTE_13_0) ||            \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) && \
+     !defined(BRCM_SAI_SDK_XGS_AND_DNX))
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_SERDES_PRECODING)) {
+    if (txPrecodingEnabled) {
+      setTxRxAttr(
+          attrs,
+          SaiPortSerdesTraits::Attributes::TxPrecodingAttr{},
+          txPrecoding);
+    }
+    if (rxPrecodingEnabled) {
+      setTxRxAttr(
+          attrs,
+          SaiPortSerdesTraits::Attributes::RxPrecodingAttr{},
+          rxPrecoding);
+    }
+  }
+#endif
+  if (skipSerdesProgramming) {
+    return attrs;
+  }
+
   setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPre1{}, txPre1);
   setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPost1{}, txPost1);
   setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirMain{}, txMain);
   setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::IDriver{}, txIDriver);
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+  if (rxPrecodingEnabled &&
+      platform_->getAsic()->isSupported(HwAsic::Feature::SAI_SERDES_RX_REACH)) {
+    setTxRxAttr(
+        attrs,
+        SaiPortSerdesTraits::Attributes::RxReach{},
+        getSaiRxReach(rxReach));
+  }
+#endif
 
   if (FLAGS_sai_configure_six_tap &&
       platform_->getAsic()->isSupported(
@@ -2077,11 +2296,16 @@ void SaiPortManager::createSerdesWithZeroPreemphasis(
   }
 
 #if !defined(CHENAB_SAI_SDK)
-  SaiPortSerdesTraits::Attributes::Preemphasis::ValueType preemphasis;
-  preemphasis.resize(numExpectedTxLanes, 0);
-  std::get<std::optional<
-      std::decay_t<decltype(SaiPortSerdesTraits::Attributes::Preemphasis{})>>>(
-      attributes) = preemphasis;
+  // Only program Preemphasis when the profile actually has TX lanes. Setting an
+  // empty Preemphasis vector (e.g. for copper profiles with no tx pin configs)
+  // is rejected by the SDK with INVALID ATTRIBUTE MAX.
+  if (numExpectedTxLanes > 0) {
+    SaiPortSerdesTraits::Attributes::Preemphasis::ValueType preemphasis;
+    preemphasis.resize(numExpectedTxLanes, 0);
+    std::get<std::optional<std::decay_t<
+        decltype(SaiPortSerdesTraits::Attributes::Preemphasis{})>>>(
+        attributes) = preemphasis;
+  }
 #endif
   SaiPortSerdesTraits::AdapterHostKey serdesKey{portSaiId};
   auto& store = saiStore_->get<SaiPortSerdesTraits>();

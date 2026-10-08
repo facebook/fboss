@@ -6,11 +6,42 @@
       "pmUnitName": "SMB",
       "sensors": [
         {
+          "name": "CPU_TEMP_TCTL",
+          "sysfsPath": "/run/devmap/sensors/CPU_CORE_TEMP/temp1_input",
+          "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 105.0,
+            "maxAlarmVal": 100.0
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "CPU_TEMP_TCCD1",
+          "sysfsPath": "/run/devmap/sensors/CPU_CORE_TEMP/temp3_input",
+          "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 105.0,
+            "maxAlarmVal": 100.0
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "CPU_TEMP_TCCD2",
+          "sysfsPath": "/run/devmap/sensors/CPU_CORE_TEMP/temp4_input",
+          "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 105.0,
+            "maxAlarmVal": 100.0
+          },
+          "compute": "@/1000.0"
+        },
+        {
           "name": "NVME_COMPOSITE_TEMP",
           "sysfsPath": "/run/devmap/sensors/NVME_TEMP/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 80.0
+            "upperCriticalVal": 85.0,
+            "maxAlarmVal": 75.0
           },
           "compute": "@/1000.0"
         },

@@ -16,8 +16,8 @@
 #include "fboss/cli/fboss2/commands/show/bgp/CmdShowVersionBgp.h"
 #include "fboss/cli/fboss2/commands/show/bgp/changelist/CmdShowBgpChangelist.h"
 #include "fboss/cli/fboss2/commands/show/bgp/config/CmdShowConfigRunningBgp.h"
+#include "fboss/cli/fboss2/commands/show/bgp/fibnexthops/CmdShowBgpFibNexthops.h"
 #include "fboss/cli/fboss2/commands/show/bgp/neighbors/CmdShowBgpNeighbors.h"
-#include "fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedDryRun.h"
 #include "fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedPostPolicy.h"
 #include "fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedPrePolicy.h"
 #include "fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedRejected.h"
@@ -53,9 +53,6 @@ template void
 CmdHandler<CmdShowConfigRunningBgp, CmdShowConfigRunningBgpTraits>::run();
 template void CmdHandler<CmdShowBgpNeighbors, CmdShowBgpNeighborsTraits>::run();
 template void CmdHandler<CmdShowVersionBgp, CmdShowVersionTraits>::run();
-template void CmdHandler<
-    BgpNeighborsAdvertisedDryRun,
-    BgpNeighborsAdvertisedDryRunTraits>::run();
 template void CmdHandler<
     BgpNeighborsAdvertisedPostPolicy,
     BgpNeighborsAdvertisedPostPolicyTraits>::run();
@@ -103,6 +100,8 @@ template void
 CmdHandler<CmdShowBgpTableCommunity, CmdShowBgpTableCommunityTraits>::run();
 template void
 CmdHandler<CmdShowBgpTableDetail, CmdShowBgpTableDetailTraits>::run();
+template void
+CmdHandler<CmdShowBgpFibNexthops, CmdShowBgpFibNexthopsTraits>::run();
 template void
 CmdHandler<CmdShowBgpTableSummary, CmdShowBgpTableSummaryTraits>::run();
 template void CmdHandler<

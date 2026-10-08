@@ -19,6 +19,9 @@ cpp_library(
     srcs = [
         "ConfigDiffer.cpp",
     ],
+    headers = [
+        "ConfigDiffer.h",
+    ],
     deps = [
         "fbsource//third-party/fmt:fmt",
         "//folly/logging:logging",

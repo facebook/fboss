@@ -31,6 +31,8 @@ class Tomahawk6Asic : public BroadcomXgsAsic {
   int getDefaultNumPortQueues(
       cfg::StreamType streamType,
       cfg::PortType portType) const override;
+  int getBasePortQueueId(cfg::StreamType streamType, cfg::PortType portType)
+      const override;
   uint32_t getMaxLabelStackDepth() const override {
     return 9;
   }
@@ -104,6 +106,10 @@ class Tomahawk6Asic : public BroadcomXgsAsic {
   }
   std::optional<uint32_t> getMaxEcmpMembers() const override {
     return 128000;
+  }
+  std::optional<AcceptedValues> getAcceptedLinkUpHoldoffTimeMs()
+      const override {
+    return AcceptedValues::range(2, 500);
   }
   uint32_t getStaticQueueLimitBytes() const override {
     return getMMUSizeBytes();

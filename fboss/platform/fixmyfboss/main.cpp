@@ -16,93 +16,36 @@
 #include <folly/logging/LoggerDB.h>
 #include <folly/logging/xlog.h>
 
+#include "fboss/platform/fixmyfboss/CheckRegistry.h"
+#include "fboss/platform/fixmyfboss/CheckRunner.h"
 #include "fboss/platform/fixmyfboss/ResultPrinter.h"
-#include "fboss/platform/helpers/PlatformNameLib.h"
-#include "fboss/platform/platform_checks/PlatformCheck.h"
-#include "fboss/platform/platform_checks/checks/MacAddressCheck.h"
-#include "fboss/platform/platform_checks/checks/PciDeviceCheck.h"
-#include "fboss/platform/platform_checks/checks/PowerResetCheck.h"
-#include "fboss/platform/platform_checks/checks/i801SmbusTimeoutCheck.h"
 
 using namespace facebook::fboss::platform;
 
 namespace {
 
-// Create all platform checks
-std::vector<std::unique_ptr<platform_checks::PlatformCheck>> createAllChecks() {
-  std::vector<std::unique_ptr<platform_checks::PlatformCheck>> checks;
-  checks.push_back(std::make_unique<platform_checks::MacAddressCheck>());
-  checks.push_back(std::make_unique<platform_checks::PciDeviceCheck>());
-  checks.push_back(
-      std::make_unique<platform_checks::RecentManualRebootCheck>());
-  checks.push_back(std::make_unique<platform_checks::RecentKernelPanicCheck>());
-  checks.push_back(
-      std::make_unique<platform_checks::WatchdogDidNotStopCheck>());
-  checks.push_back(std::make_unique<platform_checks::i801SmbusTimeoutCheck>());
-  return checks;
-}
-
-// Filter checks by platform
-std::vector<platform_checks::PlatformCheck*> getChecksForPlatform(
+void listChecks(
     const std::vector<std::unique_ptr<platform_checks::PlatformCheck>>& checks,
-    const std::string& platformName) {
-  std::vector<platform_checks::PlatformCheck*> filteredChecks;
-  for (const auto& check : checks) {
-    auto supportedPlatforms = check->getSupportedPlatforms();
-    // Empty set means all platforms are supported
-    if (supportedPlatforms.empty() ||
-        supportedPlatforms.count(platformName) > 0) {
-      filteredChecks.push_back(check.get());
-    }
-  }
-  return filteredChecks;
-}
-
-std::vector<platform_checks::CheckResult> runAllChecks(
-    const std::vector<platform_checks::PlatformCheck*>& checks) {
-  std::vector<platform_checks::CheckResult> results;
-
-  for (auto* check : checks) {
-    XLOG(DBG2) << "Running check: " << check->getDescription();
-    try {
-      auto result = check->run();
-      XLOG(DBG2) << "Check " << check->getDescription()
-                 << " completed with status: "
-                 << static_cast<int>(*result.status());
-      results.push_back(std::move(result));
-    } catch (const std::exception& e) {
-      // Convert exceptions to ERROR results
-      XLOG(ERR) << "Exception in check " << check->getDescription() << ": "
-                << e.what();
-      platform_checks::CheckResult errorResult;
-      errorResult.checkType() = check->getType();
-      errorResult.checkName() = check->getName();
-      errorResult.status() = platform_checks::CheckStatus::ERROR;
-      errorResult.errorMessage() =
-          std::string("Exception during check execution: ") + e.what();
-      results.push_back(std::move(errorResult));
-    }
-  }
-  return results;
-}
-
-void listChecks(const std::string& platformName) {
-  auto allChecks = createAllChecks();
-  auto checksForPlatform = getChecksForPlatform(allChecks, platformName);
-
+    const fixmyfboss::CheckRunner& runner) {
   std::cout << "List of checks:\n";
   int index = 1;
-
-  for (const auto& check : allChecks) {
-    bool willRun =
-        std::find_if(
-            checksForPlatform.begin(), checksForPlatform.end(), [&](auto* c) {
-              return c == check.get();
-            }) != checksForPlatform.end();
-    std::string runIndicator = willRun ? "" : " (skipped)";
+  for (const auto& check : checks) {
+    std::string runIndicator =
+        runner.appliesToPlatform(*check) ? "" : " (skipped)";
     std::cout << index++ << ". " << check->getName() << ": "
               << check->getDescription() << runIndicator << "\n";
   }
+}
+
+platform_checks::RemoteHost::Transport parseTransport(
+    const std::string& transport) {
+  if (transport == "ssh") {
+    return platform_checks::RemoteHost::Transport::SSH;
+  }
+  if (transport == "sush2") {
+    return platform_checks::RemoteHost::Transport::SUSH2;
+  }
+  return platform_checks::RemoteHost::detectTransport();
 }
 
 void configureLogging(bool debugFlag, bool verboseFlag) {
@@ -118,21 +61,17 @@ void configureLogging(bool debugFlag, bool verboseFlag) {
 }
 
 std::vector<platform_checks::CheckResult> runChecks(
+    const std::vector<std::unique_ptr<platform_checks::PlatformCheck>>& checks,
+    const fixmyfboss::CheckRunner& runner,
     const std::string& platformName) {
   XLOG(INFO) << "Starting fixmyfboss checks for platform: " << platformName;
-
-  auto allChecks = createAllChecks();
-  auto checks = getChecksForPlatform(allChecks, platformName);
-
-  XLOG(INFO) << "Found " << checks.size()
-             << " applicable checks for this platform";
 
   fixmyfboss::ResultPrinter printer;
   printer.printProgress(
       "Platform: " + platformName + " - Running " +
       std::to_string(checks.size()) + " checks");
 
-  auto results = runAllChecks(checks);
+  auto results = runner.run(checks);
   printer.clearLine();
   return results;
 }
@@ -150,6 +89,33 @@ int main(int argc, char* argv[]) {
          listChecksFlag,
          "Show list of available checks and exit")
       ->group("Information");
+
+  std::string hostname;
+  app.add_option(
+         "--hostname",
+         hostname,
+         "Diagnose this switch over SSH instead of the local machine")
+      ->group("Remote");
+
+  std::string transport = "auto";
+  app.add_option(
+         "--transport",
+         transport,
+         "How to reach --hostname: ssh, sush2, or auto (sush2 if installed)")
+      ->check(CLI::IsMember({"auto", "ssh", "sush2"}))
+      ->group("Remote");
+
+  std::string bmcHostname;
+  app.add_option(
+         "--bmc-hostname",
+         bmcHostname,
+         "BMC to check over SSH (default with --hostname: <hostname>-oob)")
+      ->group("Remote");
+
+  bool noBmc = false;
+  app.add_flag("--no-bmc", noBmc, "Skip all checks that need the BMC")
+      ->group("Remote")
+      ->excludes("--bmc-hostname");
 
   bool verboseFlag = false;
   app.add_flag(
@@ -169,28 +135,40 @@ int main(int argc, char* argv[]) {
 
   configureLogging(debugFlag, verboseFlag);
 
-  auto platformNameOpt = helpers::PlatformNameLib().getPlatformName();
-  if (!platformNameOpt.has_value()) {
-    XLOG(ERR) << "Failed to determine platform name";
+  fixmyfboss::ConnectOptions connectOptions{
+      .noBmc = noBmc, .transport = parseTransport(transport)};
+  if (!hostname.empty()) {
+    connectOptions.hostname = hostname;
+  }
+  if (!bmcHostname.empty()) {
+    connectOptions.bmcHostname = bmcHostname;
+  }
+  fixmyfboss::CheckEnvironment env;
+  try {
+    env = fixmyfboss::createEnvironment(connectOptions);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << ex.what();
     return EXIT_FAILURE;
   }
-  const std::string& platformName = platformNameOpt.value();
+  auto checks = fixmyfboss::createAllChecks(env);
+  const fixmyfboss::CheckRunner runner(env.platformName);
 
   // Handle --list-checks mode
   if (listChecksFlag) {
-    listChecks(platformName);
+    listChecks(checks, runner);
     return EXIT_SUCCESS;
   }
 
   // Run checks and print results
-  auto results = runChecks(platformName);
-  fixmyfboss::ResultPrinter printer;
+  auto results = runChecks(checks, runner, env.platformName);
+  fixmyfboss::ResultPrinter printer(std::cout, verboseFlag || debugFlag);
   printer.printSummary(results);
   printer.printDetails(results);
 
   bool allPassed =
       std::all_of(results.begin(), results.end(), [](const auto& result) {
-        return *result.status() == platform_checks::CheckStatus::OK;
+        return *result.status() == platform_checks::CheckStatus::OK ||
+            *result.status() == platform_checks::CheckStatus::SKIPPED;
       });
 
   return allPassed ? EXIT_SUCCESS : EXIT_FAILURE;

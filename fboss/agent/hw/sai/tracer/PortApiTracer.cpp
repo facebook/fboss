@@ -56,6 +56,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap{
     SAI_ATTR_MAP(Port, PrbsRxState),
 #endif
     SAI_ATTR_MAP(Port, IngressAcl),
+    SAI_ATTR_MAP(Port, IsolationGroup),
     SAI_ATTR_MAP(Port, IngressMacSecAcl),
     SAI_ATTR_MAP(Port, EgressMacSecAcl),
     SAI_ATTR_MAP(Port, PtpMode),
@@ -70,6 +71,14 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap{
     SAI_ATTR_MAP(Port, IngressPriorityGroupList),
     SAI_ATTR_MAP(Port, NumberOfIngressPriorityGroups),
     SAI_ATTR_MAP(Port, QosTcToPriorityGroupMap),
+#if defined(SAI_CBFC_SUPPORTED)
+    SAI_ATTR_MAP(Port, QosTcToVcMap),
+    SAI_ATTR_MAP(Port, CbfcSenderCreditLimit),
+    SAI_ATTR_MAP(Port, QosQueueToVcMap),
+    SAI_ATTR_MAP(Port, CbfcReceiverNativeCreditSize),
+    SAI_ATTR_MAP(Port, CbfcReceiverNativePacketOverhead),
+    SAI_ATTR_MAP(Port, CbfcReceiverNativeTotalCredits),
+#endif
     SAI_ATTR_MAP(Port, QosPfcPriorityToQueueMap),
     SAI_ATTR_MAP(Port, QosPfcPriorityToPriorityGroupMap),
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
@@ -239,6 +248,9 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Port, LinkDownDebouncePeriodMs)
   SAI_EXT_ATTR_MAP(Port, LinkUpDebounceRetriggerCount)
   SAI_EXT_ATTR_MAP(Port, LinkDownDebounceRetriggerCount)
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+  SAI_EXT_ATTR_MAP(Port, ExtOperStatusLatch)
+#endif
 #if defined(BRCM_SAI_SDK_GTE_13_0)
   SAI_EXT_ATTR_MAP(PortSerdes, Dco)
   SAI_EXT_ATTR_MAP(PortSerdes, FltM)

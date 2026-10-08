@@ -9,8 +9,11 @@
 #include <folly/logging/xlog.h>
 #include <gpiod.h>
 
+#include <set>
+
 #include "fboss/agent/FbossError.h"
 #include "fboss/lib/GpiodLine.h"
+#include "fboss/platform/fan_service/FanServiceConfigTypes.h"
 #include "fboss/platform/fan_service/SensorData.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_constants.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
@@ -29,6 +32,7 @@ auto constexpr kSensorReadFailure = "{}.sensor_read.failure";
 auto constexpr kSensorReadValue = "{}.sensor_read.value";
 auto constexpr kOpticsReadMaxValue = "{}.optics_read.max.value";
 auto constexpr kOpticsPwmValue = "{}.optics_pwm.value";
+auto constexpr kOpticsNoProfile = "{}.optics_no_profile";
 auto constexpr kOpticsAggPwmValue = "agg.optics_pwm.value";
 auto constexpr kLedWriteFailure = "{}.led_write.failure";
 auto constexpr kHasFanRpmReadFailure = "has.fan_rpm_read_failure";
@@ -41,12 +45,6 @@ using namespace facebook::fboss::platform::fan_service;
 namespace constants =
     facebook::fboss::platform::fan_service::fan_service_config_constants;
 
-// Fallback table: if an optic type's thermal profile is not defined in the
-// config, fall back to the mapped profile instead.
-const std::unordered_map<std::string, std::string> kOpticTypeFallbacks = {
-    {constants::OPTIC_TYPE_800_ZR(), constants::OPTIC_TYPE_800_GENERIC()},
-};
-
 template <typename T>
 std::optional<T> getConfigOpticData(
     const std::string& opticType,
@@ -54,17 +52,6 @@ std::optional<T> getConfigOpticData(
   auto it = dataMap.find(opticType);
   if (it != dataMap.end()) {
     return it->second;
-  }
-  auto fallbackIt = kOpticTypeFallbacks.find(opticType);
-  if (fallbackIt != kOpticTypeFallbacks.end()) {
-    auto dataIt = dataMap.find(fallbackIt->second);
-    if (dataIt != dataMap.end()) {
-      XLOG(INFO) << fmt::format(
-          "Optic type {} not found in config, falling back to {}",
-          opticType,
-          fallbackIt->second);
-      return dataIt->second;
-    }
   }
   return std::nullopt;
 }
@@ -319,7 +306,10 @@ int ControlLogic::updateSensorPwms(
   return numSensorFailed;
 }
 
-void ControlLogic::updateOpticsPwms(SensorData& sensorData) {
+int ControlLogic::updateOpticsPwms(SensorData& sensorData) {
+  int numOpticsNoProfile = 0;
+  bool readAnyOpticData = false;
+  std::set<std::string> opticTypesSeen;
   for (const auto& optic : *config_.optics()) {
     std::string opticName = *optic.opticName();
 
@@ -327,6 +317,7 @@ void ControlLogic::updateOpticsPwms(SensorData& sensorData) {
     if (!opticEntry || opticEntry->data.empty()) {
       continue;
     }
+    readAnyOpticData = true;
 
     int aggOpticPwm = 0;
     const auto& aggregationType = *optic.aggregationType();
@@ -350,45 +341,68 @@ void ControlLogic::updateOpticsPwms(SensorData& sensorData) {
       }
 
       int pwmForThis = 0;
+      bool profileFound = true;
 
       if (aggregationType == constants::OPTIC_AGGREGATION_TYPE_MAX()) {
         auto tablePointer =
             getConfigOpticData<TempToPwmMap>(opticType, *optic.tempToPwmMaps());
-        if (!tablePointer) {
-          continue;
-        }
-        pwmForThis = tablePointer->begin()->second;
-        for (const auto& [temp, pwm] : *tablePointer) {
-          if (maxTemp >= temp) {
-            pwmForThis = pwm;
+        if (tablePointer) {
+          pwmForThis = tablePointer->begin()->second;
+          for (const auto& [temp, pwm] : *tablePointer) {
+            if (maxTemp >= temp) {
+              pwmForThis = pwm;
+            }
           }
+        } else {
+          profileFound = false;
         }
       } else {
         auto pidSetting =
             getConfigOpticData<PidSetting>(opticType, *optic.pidSettings());
-        if (!pidSetting) {
-          XLOG(ERR) << fmt::format(
-              "Optic {} does not have PID setting", opticType);
-          continue;
+        if (pidSetting) {
+          // Safe: opticType is a key of optic.pidSettings(), and
+          // setupPidLogics() creates a PidLogic for every such key whenever
+          // aggregationType is PID or INCREMENTAL_PID.
+          std::string cacheKey = opticName + opticType;
+          pwmForThis = pidLogics_.at(cacheKey)->calculatePwm(maxTemp);
+        } else {
+          profileFound = false;
         }
-        std::string cacheKey = opticName + opticType;
-        pwmForThis = pidLogics_.at(cacheKey)->calculatePwm(maxTemp);
       }
 
-      XLOG(INFO) << fmt::format(
-          "{}: Max optic temp is {} from txvr {}. PWM is {}",
-          opticType,
-          maxTemp,
-          maxTempTxvrId,
-          pwmForThis);
-
+      // Publish the temperature even for an optic type we cannot control, so
+      // that it stays visible in monitoring instead of disappearing entirely.
+      opticTypesSeen.insert(opticType);
       fb303::fbData->setCounter(
           fmt::format(kOpticsReadMaxValue, opticType), maxTemp);
       fb303::fbData->setCounter(
-          fmt::format(kOpticsPwmValue, opticType), pwmForThis);
+          fmt::format(kOpticsNoProfile, opticType), profileFound ? 0 : 1);
 
-      if (pwmForThis > aggOpticPwm) {
-        aggOpticPwm = pwmForThis;
+      // Deliberately no pwm counter in the no-profile branch. A PWM was never
+      // computed, and publishing 0 would be indistinguishable from a cool
+      // optic asking for no additional cooling.
+      if (!profileFound) {
+        numOpticsNoProfile++;
+        XLOG(ERR) << fmt::format(
+            "{}: Max optic temp is {} from txvr {}. No thermal profile "
+            "configured, so excluding from fan control",
+            opticType,
+            maxTemp,
+            maxTempTxvrId);
+      } else {
+        XLOG(INFO) << fmt::format(
+            "{}: Max optic temp is {} from txvr {}. PWM is {}",
+            opticType,
+            maxTemp,
+            maxTempTxvrId,
+            pwmForThis);
+
+        fb303::fbData->setCounter(
+            fmt::format(kOpticsPwmValue, opticType), pwmForThis);
+
+        if (pwmForThis > aggOpticPwm) {
+          aggOpticPwm = pwmForThis;
+        }
       }
     }
 
@@ -402,6 +416,29 @@ void ControlLogic::updateOpticsPwms(SensorData& sensorData) {
     sensorData.updateOpticDataProcessingTimestamp(
         opticName, opticEntry->qsfpServiceTimeStamp);
   }
+
+  // These counters are keyed by optic type, which is a property of the
+  // installed hardware rather than of the config, and fb303 keeps a key until
+  // the process exits. Reconcile against the full set of optic types every
+  // pass so that an optic type which is no longer present stops reporting
+  // instead of latching its last value. Done once here rather than per optic
+  // group, since the keys are shared across groups.
+  //
+  // Only reconcile when we actually read something. Optic data goes empty
+  // whenever qsfp_service is unreachable or its data has gone stale, and
+  // clearing then would drop every optic temperature from monitoring at the
+  // exact moment fan control starts running on a stale cache.
+  if (readAnyOpticData) {
+    for (const auto& opticType : allOpticTypes()) {
+      if (!opticTypesSeen.contains(opticType)) {
+        fb303::fbData->clearCounter(
+            fmt::format(kOpticsReadMaxValue, opticType));
+        fb303::fbData->clearCounter(fmt::format(kOpticsPwmValue, opticType));
+        fb303::fbData->clearCounter(fmt::format(kOpticsNoProfile, opticType));
+      }
+    }
+  }
+  return numOpticsNoProfile;
 }
 
 bool ControlLogic::isFanPresentInDevice(const Fan& fan) {
@@ -646,7 +683,7 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
 
   // STEP 3: Read optics values and calculate their PWM
   XLOG(INFO) << "Processing Optics ...";
-  updateOpticsPwms(*pS);
+  int numOpticsNoProfile = updateOpticsPwms(*pS);
 
   // STEP 3.5: Shutdown the system if overtemp is detected
   for (auto& sensorName : overtempWatchList_) {
@@ -666,7 +703,8 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
 
   // STEP 4: Determine whether boost mode is necessary
   auto lastQsfpSvcTime = pS->getLastQsfpSvcTime();
-  bool missingOpticsUpdate{false}, fanFailures{false}, sensorFailures{false};
+  bool missingOpticsUpdate{false}, fanFailures{false}, sensorFailures{false},
+      opticNoProfile{false};
   std::string boostModeReason;
   if (*config_.pwmBoostOnNoQsfpAfterInSec() != 0) {
     if (lastQsfpSvcTime == 0) {
@@ -700,8 +738,16 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
         "Boost mode enabled for {} sensor failures", numSensorFailed);
     XLOG(INFO) << boostModeReason;
   }
+  if (numOpticsNoProfile > 0) {
+    opticNoProfile = true;
+    boostModeReason = fmt::format(
+        "Boost mode enabled for {} optic type(s) with no thermal profile",
+        numOpticsNoProfile);
+    XLOG(INFO) << boostModeReason;
+  }
   bool previousBoostMode = boostMode_;
-  boostMode_ = (missingOpticsUpdate || fanFailures || sensorFailures);
+  boostMode_ =
+      (missingOpticsUpdate || fanFailures || sensorFailures || opticNoProfile);
   if (boostMode_ && !previousBoostMode) {
     structuredLogger_.logEvent(
         "boost_mode_activated", {{"reason", boostModeReason}});

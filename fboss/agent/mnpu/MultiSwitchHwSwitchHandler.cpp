@@ -268,6 +268,8 @@ multiswitch::StateOperDelta MultiSwitchHwSwitchHandler::getNextStateOperDelta(
       if (prevUpdateSwitchState_) {
         setOperSyncStateLocked(
             HwSwitchOperDeltaSyncState::INITIAL_SYNC_SENT, lk);
+        // A previous session's seqnum can match this sync's and drop its ack.
+        lastAckedOperDeltaSeqNum_ = -1;
         multiswitch::StateOperDelta fullOperResponse;
         fullOperResponse.seqNum() = ++currOperDeltaSeqNum_;
         // TODO (ravi) This state needs to go through consolidater as well

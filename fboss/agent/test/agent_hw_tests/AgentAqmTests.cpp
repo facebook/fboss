@@ -561,6 +561,9 @@ class AgentAqmTest : public AgentHwTest {
         })
       };
 
+      learnL2EntryIfPending(
+          utility::MacAddressGenerator().get(getIntfMac().u64HBO() + 1),
+          masterLogicalInterfacePortIds()[1]);
       // Send traffic with queue buildup and get the stats at the start.
       // Update the stats to initialize them before sending packets to build up
       // the queue.

@@ -310,7 +310,8 @@ std::string PortManager::getPortInfo(const std::string& portNameStr) {
 void PortManager::setPortLoopbackState(
     const std::string& portNameStr,
     phy::PortComponent component,
-    bool setLoopback) {
+    bool setLoopback,
+    phy::LoopbackMode mode) {
   auto portId = getPortIDByPortNameOrThrow(portNameStr);
   if (!isXphyComponent(component) && !isTransceiverComponent(component)) {
     SW_PORT_LOG(WARN, "", portNameStr, portId)
@@ -323,10 +324,21 @@ void PortManager::setPortLoopbackState(
       << "setPortLoopbackState() called.";
 
   if (isXphyComponent(component)) {
+    if (mode != phy::LoopbackMode::INPUT) {
+      throw FbossError(
+          fmt::format(
+              "Loopback mode {} is not supported on {}",
+              apache::thrift::util::enumNameSafe(mode),
+              apache::thrift::util::enumNameSafe(component)));
+    }
+    if (!phyManager_) {
+      throw FbossError(
+          "Unable to set xphy loopback state when PhyManager is not set");
+    }
     phyManager_->setPortLoopbackState(PortID(portId), component, setLoopback);
   } else {
     transceiverManager_->setPortLoopbackStateTransceiver(
-        portId, portNameStr, component, setLoopback);
+        portId, portNameStr, component, setLoopback, mode);
   }
 }
 

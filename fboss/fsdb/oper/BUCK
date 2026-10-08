@@ -74,6 +74,7 @@ cpp_library(
         "//folly:cpp_attributes",
         "//folly:demangle",
         "//folly:fbstring",
+        "//folly:function",
         "//folly:string",
         "//folly:traits",
         "//folly/container:f14_hash",
@@ -160,6 +161,9 @@ cpp_library(
     name = "extended_path_builder",
     srcs = [
         "ExtendedPathBuilder.cpp",
+    ],
+    headers = [
+        "ExtendedPathBuilder.h",
     ],
     deps = ["//folly:conv"],
     exported_deps = [

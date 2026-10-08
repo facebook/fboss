@@ -240,8 +240,10 @@ std::vector<double> CmdShowInterfaceTraffic::getTrafficTotals(
     totalBW += folly::copy(tc.portSpeed().value());
   }
 
-  inPctT = (inMbpsT / totalBW) * 100;
-  outPctT = (outMbpsT / totalBW) * 100;
+  if (totalBW > 0) {
+    inPctT = (inMbpsT / totalBW) * 100;
+    outPctT = (outMbpsT / totalBW) * 100;
+  }
 
   std::vector<double> rv{inMbpsT, inPctT, inKppsT, outMbpsT, outPctT, outKppsT};
   return rv;

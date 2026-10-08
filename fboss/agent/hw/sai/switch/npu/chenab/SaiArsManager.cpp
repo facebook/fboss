@@ -23,11 +23,17 @@ namespace facebook::fboss {
 void SaiArsManager::addArs(
     const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig,
     [[maybe_unused]] std::optional<bool> splitHorizonEnabled) {
-  // Source port prune is a Broadcom extension attribute; chenab never programs
-  // it.
+  // Chenab resolves the Broadcom extension attributes through
+  // api/oss/ArsApi.cpp, which has no id for any of them, and
+  // SaiExtensionAttribute CHECKs on a missing id - so constructing one here
+  // would abort. Leave them unset.
   SaiArsTraits::CreateAttributes attributes{
       SaiArsTraits::Attributes::Mode{
           cfgSwitchingModeToSai(flowletSwitchConfig->getSwitchingMode())},
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
       std::nullopt,
       std::nullopt,
       std::nullopt,

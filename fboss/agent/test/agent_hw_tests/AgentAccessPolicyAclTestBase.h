@@ -1,0 +1,938 @@
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+
+#pragma once
+
+#include <fmt/core.h>
+#include <folly/IPAddressV6.h>
+#include <folly/String.h>
+#include <folly/io/Cursor.h>
+#include <limits>
+#include <thread>
+
+#include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/LacpTypes.h"
+#include "fboss/agent/LldpManager.h"
+#include "fboss/agent/TxPacket.h"
+#include "fboss/agent/Utils.h"
+#include "fboss/agent/packet/EthFrame.h"
+#include "fboss/agent/packet/Ethertype.h"
+#include "fboss/agent/packet/ICMPHdr.h"
+#include "fboss/agent/packet/IPProto.h"
+#include "fboss/agent/packet/IPv6Hdr.h"
+#include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/state/StateUtils.h"
+#include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/test/utils/AccessPolicyAclTestUtils.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
+#include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/PacketSnooper.h"
+#include "fboss/agent/test/utils/PacketTestUtils.h"
+#include "fboss/lib/CommonUtils.h"
+
+DECLARE_bool(enable_acl_table_group);
+
+namespace facebook::fboss {
+
+constexpr auto kRestricted = cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED;
+constexpr auto kUnconstrained =
+    cfg::AclLookupClassPort::CLASS_PORT_UNCONSTRAINED;
+
+constexpr int kRestrictedPortIdx = 0;
+constexpr int kUnconstrainedPortIdx = 1;
+constexpr int kEgressPortIdx = 2;
+constexpr size_t kRequiredInterfacePorts = kEgressPortIdx + 1;
+
+// The probe loops straight back in off the egress port; a hop limit of 2 makes
+// the second pass expire instead of circulating, which is what lets the egress
+// packet count be compared exactly.
+constexpr uint8_t kHopLimit = 2;
+
+constexpr uint8_t kNdpHopLimit = 255;
+
+inline folly::IPAddressV6 kSrcIp() {
+  return folly::IPAddressV6("2001:db8:2::1");
+}
+
+inline folly::IPAddressV6 kDstIp() {
+  return folly::IPAddressV6("2001:db8:1::1");
+}
+
+inline folly::IPAddressV4 kSrcIpV4() {
+  return folly::IPAddressV4("10.0.0.2");
+}
+
+inline folly::MacAddress probeSrcMac(folly::MacAddress intfMac) {
+  return utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
+}
+
+// DSCP 48, shifted into the IPv6 traffic class byte.
+constexpr uint8_t kNetworkControlTrafficClass = 48 << 2;
+
+inline const folly::IPAddressV6 kAllRoutersMcast{"ff02::2"};
+inline const folly::IPAddressV6 kAllNodesMcast{"ff02::1"};
+inline const folly::IPAddressV6 kDhcpV6AllRoutersMcast{"ff02::1:2"};
+inline const folly::IPAddressV6 kLinkLocalMcast{"ff02::5"};
+inline const folly::IPAddressV6 kLinkLocalUcast{"fe80::2"};
+
+constexpr int kControlPlanePuntSettleRounds = 3;
+
+// Probes the platform has no rx reason for, so they never reach the CPU even
+// on a port with no policy bound. Ebro traps neither router discovery shape
+// nor either link local multicast shape.
+inline const std::set<std::string>& untrappedBaselineProbes(
+    utility::AccessPolicyShape shape) {
+  static const std::set<std::string> kNone;
+  static const std::set<std::string> kPortBound{
+      "ndp-router-solicit",
+      "ndp-router-advertise",
+      "link-local-mcast",
+      "link-local-mcast-network-control"};
+  return shape == utility::AccessPolicyShape::PortBound ? kPortBound : kNone;
+}
+constexpr auto kControlPlanePuntPollInterval = std::chrono::seconds(1);
+
+constexpr auto kLldpHostname = "rsw1dx.21.frc3";
+constexpr auto kLldpPortName = "eth1/1/1";
+constexpr auto kLldpPortDesc = "fsw001.p023.f01.frc3:eth4/9/1";
+
+class AgentAccessPolicyAclTest : public AgentHwTest {
+ protected:
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    FLAGS_enable_acl_table_group = true;
+    // A stats tick that overruns a second costs every
+    // getNextUpdatedPortStats() an extra second, and this test reads none of
+    // these.
+    FLAGS_update_watermark_stats_interval_s = 60;
+    FLAGS_update_voq_stats_interval_s = 60;
+    FLAGS_update_cable_length_stats_s = 600;
+  }
+
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    return kRequiredInterfacePorts;
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto config = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalInterfacePortIds(),
+        true /*interfaceHasSubnet*/);
+    if (coldBootWithAccessPolicy()) {
+      addAccessPolicy(
+          config,
+          ensemble.getL3Asics(),
+          ensemble.masterLogicalInterfacePortIds(),
+          coldBootOmitRules(),
+          coldBootRuleSet());
+    }
+    return config;
+  }
+
+  virtual bool coldBootWithAccessPolicy() const {
+    return true;
+  }
+
+  virtual bool warmBootWithAccessPolicy() const {
+    return true;
+  }
+
+  virtual std::set<std::string> coldBootOmitRules() const {
+    return {};
+  }
+
+  virtual std::set<std::string> warmBootOmitRules() const {
+    return {};
+  }
+
+  virtual utility::AccessPolicyVersion coldBootRuleSet() const {
+    return utility::AccessPolicyVersion::V0;
+  }
+
+  virtual utility::AccessPolicyVersion warmBootRuleSet() const {
+    return utility::AccessPolicyVersion::V0;
+  }
+
+  // Takes the asics rather than reading them off the ensemble: this runs from
+  // initialConfig(), before the fixture has one.
+  virtual cfg::AclActionType denyActionType(
+      const std::vector<const HwAsic*>& /*asics*/) const {
+    return cfg::AclActionType::DENY;
+  }
+
+  void runAccessPolicyTest() {
+    auto setup = [this]() { programRouteToEgressPort(); };
+    auto verify = [this]() {
+      verifyAccessPolicy(
+          coldBootWithAccessPolicy(), coldBootOmitRules(), coldBootRuleSet());
+    };
+    auto setupPostWarmboot = [this]() {
+      if (!warmBootConfigDiffers()) {
+        return;
+      }
+      // Start from the config the warm boot came up on, so the only delta the
+      // agent sees is the access policy.
+      auto config = getAgentEnsemble()->getCurrentConfig();
+      utility::removeAccessPolicy(config, shape());
+      if (warmBootWithAccessPolicy()) {
+        addAccessPolicy(
+            config,
+            getL3Asics(),
+            masterLogicalInterfacePortIds(),
+            warmBootOmitRules(),
+            warmBootRuleSet());
+      }
+      applyNewConfig(config);
+    };
+    auto verifyPostWarmboot = [this]() {
+      if (!warmBootConfigDiffers()) {
+        return;
+      }
+      verifyAccessPolicy(
+          warmBootWithAccessPolicy(), warmBootOmitRules(), warmBootRuleSet());
+    };
+    verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+  }
+
+  void runControlPlaneTest() {
+    auto setup = [this]() { programRouteToEgressPort(); };
+    auto verify = [this]() {
+      verifyControlPlane(coldBootWithAccessPolicy(), coldBootRuleSet());
+    };
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
+ protected:
+  bool warmBootConfigDiffers() const {
+    return coldBootWithAccessPolicy() != warmBootWithAccessPolicy() ||
+        coldBootOmitRules() != warmBootOmitRules() ||
+        coldBootRuleSet() != warmBootRuleSet();
+  }
+
+  utility::AccessPolicyShape shape() const {
+    auto shape = utility::accessPolicyShape(getL3Asics());
+    CHECK(shape.has_value());
+    return *shape;
+  }
+
+  void addAccessPolicy(
+      cfg::SwitchConfig& config,
+      const std::vector<const HwAsic*>& asics,
+      const std::vector<PortID>& portIds,
+      const std::set<std::string>& omitRules,
+      utility::AccessPolicyVersion version) const {
+    auto policyShape = utility::accessPolicyShape(asics);
+    CHECK(policyShape.has_value());
+    utility::addAccessPolicyTables(config, *policyShape);
+    utility::addAccessPolicyAcls(
+        config, asics, *policyShape, omitRules, denyActionType(asics), version);
+    utility::bindAccessPolicyPort(
+        config, *policyShape, portIds[kRestrictedPortIdx], kRestricted);
+    utility::bindAccessPolicyPort(
+        config, *policyShape, portIds[kUnconstrainedPortIdx], kUnconstrained);
+  }
+
+  void programRouteToEgressPort() {
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    boost::container::flat_set<PortDescriptor> nhops{
+        PortDescriptor(masterLogicalInterfacePortIds()[kEgressPortIdx])};
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return ecmpHelper.resolveNextHops(in, nhops);
+    });
+    auto wrapper = getSw()->getRouteUpdater();
+    ecmpHelper.programRoutes(&wrapper, nhops);
+  }
+
+  std::unique_ptr<TxPacket> makeProbePacket(
+      const utility::AccessPolicyProbe& probe) {
+    auto vlanId = getVlanIDForTx();
+    auto intfMac = getMacForFirstInterfaceWithPorts(getProgrammedState());
+    auto srcMac = probeSrcMac(intfMac);
+    auto dstIp =
+        probe.dstIp.has_value() ? folly::IPAddressV6(*probe.dstIp) : kDstIp();
+    CHECK(probe.proto.has_value()) << "probe " << probe.name << " has no proto";
+    auto proto = static_cast<IP_PROTO>(*probe.proto);
+    if (proto == IP_PROTO::IP_PROTO_UDP) {
+      return utility::makeUDPTxPacket(
+          getSw(),
+          vlanId,
+          srcMac,
+          intfMac,
+          kSrcIp(),
+          dstIp,
+          *probe.l4SrcPort,
+          *probe.l4DstPort,
+          0 /*trafficClass*/,
+          kHopLimit);
+    }
+    if (proto == IP_PROTO::IP_PROTO_TCP) {
+      return utility::makeTCPTxPacket(
+          getSw(),
+          vlanId,
+          srcMac,
+          intfMac,
+          kSrcIp(),
+          dstIp,
+          *probe.l4SrcPort,
+          *probe.l4DstPort,
+          0 /*trafficClass*/,
+          kHopLimit,
+          std::nullopt /*payload*/,
+          tcpFlags(probe));
+    }
+    return makeIcmpV6Packet(
+        vlanId,
+        srcMac,
+        intfMac,
+        dstIp,
+        ICMPv6Type::ICMPV6_TYPE_ECHO_REQUEST,
+        kHopLimit);
+  }
+
+  static uint8_t tcpFlags(const utility::AccessPolicyProbe& probe) {
+    auto flags = probe.tcpFlagsBitMap.value_or(0);
+    CHECK_LE(flags, std::numeric_limits<uint8_t>::max())
+        << "probe " << probe.name << " does not fit a TCP flags byte";
+    return static_cast<uint8_t>(flags);
+  }
+
+  std::unique_ptr<TxPacket> makeIcmpV6Packet(
+      std::optional<VlanID> vlanId,
+      folly::MacAddress srcMac,
+      folly::MacAddress dstMac,
+      const folly::IPAddressV6& dstIp,
+      ICMPv6Type icmpType,
+      uint8_t hopLimit) {
+    std::vector<uint8_t> body(56, 0xff);
+    IPv6Hdr ipHdr(kSrcIp(), dstIp);
+    ipHdr.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
+    ipHdr.payloadLength = ICMPHdr::SIZE + body.size();
+    ipHdr.hopLimit = hopLimit;
+
+    ICMPHdr icmpHdr(static_cast<uint8_t>(icmpType), 0 /*code*/, 0 /*csum*/);
+    auto pkt = getSw()->allocatePacket(icmpHdr.computeTotalLengthV6(
+        body.size(), vlanId.has_value() /*taggedPkt*/));
+    folly::io::RWPrivateCursor cursor(pkt->buf());
+    icmpHdr.serializeFullPacket(
+        &cursor,
+        dstMac,
+        srcMac,
+        vlanId,
+        ipHdr,
+        body.size(),
+        [&body](folly::io::RWPrivateCursor* bodyCursor) {
+          bodyCursor->push(body.data(), body.size());
+        });
+    return pkt;
+  }
+
+  struct ControlPlanePacketAndDst {
+    std::unique_ptr<TxPacket> pkt;
+    std::optional<folly::IPAddress> dstIp;
+  };
+
+  // Each port is its own interface on its own VLAN and the switch retags on
+  // ingress, so building with any other interface's VLAN makes the punted copy
+  // come back unrecognisable to the snooper.
+  struct ProbeContext {
+    std::optional<VlanID> vlanId;
+    folly::MacAddress srcMac;
+    folly::MacAddress intfMac;
+    folly::IPAddressV4 myIpV4;
+    folly::IPAddressV6 myIpV6;
+    uint16_t l4SrcPort{0};
+    uint16_t l4DstPort{0};
+  };
+
+  ProbeContext probeContext(
+      const utility::ControlPlaneProbe& probe,
+      PortID ingressPort) {
+    auto state = getProgrammedState();
+    auto intfId = getInterfaceIDForPort(ingressPort, state);
+    auto intf = state->getInterfaces()->getNode(intfId);
+    auto v6Addrs = utility::getIntfAddrsV6(state, intfId);
+    auto v4Addrs = utility::getIntfAddrsV4(state, intfId);
+    CHECK(!v6Addrs.empty() && !v4Addrs.empty())
+        << "interface " << intfId << " needs both a v4 and a v6 address";
+    auto toL4Port = [&probe](std::optional<int32_t> port) {
+      auto value = port.value_or(0);
+      CHECK_GE(value, 0);
+      CHECK_LE(value, std::numeric_limits<uint16_t>::max())
+          << "probe " << probe.name << " L4 port does not fit 16 bits";
+      return static_cast<uint16_t>(value);
+    };
+    return ProbeContext{
+        getSw()->getVlanIDForTx(intfId),
+        probeSrcMac(intf->getMac()),
+        intf->getMac(),
+        v4Addrs[0],
+        v6Addrs[0],
+        toL4Port(probe.policyMatch.l4SrcPort),
+        toL4Port(probe.policyMatch.l4DstPort)};
+  }
+
+  ControlPlanePacketAndDst udpV6Probe(
+      const ProbeContext& ctx,
+      const folly::IPAddressV6& dstIp,
+      uint8_t trafficClass,
+      uint8_t hopLimit) {
+    return ControlPlanePacketAndDst{
+        utility::makeUDPTxPacket(
+            getSw(),
+            ctx.vlanId,
+            ctx.srcMac,
+            ctx.intfMac,
+            kSrcIp(),
+            dstIp,
+            ctx.l4SrcPort,
+            ctx.l4DstPort,
+            trafficClass,
+            hopLimit),
+        folly::IPAddress(dstIp)};
+  }
+
+  ControlPlanePacketAndDst tcpV6Probe(
+      const ProbeContext& ctx,
+      const folly::IPAddressV6& dstIp) {
+    return ControlPlanePacketAndDst{
+        utility::makeTCPTxPacket(
+            getSw(),
+            ctx.vlanId,
+            ctx.srcMac,
+            ctx.intfMac,
+            kSrcIp(),
+            dstIp,
+            ctx.l4SrcPort,
+            ctx.l4DstPort,
+            0 /*trafficClass*/,
+            kHopLimit),
+        folly::IPAddress(dstIp)};
+  }
+
+  ControlPlanePacketAndDst udpV4Probe(
+      const ProbeContext& ctx,
+      const folly::IPAddressV4& dstIp) {
+    return ControlPlanePacketAndDst{
+        utility::makeUDPTxPacket(
+            getSw(),
+            ctx.vlanId,
+            ctx.srcMac,
+            ctx.intfMac,
+            kSrcIpV4(),
+            dstIp,
+            ctx.l4SrcPort,
+            ctx.l4DstPort),
+        folly::IPAddress(dstIp)};
+  }
+
+  ControlPlanePacketAndDst arpProbe(const ProbeContext& ctx, ARP_OPER oper) {
+    return ControlPlanePacketAndDst{
+        utility::makeARPTxPacket(
+            getSw(),
+            ctx.vlanId,
+            ctx.srcMac,
+            oper == ARP_OPER::ARP_OPER_REQUEST ? folly::MacAddress::BROADCAST
+                                               : ctx.intfMac,
+            kSrcIpV4(),
+            ctx.myIpV4,
+            oper),
+        std::nullopt};
+  }
+
+  ControlPlanePacketAndDst ndpMcastProbe(
+      const ProbeContext& ctx,
+      const folly::IPAddressV6& dstIp,
+      ICMPv6Type icmpType) {
+    return ControlPlanePacketAndDst{
+        makeIcmpV6Packet(
+            ctx.vlanId, ctx.srcMac, ctx.intfMac, dstIp, icmpType, kNdpHopLimit),
+        folly::IPAddress(dstIp)};
+  }
+
+  ControlPlanePacketAndDst makeControlPlanePacket(
+      const utility::ControlPlaneProbe& probe,
+      PortID ingressPort) {
+    auto ctx = probeContext(probe, ingressPort);
+    switch (probe.packet) {
+      case utility::ControlPlanePacket::ArpRequest:
+        return arpProbe(ctx, ARP_OPER::ARP_OPER_REQUEST);
+      case utility::ControlPlanePacket::ArpReply:
+        return arpProbe(ctx, ARP_OPER::ARP_OPER_REPLY);
+      case utility::ControlPlanePacket::NdpNeighborSolicitation:
+        return {
+            utility::makeNeighborSolicitation(
+                getSw(), ctx.vlanId, ctx.srcMac, kSrcIp(), ctx.myIpV6),
+            folly::IPAddress(ctx.myIpV6.getSolicitedNodeAddress())};
+      case utility::ControlPlanePacket::NdpNeighborAdvertisement:
+        return {
+            utility::makeNeighborAdvertisement(
+                getSw(),
+                ctx.vlanId,
+                ctx.srcMac,
+                ctx.intfMac,
+                kSrcIp(),
+                ctx.myIpV6),
+            folly::IPAddress(ctx.myIpV6)};
+      case utility::ControlPlanePacket::NdpRouterSolicitation:
+        return ndpMcastProbe(
+            ctx,
+            kAllRoutersMcast,
+            ICMPv6Type::ICMPV6_TYPE_NDP_ROUTER_SOLICITATION);
+      case utility::ControlPlanePacket::NdpRouterAdvertisement:
+        return ndpMcastProbe(
+            ctx,
+            kAllNodesMcast,
+            ICMPv6Type::ICMPV6_TYPE_NDP_ROUTER_ADVERTISEMENT);
+      case utility::ControlPlanePacket::Lldp:
+        return {
+            utility::makeLLDPPacket(
+                getSw(),
+                ctx.srcMac,
+                ctx.vlanId,
+                kLldpHostname,
+                kLldpPortName,
+                kLldpPortDesc,
+                LldpManager::TTL_TLV_VALUE,
+                LldpManager::SYSTEM_CAPABILITY_ROUTER),
+            std::nullopt};
+      case utility::ControlPlanePacket::LldpCustomerBridge:
+        return {
+            LldpManager::createLldpPktCustomBridge(
+                utility::makeAllocator(getSw()),
+                ctx.srcMac,
+                ctx.vlanId,
+                kLldpHostname,
+                kLldpPortName,
+                kLldpPortDesc,
+                LldpManager::TTL_TLV_VALUE,
+                LldpManager::SYSTEM_CAPABILITY_ROUTER),
+            std::nullopt};
+      case utility::ControlPlanePacket::Lacp:
+        return {
+            utility::makeEthTxPacket(
+                getSw(),
+                ctx.vlanId,
+                ctx.srcMac,
+                LACPDU::kSlowProtocolsDstMac(),
+                ETHERTYPE::ETHERTYPE_SLOW_PROTOCOLS,
+                std::vector<uint8_t>(64, 0x00)),
+            std::nullopt};
+      case utility::ControlPlanePacket::DhcpV4ToServer:
+      case utility::ControlPlanePacket::DhcpV4ToClient:
+        return udpV4Probe(ctx, ctx.myIpV4);
+      case utility::ControlPlanePacket::DhcpV6ToServer:
+        return udpV6Probe(
+            ctx, kDhcpV6AllRoutersMcast, 0 /*trafficClass*/, kHopLimit);
+      case utility::ControlPlanePacket::DhcpV6ToClient:
+        return udpV6Probe(ctx, ctx.myIpV6, 0 /*trafficClass*/, kHopLimit);
+      case utility::ControlPlanePacket::BgpDstPort:
+      case utility::ControlPlanePacket::BgpSrcPort:
+        return tcpV6Probe(ctx, ctx.myIpV6);
+      case utility::ControlPlanePacket::Ip2Me:
+        return udpV6Probe(ctx, ctx.myIpV6, 0 /*trafficClass*/, kHopLimit);
+      case utility::ControlPlanePacket::Ip2MeNetworkControl:
+        return udpV6Probe(
+            ctx, ctx.myIpV6, kNetworkControlTrafficClass, kHopLimit);
+      case utility::ControlPlanePacket::LinkLocalMcast:
+        return udpV6Probe(ctx, kLinkLocalMcast, 0 /*trafficClass*/, kHopLimit);
+      case utility::ControlPlanePacket::LinkLocalMcastNetworkControl:
+        return udpV6Probe(
+            ctx, kLinkLocalMcast, kNetworkControlTrafficClass, kHopLimit);
+      case utility::ControlPlanePacket::LinkLocalUcast:
+        return udpV6Probe(ctx, kLinkLocalUcast, 0 /*trafficClass*/, kHopLimit);
+      case utility::ControlPlanePacket::Ttl1:
+        return udpV6Probe(ctx, kDstIp(), 0 /*trafficClass*/, 1 /*hopLimit*/);
+    }
+    throw FbossError(
+        "Unhandled control plane packet ", static_cast<int>(probe.packet));
+  }
+
+  std::map<std::string, uint64_t> aclCounters(
+      const std::set<std::string>& omitRules,
+      utility::AccessPolicyVersion version) {
+    std::vector<std::string> counterNames;
+    for (const auto& rule : utility::accessPolicyRules(version)) {
+      if (!omitRules.count(rule.name)) {
+        counterNames.push_back(rule.counterName);
+      }
+    }
+    return utility::getAclInOutPacketsMap(getSw(), counterNames);
+  }
+
+  struct ProbeOutcome {
+    std::optional<utility::AccessPolicyRule> match;
+    bool permit{true};
+  };
+
+  static ProbeOutcome probeOutcome(
+      const utility::AccessPolicyProbe& probe,
+      cfg::AclLookupClassPort lookupClass,
+      bool accessPolicyProgrammed,
+      const std::set<std::string>& omitRules,
+      utility::AccessPolicyVersion version) {
+    auto match = accessPolicyProgrammed
+        ? utility::accessPolicyMatch(probe, lookupClass, omitRules, version)
+        : std::nullopt;
+    return {
+        match,
+        !match.has_value() || match->action == cfg::AclActionType::PERMIT};
+  }
+
+  void verifyProbe(
+      const utility::AccessPolicyProbe& probe,
+      PortID ingressPort,
+      cfg::AclLookupClassPort lookupClass,
+      bool accessPolicyProgrammed,
+      const std::set<std::string>& omitRules,
+      utility::AccessPolicyVersion version) {
+    auto outcome = probeOutcome(
+        probe, lookupClass, accessPolicyProgrammed, omitRules, version);
+    SCOPED_TRACE(
+        fmt::format(
+            "probe {} expects {}",
+            probe.name,
+            outcome.match.has_value() ? outcome.match->name : "no rule"));
+    std::map<std::string, uint64_t> expectedCounters;
+    if (outcome.match.has_value()) {
+      expectedCounters[outcome.match->counterName] = 1;
+    }
+    verifyBatch(
+        {&probe},
+        expectedCounters,
+        ingressPort,
+        lookupClass,
+        outcome.permit,
+        accessPolicyProgrammed,
+        omitRules,
+        version);
+  }
+
+  // Permit and drop stay in separate batches: the egress count is one number,
+  // so mixing them lets a rule that wrongly permits cancel one that wrongly
+  // drops.
+  void verifyBatch(
+      const std::vector<const utility::AccessPolicyProbe*>& probes,
+      const std::map<std::string, uint64_t>& expectedCounters,
+      PortID ingressPort,
+      cfg::AclLookupClassPort lookupClass,
+      bool expectPermit,
+      bool accessPolicyProgrammed,
+      const std::set<std::string>& omitRules,
+      utility::AccessPolicyVersion version) {
+    if (probes.empty()) {
+      return;
+    }
+    SCOPED_TRACE(
+        fmt::format(
+            "{} probes on port {} class {}: expect {}",
+            probes.size(),
+            static_cast<int>(ingressPort),
+            apache::thrift::util::enumNameSafe(lookupClass),
+            expectPermit ? "PERMIT" : "DROP"));
+
+    auto egressPort = masterLogicalInterfacePortIds()[kEgressPortIdx];
+    auto countersBefore = accessPolicyProgrammed
+        ? aclCounters(omitRules, version)
+        : std::map<std::string, uint64_t>();
+    auto egressPktsBefore =
+        *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
+
+    for (const auto* probe : probes) {
+      ASSERT_TRUE(
+          getSw()->sendPacketOutOfPortAsync(
+              makeProbePacket(*probe), ingressPort));
+    }
+
+    auto expectedEgress =
+        expectPermit ? static_cast<int64_t>(probes.size()) : 0;
+    bool matched = false;
+    WITH_RETRIES({
+      auto egressPktsAfter =
+          *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
+      matched = (egressPktsAfter - egressPktsBefore == expectedEgress);
+      EXPECT_EVENTUALLY_EQ(egressPktsAfter - egressPktsBefore, expectedEgress);
+      if (accessPolicyProgrammed) {
+        auto countersAfter = aclCounters(omitRules, version);
+        for (const auto& rule : utility::accessPolicyRules(version)) {
+          auto before = countersBefore.find(rule.counterName);
+          if (before == countersBefore.end()) {
+            continue;
+          }
+          auto expected = expectedCounters.find(rule.counterName);
+          uint64_t expectedDelta =
+              expected == expectedCounters.end() ? 0 : expected->second;
+          auto delta = countersAfter.at(rule.counterName) - before->second;
+          matched &= (delta == expectedDelta);
+          EXPECT_EVENTUALLY_EQ(delta, expectedDelta) << "acl " << rule.name;
+        }
+      }
+    });
+
+    // Error signal only. The batch has already failed, and it names the rule
+    // whose counter is wrong rather than the probe, so re-send each probe on
+    // its own to get a log that names the offending one.
+    if (!matched && probes.size() > 1) {
+      for (const auto* probe : probes) {
+        verifyProbe(
+            *probe,
+            ingressPort,
+            lookupClass,
+            accessPolicyProgrammed,
+            omitRules,
+            version);
+      }
+    }
+  }
+
+  void verifyClass(
+      int ingressPortIdx,
+      cfg::AclLookupClassPort lookupClass,
+      bool accessPolicyProgrammed,
+      const std::set<std::string>& omitRules,
+      utility::AccessPolicyVersion version) {
+    auto ingressPort = masterLogicalInterfacePortIds()[ingressPortIdx];
+    std::vector<const utility::AccessPolicyProbe*> permitProbes, dropProbes;
+    std::map<std::string, uint64_t> permitCounters, dropCounters;
+    for (const auto& probe : utility::accessPolicyProbes(version)) {
+      auto [match, permit] = probeOutcome(
+          probe, lookupClass, accessPolicyProgrammed, omitRules, version);
+      (permit ? permitProbes : dropProbes).push_back(&probe);
+      if (match.has_value()) {
+        // Omitting a rule drops its probe onto a later one, so two probes can
+        // share a counter.
+        ++(permit ? permitCounters : dropCounters)[match->counterName];
+      }
+    }
+    verifyBatch(
+        permitProbes,
+        permitCounters,
+        ingressPort,
+        lookupClass,
+        true /*expectPermit*/,
+        accessPolicyProgrammed,
+        omitRules,
+        version);
+    verifyBatch(
+        dropProbes,
+        dropCounters,
+        ingressPort,
+        lookupClass,
+        false /*expectPermit*/,
+        accessPolicyProgrammed,
+        omitRules,
+        version);
+  }
+
+  // A warm boot restores the SAI counters at their pre-reboot values and fb303
+  // only picks them up on its first collection; without waiting, the first
+  // probe reads that jump as its own traffic.
+  void waitForStableAclCounters(
+      const std::set<std::string>& omitRules,
+      utility::AccessPolicyVersion version) {
+    auto previous = aclCounters(omitRules, version);
+    WITH_RETRIES({
+      getNextUpdatedPortStats(masterLogicalInterfacePortIds()[kEgressPortIdx]);
+      auto current = aclCounters(omitRules, version);
+      auto stable = current == previous;
+      previous = current;
+      EXPECT_EVENTUALLY_TRUE(stable);
+    });
+  }
+
+  // A snooper per probe claims only its own frame, and a packet can be punted
+  // by more than one mechanism at once, so unclaimed frames are not a failure.
+  std::map<std::string, bool> sendControlPlaneProbes(
+      PortID ingressPort,
+      std::vector<ControlPlanePacketAndDst>& packets) {
+    const auto& probes = utility::controlPlaneProbes();
+    CHECK_EQ(packets.size(), probes.size());
+    std::vector<std::unique_ptr<utility::SwSwitchPacketSnooper>> snoopers;
+    for (size_t i = 0; i < probes.size(); ++i) {
+      snoopers.push_back(
+          std::make_unique<utility::SwSwitchPacketSnooper>(
+              getSw(),
+              fmt::format("control-plane-{}", probes[i].name),
+              std::nullopt /*port*/,
+              utility::makeEthFrame(
+                  *packets[i].pkt, true /*skipTtlDecrement*/)));
+      snoopers.back()->ignoreUnclaimedRxPkts();
+    }
+    for (size_t i = 0; i < probes.size(); ++i) {
+      EXPECT_TRUE(
+          getSw()->sendPacketOutOfPortAsync(
+              std::move(packets[i].pkt), ingressPort))
+          << "failed to send control plane probe " << probes[i].name;
+    }
+
+    // Keep settling while punts are still arriving, so a probe that is merely
+    // slow is not recorded as one the platform does not trap.
+    std::map<std::string, bool> punted;
+    size_t seen = 0;
+    for (int round = 0; round < kControlPlanePuntSettleRounds; ++round) {
+      /* sleep override */
+      std::this_thread::sleep_for(kControlPlanePuntPollInterval);
+      size_t nowSeen = 0;
+      for (size_t i = 0; i < probes.size(); ++i) {
+        punted[probes[i].name] = snoopers[i]->receivedPacket();
+        nowSeen += punted[probes[i].name] ? 1 : 0;
+      }
+      if (round > 0 && nowSeen == seen) {
+        break;
+      }
+      seen = nowSeen;
+    }
+    return punted;
+  }
+
+  std::map<std::string, bool> verifyControlPlaneClass(
+      int ingressPortIdx,
+      cfg::AclLookupClassPort lookupClass,
+      bool accessPolicyProgrammed,
+      const std::map<std::string, bool>& baselinePunted,
+      utility::AccessPolicyVersion version) {
+    auto ingressPort = masterLogicalInterfacePortIds()[ingressPortIdx];
+    auto egressPort = masterLogicalInterfacePortIds()[kEgressPortIdx];
+    auto className = apache::thrift::util::enumNameSafe(lookupClass);
+    auto egressBefore = *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
+
+    std::vector<ControlPlanePacketAndDst> packets;
+    std::vector<std::optional<utility::AccessPolicyRule>> matches;
+    for (const auto& probe : utility::controlPlaneProbes()) {
+      packets.push_back(makeControlPlanePacket(probe, ingressPort));
+      auto policyProbe = probe.policyMatch;
+      if (packets.back().dstIp.has_value()) {
+        policyProbe.dstIp = packets.back().dstIp->str();
+      }
+      matches.push_back(
+          accessPolicyProgrammed ? utility::accessPolicyMatch(
+                                       policyProbe, lookupClass, {}, version)
+                                 : std::nullopt);
+    }
+    auto punted = sendControlPlaneProbes(ingressPort, packets);
+
+    std::vector<std::string> report;
+    for (size_t i = 0; i < utility::controlPlaneProbes().size(); ++i) {
+      const auto& probe = utility::controlPlaneProbes()[i];
+      const auto& match = matches[i];
+      auto denied =
+          match.has_value() && match->action == cfg::AclActionType::DENY;
+      auto reachedCpu = punted[probe.name];
+
+      auto baseline = baselinePunted.find(probe.name);
+      auto trapped = baseline != baselinePunted.end() && baseline->second;
+      report.push_back(
+          fmt::format(
+              "{:34} {:36} {:6} {:8} {}",
+              probe.name,
+              match.has_value() ? match->name : "no rule",
+              denied ? "DENY" : "PERMIT",
+              reachedCpu ? "PUNTED" : "no punt",
+              baseline != baselinePunted.end() && !trapped
+                  ? "(not trapped at baseline)"
+                  : ""));
+      // Whether a deny stops a punt is recorded, not asserted; it varies by
+      // ASIC. Suppressing a packet the policy permits is always wrong.
+      if (!denied && trapped) {
+        EXPECT_TRUE(reachedCpu)
+            << "permitted control plane packet " << probe.name
+            << " did not reach the CPU on class " << className;
+      }
+    }
+
+    XLOG(INFO) << "Control plane punt report for class " << className << ":\n"
+               << folly::join("\n", report);
+
+    // Two ticks: the first may land before the last probe was counted.
+    getNextUpdatedPortStats(egressPort);
+    EXPECT_EQ(
+        *getNextUpdatedPortStats(egressPort).outUnicastPkts_() - egressBefore,
+        0)
+        << "control plane packets were forwarded on class " << className;
+    return punted;
+  }
+
+  void verifyControlPlane(
+      bool accessPolicyProgrammed,
+      utility::AccessPolicyVersion version) {
+    // The unconstrained port has no policy bound, so what it punts is the
+    // baseline: a trap the platform lacks must not read as a policy drop.
+    auto baseline = verifyControlPlaneClass(
+        kUnconstrainedPortIdx,
+        kUnconstrained,
+        accessPolicyProgrammed,
+        {},
+        version);
+    // Differencing against a baseline only says anything if the baseline is
+    // the one this platform should produce, so name any probe that disagrees
+    // and stop rather than let the rest of the test pass vacuously.
+    const auto& untrapped = untrappedBaselineProbes(shape());
+    bool baselineComplete = true;
+    for (const auto& [name, punted] : baseline) {
+      if (punted != (untrapped.count(name) == 0)) {
+        baselineComplete = false;
+        ADD_FAILURE() << "control plane probe " << name << " was "
+                      << (punted ? "trapped" : "not trapped")
+                      << " on an unconstrained port, which this platform is "
+                         "not expected to do";
+      }
+    }
+    if (!baselineComplete) {
+      return;
+    }
+    verifyControlPlaneClass(
+        kRestrictedPortIdx,
+        kRestricted,
+        accessPolicyProgrammed,
+        baseline,
+        version);
+  }
+
+  void verifyAccessPolicy(
+      bool accessPolicyProgrammed,
+      const std::set<std::string>& omitRules,
+      utility::AccessPolicyVersion version) {
+    if (accessPolicyProgrammed) {
+      waitForStableAclCounters(omitRules, version);
+    }
+    verifyClass(
+        kRestrictedPortIdx,
+        kRestricted,
+        accessPolicyProgrammed,
+        omitRules,
+        version);
+    verifyClass(
+        kUnconstrainedPortIdx,
+        kUnconstrained,
+        accessPolicyProgrammed,
+        omitRules,
+        version);
+  }
+};
+
+class AgentAccessPolicyClassIdAclTest : public AgentAccessPolicyAclTest {
+ protected:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {
+        ProductionFeature::ACCESS_POLICY_CLASS_ID_ACL,
+        ProductionFeature::MULTI_ACL_TABLE,
+        ProductionFeature::ACL_COUNTER,
+        ProductionFeature::L3_FORWARDING};
+  }
+};
+
+class AgentAccessPolicyPortBoundAclTest : public AgentAccessPolicyAclTest {
+ protected:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {
+        ProductionFeature::PORT_BOUND_INGRESS_ACL,
+        ProductionFeature::L3_FORWARDING};
+  }
+};
+
+} // namespace facebook::fboss

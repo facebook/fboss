@@ -185,7 +185,8 @@ void addTrapPacketAcl(
     const HwAsic* asic,
     cfg::SwitchConfig* config,
     const folly::CIDRNetwork& prefix,
-    cfg::ToCpuAction toCpuAction) {
+    cfg::ToCpuAction toCpuAction,
+    bool cpuQueueOnly) {
   cfg::AclEntry entry{};
   entry.name() = folly::to<std::string>("trap-", prefix.first.str());
   entry.dstIp() = folly::IPAddress::networkToString(prefix);
@@ -197,12 +198,14 @@ void addTrapPacketAcl(
   utility::addAclEntry(config, entry, utility::kDefaultAclTable());
 
   cfg::MatchAction action;
-  action.sendToQueue() = cfg::QueueMatchAction();
-  action.sendToQueue()->queueId() = 0;
   action.toCpuAction() = toCpuAction;
-  cfg::SetTcAction setTcAction = cfg::SetTcAction();
-  setTcAction.tcValue() = 0;
-  action.setTc() = setTcAction;
+  if (!cpuQueueOnly) {
+    action.sendToQueue() = cfg::QueueMatchAction();
+    action.sendToQueue()->queueId() = 0;
+    cfg::SetTcAction setTcAction = cfg::SetTcAction();
+    setTcAction.tcValue() = 0;
+    action.setTc() = setTcAction;
+  }
 
   cfg::UserDefinedTrapAction userDefinedTrap = cfg::UserDefinedTrapAction();
   userDefinedTrap.queueId() = 0;
@@ -228,9 +231,11 @@ void addTrapPacketAcl(
 void addTrapPacketAcl(
     const HwAsic* asic,
     cfg::SwitchConfig* config,
-    const std::set<folly::CIDRNetwork>& prefixs) {
+    const std::set<folly::CIDRNetwork>& prefixs,
+    bool cpuQueueOnly) {
   for (auto prefix : prefixs) {
-    addTrapPacketAcl(asic, config, prefix);
+    addTrapPacketAcl(
+        asic, config, prefix, cfg::ToCpuAction::COPY, cpuQueueOnly);
   }
 }
 

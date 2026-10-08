@@ -7,6 +7,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
 
 #include <cstdint>
@@ -86,6 +87,45 @@ class LoopbackAction : public utils::BaseObjectArgType<std::string> {
   std::string mode_;
   bool enable_{false};
 };
+
+// Argument for the unified `set interface <intf> loopback` command:
+//   <component> <enable|disable>
+//
+// The component vocabulary is intentionally shared with `prbs <component>` via
+// prbsComponents(), so the two commands can never drift apart:
+//   asic | xphy_system | xphy_line | transceiver_system | transceiver_line
+class LoopbackComponentAction : public utils::BaseObjectArgType<std::string> {
+ public:
+  LoopbackComponentAction() = default;
+  // NOLINTNEXTLINE(google-explicit-constructor)
+  /* implicit */ LoopbackComponentAction(std::vector<std::string> v);
+
+  phy::PortComponent component() const {
+    return component_;
+  }
+  bool enable() const {
+    return enable_;
+  }
+  const std::string& componentName() const {
+    return componentName_;
+  }
+
+ private:
+  phy::PortComponent component_{phy::PortComponent::GB_LINE};
+  bool enable_{false};
+  std::string componentName_;
+};
+
+// Applies a transceiver loopback action to one port and returns a
+// human-readable report (capability check, before/after register state).
+// Shared by `set transceiver <port> loopback` and
+// `set interface <intf> loopback transceiver_{system,line}`.
+std::string setTransceiverLoopbackForPort(
+    apache::thrift::Client<FbossCtrl>* agent,
+    apache::thrift::Client<QsfpService>* qsfpService,
+    const std::string& portName,
+    const LoopbackAction& action,
+    const std::map<int32_t, PortInfoThrift>& portEntries);
 
 std::map<int32_t, PortInfoThrift> fetchAllPortInfo(
     apache::thrift::Client<FbossCtrl>* agent);

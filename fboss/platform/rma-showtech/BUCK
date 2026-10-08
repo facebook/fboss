@@ -24,6 +24,12 @@ cpp_binary(
         "PsuHelper.cpp",
         "Utils.cpp",
     ],
+    headers = [
+        "FanImpl.h",
+        "I2cHelper.h",
+        "PsuHelper.h",
+        "Utils.h",
+    ],
     deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/re2:re2",

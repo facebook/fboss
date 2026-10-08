@@ -2,6 +2,9 @@
 
 #pragma once
 
+#include <array>
+#include <atomic>
+
 #include "fboss/fsdb/oper/Subscription.h"
 #include "fboss/fsdb/oper/SubscriptionPathStore.h"
 
@@ -133,6 +136,12 @@ class SubscriptionStore {
 
   std::map<FsdbClient, SubscriberStats> getSubscriberStats() const;
 
+  // Best-effort, lock-free count used by the serve loop's idle short-circuit;
+  // relaxed is fine because the loop tolerates a one-tick-stale read.
+  bool hasAny() const {
+    return subscriberCount_.load(std::memory_order_relaxed) > 0;
+  }
+
  private:
   std::map<FsdbClient, SubscriberStats> subscriberStats_;
 
@@ -149,6 +158,11 @@ class SubscriptionStore {
   void registerExtendedSubscription(
       std::string name,
       std::shared_ptr<ExtendedSubscription> subscription);
+
+  void adjustSubscriberCount(int64_t delta) {
+    auto prev = subscriberCount_.fetch_add(delta, std::memory_order_relaxed);
+    DCHECK_GE(prev + delta, 0) << "subscriber count underflow";
+  }
 
   // stats for tree<SubscriptionPathStore>
   SubscriptionPathStoreTreeStats pathStoreStats_;
@@ -172,6 +186,8 @@ class SubscriptionStore {
 
   // lookup for the subscriptions, keyed on path
   SubscriptionPathStore lookup_;
+
+  std::atomic<int64_t> subscriberCount_{0};
 };
 
 } // namespace facebook::fboss::fsdb

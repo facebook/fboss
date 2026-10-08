@@ -42,3 +42,14 @@ cpp_unittest(
         "//fboss/platform/helpers:platform_utils",
     ],
 )
+
+cpp_unittest(
+    name = "expect_session_test",
+    srcs = [
+        "ExpectSessionTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/platform/helpers:expect_session",
+    ],
+)

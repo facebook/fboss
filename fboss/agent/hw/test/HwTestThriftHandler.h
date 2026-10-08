@@ -119,6 +119,10 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
       ::facebook::fboss::utility::PortLlrInfo& portLlrInfo,
       int32_t port) override;
 
+  void getPortVcInfo(
+      ::facebook::fboss::utility::PortVcInfo& portVcInfo,
+      int32_t port) override;
+
   bool verifyPortLedStatus(int portId, bool status) override;
   bool verifyPGSettings(int portId, bool pfcEnabled) override;
   void getAggPortInfo(
@@ -132,8 +136,6 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
   int32_t getEgressSharedPoolLimitBytes() override;
 
   void printDiagCmd(std::unique_ptr<::std::string>) override;
-
-  void updateFlowletStats() override;
 
   cfg::SwitchingMode getFwdSwitchingMode(
       std::unique_ptr<state::RouteNextHopEntry> routeNextHopEntry) override;

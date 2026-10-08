@@ -183,28 +183,6 @@ class VlanIdValue : public BaseObjectArgType<int32_t> {
   const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_VLAN_ID;
 };
 
-// Custom type for trunk VLAN action (add/remove VLANs from trunk port)
-class TrunkVlanAction : public BaseObjectArgType<int32_t> {
- public:
-  /* implicit */ TrunkVlanAction( // NOLINT(google-explicit-constructor)
-      const std::vector<std::string>& v);
-
-  bool isAdd() const {
-    return isAdd_;
-  }
-
-  bool isRemove() const {
-    return !isAdd_;
-  }
-
-  const std::vector<int32_t>& getVlanIds() const {
-    return data_;
-  }
-
- private:
-  bool isAdd_{true};
-};
-
 class VipInjectorID : public BaseObjectArgType<std::string> {
  public:
   /* implicit */ VipInjectorID( // NOLINT(google-explicit-constructor)
@@ -496,6 +474,10 @@ std::string getAdminDistanceStr(AdminDistance adminDistance);
 const std::string removeFbDomains(const std::string& host);
 std::string getSpeedGbps(int64_t speedMbps);
 std::string getl2EntryTypeStr(L2EntryType l2EntryType);
+// Renders an ingress port class ID for display, e.g. "Restricted". Returns
+// "--" when unset.
+std::string getAclLookupClassPortStr(
+    const std::optional<cfg::AclLookupClassPort>& lookupClassPort);
 
 /**
  * Whether the first port name is smaller than or equal to the second port

@@ -288,6 +288,7 @@ class SaiTracer {
 #endif
   sai_hash_api_t* hashApi_;
   sai_hostif_api_t* hostifApi_;
+  sai_isolation_group_api_t* isolationGroupApi_;
   sai_lag_api_t* lagApi_;
   sai_neighbor_api_t* neighborApi_;
   sai_next_hop_api_t* nextHopApi_;
@@ -317,6 +318,9 @@ class SaiTracer {
   sai_vendor_switch_api_t* vendorSwitchApi_;
   sai_switch_pipeline_api_t* switchPipelineApi_;
 #endif
+#if defined(SAI_CBFC_SUPPORTED)
+  sai_virtual_channel_api_t* virtualChannelApi_;
+#endif
   sai_virtual_router_api_t* virtualRouterApi_;
   sai_vlan_api_t* vlanApi_;
   sai_wred_api_t* wredApi_;
@@ -329,6 +333,7 @@ class SaiTracer {
       {TYPE_INDEX(bool), &boolAttr},
       {TYPE_INDEX(sai_uint8_t), &u8Attr},
       {TYPE_INDEX(sai_int8_t), &s8Attr},
+      {TYPE_INDEX(sai_int16_t), &s16Attr},
       {TYPE_INDEX(sai_uint16_t), &u16Attr},
       {TYPE_INDEX(sai_uint32_t), &u32Attr},
       {TYPE_INDEX(sai_int32_t), &s32Attr},
@@ -539,9 +544,15 @@ class SaiTracer {
       {static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_VENDOR_SWITCH), "vendorSwitch_"},
       {static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_SWITCH_PIPELINE), "switchPipeline_"},
 #endif
+#if defined(SAI_CBFC_SUPPORTED)
+      {SAI_OBJECT_TYPE_VIRTUAL_CHANNEL, "virtualChannel_"},
+      {SAI_OBJECT_TYPE_CBFC_CREDIT_PROFILE, "cbfcCreditProfile_"},
+#endif
       {SAI_OBJECT_TYPE_VIRTUAL_ROUTER, "virtualRouter_"},
       {SAI_OBJECT_TYPE_VLAN, "vlan_"},
       {SAI_OBJECT_TYPE_VLAN_MEMBER, "vlanMember_"},
+      {SAI_OBJECT_TYPE_ISOLATION_GROUP, "isolationGroup_"},
+      {SAI_OBJECT_TYPE_ISOLATION_GROUP_MEMBER, "isolationGroupMember_"},
       {SAI_OBJECT_TYPE_WRED, "wred_"},
       {SAI_OBJECT_TYPE_SYSTEM_PORT, "systemPort_"}};
 
@@ -626,9 +637,15 @@ class SaiTracer {
       {static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_SWITCH_PIPELINE),
           "switch_pipeline_api->"},
 #endif
+#if defined(SAI_CBFC_SUPPORTED)
+      {SAI_OBJECT_TYPE_VIRTUAL_CHANNEL, "virtual_channel_api->"},
+      {SAI_OBJECT_TYPE_CBFC_CREDIT_PROFILE, "virtual_channel_api->"},
+#endif
       {SAI_OBJECT_TYPE_VIRTUAL_ROUTER, "virtual_router_api->"},
       {SAI_OBJECT_TYPE_VLAN, "vlan_api->"},
       {SAI_OBJECT_TYPE_VLAN_MEMBER, "vlan_api->"},
+      {SAI_OBJECT_TYPE_ISOLATION_GROUP, "isolation_group_api->"},
+      {SAI_OBJECT_TYPE_ISOLATION_GROUP_MEMBER, "isolation_group_api->"},
       {SAI_OBJECT_TYPE_WRED, "wred_api->"}};
   // clang-format on
 

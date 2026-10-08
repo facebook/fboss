@@ -18,6 +18,18 @@
           "compute": "@/1000.0"
         },
         {
+          "name": "DPM_1_POS12V",
+          "sysfsPath": "/run/devmap/sensors/DPM_1/in1_input",
+          "type": 1,
+          "thresholds": {
+            "maxAlarmVal": 13.2,
+            "minAlarmVal": 10.8,
+            "upperCriticalVal": 13.8,
+            "lowerCriticalVal": 10.2
+          },
+          "compute": "@/1000.0"
+        },
+        {
           "name": "DPM_2_POS12V",
           "sysfsPath": "/run/devmap/sensors/DPM_2/in1_input",
           "type": 1,
@@ -186,14 +198,14 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "DPM_POS1V15_SWT",
+          "name": "DPM_POS1V05_SWT",
           "sysfsPath": "/run/devmap/sensors/DPM/in15_input",
           "type": 1,
           "thresholds": {
-            "maxAlarmVal": 1.203,
-            "minAlarmVal": 1.087,
-            "upperCriticalVal": 1.261,
-            "lowerCriticalVal": 1.043
+            "maxAlarmVal": 1.149,
+            "minAlarmVal": 1.000,
+            "upperCriticalVal": 1.211,
+            "lowerCriticalVal": 0.950
           },
           "compute": "@/1000.0"
         },

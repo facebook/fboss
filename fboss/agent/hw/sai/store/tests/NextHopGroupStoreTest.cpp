@@ -27,6 +27,7 @@ class NextHopGroupStoreTest : public SaiStoreTest {
         {SAI_NEXT_HOP_GROUP_TYPE_ECMP,
          std::nullopt,
          std::nullopt,
+         std::nullopt,
          std::nullopt},
         0);
   }
@@ -36,7 +37,11 @@ class NextHopGroupStoreTest : public SaiStoreTest {
     std::optional<SaiNextHopGroupTraits::Attributes::ArsObjectId> arsObjectId{
         arsSaiId};
     return nextHopGroupApi.create<SaiNextHopGroupTraits>(
-        {SAI_NEXT_HOP_GROUP_TYPE_ECMP, arsObjectId, std::nullopt, std::nullopt},
+        {SAI_NEXT_HOP_GROUP_TYPE_ECMP,
+         arsObjectId,
+         std::nullopt,
+         std::nullopt,
+         std::nullopt},
         0);
   }
 
@@ -45,6 +50,10 @@ class NextHopGroupStoreTest : public SaiStoreTest {
         {SAI_ARS_MODE_PER_PACKET_QUALITY,
          0,
          0,
+         std::nullopt,
+         std::nullopt,
+         std::nullopt,
+         std::nullopt,
          std::nullopt,
          std::nullopt,
          std::nullopt,
@@ -82,7 +91,13 @@ class NextHopGroupStoreTest : public SaiStoreTest {
       std::vector<sai_uint32_t> labels) {
     auto& nextHopApi = saiApiTable->nextHopApi();
     return nextHopApi.create<SaiMplsNextHopTraits>(
-        {SAI_NEXT_HOP_TYPE_MPLS, 42, ip, labels, std::nullopt}, 0);
+        {SAI_NEXT_HOP_TYPE_MPLS,
+         42,
+         ip,
+         labels,
+         SAI_OUTSEG_TYPE_SWAP,
+         std::nullopt},
+        0);
   }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
@@ -165,12 +180,18 @@ TEST_F(NextHopGroupStoreTest, loadNextHopGroup) {
   k.nhopMemberSet.insert(
       std::make_pair(
           SaiMplsNextHopTraits::AdapterHostKey{
-              42, ip3, std::vector<sai_uint32_t>{102, 103}},
+              42,
+              ip3,
+              std::vector<sai_uint32_t>{102, 103},
+              SAI_OUTSEG_TYPE_SWAP},
           weight3));
   k.nhopMemberSet.insert(
       std::make_pair(
           SaiMplsNextHopTraits::AdapterHostKey{
-              42, ip4, std::vector<sai_uint32_t>{201, 203}},
+              42,
+              ip4,
+              std::vector<sai_uint32_t>{201, 203},
+              SAI_OUTSEG_TYPE_SWAP},
           weight4));
 
   SaiNextHopGroupTraits::AdapterHostKey k0{k};
@@ -235,7 +256,11 @@ TEST_F(NextHopGroupStoreTest, nextHopGroupMemberLoadCtor) {
 TEST_F(NextHopGroupStoreTest, nextHopGroupCreateCtor) {
   SaiNextHopGroupTraits::AdapterHostKey k;
   SaiNextHopGroupTraits::CreateAttributes c{
-      SAI_NEXT_HOP_GROUP_TYPE_ECMP, std::nullopt, std::nullopt, std::nullopt};
+      SAI_NEXT_HOP_GROUP_TYPE_ECMP,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt};
   auto obj = createObj<SaiNextHopGroupTraits>(k, c, 0);
 }
 
@@ -325,12 +350,18 @@ TEST_F(NextHopGroupStoreTest, nextHopGroupJson) {
   k.nhopMemberSet.insert(
       std::make_pair(
           SaiMplsNextHopTraits::AdapterHostKey{
-              42, ip3, std::vector<sai_uint32_t>{102, 103}},
+              42,
+              ip3,
+              std::vector<sai_uint32_t>{102, 103},
+              SAI_OUTSEG_TYPE_SWAP},
           weight3));
   k.nhopMemberSet.insert(
       std::make_pair(
           SaiMplsNextHopTraits::AdapterHostKey{
-              42, ip4, std::vector<sai_uint32_t>{201, 203}},
+              42,
+              ip4,
+              std::vector<sai_uint32_t>{201, 203},
+              SAI_OUTSEG_TYPE_SWAP},
           weight4));
   auto got = store0.get(k);
   EXPECT_TRUE(got);
@@ -395,6 +426,7 @@ TEST_F(NextHopGroupStoreTest, protectionAndHierarchicalAhkSerDeser) {
       {SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION,
        std::nullopt,
        std::nullopt,
+       std::nullopt,
        std::nullopt});
   auto protJson = protObj->adapterHostKeyToFollyDynamic();
   EXPECT_EQ(
@@ -433,7 +465,11 @@ TEST_F(NextHopGroupStoreTest, protectionAndHierarchicalAhkSerDeser) {
 
   auto parentObj = store.setObject(
       parentKey,
-      {SAI_NEXT_HOP_GROUP_TYPE_ECMP, std::nullopt, std::nullopt, std::nullopt});
+      {SAI_NEXT_HOP_GROUP_TYPE_ECMP,
+       std::nullopt,
+       std::nullopt,
+       std::nullopt,
+       std::nullopt});
   auto parentJson = parentObj->adapterHostKeyToFollyDynamic();
   EXPECT_EQ(
       SaiObject<SaiNextHopGroupTraits>::follyDynamicToAdapterHostKey(
@@ -560,7 +596,10 @@ TEST_F(NextHopGroupStoreTest, nextHopGroupJsonAllNextHopTypes) {
   k.nhopMemberSet.insert(
       std::make_pair(
           SaiMplsNextHopTraits::AdapterHostKey{
-              42, ip2, std::vector<sai_uint32_t>{301, 302}},
+              42,
+              ip2,
+              std::vector<sai_uint32_t>{301, 302},
+              SAI_OUTSEG_TYPE_SWAP},
           weight2));
   k.nhopMemberSet.insert(
       std::make_pair(

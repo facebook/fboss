@@ -80,11 +80,11 @@ The `--switch_id_for_testing` flag takes the **switch ID** (not the switch index
 
 On every skill invocation:
 1. **Build** the required binaries (mono or multi-switch)
-2. **Strip and copy** them to the switch (`strip_and_copy.sh` uses md5 dedup — unchanged binaries skip the network copy automatically)
+2. **Strip and copy** them to the switch (`strip_and_copy.sh` strips the binary and prints its md5; the separate upload step uses md5 dedup — an unchanged binary skips the network copy)
 3. **Copy** the config file and test scripts to the switch
 4. Then proceed to run the test
 
-The md5 dedup in `strip_and_copy.sh` makes this safe and fast — if the binary hasn't changed, the copy is skipped. But the build must always run to ensure the binary reflects the current source.
+The md5 dedup in the upload step makes this safe and fast — if the binary hasn't changed, the copy is skipped. But the build must always run to ensure the binary reflects the current source.
 
 ## Debug Loop
 
@@ -99,6 +99,8 @@ Follow this iterative cycle for each failing test:
 7. **Re-run** to verify
 
 **Broadcom DNX firmware prerequisite**: All tests on Broadcom DNX switches (Jericho3, Ramon3, etc.) require the firmware `db/` directory at `/tmp/db/` on the switch. See [build-and-load.md](references/build-and-load.md#broadcom-dnx-firmware-required-for-all-tests-on-dnx-platforms) for details. Without this, hw_agent processes abort with `FW: ... is not accessible error:-1`. This does not apply to Broadcom XGS or Leaba/Cisco platforms.
+
+**Leaba/Cisco prerequisite**: the SDK runtime (`lib/dyn` and `res/`) from the same SDK build as the binary must be on the switch. The run also needs `LD_LIBRARY_PATH`, `BASE_OUTPUT_DIR` and, on some ASICs, `ASIC` (`GR2_A0` on G200). Without them the SDK aborts after FBOSS init has succeeded. See the Leaba row in Reference Routing below.
 
 **Discipline**: Work on one test at a time. Try up to 5 iterations before categorizing and moving to the next test.
 
@@ -187,7 +189,7 @@ These scripts run **on the switch**. Upload them once per session, then run in t
 
 | Script | Purpose | Args |
 |--------|---------|------|
-| `scripts/run_mono_test.sh` | Mono cold+warm boot cycle | `<binary> <config> <filter> <user>` |
+| `scripts/run_mono_test.sh` | Mono cold+warm boot cycle | `<binary> <config> <filter> <user> [ld_library_path]` |
 | `scripts/run_multi_test.sh` | Multi-switch cold+warm boot for one switch_id | `<hw_agent> <test_binary> <config> <filter> <switch_id>` |
 | `scripts/collect_vendor_escalation.sh` | Collect a vendor-escalation package (SAI replayer log + hw_config), with optional packet-send logging | `<mono\|multi> <hw_agent\|-> <test_binary> <config> <filter> <switch_id> <out_dir> <pkt_log:0\|1> [get_attr_log:0\|1] [suffix]` |
 
@@ -195,7 +197,7 @@ These scripts run **on the switch**. Upload them once per session, then run in t
 
 | Script | Purpose | Args | Output |
 |--------|---------|------|--------|
-| `scripts/strip_and_copy.sh` | Strip binary, print stripped path + md5 | `<source_path> <dest_name>` | Stripped binary at `/tmp/<dest_name>` |
+| `scripts/strip_and_copy.sh` | Strip binary, print stripped path + md5 | `<source_path> <dest_name> [output_dir]` | Stripped binary at `<output_dir>/<dest_name>` (default `/tmp`) |
 
 > **Vendor firmware scripts**: See [build-environment.md](references/build-environment.md)
 > for environment-specific SDK path resolution and firmware preparation scripts.
@@ -226,9 +228,10 @@ This routing is client-agnostic:
 | Device access (upload, download, run on switch) | `facebook/device-access.md` | `references/device-access.md` |
 | Build commands, SDK paths, config locations | `facebook/build-environment.md` | `references/build-environment.md` |
 | Build mono/multi binaries, copy to switch | — | `references/build-and-load.md` |
+| Leaba/Cisco runs — SDK runtime staging and checks, environment, benchmarks, lab devices | `facebook/leaba-device.md` | `references/build-and-load.md` (Leaba/Cisco SDK Libraries) and `references/run-tests.md` |
 | Run tests (cold/warm, mono/multi), parse results | — | `references/run-tests.md` |
 | Analyze SAI Replayer logs, read code for root cause | — | `references/analyze-logs.md` |
-| Enable SAI logging, replayer logging, packet tx logs | — | `references/enable-logging.md` |
+| Enable SAI logging, replayer logging, packet tx logs, BCM SDK debug logs | — | `references/enable-logging.md` |
 | SAI Replayer — capabilities/flags (packet/get/elapsed-time log), capture, build, run | `facebook/sai-replayer.md` | `references/sai-replayer.md` |
 | Debug crashes — non-stripped binaries, GDB, stack traces | — | `references/crash-debug.md` |
 | Vendor diagnostic shell — counters, routes, neighbors, techsupport dumps | `facebook/vendor-diag-shell.md` | `references/vendor-diag-shell.md` |
