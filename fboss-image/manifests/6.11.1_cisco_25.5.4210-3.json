@@ -2,7 +2,8 @@
   "variation": {
     "kernel": "6.11.1",
     "asic": "cisco",
-    "sai_sdk": "25.5.4210-3"
+    "sai_sdk": "25.5.4210-3",
+    "kmod_sdk": "25.5.4210"
   },
   "distribution_formats": {
     "usb": "fboss-distro-image_usb.iso",
@@ -20,7 +21,9 @@
       "download": "${ARTIFACT_BASE}/bsp/6.11.1/fboss_bsp_kmods.tar"
     }
   ],
-  "npu_sai": {},
+  "npu_sai": {
+    "download": "${ARTIFACT_BASE}/kmods/6.11.1/leaba_25_5_4210/sai-devel.tar"
+  },
   "phy_sai": {},
   "fboss-forwarding-stack": [
     {
