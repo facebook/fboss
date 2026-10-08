@@ -15,6 +15,15 @@ extern template ThriftTraverseResult RootPathVisitor::visit<FsdbCowStateRoot>(
     const PathVisitOptions& options,
     BasePathVisitorOperator& op);
 
+extern template ThriftTraverseResult pv_detail::visitNode<
+    apache::thrift::type_class::structure,
+    FsdbCowStateRoot,
+    BasePathVisitorOperator>(
+    FsdbCowStateRoot& node,
+    const pv_detail::VisitImplParams<BasePathVisitorOperator>& params,
+    pv_detail::PathIter cursor,
+    bool isContainerNode);
+
 extern template ThriftTraverseResult RootPathVisitor::visit<FsdbCowStatsRoot>(
     FsdbCowStatsRoot& node,
     pv_detail::PathIter begin,
