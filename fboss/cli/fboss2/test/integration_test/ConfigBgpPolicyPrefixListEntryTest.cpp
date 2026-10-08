@@ -91,7 +91,7 @@ TEST_F(ConfigBgpPolicyPrefixListEntryTest, SetAttributesAndCommit) {
   discardSession();
   clearBgpSession();
   stageEntry({kEntrySeq, "base-prefix", "10.0.0.0/8"});
-  stageEntry({kEntrySeq, "match-logic", "NOT_EQUAL"});
+  stageEntry({kEntrySeq, "match-logic", "EQUAL"});
   stageEntry({kEntrySeq, "prefix-len-range", "compare-operator", "GE"});
   stageEntry({kEntrySeq, "prefix-len-range", "value", "24"});
   stageEntry({kEntrySeq, "communities", "65000:100"});
@@ -110,9 +110,10 @@ TEST_F(ConfigBgpPolicyPrefixListEntryTest, SetAttributesAndCommit) {
   const auto* entry = findEntry(*list, 10);
   ASSERT_NE(entry, nullptr) << "running config has no entry " << kEntrySeq;
   EXPECT_EQ((*entry)["base_prefix"].asString(), "10.0.0.0/8");
-  // routing_policy.MatchValueLogicOperator.NOT_EQUAL = 1 (integer on the
-  // SimpleJSON wire).
-  EXPECT_EQ((*entry)["match_logic"].asInt(), 1);
+  // routing_policy.MatchValueLogicOperator.EQUAL = 0 (integer on the
+  // SimpleJSON wire). bgpd rejects any other value once a policy references
+  // the list.
+  EXPECT_EQ((*entry)["match_logic"].asInt(), 0);
   ASSERT_EQ((*entry)["prefix_len_ranges"].size(), 1);
   // routing_policy.ComparisonOperator.GE = 2.
   EXPECT_EQ((*entry)["prefix_len_ranges"][0]["compare_operator"].asInt(), 2);

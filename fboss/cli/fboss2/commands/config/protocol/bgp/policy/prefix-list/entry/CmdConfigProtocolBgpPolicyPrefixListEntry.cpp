@@ -51,19 +51,19 @@ constexpr std::string_view kRegex = "regex";
 constexpr std::string_view kValue = "value";
 
 // prefix-len-range compare-operator values
-// (routing_policy.ComparisonOperator names). Unlike the list level, the range
-// additionally accepts RG (range).
+// (routing_policy.ComparisonOperator names). RG is not offered: bgpd's
+// toPolicyComparisonOperator() throws on it.
 constexpr std::string_view kCompareOperatorEq = "EQ";
 constexpr std::string_view kCompareOperatorGe = "GE";
 constexpr std::string_view kCompareOperatorLe = "LE";
 constexpr std::string_view kCompareOperatorNe = "NE";
 constexpr std::string_view kCompareOperatorGt = "GT";
 constexpr std::string_view kCompareOperatorLt = "LT";
-constexpr std::string_view kCompareOperatorRg = "RG";
 
-// match-logic values (routing_policy.MatchValueLogicOperator names).
+// match-logic values (routing_policy.MatchValueLogicOperator names). Only
+// EQUAL is offered: bgpd throws "Unsupported Prefix configuration:
+// match_logic" for anything else once a policy references the list.
 constexpr std::string_view kMatchLogicEqual = "EQUAL";
-constexpr std::string_view kMatchLogicNotEqual = "NOT_EQUAL";
 
 // prefix-len-range value bounds: a prefix length (v6 caps it at 128).
 constexpr int32_t kPrefixLenMax = 128;
@@ -87,9 +87,6 @@ std::optional<MatchValueLogicOperator> lookupMatchLogic(const std::string& s) {
   if (s == kMatchLogicEqual) {
     return MatchValueLogicOperator::EQUAL;
   }
-  if (s == kMatchLogicNotEqual) {
-    return MatchValueLogicOperator::NOT_EQUAL;
-  }
   return std::nullopt;
 }
 
@@ -112,9 +109,6 @@ std::optional<ComparisonOperator> lookupPrefixLenRangeOperator(
   }
   if (s == kCompareOperatorLt) {
     return ComparisonOperator::LT;
-  }
-  if (s == kCompareOperatorRg) {
-    return ComparisonOperator::RG;
   }
   return std::nullopt;
 }
@@ -153,14 +147,13 @@ void setRangeValue(CompareNumericValue& range, int32_t value) {
 const std::map<std::string, AttrHandler<CompareNumericValue>, std::less<>>&
 prefixLenRangeAttrHandlers() {
   static const std::string kRangeOperatorValues = fmt::format(
-      "{}|{}|{}|{}|{}|{}|{}",
+      "{}|{}|{}|{}|{}|{}",
       kCompareOperatorEq,
       kCompareOperatorGe,
       kCompareOperatorLe,
       kCompareOperatorNe,
       kCompareOperatorGt,
-      kCompareOperatorLt,
-      kCompareOperatorRg);
+      kCompareOperatorLt);
   static const std::string kValueRange = fmt::format("0-{}", kPrefixLenMax);
   static const std::
       map<std::string, AttrHandler<CompareNumericValue>, std::less<>>
@@ -201,6 +194,8 @@ void setMatchLogic(PrefixListEntry& entry, MatchValueLogicOperator op) {
   entry.match_logic() = op;
 }
 
+// bgpd only honours this for golden-prefix policies; elsewhere it is stored
+// and ignored.
 void setMaxAllowedSubnetCount(PrefixListEntry& entry, int32_t count) {
   entry.max_allowed_golden_prefix_subnet_count() = count;
 }
@@ -280,8 +275,7 @@ Result regex(PrefixListEntry& entry, const Tokens& values) {
 // the setter or handler that stores it.
 const std::map<std::string, AttrHandler<PrefixListEntry>, std::less<>>&
 entryAttrHandlers() {
-  static const std::string kMatchLogicValues =
-      fmt::format("{}|{}", kMatchLogicEqual, kMatchLogicNotEqual);
+  static const std::string kMatchLogicValues = std::string(kMatchLogicEqual);
   static const std::map<std::string, AttrHandler<PrefixListEntry>, std::less<>>
       kHandlers = {
           {std::string(kBasePrefix), basePrefix},

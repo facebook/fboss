@@ -123,7 +123,7 @@ TEST_F(CmdConfigBgpPolicyPrefixListEntryTestFixture, bareCreateEntry) {
 TEST_F(CmdConfigBgpPolicyPrefixListEntryTestFixture, setAttributes) {
   runEntry({"PL100"}, {"10", "base-prefix", "10.0.0.0/8"});
   runEntry({"PL100"}, {"10", "description", "spine", "block"});
-  runEntry({"PL100"}, {"10", "match-logic", "NOT_EQUAL"});
+  runEntry({"PL100"}, {"10", "match-logic", "EQUAL"});
   runEntry({"PL100"}, {"10", "max-allowed-subnet-count", "64"});
   runEntry({"PL100"}, {"10", "regex", "^10\\..*"});
 
@@ -133,20 +133,37 @@ TEST_F(CmdConfigBgpPolicyPrefixListEntryTestFixture, setAttributes) {
   EXPECT_EQ(*e.seq_num(), 10);
   EXPECT_EQ(*e.base_prefix(), "10.0.0.0/8");
   EXPECT_EQ(*e.description(), "spine block");
-  EXPECT_EQ(*e.match_logic(), MatchValueLogicOperator::NOT_EQUAL);
+  EXPECT_EQ(*e.match_logic(), MatchValueLogicOperator::EQUAL);
   EXPECT_EQ(*e.max_allowed_golden_prefix_subnet_count(), 64);
   EXPECT_EQ(*e.regex(), "^10\\..*");
 }
 
 TEST_F(CmdConfigBgpPolicyPrefixListEntryTestFixture, setPrefixLenRange) {
-  runEntry({"PL100"}, {"10", "prefix-len-range", "compare-operator", "RG"});
+  runEntry({"PL100"}, {"10", "prefix-len-range", "compare-operator", "GE"});
   runEntry({"PL100"}, {"10", "prefix-len-range", "value", "24"});
 
   // Both sub-attributes land on the single prefix_len_ranges[0] element.
   ASSERT_EQ(entry(0, 0).prefix_len_ranges()->size(), 1);
   const auto& range = entry(0, 0).prefix_len_ranges()->front();
-  EXPECT_EQ(*range.compare_operator(), ComparisonOperator::RG);
+  EXPECT_EQ(*range.compare_operator(), ComparisonOperator::GE);
   EXPECT_EQ(*range.value(), 24);
+}
+
+TEST_F(
+    CmdConfigBgpPolicyPrefixListEntryTestFixture,
+    valuesBgpdRejectsAreRefused) {
+  runEntry({"PL100"}, {"10", "prefix-len-range", "compare-operator", "GE"});
+  // bgpd: toPolicyComparisonOperator() throws on RG.
+  auto rg =
+      runEntry({"PL100"}, {"10", "prefix-len-range", "compare-operator", "RG"});
+  EXPECT_THAT(rg, HasSubstr("expected EQ|GE|LE|NE|GT|LT"));
+  EXPECT_EQ(
+      *entry(0, 0).prefix_len_ranges()->front().compare_operator(),
+      ComparisonOperator::GE);
+  // bgpd: "Unsupported Prefix configuration: match_logic" unless EQUAL.
+  auto ne = runEntry({"PL100"}, {"10", "match-logic", "NOT_EQUAL"});
+  EXPECT_THAT(ne, HasSubstr("expected EQUAL"));
+  EXPECT_EQ(*entry(0, 0).match_logic(), MatchValueLogicOperator::EQUAL);
 }
 
 TEST_F(CmdConfigBgpPolicyPrefixListEntryTestFixture, communitiesAccumulate) {

@@ -642,13 +642,6 @@ def generate_prefix_list_commands(prefix_list: dict[str, Any]) -> list[str]:
             )
         else:
             commands.append(f"{prefix} ip-version {keyword}")
-    if prefix_list.get("prefixes"):
-        commands.append(
-            _warning(
-                f"prefix-list {name}: {len(prefix_list['prefixes'])} prefixes "
-                "are not emitted until the entry subcommand lands"
-            )
-        )
     commands.extend(_prefix_list_warnings(name, prefix_list))
     for entry in prefix_list.get("prefixes") or []:
         commands.extend(generate_prefix_list_entry_commands(name, entry))
@@ -661,8 +654,14 @@ def generate_prefix_list_commands(prefix_list: dict[str, Any]) -> list[str]:
 _MATCH_LOGIC_NAMES = {0: "EQUAL", 1: "NOT_EQUAL"}
 
 
-def _prefix_list_entry_scalar_commands(prefix: str, entry: dict[str, Any]) -> list[str]:
-    """The single-valued entry attributes, in the CLI's attribute order."""
+def _prefix_list_entry_scalar_commands(
+    prefix: str, label: str, entry: dict[str, Any]
+) -> list[str]:
+    """The single-valued entry attributes, in the CLI's attribute order.
+
+    bgpd accepts only match_logic EQUAL (PrefixTreeMatch), so any other value
+    is a warning, not a command.
+    """
     commands = []
     if entry.get("base_prefix"):
         commands.append(
@@ -678,7 +677,12 @@ def _prefix_list_entry_scalar_commands(prefix: str, entry: dict[str, Any]) -> li
             raw if isinstance(raw, str) else _MATCH_LOGIC_NAMES.get(int(raw), str(raw))
         )
         if logic != "EQUAL":
-            commands.append(f"{prefix} match-logic {escape_shell_arg(logic)}")
+            commands.append(
+                _warning(
+                    f"{label}: match_logic {logic} is not accepted by bgpd "
+                    "(only EQUAL); not emitted"
+                )
+            )
     if "max_allowed_golden_prefix_subnet_count" in entry:
         commands.append(
             f"{prefix} max-allowed-subnet-count "
@@ -697,9 +701,28 @@ def _prefix_list_entry_range_commands(
     first = ranges[0]
     commands = []
     if "compare_operator" in first:
+        operator = _comparison_operator_name(first["compare_operator"])
+        if operator == "RG":
+            # bgpd's toPolicyComparisonOperator() throws on RG, and a range
+            # replayed without its operator would store an unset enum that
+            # bgpd rejects just the same, so the whole range is dropped.
+            commands.append(
+                _warning(
+                    f"{label}: prefix_len_ranges compare_operator RG is not "
+                    "accepted by bgpd; the range is not emitted"
+                )
+            )
+            if len(ranges) > 1:
+                commands.append(
+                    _warning(
+                        f"{label}: only the first of {len(ranges)} "
+                        "prefix_len_ranges is expressible; the rest are not "
+                        "emitted"
+                    )
+                )
+            return commands
         commands.append(
-            f"{prefix} prefix-len-range compare-operator "
-            f"{escape_shell_arg(_comparison_operator_name(first['compare_operator']))}"
+            f"{prefix} prefix-len-range compare-operator {escape_shell_arg(operator)}"
         )
     if "value" in first:
         commands.append(
@@ -735,7 +758,7 @@ def generate_prefix_list_entry_commands(
         f"config protocol bgp policy prefix-list {escape_shell_arg(list_name)} "
         f"entry {escape_shell_arg(entry['seq_num'])}"
     )
-    commands = _prefix_list_entry_scalar_commands(prefix, entry)
+    commands = _prefix_list_entry_scalar_commands(prefix, label, entry)
     commands.extend(_prefix_list_entry_range_commands(prefix, label, entry))
     if entry.get("regex"):
         commands.append(f"{prefix} regex {escape_shell_arg(entry['regex'])}")

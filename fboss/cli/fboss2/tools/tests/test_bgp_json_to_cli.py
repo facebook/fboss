@@ -1244,21 +1244,6 @@ class GeneratePrefixListCommandsTest(unittest.TestCase):
                 raw,
             )
 
-    def test_prefixes_warn_until_entry_subcommand(self) -> None:
-        commands = generate_prefix_list_commands(
-            {
-                "name": "PL",
-                "prefixes": [{"base_prefix": "10.0.0.0/8"}, {"base_prefix": "::/0"}],
-            }
-        )
-        self.assertEqual(
-            commands,
-            [
-                "# WARNING: prefix-list PL: 2 prefixes are not emitted until "
-                "the entry subcommand lands"
-            ],
-        )
-
     def test_or_default_omitted(self) -> None:
         self.assertEqual(
             generate_prefix_list_commands({"name": "PL", "boolean_operator": 2}),
@@ -1347,7 +1332,8 @@ class GeneratePrefixListEntryCommandsTest(unittest.TestCase):
             [
                 f"{self.PREFIX} base-prefix 10.0.0.0/8",
                 f"{self.PREFIX} description 'rfc1918 a'",
-                f"{self.PREFIX} match-logic NOT_EQUAL",
+                "# WARNING: prefix-list PL entry 10: match_logic NOT_EQUAL is not "
+                "accepted by bgpd (only EQUAL); not emitted",
                 f"{self.PREFIX} max-allowed-subnet-count 4",
                 f"{self.PREFIX} prefix-len-range compare-operator LE",
                 f"{self.PREFIX} prefix-len-range value 24",
@@ -1362,6 +1348,23 @@ class GeneratePrefixListEntryCommandsTest(unittest.TestCase):
             "PL", {"seq_num": 10, "match_logic": 0}
         )
         self.assertEqual(commands, [self.PREFIX])
+
+    def test_range_operator_rg_warns(self) -> None:
+        commands = generate_prefix_list_entry_commands(
+            "PL",
+            {
+                "seq_num": 10,
+                "prefix_len_ranges": [{"compare_operator": 7, "value": 24}],
+            },
+        )
+        self.assertEqual(
+            commands,
+            [
+                "# WARNING: prefix-list PL entry 10: prefix_len_ranges "
+                "compare_operator RG is not accepted by bgpd; the range is not "
+                "emitted"
+            ],
+        )
 
     def test_missing_seq_num_warns(self) -> None:
         commands = generate_prefix_list_entry_commands(
