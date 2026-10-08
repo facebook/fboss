@@ -786,6 +786,12 @@ void SaiSwitchManager::resetEgressAcl() {
 }
 
 void SaiSwitchManager::gracefulExit() {
+#if defined(SAI_BRCM_PAI_IMPL)
+  // PAI's remove_switch frees the PHY/CFG_PHY/CFG_LANE records that warm boot
+  // restores. PAI warm shutdown is RESTART_WARM (set by SaiSwitch) followed by
+  // process exit, so the switch object is intentionally not destroyed.
+  __attribute__((unused)) auto leakedSwitch = switch_.release();
+#else
   // On graceful exit we trigger the warm boot path on
   // ASIC by destroying the switch (and thus calling the
   // remove switch function
@@ -793,6 +799,7 @@ void SaiSwitchManager::gracefulExit() {
   // Other objects are left intact to preserve data plane
   // forwarding during warm boot
   switch_.reset();
+#endif
 }
 
 void SaiSwitchManager::setMacAgingSeconds(sai_uint32_t agingSeconds) {
