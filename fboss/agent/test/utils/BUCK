@@ -327,6 +327,8 @@ cpp_library(
         "//fboss/agent/test:trunk_utils",
         "//fboss/agent/test:utils",
         "//fboss/lib/config:fboss_config_utils",
+        "//folly:file_util",
+        "//folly:string",
         "//folly/testing:test_util",
     ],
     exported_deps = [
