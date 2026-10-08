@@ -4,12 +4,12 @@
  * End-to-end tests for `fboss2-dev config protocol bgp policy prefix-list
  * <name> [<attribute> <value> ...]`.
  *
- * Scope: the prefix-list level (its entries are covered by
- * ConfigBgpPolicyPrefixListEntryTest in the entry subcommand's PR). Every test
- * stages the change AND commits it, then asserts the value landed at the
- * correct thrift field path inside the matching .policies.prefix_lists[] entry
- * of bgpd's running config (via getRunningConfig RPC) — which also confirms
- * bgpd accepts and adopts a `.policies` blob at all. Stage-only behavior
+ * Scope: the prefix-list level (its seq-num-keyed entries are covered by
+ * ConfigBgpPolicyPrefixListEntryTest). Every test stages the
+ * change AND commits it, then asserts the value landed at the correct thrift
+ * field path inside the matching .policies.prefix_lists[] entry of bgpd's
+ * running config (via getRunningConfig RPC) — which also confirms bgpd
+ * accepts and adopts a `.policies` blob at all. Stage-only behavior
  * (attribute parsing, validation, rejection) is covered by the unit tests; an
  * integration test that never commits exercises no daemon.
  *

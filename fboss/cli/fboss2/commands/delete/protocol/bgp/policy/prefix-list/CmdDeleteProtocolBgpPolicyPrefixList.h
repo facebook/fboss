@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <vector>
 #include "CLI/App.hpp"
@@ -20,11 +21,12 @@
 
 namespace facebook::fboss {
 
-// Parsed `delete protocol bgp policy prefix-list <name>`, validated at
-// construction. The list name is the only identity the config command
-// stores at this level; deleting a single entry arrives with the entry
-// subcommand (CmdConfigProtocolBgpPolicyPrefixListEntry), where the entry's
-// identity is decided.
+// Parsed `delete protocol bgp policy prefix-list <name> [entry <seq-num>]`,
+// validated at construction. The list name and entry seq-num are the
+// identities the config command stores. Without the `entry` selector the
+// whole list is deleted; with it, only that entry. Mirrors
+// BgpCommunityListRef, with a seq-num-keyed second level in place of the
+// name-keyed one.
 class BgpPrefixListRef : public utils::BaseObjectArgType<std::string> {
  public:
   // NOLINTNEXTLINE(google-explicit-constructor)
@@ -32,17 +34,25 @@ class BgpPrefixListRef : public utils::BaseObjectArgType<std::string> {
   const std::string& listName() const {
     return listName_;
   }
+  bool hasEntry() const {
+    return hasEntry_;
+  }
+  int32_t seqNum() const {
+    return seqNum_;
+  }
   const static utils::ObjectArgTypeId id =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MESSAGE;
 
  private:
   std::string listName_;
+  bool hasEntry_{false};
+  int32_t seqNum_{0};
 };
 
 struct CmdDeleteProtocolBgpPolicyPrefixListTraits : public WriteCommandTraits {
   using ParentCmd = CmdDeleteProtocolBgpPolicy;
   static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
-    cmd.add_option("args", args, "<name>");
+    cmd.add_option("args", args, "<name> [entry <seq-num>]");
   }
   using ObjectArgType = BgpPrefixListRef;
   using RetType = std::string;
