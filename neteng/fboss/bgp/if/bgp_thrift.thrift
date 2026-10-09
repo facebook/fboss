@@ -1410,6 +1410,11 @@ enum ClearBgpNeighborDirection {
 // @lint-ignore THRIFTCHECKS facebook-service-deprecated existing service inheritance is out of scope for this API addition
 service TBgpService extends fb303.FacebookService {
   /**
+   * Return build metadata for the running BGP process.
+   */
+  map<string, string> getBuildInfo();
+
+  /**
    * [Logging]
    *
    * Dynamically set log level for BGP
