@@ -13,34 +13,37 @@
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <fmt/core.h>
-#include <folly/IPAddress.h>
-#include <neteng/fboss/bgp/public_tld/configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h>
 #include <cstdint>
 #include <iostream>
 #include <limits>
 #include <map>
 #include <optional>
-#include <ostream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 #include <vector>
-#include "configerator/structs/neteng/bgp_policy/thrift/gen-cpp2/routing_policy_types.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/BgpCliAttrHandlers.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/BgpCliValueParsers.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/prefix-list/BgpPrefixListCliUtils.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fmt/format.h"
 
+#ifndef IS_OSS
+#include <configerator/structs/neteng/bgp_policy/thrift/gen-cpp2/routing_policy_types.h>
+#include <configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h>
+#else
+#include <neteng/fboss/bgp/public_tld/configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h>
+#endif
+
 namespace facebook::fboss {
 
 namespace {
 
 // The attribute names, exactly as documented. Kept here so the
-// valid-attribute set and the handler table stay in sync.
-constexpr std::string_view kBasePrefix = "base-prefix";
+// valid-attribute set and the handler table stay in sync. base-prefix is not
+// an attribute: it is the entry's key, given as the `prefix <prefix/len>`
+// selector.
 constexpr std::string_view kCommunities = "communities";
 constexpr std::string_view kCompareOperator = "compare-operator";
 constexpr std::string_view kDescription = "description";
@@ -201,28 +204,8 @@ void setMaxAllowedSubnetCount(PrefixListEntry& entry, int32_t count) {
 }
 
 // ---- hand-written handlers --------------------------------------------------
-// These four remain full handlers because their value shape has no factory: a
-// prefix requiring an explicit mask, an accumulating set, a composed
-// sub-attribute, and a stored-verbatim regex.
-
-Result basePrefix(PrefixListEntry& entry, const Tokens& values) {
-  if (values.size() != 1) {
-    return err(fmt::format("Error: {} requires <prefix/len>", kBasePrefix));
-  }
-  // Require an explicit /len — folly fills in a default mask for a bare
-  // address, so its absence must be checked separately. The string is stored
-  // as typed, not normalized.
-  if (values[0].find('/') == std::string::npos ||
-      folly::IPAddress::tryCreateNetwork(values[0]).hasError()) {
-    return err(
-        fmt::format(
-            "Error: Invalid {} value '{}'; expected <prefix/len>",
-            kBasePrefix,
-            values[0]));
-  }
-  entry.base_prefix() = values[0];
-  return ok(fmt::format("Successfully set {} to: {}", kBasePrefix, values[0]));
-}
+// These three remain full handlers because their value shape has no factory:
+// an accumulating set, a composed sub-attribute, and a stored-verbatim regex.
 
 Result communities(PrefixListEntry& entry, const Tokens& values) {
   if (values.size() != 1) {
@@ -278,7 +261,6 @@ entryAttrHandlers() {
   static const std::string kMatchLogicValues = std::string(kMatchLogicEqual);
   static const std::map<std::string, AttrHandler<PrefixListEntry>, std::less<>>
       kHandlers = {
-          {std::string(kBasePrefix), basePrefix},
           {std::string(kCommunities), communities},
           {std::string(kDescription),
            joinedStringAttr<PrefixListEntry>(kDescription, setDescription)},
@@ -321,19 +303,16 @@ BgpPrefixListEntryConfig::BgpPrefixListEntryConfig(std::vector<std::string> v)
     : utils::BaseObjectArgType<std::string>(v) {
   if (v.empty()) {
     throw std::invalid_argument(
-        "Error: entry <seq-num> is required, optionally followed by an "
+        "Error: prefix <prefix/len> is required, optionally followed by an "
         "<attribute> <value>");
   }
-  auto seq = bgpcli::parseNonNegInt32(v[0]);
-  if (!seq) {
+  if (!bgpcli::isPrefixWithLength(v[0])) {
     throw std::invalid_argument(
-        fmt::format(
-            "Error: entry <seq-num> must be a non-negative integer, got '{}'",
-            v[0]));
+        fmt::format("Error: Invalid prefix '{}'; expected <prefix/len>", v[0]));
   }
-  seqNum_ = *seq;
+  basePrefix_ = v[0];
   if (v.size() == 1) {
-    return; // bare `entry <seq-num>`: create it
+    return; // bare `prefix <prefix/len>`: create it
   }
 
   attr_ = v[1];
@@ -342,7 +321,7 @@ BgpPrefixListEntryConfig::BgpPrefixListEntryConfig(std::vector<std::string> v)
   if (entryAttrHandlers().find(attr_) == entryAttrHandlers().end()) {
     throw std::invalid_argument(
         fmt::format(
-            "Error: unknown prefix-list entry attribute '{}'. Valid "
+            "Error: unknown prefix-list prefix attribute '{}'. Valid "
             "attributes: {}",
             attr_,
             validAttrList()));
@@ -354,34 +333,35 @@ CmdConfigProtocolBgpPolicyPrefixListEntry::queryClient(
     const HostInfo& /* hostInfo */,
     const BgpPrefixListConfig& listArgs,
     const ObjectArgType& args) {
-  // The parent parse accepts `prefix-list <name> <attr> <value> ... entry
+  // The parent parse accepts `prefix-list <name> <attr> <value> ... prefix
   // ...`, but only the leaf (this command) runs — silently dropping the
   // list-level attribute would look like it was staged. Reject the mix.
   if (!listArgs.attr().empty()) {
     return fmt::format(
-        "Error: configure prefix-list attributes and entry in separate "
-        "commands (got prefix-list attribute '{}' alongside entry {})",
+        "Error: configure prefix-list attributes and prefix in separate "
+        "commands (got prefix-list attribute '{}' alongside prefix {})",
         listArgs.attr(),
-        args.seqNum());
+        args.basePrefix());
   }
 
   auto& session = ConfigSession::getInstance();
   auto& cfg = session.getBgpConfig();
   const bool listCreated = !bgpcli::prefixListExists(cfg, listArgs.listName());
   auto& list = bgpcli::findOrCreatePrefixList(cfg, listArgs.listName());
-  const bool entryCreated = !bgpcli::prefixListEntryExists(list, args.seqNum());
-  auto& entry = bgpcli::findOrCreatePrefixListEntry(list, args.seqNum());
+  const bool entryCreated =
+      !bgpcli::prefixListEntryExists(list, args.basePrefix());
+  auto& entry = bgpcli::findOrCreatePrefixListEntry(list, args.basePrefix());
 
   Result result = args.attr().empty()
       ? ok(entryCreated
                ? fmt::format(
-                     "Successfully created BGP prefix-list {} entry {}",
+                     "Successfully created BGP prefix-list {} prefix {}",
                      listArgs.listName(),
-                     args.seqNum())
+                     args.basePrefix())
                : fmt::format(
-                     "BGP prefix-list {} entry {} already exists",
+                     "BGP prefix-list {} prefix {} already exists",
                      listArgs.listName(),
-                     args.seqNum()))
+                     args.basePrefix()))
       // The attribute is guaranteed valid: BgpPrefixListEntryConfig's
       // constructor rejects an unknown attribute before we get here.
       : entryAttrHandlers().find(args.attr())->second(entry, args.values());
@@ -389,7 +369,9 @@ CmdConfigProtocolBgpPolicyPrefixListEntry::queryClient(
   if (result.ok) {
     if (!args.attr().empty()) {
       result.message += fmt::format(
-          " for prefix-list {} entry {}", listArgs.listName(), args.seqNum());
+          " for prefix-list {} prefix {}",
+          listArgs.listName(),
+          args.basePrefix());
     }
     session.saveBgpConfig();
     result.message +=

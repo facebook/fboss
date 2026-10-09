@@ -10,8 +10,8 @@
 
 #pragma once
 
+#include <folly/IPAddress.h>
 #include <algorithm>
-#include <cstdint>
 #include <string>
 
 #ifndef IS_OSS
@@ -23,10 +23,11 @@
 
 /**
  * Lookup/create helpers for the prefix-list CLI family, shared between the
- * list-level dispatcher (CmdConfigProtocolBgpPolicyPrefixList), the entry
+ * list-level dispatcher (CmdConfigProtocolBgpPolicyPrefixList), the prefix
  * subcommand (CmdConfigProtocolBgpPolicyPrefixListEntry), and the delete
  * counterparts. A PrefixList is keyed by name; a PrefixListEntry (in
- * prefixes[]) is keyed by seq_num.
+ * prefixes[]) is keyed by base_prefix, the only identity bgpd keeps (it
+ * merges entries by prefix and rejects seq_num).
  */
 namespace facebook::fboss::bgpcli {
 
@@ -61,29 +62,38 @@ inline bgp::routing_policy::PrefixList& findOrCreatePrefixList(
   return list;
 }
 
+// A prefix with an explicit /len, as every entry key must be. folly fills in
+// a default mask for a bare address, so the slash is checked separately. The
+// string is stored as typed, not normalized.
+inline bool isPrefixWithLength(const std::string& s) {
+  return s.find('/') != std::string::npos &&
+      !folly::IPAddress::tryCreateNetwork(s).hasError();
+}
+
 inline bool prefixListEntryExists(
     const bgp::routing_policy::PrefixList& list,
-    int32_t seqNum) {
+    const std::string& basePrefix) {
   const auto& entries = *list.prefixes();
   return std::any_of(entries.begin(), entries.end(), [&](const auto& entry) {
-    return entry.seq_num().has_value() && *entry.seq_num() == seqNum;
+    return *entry.base_prefix() == basePrefix;
   });
 }
 
-// Find the entry keyed by seq_num within a list's prefixes[], creating it if
-// absent. seq_num is the entry's identity.
+// Find the entry keyed by base_prefix within a list's prefixes[], creating it
+// if absent. bgpd merges entries that share a base_prefix, so one entry per
+// prefix is the only shape the CLI needs to address.
 inline bgp::routing_policy::PrefixListEntry& findOrCreatePrefixListEntry(
     bgp::routing_policy::PrefixList& list,
-    int32_t seqNum) {
+    const std::string& basePrefix) {
   auto& entries = *list.prefixes();
   for (auto& entry : entries) {
-    if (entry.seq_num().has_value() && *entry.seq_num() == seqNum) {
+    if (*entry.base_prefix() == basePrefix) {
       return entry;
     }
   }
   entries.emplace_back();
   auto& entry = entries.back();
-  entry.seq_num() = seqNum;
+  entry.base_prefix() = basePrefix;
   return entry;
 }
 
