@@ -7962,6 +7962,7 @@ class ChildThriftPath<::facebook::bgp::rib_policy::TBgpPathMatcher, ::facebook::
     STRUCT_CHILD_GETTERS(as_path_length, 3);
     STRUCT_CHILD_GETTERS(as_path_regex, 4);
     STRUCT_CHILD_GETTERS(min_lbw_bps, 6);
+    STRUCT_CHILD_GETTERS(prefer_lowest_igp_cost, 7);
 };
 
 
