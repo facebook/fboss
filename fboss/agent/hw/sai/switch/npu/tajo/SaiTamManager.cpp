@@ -175,11 +175,13 @@ std::shared_ptr<SaiTamEvent> createMirrorOnDropEvent(
 
 // Tajo-specific TamReport: vendor-extn type plus optional sample-rate /
 // max-report-rate / max-report-burst attributes (Tajo SDK 25.5+, SAI v1.16+).
-// SampleRate maps to MoD samplingRate; the max-rate / max-burst caps are not
-// currently surfaced by MirrorOnDropReport so they default to nullopt.
+// SampleRate maps to MoD samplingRate and MaxReportRate to the MoD aggregate
+// rate cap. The SDK hard-codes the aggregate burst, so MaxReportBurst stays
+// nullopt.
 std::shared_ptr<SaiTamReport> createMirrorOnDropReport(
     SaiStore* saiStore,
-    std::optional<int32_t> samplingRate) {
+    std::optional<int32_t> samplingRate,
+    std::optional<int32_t> aggregateRateThreshold) {
 #if SAI_API_VERSION < SAI_VERSION(1, 16, 0)
   if (samplingRate.has_value()) {
     XLOG_EVERY_MS(WARN, 60'000)
@@ -196,7 +198,10 @@ std::shared_ptr<SaiTamReport> createMirrorOnDropReport(
           ? std::optional<SaiTamReportTraits::Attributes::SampleRate>(
                 static_cast<sai_uint32_t>(*samplingRate))
           : std::nullopt,
-      std::nullopt /* MaxReportRate */,
+      (aggregateRateThreshold.has_value() && *aggregateRateThreshold > 0)
+          ? std::optional<SaiTamReportTraits::Attributes::MaxReportRate>(
+                static_cast<sai_uint64_t>(*aggregateRateThreshold))
+          : std::nullopt,
       std::nullopt /* MaxReportBurst */
 #endif
   };
@@ -385,10 +390,15 @@ void SaiTamManager::addMirrorOnDropReport(
              << " collectorIp=" << report->getCollectorIp().str()
              << " collectorPort=" << report->getCollectorPort()
              << " dscp=" << static_cast<int>(report->getDscp())
-             << " egressPort=" << egressPort;
+             << " egressPort=" << egressPort << " dropPacketRateThreshold="
+             << report->getDropPacketRateThreshold().value_or(0)
+             << " aggregateDropPacketRateThreshold="
+             << report->getAggregateDropPacketRateThreshold().value_or(0);
 
-  auto reportObj =
-      createMirrorOnDropReport(saiStore_, report->getSamplingRate());
+  auto reportObj = createMirrorOnDropReport(
+      saiStore_,
+      report->getSamplingRate(),
+      report->getAggregateDropPacketRateThreshold());
   auto action = createTamAction(reportObj->adapterKey());
   auto transport = createTamTransport(report, SAI_TAM_TRANSPORT_TYPE_UDP);
   auto collector = createTamCollector(
