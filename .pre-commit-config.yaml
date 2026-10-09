@@ -55,6 +55,13 @@ repos:
 
   - repo: local
     hooks:
+      - id: fboss-copyright-headers
+        name: Check copyright headers in new FBOSS C/C++ files
+        language: system
+        entry: python3 fboss/oss/scripts/check_copyright_headers.py
+        files: ^fboss/.*\.(c|cc|cpp|h|hh|hpp)$
+        pass_filenames: true
+
       - id: do-not-change-fboss-manifests
         name: Prevent sai_impl in fboss manifest
         language: system

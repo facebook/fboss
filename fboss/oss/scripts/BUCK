@@ -58,6 +58,17 @@ python_library(
     labels = ["autodeps2_generated"],
 )
 
+python_library(
+    name = "check_copyright_headers_lib",
+    srcs = ["check_copyright_headers.py"],
+)
+
+python_binary(
+    name = "check_copyright_headers",
+    main_module = "fboss.oss.scripts.check_copyright_headers",
+    deps = [":check_copyright_headers_lib"],
+)
+
 python_binary(
     name = "check_compile_mem",
     main_module = "compile_mem",
