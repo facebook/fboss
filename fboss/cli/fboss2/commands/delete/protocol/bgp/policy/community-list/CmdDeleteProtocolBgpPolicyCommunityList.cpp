@@ -13,12 +13,14 @@
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <fmt/core.h>
+#include <folly/String.h>
 #include <algorithm>
 #include <iostream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 #include <vector>
+#include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/community-list/BgpCommunityListCliUtils.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
@@ -92,6 +94,7 @@ CmdDeleteProtocolBgpPolicyCommunityList::queryClient(
   if (it == lists.end()) {
     return absent;
   }
+  auto refs = bgpcli::findTermsReferencingCommunityList(cfg, args.listName());
   if (args.hasCommunity()) {
     // Remove one value from communities; the list itself stays.
     auto& list = *it;
@@ -100,6 +103,26 @@ CmdDeleteProtocolBgpPolicyCommunityList::queryClient(
       auto valueIt =
           std::find(communities.begin(), communities.end(), args.community());
       if (valueIt != communities.end()) {
+        if (communities.size() == 1) {
+          // A community action resolves the list's values at daemon load and
+          // fails on an empty one ("Missing communities in CommunityList");
+          // a match reference tolerates it.
+          std::vector<std::string> actions;
+          for (const auto& ref : refs) {
+            if (ref.isAction) {
+              actions.push_back(ref.label);
+            }
+          }
+          if (!actions.empty()) {
+            return fmt::format(
+                "Error: {} is the last community of BGP community-list {}, "
+                "which is still used by the community action of {}; remove "
+                "those actions first",
+                args.community(),
+                args.listName(),
+                folly::join(", ", actions));
+          }
+        }
         communities.erase(valueIt);
         if (communities.empty()) {
           // Leave the list looking like one that never had values, so a
@@ -120,6 +143,21 @@ CmdDeleteProtocolBgpPolicyCommunityList::queryClient(
         "delete",
         args.listName(),
         args.community());
+  }
+  // A term's community_list_names / community_action_list_names resolve
+  // against this list by name at daemon load; erasing the list while a term
+  // still names it would commit a dangling reference and fail the load.
+  // Refuse and name the terms instead.
+  if (!refs.empty()) {
+    std::vector<std::string> referrers;
+    for (const auto& ref : refs) {
+      referrers.push_back(ref.label);
+    }
+    return fmt::format(
+        "Error: BGP community-list {} is still referenced by {}; remove those "
+        "matches and actions first",
+        args.listName(),
+        folly::join(", ", referrers));
   }
   lists.erase(it);
   session.saveBgpConfig();
