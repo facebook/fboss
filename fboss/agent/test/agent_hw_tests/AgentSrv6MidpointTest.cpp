@@ -498,10 +498,10 @@ class AgentSrv6MidpointUsdTest : public AgentSrv6MidpointTest<PortType> {
   // Outer dst holding uSID 1 with nothing behind it, so the uA sid is the last
   // sid and USD decapsulates instead of shifting.
   const folly::IPAddressV6 kUsdOuterDst{"fdad:ffff:1::"};
-  // Inner dst repeats uSID 1 with uSID aa behind it, so the header USD exposes
+  // Middle dst repeats uSID 1 with uSID aa behind it, so the header USD exposes
   // is itself a midpoint packet for this node: it shifts rather than
   // decapsulating, and leaves by the same adjacency.
-  const folly::IPAddressV6 kUsdInnerDst{"fdad:ffff:1:aa::"};
+  const folly::IPAddressV6 kUsdMiddleDst{"fdad:ffff:1:aa::"};
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
@@ -525,25 +525,30 @@ class AgentSrv6MidpointUsdTest : public AgentSrv6MidpointTest<PortType> {
         getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState()));
   }
 
-  // Outer dst is the uA sid with nothing behind it; inner dst repeats that sid
-  // with one more uSID behind it.
+  // FRR header -> original SRv6 header -> original IPv6 header. Outer dst is
+  // the uA sid with nothing behind it; middle dst repeats that sid with one
+  // more uSID behind it.
   void sendUsdPacket(PortID injectPort) {
     auto intfMac =
         getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
-    auto txPacket = utility::makeIpInIpTxPacket(
+    auto txPacket = utility::makeIpInIpInIpPacket(
         this->getSw(),
         this->getVlanIDForTx().value(),
         intfMac,
         intfMac,
         folly::IPAddressV6("100::1") /* outerSrc */,
         kUsdOuterDst /* outerDst */,
-        folly::IPAddressV6("2001:db8::1") /* innerSrc */,
-        kUsdInnerDst /* innerDst */,
+        folly::IPAddressV6("2001:db8::1") /* middleSrc */,
+        kUsdMiddleDst /* middleDst */,
+        folly::IPAddressV6("2001:db8:2::1") /* innerSrc */,
+        folly::IPAddressV6("2001:db8:2::2") /* innerDst */,
         8000 /* srcPort */,
         8001 /* dstPort */,
         0 /* outerTrafficClass */,
+        0 /* middleTrafficClass */,
         0 /* innerTrafficClass */,
         24 /* outerHopLimit */,
+        64 /* middleHopLimit */,
         64 /* innerHopLimit */);
     this->getSw()->sendPacketOutOfPortAsync(std::move(txPacket), injectPort);
   }
