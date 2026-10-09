@@ -344,8 +344,17 @@
               "deviceName": "i2c_master",
               "csrOffsetCalc": "0x8000 + ({adapterIndex} - {startAdapterIndex})*0x80",
               "startAdapterIndex": 0,
-              "numAdapters": 6,
+              "numAdapters": 1,
               "numBusesPerAdapter": 8
+            },
+            {
+              "pmUnitScopedNamePrefix": "SMB_I2C_MASTER",
+              "deviceName": "i2c_master",
+              "csrOffsetCalc": "0x8080 + ({adapterIndex} - {startAdapterIndex})*0x80",
+              "startAdapterIndex": 1,
+              "numAdapters": 5,
+              "numBusesPerAdapter": 8,
+              "busFreqHz": 400000
             }
           ],
           "spiMasterConfigs": [
@@ -634,7 +643,7 @@
   "chassisEepromDevicePath": "/SMB_SLOT@0/[IDPROM]",
   "numXcvrs": 39,
   "bspKmodsRpmName": "arista_bsp_kmods",
-  "bspKmodsRpmVersion": "0.7.26-1",
+  "bspKmodsRpmVersion": "0.7.30-1",
   "nonBspKmodsToLoad": [
     "spidev",
     "i2c_i801",
