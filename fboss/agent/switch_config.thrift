@@ -477,10 +477,12 @@ struct MirrorOnDropReport {
    */
   14: optional i32 samplingRate;
   /*
-   * Optional packets-per-second rate cap for drop report generation.
-   * When set, the SAI TAM event threshold object limits the rate at
-   * which MoD reports are sent; drops exceeding this rate are silently
-   * discarded. If not set, no rate limiting is applied.
+   * Optional packets-per-second cap on MoD report generation, applied
+   * separately to each drop reason. The total report rate grows with the
+   * number of drop reasons dropping at once: a threshold of X with 10 active
+   * drop reasons allows up to 10X reports/sec. Use
+   * aggregateDropPacketRateThreshold to cap the total. Drops above the cap
+   * produce no report.
    */
   15: optional i32 dropPacketRateThreshold;
   /*
