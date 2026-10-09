@@ -548,6 +548,19 @@ struct TUpdateGroupPeerInfo {
    * the peer has never left its initial state.
    */
   16: optional i64 last_modified_peer_update_state_time_ms;
+
+  /*
+   * Why the peer was most recently detached ("Blocking", "Policy",
+   * "RouteRefresh"); retained after the peer rejoins. Unset if the peer has
+   * never been detached.
+   */
+  17: optional string last_detach_reason;
+
+  /*
+   * Epoch time (ms) of the peer's most recent detachment; unset if the peer has
+   * never been detached.
+   */
+  18: optional i64 last_detach_time_ms;
 }
 
 /**
