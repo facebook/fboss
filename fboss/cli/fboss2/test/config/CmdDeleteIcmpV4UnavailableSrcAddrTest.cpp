@@ -3,7 +3,6 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "fboss/agent/FbossError.h"
 #include "fboss/cli/fboss2/commands/delete/switch/icmpv4_unavailable_src_addr/CmdDeleteIcmpV4UnavailableSrcAddr.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/test/config/CmdConfigTestBase.h"
@@ -70,14 +69,18 @@ TEST_F(CmdDeleteIcmpV4UnavailableSrcAddrTestFixture, deleteWhenSet) {
 
 TEST_F(
     CmdDeleteIcmpV4UnavailableSrcAddrAbsentTestFixture,
-    deleteWhenAbsentRefused) {
+    deleteWhenAbsentIsNoop) {
+  const auto sessionBefore = sessionConfigText();
   auto& swConfig = *ConfigSession::getInstance().getAgentConfig().sw();
   ASSERT_FALSE(swConfig.icmpV4UnavailableSrcAddress().has_value());
 
   CmdDeleteIcmpV4UnavailableSrcAddr cmd;
-  EXPECT_THROW(cmd.queryClient(HostInfo("testhost")), FbossError);
+  auto result = cmd.queryClient(HostInfo("testhost"));
+  EXPECT_THAT(result, HasSubstr("nothing to delete"));
 
   EXPECT_FALSE(swConfig.icmpV4UnavailableSrcAddress().has_value());
+  EXPECT_EQ(sessionConfigText(), sessionBefore)
+      << "a no-op delete must not save the config";
 }
 
 } // namespace facebook::fboss

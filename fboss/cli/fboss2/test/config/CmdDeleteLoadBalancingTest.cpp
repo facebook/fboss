@@ -116,14 +116,18 @@ TEST_F(CmdDeleteLoadBalancingTestFixture, deleteBothEmptiesList) {
   EXPECT_EQ(loadBalancerCount(), 0);
 }
 
-TEST_F(CmdDeleteLoadBalancingTestFixture, deleteAbsentThrows) {
+TEST_F(CmdDeleteLoadBalancingTestFixture, deleteAbsentIsNoop) {
   setupTestableConfigSession("delete load-balancing ecmp", "");
 
   CmdDeleteLoadBalancingEcmp().queryClient(localhost());
-  // Second delete: the ECMP entry is gone.
-  EXPECT_THROW(
+  // Second delete: the ECMP entry is gone, so this is a warning, not an error.
+  const auto sessionBefore = sessionConfigText();
+  EXPECT_THAT(
       CmdDeleteLoadBalancingEcmp().queryClient(localhost()),
-      std::invalid_argument);
+      HasSubstr("nothing to delete"));
+  EXPECT_EQ(loadBalancerCount(), 1);
+  EXPECT_EQ(sessionConfigText(), sessionBefore)
+      << "a no-op delete must not save the config";
 }
 
 TEST_F(CmdDeleteLoadBalancingTestFixture, parentCommandIncomplete) {
@@ -143,9 +147,10 @@ TEST_F(CmdDeleteLoadBalancingTestFixture, removeLoadBalancerHelper) {
       removeLoadBalancer(swConfig, cfg::LoadBalancerID::ECMP),
       HasSubstr("ecmp"));
   EXPECT_TRUE(swConfig.loadBalancers()->empty());
-  EXPECT_THROW(
+  EXPECT_THAT(
       removeLoadBalancer(swConfig, cfg::LoadBalancerID::AGGREGATE_PORT),
-      std::invalid_argument);
+      HasSubstr("nothing to delete"));
+  EXPECT_TRUE(swConfig.loadBalancers()->empty());
 }
 
 } // namespace facebook::fboss
