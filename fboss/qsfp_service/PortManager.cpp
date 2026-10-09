@@ -294,7 +294,7 @@ std::string PortManager::listHwObjects(
 
 bool PortManager::getSdkState(const std::string& filename) const {
   if (!phyManager_) {
-    return false;
+    throw FbossError("getSdkState: no external PHY on this platform");
   }
   return phyManager_->getSdkState(filename);
 }
