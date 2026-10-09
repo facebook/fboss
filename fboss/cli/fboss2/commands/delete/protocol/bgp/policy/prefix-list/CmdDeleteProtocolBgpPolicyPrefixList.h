@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <cstdint>
+#include <optional>
 #include <string>
 #include <vector>
 #include "CLI/App.hpp"
@@ -21,12 +21,12 @@
 
 namespace facebook::fboss {
 
-// Parsed `delete protocol bgp policy prefix-list <name> [entry <seq-num>]`,
-// validated at construction. The list name and entry seq-num are the
-// identities the config command stores. Without the `entry` selector the
-// whole list is deleted; with it, only that entry. Mirrors
-// BgpCommunityListRef, with a seq-num-keyed second level in place of the
-// name-keyed one.
+// Parsed `delete protocol bgp policy prefix-list <name> [prefix <prefix/len>]`,
+// validated at construction. The list name and the entry's base prefix are
+// the identities the config command stores. Without the `prefix` selector
+// the whole list is deleted; with it, only that entry. Mirrors
+// BgpCommunityListRef, with a prefix-keyed second level in place of the
+// value-keyed one.
 class BgpPrefixListRef : public utils::BaseObjectArgType<std::string> {
  public:
   // NOLINTNEXTLINE(google-explicit-constructor)
@@ -34,25 +34,24 @@ class BgpPrefixListRef : public utils::BaseObjectArgType<std::string> {
   const std::string& listName() const {
     return listName_;
   }
-  bool hasEntry() const {
-    return hasEntry_;
+  bool hasPrefix() const {
+    return basePrefix_.has_value();
   }
-  int32_t seqNum() const {
-    return seqNum_;
+  const std::string& basePrefix() const {
+    return *basePrefix_;
   }
   const static utils::ObjectArgTypeId id =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MESSAGE;
 
  private:
   std::string listName_;
-  bool hasEntry_{false};
-  int32_t seqNum_{0};
+  std::optional<std::string> basePrefix_;
 };
 
 struct CmdDeleteProtocolBgpPolicyPrefixListTraits : public WriteCommandTraits {
   using ParentCmd = CmdDeleteProtocolBgpPolicy;
   static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
-    cmd.add_option("args", args, "<name> [entry <seq-num>]");
+    cmd.add_option("args", args, "<name> [prefix <prefix/len>]");
   }
   using ObjectArgType = BgpPrefixListRef;
   using RetType = std::string;

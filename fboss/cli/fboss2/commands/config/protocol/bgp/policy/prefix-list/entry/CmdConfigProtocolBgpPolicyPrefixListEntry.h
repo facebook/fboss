@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include <cstdint>
 #include <string>
 #include <vector>
 #include "CLI/App.hpp"
@@ -21,30 +20,32 @@
 
 namespace facebook::fboss {
 
-// Parsed `entry <seq-num> [<attribute> <value> ...]`, validated at
+// Parsed `prefix <prefix/len> [<attribute> <value> ...]`, validated at
 // construction. An entry (routing_policy.PrefixListEntry in
-// PrefixList.prefixes[]) is keyed by <seq-num>; the list it belongs to is
+// PrefixList.prefixes[]) is keyed by its base_prefix: that is the identity
+// bgpd keeps (it merges entries by prefix and rejects seq_num), so the
+// documented `entry <seq-num>` level is spelled `prefix <prefix/len>` and the
+// prefix doubles as the entry's base_prefix. The list it belongs to is
 // supplied by the parent command's args.
 //
-// Grammar (from the FBOSS proposed syntax):
-//   ... prefix-list <name> entry <seq-num>                   (create/select)
-//   ... prefix-list <name> entry <seq-num> base-prefix <prefix/len>
-//   ... prefix-list <name> entry <seq-num> communities <community-string>
-//   ... prefix-list <name> entry <seq-num> description <string>
-//   ... prefix-list <name> entry <seq-num> match-logic EQUAL
+// Grammar:
+//   ... prefix-list <name> prefix <prefix/len>                (create/select)
+//   ... prefix-list <name> prefix <prefix/len> communities <community-string>
+//   ... prefix-list <name> prefix <prefix/len> description <string>
+//   ... prefix-list <name> prefix <prefix/len> match-logic EQUAL
 //       (bgpd rejects NOT_EQUAL)
-//   ... prefix-list <name> entry <seq-num> max-allowed-subnet-count <value>
+//   ... prefix-list <name> prefix <prefix/len> max-allowed-subnet-count <value>
 //       (bgpd reads it only for golden-prefix policies)
-//   ... prefix-list <name> entry <seq-num> prefix-len-range compare-operator
-//   <EQ|GE|LE|NE|GT|LT>  (bgpd rejects RG)
-//   ... prefix-list <name> entry <seq-num> prefix-len-range value <0-128>
-//   ... prefix-list <name> entry <seq-num> regex <string>
+//   ... prefix-list <name> prefix <prefix/len> prefix-len-range
+//       compare-operator <EQ|GE|LE|NE|GT|LT>  (bgpd rejects RG)
+//   ... prefix-list <name> prefix <prefix/len> prefix-len-range value <0-128>
+//   ... prefix-list <name> prefix <prefix/len> regex <string>
 class BgpPrefixListEntryConfig : public utils::BaseObjectArgType<std::string> {
  public:
   // NOLINTNEXTLINE(google-explicit-constructor)
   /* implicit */ BgpPrefixListEntryConfig(std::vector<std::string> v);
-  int32_t seqNum() const {
-    return seqNum_;
+  const std::string& basePrefix() const {
+    return basePrefix_;
   }
   const std::string& attr() const {
     return attr_;
@@ -56,7 +57,7 @@ class BgpPrefixListEntryConfig : public utils::BaseObjectArgType<std::string> {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MESSAGE;
 
  private:
-  int32_t seqNum_{0};
+  std::string basePrefix_;
   std::string attr_; // matched dispatch key ("" = bare create)
   std::vector<std::string> values_;
 };
@@ -69,10 +70,11 @@ struct CmdConfigProtocolBgpPolicyPrefixListEntryTraits
     : public WriteCommandTraits {
   using ParentCmd = CmdConfigProtocolBgpPolicyPrefixList;
   static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
-    // Entry has no nested subcommands; stop CLI11's parent-chain fallthrough
-    // from stealing a value token that spells `entry` (e.g. in a description).
+    // The prefix level has no nested subcommands; stop CLI11's parent-chain
+    // fallthrough from stealing a value token that spells `prefix` (e.g. in a
+    // description).
     cmd.positionals_at_end();
-    cmd.add_option("args", args, "<seq-num> [<attribute> <value> ...]");
+    cmd.add_option("args", args, "<prefix/len> [<attribute> <value> ...]");
   }
   using ObjectArgType = BgpPrefixListEntryConfig;
   using RetType = std::string;

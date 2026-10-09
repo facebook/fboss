@@ -459,10 +459,10 @@ const CommandTree& kConfigCommandTree() {
                                argRegistrar<
                                    CmdConfigProtocolBgpPolicyPrefixListTraits>,
                                {{
-                                   "entry",
-                                   "Configure a prefix-list entry: <seq-num> "
-                                   "[<attribute> <value> ...] (base-prefix, "
-                                   "communities, description, match-logic, "
+                                   "prefix",
+                                   "Configure a prefix-list entry: "
+                                   "<prefix/len> [<attribute> <value> ...] "
+                                   "(communities, description, match-logic, "
                                    "max-allowed-subnet-count, "
                                    "prefix-len-range, regex)",
                                    commandHandler<
@@ -837,8 +837,8 @@ const CommandTree& kConfigCommandTree() {
                      },
                      {
                          "prefix-list",
-                         "Delete a BGP prefix-list: <name> "
-                         "[entry <seq-num>]",
+                         "Delete a BGP prefix-list, or one of its "
+                         "entries: <name> [prefix <prefix/len>]",
                          commandHandler<CmdDeleteProtocolBgpPolicyPrefixList>,
                          argRegistrar<
                              CmdDeleteProtocolBgpPolicyPrefixListTraits>,

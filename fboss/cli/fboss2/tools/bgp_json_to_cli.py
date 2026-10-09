@@ -663,10 +663,6 @@ def _prefix_list_entry_scalar_commands(
     is a warning, not a command.
     """
     commands = []
-    if entry.get("base_prefix"):
-        commands.append(
-            f"{prefix} base-prefix {escape_shell_arg(entry['base_prefix'])}"
-        )
     if entry.get("description"):
         commands.append(
             f"{prefix} description {escape_shell_arg(entry['description'])}"
@@ -741,24 +737,34 @@ def _prefix_list_entry_range_commands(
 def generate_prefix_list_entry_commands(
     list_name: str, entry: dict[str, Any]
 ) -> list[str]:
-    """Generate `... prefix-list <name> entry <seq-num>` commands for one entry.
+    """Generate `... prefix-list <name> prefix <prefix/len>` commands for one entry.
 
-    The CLI keys entries by seq_num and supports a single prefix_len_range;
-    anything beyond that surfaces as a warning.
+    The CLI keys entries by base_prefix, the identity bgpd keeps (it merges
+    entries by prefix and rejects seq_num), and supports a single
+    prefix_len_range; anything beyond that surfaces as a warning.
     """
-    if "seq_num" not in entry:
+    if not entry.get("base_prefix"):
         return [
             _warning(
-                f"prefix-list {list_name}: entry '{entry.get('base_prefix', '')}' "
-                "has no seq_num and cannot be addressed by the CLI; not emitted"
+                f"prefix-list {list_name}: an entry has no base_prefix and cannot "
+                "be addressed by the CLI; not emitted"
             )
         ]
-    label = f"prefix-list {list_name} entry {entry['seq_num']}"
+    base_prefix = entry["base_prefix"]
+    label = f"prefix-list {list_name} prefix {base_prefix}"
     prefix = (
         f"config protocol bgp policy prefix-list {escape_shell_arg(list_name)} "
-        f"entry {escape_shell_arg(entry['seq_num'])}"
+        f"prefix {escape_shell_arg(base_prefix)}"
     )
-    commands = _prefix_list_entry_scalar_commands(prefix, label, entry)
+    commands = []
+    if "seq_num" in entry:
+        commands.append(
+            _warning(
+                f"{label}: seq_num {entry['seq_num']} is rejected by bgpd and "
+                "not part of the CLI's entry identity; dropped"
+            )
+        )
+    commands.extend(_prefix_list_entry_scalar_commands(prefix, label, entry))
     commands.extend(_prefix_list_entry_range_commands(prefix, label, entry))
     if entry.get("regex"):
         commands.append(f"{prefix} regex {escape_shell_arg(entry['regex'])}")
@@ -768,7 +774,8 @@ def generate_prefix_list_entry_commands(
         commands.append(
             _warning(f"{label}: ip_version has no CLI equivalent; not emitted")
         )
-    if not commands:
+    if all(c.startswith(_WARNING_PREFIX) for c in commands):
+        # Nothing expressible to set: still create the entry by its prefix.
         commands.append(prefix)
     return commands
 

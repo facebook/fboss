@@ -83,26 +83,41 @@ class CmdConfigBgpPolicyPrefixListEntryTestFixture : public CmdConfigTestBase {
 
 TEST_F(CmdConfigBgpPolicyPrefixListEntryTestFixture, argValidation) {
   // Bare create.
-  auto bare = BgpPrefixListEntryConfig({"10"});
-  EXPECT_EQ(bare.seqNum(), 10);
+  auto bare = BgpPrefixListEntryConfig({"10.0.0.0/8"});
+  EXPECT_EQ(bare.basePrefix(), "10.0.0.0/8");
   EXPECT_TRUE(bare.attr().empty());
 
   // Attribute with values.
-  auto attr = BgpPrefixListEntryConfig({"10", "base-prefix", "10.0.0.0/8"});
-  EXPECT_EQ(attr.seqNum(), 10);
-  EXPECT_EQ(attr.attr(), "base-prefix");
-  EXPECT_EQ(attr.values(), std::vector<std::string>({"10.0.0.0/8"}));
+  auto attr = BgpPrefixListEntryConfig({"10.0.0.0/8", "description", "a", "b"});
+  EXPECT_EQ(attr.basePrefix(), "10.0.0.0/8");
+  EXPECT_EQ(attr.attr(), "description");
+  EXPECT_EQ(attr.values(), std::vector<std::string>({"a", "b"}));
 
-  // Invalid: empty, non-integer and negative seq-nums, unknown attribute.
+  // The prefix is stored as typed, including v6.
+  EXPECT_EQ(
+      BgpPrefixListEntryConfig({"2001:db8::/32"}).basePrefix(),
+      "2001:db8::/32");
+
+  // Invalid: empty; a prefix without an explicit /len (folly would default
+  // the mask), a non-address, an out-of-range mask, a second slash; unknown
+  // attribute.
   EXPECT_THROW(BgpPrefixListEntryConfig({}), std::invalid_argument);
-  EXPECT_THROW(BgpPrefixListEntryConfig({"ten"}), std::invalid_argument);
-  EXPECT_THROW(BgpPrefixListEntryConfig({"-1"}), std::invalid_argument);
+  EXPECT_THROW(BgpPrefixListEntryConfig({"10.0.0.0"}), std::invalid_argument);
   EXPECT_THROW(
-      BgpPrefixListEntryConfig({"10", "no-such-attr", "1"}),
+      BgpPrefixListEntryConfig({"not-a-prefix"}), std::invalid_argument);
+  EXPECT_THROW(
+      BgpPrefixListEntryConfig({"10.0.0.0/99"}), std::invalid_argument);
+  EXPECT_THROW(
+      BgpPrefixListEntryConfig({"10.0.0.0/8/8"}), std::invalid_argument);
+  EXPECT_THROW(
+      BgpPrefixListEntryConfig({"10.0.0.0/8", "no-such-attr", "1"}),
       std::invalid_argument);
-  // ip-version is a list attribute, not an entry attribute.
+  // base-prefix is the key, not an attribute; ip-version is a list attribute.
   EXPECT_THROW(
-      BgpPrefixListEntryConfig({"10", "ip-version", "v4"}),
+      BgpPrefixListEntryConfig({"10.0.0.0/8", "base-prefix", "10.0.0.0/8"}),
+      std::invalid_argument);
+  EXPECT_THROW(
+      BgpPrefixListEntryConfig({"10.0.0.0/8", "ip-version", "v4"}),
       std::invalid_argument);
 }
 
@@ -111,26 +126,29 @@ TEST_F(CmdConfigBgpPolicyPrefixListEntryTestFixture, argValidation) {
 // ==============================================================================
 
 TEST_F(CmdConfigBgpPolicyPrefixListEntryTestFixture, bareCreateEntry) {
-  auto result = runEntry({"PL100"}, {"10"});
+  auto result = runEntry({"PL100"}, {"10.0.0.0/8"});
   EXPECT_THAT(
-      result, HasSubstr("Successfully created BGP prefix-list PL100 entry 10"));
+      result,
+      HasSubstr(
+          "Successfully created BGP prefix-list PL100 prefix 10.0.0.0/8"));
   ASSERT_EQ(lists().size(), 1);
   ASSERT_EQ(lists()[0].prefixes()->size(), 1);
-  ASSERT_TRUE(entry(0, 0).seq_num().has_value());
-  EXPECT_EQ(*entry(0, 0).seq_num(), 10);
+  // The key is the entry's base_prefix; nothing writes seq_num, which bgpd
+  // rejects.
+  EXPECT_EQ(*entry(0, 0).base_prefix(), "10.0.0.0/8");
+  EXPECT_FALSE(entry(0, 0).seq_num().has_value());
 }
 
 TEST_F(CmdConfigBgpPolicyPrefixListEntryTestFixture, setAttributes) {
-  runEntry({"PL100"}, {"10", "base-prefix", "10.0.0.0/8"});
-  runEntry({"PL100"}, {"10", "description", "spine", "block"});
-  runEntry({"PL100"}, {"10", "match-logic", "EQUAL"});
-  runEntry({"PL100"}, {"10", "max-allowed-subnet-count", "64"});
-  runEntry({"PL100"}, {"10", "regex", "^10\\..*"});
+  runEntry({"PL100"}, {"10.0.0.0/8", "description", "spine", "block"});
+  runEntry({"PL100"}, {"10.0.0.0/8", "match-logic", "EQUAL"});
+  runEntry({"PL100"}, {"10.0.0.0/8", "max-allowed-subnet-count", "64"});
+  runEntry({"PL100"}, {"10.0.0.0/8", "regex", "^10\\..*"});
 
   ASSERT_EQ(lists().size(), 1);
   ASSERT_EQ(lists()[0].prefixes()->size(), 1);
   const auto& e = entry(0, 0);
-  EXPECT_EQ(*e.seq_num(), 10);
+  EXPECT_FALSE(e.seq_num().has_value());
   EXPECT_EQ(*e.base_prefix(), "10.0.0.0/8");
   EXPECT_EQ(*e.description(), "spine block");
   EXPECT_EQ(*e.match_logic(), MatchValueLogicOperator::EQUAL);
@@ -139,8 +157,9 @@ TEST_F(CmdConfigBgpPolicyPrefixListEntryTestFixture, setAttributes) {
 }
 
 TEST_F(CmdConfigBgpPolicyPrefixListEntryTestFixture, setPrefixLenRange) {
-  runEntry({"PL100"}, {"10", "prefix-len-range", "compare-operator", "GE"});
-  runEntry({"PL100"}, {"10", "prefix-len-range", "value", "24"});
+  runEntry(
+      {"PL100"}, {"10.0.0.0/8", "prefix-len-range", "compare-operator", "GE"});
+  runEntry({"PL100"}, {"10.0.0.0/8", "prefix-len-range", "value", "24"});
 
   // Both sub-attributes land on the single prefix_len_ranges[0] element.
   ASSERT_EQ(entry(0, 0).prefix_len_ranges()->size(), 1);
@@ -152,24 +171,25 @@ TEST_F(CmdConfigBgpPolicyPrefixListEntryTestFixture, setPrefixLenRange) {
 TEST_F(
     CmdConfigBgpPolicyPrefixListEntryTestFixture,
     valuesBgpdRejectsAreRefused) {
-  runEntry({"PL100"}, {"10", "prefix-len-range", "compare-operator", "GE"});
+  runEntry(
+      {"PL100"}, {"10.0.0.0/8", "prefix-len-range", "compare-operator", "GE"});
   // bgpd: toPolicyComparisonOperator() throws on RG.
-  auto rg =
-      runEntry({"PL100"}, {"10", "prefix-len-range", "compare-operator", "RG"});
+  auto rg = runEntry(
+      {"PL100"}, {"10.0.0.0/8", "prefix-len-range", "compare-operator", "RG"});
   EXPECT_THAT(rg, HasSubstr("expected EQ|GE|LE|NE|GT|LT"));
   EXPECT_EQ(
       *entry(0, 0).prefix_len_ranges()->front().compare_operator(),
       ComparisonOperator::GE);
   // bgpd: "Unsupported Prefix configuration: match_logic" unless EQUAL.
-  auto ne = runEntry({"PL100"}, {"10", "match-logic", "NOT_EQUAL"});
+  auto ne = runEntry({"PL100"}, {"10.0.0.0/8", "match-logic", "NOT_EQUAL"});
   EXPECT_THAT(ne, HasSubstr("expected EQUAL"));
   EXPECT_EQ(*entry(0, 0).match_logic(), MatchValueLogicOperator::EQUAL);
 }
 
 TEST_F(CmdConfigBgpPolicyPrefixListEntryTestFixture, communitiesAccumulate) {
-  auto result = runEntry({"PL100"}, {"10", "communities", "65000:100"});
+  auto result = runEntry({"PL100"}, {"10.0.0.0/8", "communities", "65000:100"});
   EXPECT_THAT(result, HasSubstr("Successfully added 65000:100 to communities"));
-  runEntry({"PL100"}, {"10", "communities", "65000:200"});
+  runEntry({"PL100"}, {"10.0.0.0/8", "communities", "65000:200"});
 
   ASSERT_TRUE(entry(0, 0).communities().has_value());
   EXPECT_THAT(
@@ -177,7 +197,8 @@ TEST_F(CmdConfigBgpPolicyPrefixListEntryTestFixture, communitiesAccumulate) {
       UnorderedElementsAre("65000:100", "65000:200"));
 
   // Re-adding an existing member reports it without duplicating.
-  auto repeated = runEntry({"PL100"}, {"10", "communities", "65000:100"});
+  auto repeated =
+      runEntry({"PL100"}, {"10.0.0.0/8", "communities", "65000:100"});
   EXPECT_THAT(repeated, HasSubstr("communities already contains 65000:100"));
   EXPECT_EQ(entry(0, 0).communities()->size(), 2);
 }
@@ -185,13 +206,13 @@ TEST_F(CmdConfigBgpPolicyPrefixListEntryTestFixture, communitiesAccumulate) {
 TEST_F(
     CmdConfigBgpPolicyPrefixListEntryTestFixture,
     entriesAccumulateAndAreKeyed) {
-  runEntry({"PL100"}, {"10", "base-prefix", "10.0.0.0/8"});
-  runEntry({"PL100"}, {"20", "base-prefix", "192.168.0.0/16"});
+  runEntry({"PL100"}, {"10.0.0.0/8", "description", "a"});
+  runEntry({"PL100"}, {"192.168.0.0/16", "description", "b"});
   ASSERT_EQ(lists().size(), 1);
   ASSERT_EQ(lists()[0].prefixes()->size(), 2);
 
-  // Re-referencing an existing entry by seq-num updates it, not appends.
-  runEntry({"PL100"}, {"10", "match-logic", "EQUAL"});
+  // Re-referencing an existing entry by prefix updates it, not appends.
+  runEntry({"PL100"}, {"10.0.0.0/8", "match-logic", "EQUAL"});
   EXPECT_EQ(lists()[0].prefixes()->size(), 2);
   EXPECT_EQ(*entry(0, 0).base_prefix(), "10.0.0.0/8");
   EXPECT_EQ(*entry(0, 0).match_logic(), MatchValueLogicOperator::EQUAL);
@@ -199,27 +220,20 @@ TEST_F(
 
 TEST_F(
     CmdConfigBgpPolicyPrefixListEntryTestFixture,
-    invalidBasePrefixRejected) {
-  // A base-prefix without an explicit /len is rejected, as is a non-address.
-  auto noLen = runEntry({"PL100"}, {"10", "base-prefix", "10.0.0.0"});
-  EXPECT_THAT(
-      noLen,
-      HasSubstr("Invalid base-prefix value '10.0.0.0'; expected <prefix/len>"));
-  auto garbage = runEntry({"PL100"}, {"10", "base-prefix", "not-a-prefix"});
-  EXPECT_THAT(garbage, HasSubstr("Invalid base-prefix value"));
-  // folly rejects the rest: an out-of-range mask and a second slash.
-  auto badMask = runEntry({"PL100"}, {"10", "base-prefix", "10.0.0.0/99"});
-  EXPECT_THAT(badMask, HasSubstr("Invalid base-prefix value"));
-  auto twoSlash = runEntry({"PL100"}, {"10", "base-prefix", "10.0.0.0/8/8"});
-  EXPECT_THAT(twoSlash, HasSubstr("Invalid base-prefix value"));
+    invalidPrefixRejectedBeforeAnythingIsCreated) {
+  // The prefix is validated at construction (see argValidation), so a bad
+  // one never reaches queryClient and never creates a list or an entry.
+  EXPECT_THROW(
+      runEntry({"PL100"}, {"10.0.0.0", "description", "x"}),
+      std::invalid_argument);
   EXPECT_TRUE(lists().empty());
   EXPECT_FALSE(sessionFileExists())
       << "session file should not exist after rejected input";
 }
 
-TEST_F(CmdConfigBgpPolicyPrefixListEntryTestFixture, basePrefixAcceptsV6) {
-  auto result = runEntry({"PL100"}, {"10", "base-prefix", "2001:db8::/32"});
-  EXPECT_THAT(result, HasSubstr("Successfully set base-prefix"));
+TEST_F(CmdConfigBgpPolicyPrefixListEntryTestFixture, prefixAcceptsV6) {
+  auto result = runEntry({"PL100"}, {"2001:db8::/32"});
+  EXPECT_THAT(result, HasSubstr("Successfully created"));
   // Stored as typed, not normalized.
   EXPECT_EQ(*entry(0, 0).base_prefix(), "2001:db8::/32");
 }
@@ -228,13 +242,15 @@ TEST_F(
     CmdConfigBgpPolicyPrefixListEntryTestFixture,
     invalidPrefixLenRangeRejected) {
   // Unknown sub-attribute.
-  auto badSub = runEntry({"PL100"}, {"10", "prefix-len-range", "min", "8"});
+  auto badSub =
+      runEntry({"PL100"}, {"10.0.0.0/8", "prefix-len-range", "min", "8"});
   EXPECT_THAT(
       badSub,
       HasSubstr(
           "Error: prefix-len-range requires <compare-operator|value> <value>"));
   // Out-of-range length.
-  auto badLen = runEntry({"PL100"}, {"10", "prefix-len-range", "value", "129"});
+  auto badLen =
+      runEntry({"PL100"}, {"10.0.0.0/8", "prefix-len-range", "value", "129"});
   EXPECT_THAT(
       badLen,
       HasSubstr("Invalid prefix-len-range value value '129'; expected 0-128"));
@@ -248,8 +264,9 @@ TEST_F(
     rejectedPrefixLenRangeKeepsNoPhantomRange) {
   // Land the entry first, then reject a range value on it: the entry survives
   // but no phantom prefix_len_ranges element may appear.
-  runEntry({"PL100"}, {"10", "base-prefix", "10.0.0.0/8"});
-  auto result = runEntry({"PL100"}, {"10", "prefix-len-range", "value", "300"});
+  runEntry({"PL100"}, {"10.0.0.0/8"});
+  auto result =
+      runEntry({"PL100"}, {"10.0.0.0/8", "prefix-len-range", "value", "300"});
   EXPECT_THAT(result, HasSubstr("Invalid"));
   ASSERT_EQ(lists()[0].prefixes()->size(), 1);
   EXPECT_TRUE(entry(0, 0).prefix_len_ranges()->empty());
@@ -262,7 +279,7 @@ TEST_F(
   runList({"PL100", "description", "keep-me"});
   ASSERT_EQ(lists().size(), 1);
 
-  auto result = runEntry({"PL100"}, {"10", "match-logic", "MAYBE"});
+  auto result = runEntry({"PL100"}, {"10.0.0.0/8", "match-logic", "MAYBE"});
   EXPECT_THAT(result, HasSubstr("Invalid"));
   // The pre-existing list survives; only the phantom entry is rolled back.
   ASSERT_EQ(lists().size(), 1);
@@ -273,22 +290,23 @@ TEST_F(
 TEST_F(
     CmdConfigBgpPolicyPrefixListEntryTestFixture,
     rejectedEntryKeepsExistingEntries) {
-  runEntry({"PL100"}, {"10", "base-prefix", "10.0.0.0/8"});
+  runEntry({"PL100"}, {"10.0.0.0/8"});
   ASSERT_EQ(lists()[0].prefixes()->size(), 1);
 
-  auto result = runEntry({"PL100"}, {"20", "match-logic", "MAYBE"});
+  auto result = runEntry({"PL100"}, {"192.168.0.0/16", "match-logic", "MAYBE"});
   EXPECT_THAT(result, HasSubstr("Invalid"));
   // Only the phantom entry is rolled back; the existing one survives.
   ASSERT_EQ(lists()[0].prefixes()->size(), 1);
-  EXPECT_EQ(*entry(0, 0).seq_num(), 10);
+  EXPECT_EQ(*entry(0, 0).base_prefix(), "10.0.0.0/8");
 }
 
 TEST_F(
     CmdConfigBgpPolicyPrefixListEntryTestFixture,
     reReferenceReportsExisting) {
-  runEntry({"PL100"}, {"10"});
+  runEntry({"PL100"}, {"10.0.0.0/8"});
   EXPECT_THAT(
-      runEntry({"PL100"}, {"10"}), HasSubstr("entry 10 already exists"));
+      runEntry({"PL100"}, {"10.0.0.0/8"}),
+      HasSubstr("prefix 10.0.0.0/8 already exists"));
   EXPECT_EQ(lists()[0].prefixes()->size(), 1);
 }
 
@@ -297,7 +315,7 @@ TEST_F(
 TEST_F(
     CmdConfigBgpPolicyPrefixListEntryTestFixture,
     listAttributeMixedWithEntryRejected) {
-  auto result = runEntry({"PL100", "description", "mixed"}, {"10"});
+  auto result = runEntry({"PL100", "description", "mixed"}, {"10.0.0.0/8"});
   EXPECT_THAT(result, HasSubstr("separate commands"));
   EXPECT_TRUE(lists().empty());
   EXPECT_FALSE(sessionFileExists());

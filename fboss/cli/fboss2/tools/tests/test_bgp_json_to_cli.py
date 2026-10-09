@@ -1311,13 +1311,12 @@ class GeneratePrefixListCommandsTest(unittest.TestCase):
 class GeneratePrefixListEntryCommandsTest(unittest.TestCase):
     """Tests for generate_prefix_list_entry_commands (entry grammar)."""
 
-    PREFIX = "config protocol bgp policy prefix-list PL entry 10"
+    PREFIX = "config protocol bgp policy prefix-list PL prefix 10.0.0.0/8"
 
     def test_full_entry(self) -> None:
         commands = generate_prefix_list_entry_commands(
             "PL",
             {
-                "seq_num": 10,
                 "base_prefix": "10.0.0.0/8",
                 "description": "rfc1918 a",
                 "match_logic": 1,
@@ -1330,10 +1329,9 @@ class GeneratePrefixListEntryCommandsTest(unittest.TestCase):
         self.assertEqual(
             commands,
             [
-                f"{self.PREFIX} base-prefix 10.0.0.0/8",
                 f"{self.PREFIX} description 'rfc1918 a'",
-                "# WARNING: prefix-list PL entry 10: match_logic NOT_EQUAL is not "
-                "accepted by bgpd (only EQUAL); not emitted",
+                "# WARNING: prefix-list PL prefix 10.0.0.0/8: match_logic NOT_EQUAL "
+                "is not accepted by bgpd (only EQUAL); not emitted",
                 f"{self.PREFIX} max-allowed-subnet-count 4",
                 f"{self.PREFIX} prefix-len-range compare-operator LE",
                 f"{self.PREFIX} prefix-len-range value 24",
@@ -1345,7 +1343,7 @@ class GeneratePrefixListEntryCommandsTest(unittest.TestCase):
 
     def test_equal_default_omitted(self) -> None:
         commands = generate_prefix_list_entry_commands(
-            "PL", {"seq_num": 10, "match_logic": 0}
+            "PL", {"base_prefix": "10.0.0.0/8", "match_logic": 0}
         )
         self.assertEqual(commands, [self.PREFIX])
 
@@ -1353,32 +1351,46 @@ class GeneratePrefixListEntryCommandsTest(unittest.TestCase):
         commands = generate_prefix_list_entry_commands(
             "PL",
             {
-                "seq_num": 10,
+                "base_prefix": "10.0.0.0/8",
                 "prefix_len_ranges": [{"compare_operator": 7, "value": 24}],
             },
         )
         self.assertEqual(
             commands,
             [
-                "# WARNING: prefix-list PL entry 10: prefix_len_ranges "
+                "# WARNING: prefix-list PL prefix 10.0.0.0/8: prefix_len_ranges "
                 "compare_operator RG is not accepted by bgpd; the range is not "
-                "emitted"
+                "emitted",
+                # The entry itself still exists, so it is created by its prefix.
+                self.PREFIX,
             ],
         )
 
-    def test_missing_seq_num_warns(self) -> None:
-        commands = generate_prefix_list_entry_commands(
-            "PL", {"base_prefix": "10.0.0.0/8"}
-        )
+    def test_missing_base_prefix_warns(self) -> None:
+        commands = generate_prefix_list_entry_commands("PL", {"seq_num": 10})
         self.assertEqual(len(commands), 1)
         self.assertTrue(commands[0].startswith("# WARNING:"))
-        self.assertIn("10.0.0.0/8", commands[0])
+        self.assertIn("no base_prefix", commands[0])
+
+    def test_seq_num_is_dropped_with_warning(self) -> None:
+        """bgpd rejects seq_num; the prefix is the entry's identity."""
+        commands = generate_prefix_list_entry_commands(
+            "PL", {"seq_num": 10, "base_prefix": "10.0.0.0/8"}
+        )
+        self.assertEqual(
+            commands,
+            [
+                "# WARNING: prefix-list PL prefix 10.0.0.0/8: seq_num 10 is "
+                "rejected by bgpd and not part of the CLI's entry identity; dropped",
+                self.PREFIX,
+            ],
+        )
 
     def test_extra_ranges_and_ip_version_warn(self) -> None:
         commands = generate_prefix_list_entry_commands(
             "PL",
             {
-                "seq_num": 10,
+                "base_prefix": "10.0.0.0/8",
                 "prefix_len_ranges": [{"value": 24}, {"value": 32}],
                 "ip_version": 1,
             },
@@ -1390,18 +1402,11 @@ class GeneratePrefixListEntryCommandsTest(unittest.TestCase):
 
     def test_entries_emitted_inside_list(self) -> None:
         commands = generate_prefix_list_commands(
-            {
-                "name": "PL",
-                "version": 4,
-                "prefixes": [{"seq_num": 10, "base_prefix": "10.0.0.0/8"}],
-            }
+            {"name": "PL", "version": 4, "prefixes": [{"base_prefix": "10.0.0.0/8"}]}
         )
         self.assertEqual(
             commands,
-            [
-                "config protocol bgp policy prefix-list PL ip-version v4",
-                f"{self.PREFIX} base-prefix 10.0.0.0/8",
-            ],
+            ["config protocol bgp policy prefix-list PL ip-version v4", self.PREFIX],
         )
 
 

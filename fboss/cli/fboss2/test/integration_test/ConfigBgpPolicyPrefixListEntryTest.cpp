@@ -2,7 +2,7 @@
 
 /**
  * End-to-end tests for `fboss2-dev config protocol bgp policy prefix-list
- * <name> entry <seq-num> [<attribute> <value> ...]`.
+ * <name> prefix <prefix/len> [<attribute> <value> ...]`.
  *
  * Scope: the entry level. Every test stages the change AND commits it, then
  * asserts the value landed at the correct thrift field path inside the
@@ -19,7 +19,6 @@
 
 #include <fmt/format.h>
 #include <gtest/gtest.h>
-#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -35,18 +34,18 @@ namespace {
 // Test-only prefix-list / entry keys, unlikely to collide with a real list in
 // the device's running BGP config.
 const std::string kList = "FBOSS2-TEST-PREFIXES-ENTRY";
-const std::string kEntrySeq = "10";
-const std::string kEntrySeq2 = "20";
+const std::string kPrefix = "10.0.0.0/8";
+const std::string kPrefix2 = "192.168.0.0/16";
 } // namespace
 
 class ConfigBgpPolicyPrefixListEntryTest : public ConfigBgpTestBase {
  protected:
-  // Stage `config protocol bgp policy prefix-list <list> entry <tokens...>`
+  // Stage `config protocol bgp policy prefix-list <list> prefix <tokens...>`
   // WITHOUT clearing the staged session, so attributes can accumulate across
   // invocations. Returns the staged session JSON.
   folly::dynamic stageEntry(const std::vector<std::string>& tokens) {
     std::vector<std::string> args = {
-        "config", "protocol", "bgp", "policy", "prefix-list", kList, "entry"};
+        "config", "protocol", "bgp", "policy", "prefix-list", kList, "prefix"};
     args.insert(args.end(), tokens.begin(), tokens.end());
     auto result = runCli(args);
     EXPECT_EQ(result.exitCode, 0)
@@ -71,15 +70,16 @@ class ConfigBgpPolicyPrefixListEntryTest : public ConfigBgpTestBase {
     return nullptr;
   }
 
-  // The .prefixes[] entry with seq_num `seqNum` inside `list`, or nullptr.
+  // The .prefixes[] entry with base_prefix `prefix` inside `list`, or nullptr.
   static const folly::dynamic* findEntry(
       const folly::dynamic& list,
-      int64_t seqNum) {
+      const std::string& prefix) {
     if (list.count("prefixes") == 0) {
       return nullptr;
     }
     for (const auto& entry : list["prefixes"]) {
-      if (entry.count("seq_num") && entry["seq_num"].asInt() == seqNum) {
+      if (entry.count("base_prefix") &&
+          entry["base_prefix"].asString() == prefix) {
         return &entry;
       }
     }
@@ -90,12 +90,11 @@ class ConfigBgpPolicyPrefixListEntryTest : public ConfigBgpTestBase {
 TEST_F(ConfigBgpPolicyPrefixListEntryTest, SetAttributesAndCommit) {
   discardSession();
   clearBgpSession();
-  stageEntry({kEntrySeq, "base-prefix", "10.0.0.0/8"});
-  stageEntry({kEntrySeq, "match-logic", "EQUAL"});
-  stageEntry({kEntrySeq, "prefix-len-range", "compare-operator", "GE"});
-  stageEntry({kEntrySeq, "prefix-len-range", "value", "24"});
-  stageEntry({kEntrySeq, "communities", "65000:100"});
-  stageEntry({kEntrySeq, "description", "test"});
+  stageEntry({kPrefix, "match-logic", "EQUAL"});
+  stageEntry({kPrefix, "prefix-len-range", "compare-operator", "GE"});
+  stageEntry({kPrefix, "prefix-len-range", "value", "24"});
+  stageEntry({kPrefix, "communities", "65000:100"});
+  stageEntry({kPrefix, "description", "test"});
   commitAndGetSha();
   ASSERT_TRUE(waitForBgpDaemonActive())
       << "bgpd did not return active after commit; state="
@@ -107,9 +106,11 @@ TEST_F(ConfigBgpPolicyPrefixListEntryTest, SetAttributesAndCommit) {
   const auto* list = findList(running, kList);
   ASSERT_NE(list, nullptr) << "bgpd's running config has no prefix-list "
                            << kList;
-  const auto* entry = findEntry(*list, 10);
-  ASSERT_NE(entry, nullptr) << "running config has no entry " << kEntrySeq;
-  EXPECT_EQ((*entry)["base_prefix"].asString(), "10.0.0.0/8");
+  const auto* entry = findEntry(*list, kPrefix);
+  ASSERT_NE(entry, nullptr) << "running config has no prefix " << kPrefix;
+  EXPECT_EQ((*entry)["base_prefix"].asString(), kPrefix);
+  // The key is the prefix; nothing writes seq_num, which bgpd rejects.
+  EXPECT_EQ(entry->count("seq_num"), 0);
   // routing_policy.MatchValueLogicOperator.EQUAL = 0 (integer on the
   // SimpleJSON wire). bgpd rejects any other value once a policy references
   // the list.
@@ -129,8 +130,8 @@ TEST_F(ConfigBgpPolicyPrefixListEntryTest, DeleteEntryAndCommit) {
   // config.
   discardSession();
   clearBgpSession();
-  stageEntry({kEntrySeq, "base-prefix", "10.0.0.0/8"});
-  stageEntry({kEntrySeq2, "base-prefix", "192.168.0.0/16"});
+  stageEntry({kPrefix});
+  stageEntry({kPrefix2});
   commitAndGetSha();
   ASSERT_TRUE(waitForBgpDaemonActive())
       << "bgpd did not return active after commit; state="
@@ -141,8 +142,8 @@ TEST_F(ConfigBgpPolicyPrefixListEntryTest, DeleteEntryAndCommit) {
     ASSERT_NE(list, nullptr)
         << "setup commit did not land the prefix-list in bgpd's running "
            "config";
-    ASSERT_NE(findEntry(*list, 10), nullptr);
-    ASSERT_NE(findEntry(*list, 20), nullptr);
+    ASSERT_NE(findEntry(*list, kPrefix), nullptr);
+    ASSERT_NE(findEntry(*list, kPrefix2), nullptr);
   }
 
   clearBgpSession();
@@ -153,15 +154,15 @@ TEST_F(ConfigBgpPolicyPrefixListEntryTest, DeleteEntryAndCommit) {
        "policy",
        "prefix-list",
        kList,
-       "entry",
-       kEntrySeq});
+       "prefix",
+       kPrefix});
   EXPECT_THAT(
       result.stdout,
       HasSubstr(
           fmt::format(
-              "Successfully deleted BGP prefix-list {} entry {}",
+              "Successfully deleted BGP prefix-list {} prefix {}",
               kList,
-              kEntrySeq)));
+              kPrefix)));
   commitAndGetSha();
   ASSERT_TRUE(waitForBgpDaemonActive())
       << "bgpd did not return active after delete commit; state="
@@ -170,8 +171,8 @@ TEST_F(ConfigBgpPolicyPrefixListEntryTest, DeleteEntryAndCommit) {
   const auto* list = findList(running, kList);
   ASSERT_NE(list, nullptr)
       << "deleting one entry must not delete the prefix-list";
-  EXPECT_EQ(findEntry(*list, 10), nullptr)
+  EXPECT_EQ(findEntry(*list, kPrefix), nullptr)
       << "deleted entry still present in bgpd's running config";
-  EXPECT_NE(findEntry(*list, 20), nullptr)
+  EXPECT_NE(findEntry(*list, kPrefix2), nullptr)
       << "surviving entry missing from bgpd's running config";
 }
