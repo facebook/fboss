@@ -31,6 +31,7 @@ bool Agera3PhyAsic::isSupported(Feature feature) const {
     // (SAI_BRCM_PAI_IMPL && SAI_API_VERSION >= 1.18.1), so it stays off on
     // PAI 4.0 which does not implement SAI_PORT_ATTR_RX_SNR.
     case HwAsic::Feature::RX_SNR:
+    case HwAsic::Feature::OBJECT_KEY_CACHE:
       return true;
     case HwAsic::Feature::MACSEC:
     case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT:
@@ -39,7 +40,6 @@ bool Agera3PhyAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::XPHY_PORT_STATE_TOGGLE:
     case HwAsic::Feature::PCS_RX_LINK_STATUS:
     case HwAsic::Feature::WARMBOOT:
-    case HwAsic::Feature::OBJECT_KEY_CACHE:
     case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
     case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
     case HwAsic::Feature::VIRTUAL_ARS_GROUP:
