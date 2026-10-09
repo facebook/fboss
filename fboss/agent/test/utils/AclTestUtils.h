@@ -150,6 +150,7 @@ void addMatcher(
     const std::string& matcherName,
     const cfg::MatchAction& matchAction);
 void delMatcher(cfg::SwitchConfig* config, const std::string& matcherName);
+void delCPUMatcher(cfg::SwitchConfig* config, const std::string& matcherName);
 
 void addAclMirrorAction(
     cfg::SwitchConfig* cfg,
