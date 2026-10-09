@@ -1709,9 +1709,10 @@ cpp_library(
         "AsyncLoggerBase.h",
     ],
     deps = [
-        ":fboss-error",
         "//fb303:service_data",
         "//folly:file_util",
+        "//folly:string",
+        "//folly/logging:logging",
     ],
     exported_deps = [
         "//folly:file",
