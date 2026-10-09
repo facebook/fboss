@@ -167,8 +167,6 @@ bool isDeviationWithinThreshold(
     int maxDeviationPct,
     bool noTrafficOk = false);
 
-<<<<<<< HEAD
-=======
 /*
  * Bounds each ECMP member's egress traffic must fall within, expressed as a
  * percentage of the fair share (total traffic / number of members).
@@ -235,7 +233,6 @@ bool isTrafficSprayed(
   return isTrafficSprayedImpl(portIdToStats, bounds);
 }
 
->>>>>>> a3648604f0 (NOS-17824: Assert ECMP balance as share of fair share, not min/max deviation (#2224))
 template <typename PortIdT, typename PortStatsT>
 bool isLoadBalancedImpl(
     const std::map<PortIdT, PortStatsT>& portIdToStats,

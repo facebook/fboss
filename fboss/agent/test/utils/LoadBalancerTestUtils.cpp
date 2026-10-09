@@ -378,8 +378,6 @@ std::set<uint64_t> getSortedPortBytesIncrement(
   return portBytesIncrement;
 }
 
-<<<<<<< HEAD
-=======
 template <typename PortStatsT>
 uint64_t getPortOutBytes(const PortStatsT& stats) {
   if constexpr (std::is_same_v<PortStatsT, HwPortStats>) {
@@ -461,7 +459,6 @@ bool isWithinMemberShareBounds(
   return withinBounds;
 }
 
->>>>>>> a3648604f0 (NOS-17824: Assert ECMP balance as share of fair share, not min/max deviation (#2224))
 template <typename PortIdT, typename PortStatsT>
 std::pair<uint64_t, uint64_t> getHighestAndLowestBytes(
     const std::map<PortIdT, PortStatsT>& portIdToStats) {
