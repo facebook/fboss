@@ -17,6 +17,30 @@
 #include <fmt/color.h>
 #include <re2/re2.h>
 
+#include <stdexcept>
+
+namespace {
+
+constexpr auto kTrafficCounterRegex =
+    ".*\\.(in_bytes|in_unicast_pkts|in_multicast_pkts|in_broadcast_pkts|"
+    "out_bytes|out_unicast_pkts|out_multicast_pkts|out_broadcast_pkts)"
+    "\\.rate\\.60$";
+
+int64_t getTrafficCounter(
+    const std::map<std::string, int64_t>& counters,
+    const std::string& portName,
+    const std::string& suffix) {
+  const auto counterName = portName + suffix;
+  const auto counter = counters.find(counterName);
+  if (counter == counters.end()) {
+    throw std::runtime_error(
+        "Required HW-agent traffic counter is unavailable: " + counterName);
+  }
+  return counter->second;
+}
+
+} // namespace
+
 namespace facebook::fboss {
 
 CmdShowInterfaceTraffic::RetType CmdShowInterfaceTraffic::queryClient(
@@ -25,11 +49,8 @@ CmdShowInterfaceTraffic::RetType CmdShowInterfaceTraffic::queryClient(
   auto client =
       utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
 
-  folly::IOThreadPoolExecutor executor(2);
-
-  // Gather port stats asynchrounously
-  auto portInfos =
-      client->semifuture_getAllPortInfo().via(executor.getEventBase());
+  std::map<int32_t, facebook::fboss::PortInfoThrift> portInfos;
+  client->sync_getAllPortInfo(portInfos);
 
   std::map<std::string, int64_t> counters;
   if (utils::isMultiSwitchEnabled(hostInfo)) {
@@ -40,7 +61,8 @@ CmdShowInterfaceTraffic::RetType CmdShowInterfaceTraffic::queryClient(
 #ifndef IS_OSS
           apache::thrift::Client<facebook::thrift::Monitor> monitoringClient{
               client.getChannelShared()};
-          monitoringClient.sync_getCounters(hwAgentCounters);
+          monitoringClient.sync_getRegexCounters(
+              hwAgentCounters, kTrafficCounterRegex);
 #else
           // FbossHwCtrl does not extend FacebookService; the OSS HwAgent
           // multiplex serves fb303 methods via a FacebookBase2 handler, so
@@ -48,26 +70,22 @@ CmdShowInterfaceTraffic::RetType CmdShowInterfaceTraffic::queryClient(
           // getCounters) to fetch HwAgent counters.
           apache::thrift::Client<facebook::fboss::FbossCtrl> fb303Client{
               client.getChannelShared()};
-          fb303Client.sync_getCounters(hwAgentCounters);
+          fb303Client.sync_getRegexCounters(
+              hwAgentCounters, kTrafficCounterRegex);
 #endif
           counters.merge(hwAgentCounters);
         };
     utils::runOnAllHwAgents(hostInfo, hwAgentQueryFn);
   } else {
-    auto entries =
-        client->semifuture_getCounters().via(executor.getEventBase());
-    entries.wait();
-    counters = entries.value();
+    client->sync_getRegexCounters(counters, kTrafficCounterRegex);
   }
 
-  portInfos.wait();
-
-  return createModel(portInfos.value(), counters, queriedIfs);
+  return createModel(portInfos, counters, queriedIfs);
 }
 
 CmdShowInterfaceTraffic::RetType CmdShowInterfaceTraffic::createModel(
     const std::map<int32_t, facebook::fboss::PortInfoThrift>& portCounters,
-    std::map<std::string, int64_t> intCounters,
+    const std::map<std::string, int64_t>& intCounters,
     const std::vector<std::string>& queriedIfs) {
   RetType ret;
 
@@ -107,27 +125,39 @@ CmdShowInterfaceTraffic::RetType CmdShowInterfaceTraffic::createModel(
       errorCounters.giantErrors() = 0;
       errorCounters.txErrors() = outputErrors;
 
+      if (isNonZeroErrors(errorCounters)) {
+        ret.error_counters()->push_back(errorCounters);
+      }
+
+      // Down ports cannot have current traffic and may not have HwAgent rate
+      // counters. Do not turn an unsupported counter into a false zero.
+      if (operState != facebook::fboss::PortOperState::UP) {
+        continue;
+      }
+
       cli::TrafficCounters trafficCounters;
       // Getting various counters and converting to Mbps
       int64_t portSpeed = folly::copy(portInfo.speedMbps().value());
 
-      long inSpeedBps = intCounters[pname + ".in_bytes.rate.60"] * 8;
-
-      double inSpeedMbps = (double)inSpeedBps / 1000000;
-
-      // Unicast + multicast + broadcast = PPS
-      int64_t inPPS = intCounters[pname + ".in_unicast_pkts.rate.60"] +
-          intCounters[pname + ".in_multicast_pkts.rate.60"] +
-          intCounters[pname + ".in_broadcast_pkts.rate.60"];
-
-      long outSpeedBps = intCounters[pname + ".out_bytes.rate.60"] * 8;
-
-      double outSpeedMbps = (double)outSpeedBps / 1000000;
+      const double inSpeedMbps =
+          getTrafficCounter(intCounters, pname, ".in_bytes.rate.60") * 8.0 /
+          1000000.0;
 
       // Unicast + multicast + broadcast = PPS
-      int64_t outPPS = intCounters[pname + ".out_unicast_pkts.rate.60"] +
-          intCounters[pname + ".out_multicast_pkts.rate.60"] +
-          intCounters[pname + ".out_broadcast_pkts.rate.60"];
+      const int64_t inPPS =
+          getTrafficCounter(intCounters, pname, ".in_unicast_pkts.rate.60") +
+          getTrafficCounter(intCounters, pname, ".in_multicast_pkts.rate.60") +
+          getTrafficCounter(intCounters, pname, ".in_broadcast_pkts.rate.60");
+
+      const double outSpeedMbps =
+          getTrafficCounter(intCounters, pname, ".out_bytes.rate.60") * 8.0 /
+          1000000.0;
+
+      // Unicast + multicast + broadcast = PPS
+      const int64_t outPPS =
+          getTrafficCounter(intCounters, pname, ".out_unicast_pkts.rate.60") +
+          getTrafficCounter(intCounters, pname, ".out_multicast_pkts.rate.60") +
+          getTrafficCounter(intCounters, pname, ".out_broadcast_pkts.rate.60");
 
       trafficCounters.interfaceName() = pname;
       trafficCounters.peerIf() =
@@ -135,20 +165,16 @@ CmdShowInterfaceTraffic::RetType CmdShowInterfaceTraffic::createModel(
       trafficCounters.inMbps() = inSpeedMbps;
       trafficCounters.inPct() =
           calculateUtilizationPercent(inSpeedMbps, portSpeed);
-      trafficCounters.inKpps() = inPPS / 1000;
+      trafficCounters.inKpps() = static_cast<double>(inPPS) / 1000.0;
       trafficCounters.outMbps() = outSpeedMbps;
       trafficCounters.outPct() =
           calculateUtilizationPercent(outSpeedMbps, portSpeed);
-      trafficCounters.outKpps() = outPPS / 1000;
+      trafficCounters.outKpps() = static_cast<double>(outPPS) / 1000.0;
       trafficCounters.portSpeed() = portSpeed;
 
       // The original in fb_toolkit has an option for "show zero".  Since we
       // can't accept arbitrarily deep parameters right now we will default to
       // show non-zero and revisit as an option down the road
-      if (isNonZeroErrors(errorCounters)) {
-        ret.error_counters()->push_back(errorCounters);
-      }
-
       if (isInterestingTraffic(trafficCounters)) {
         ret.traffic_counters()->push_back(trafficCounters);
       }
@@ -173,6 +199,9 @@ CmdShowInterfaceTraffic::RetType CmdShowInterfaceTraffic::createModel(
 double CmdShowInterfaceTraffic::calculateUtilizationPercent(
     double speedMbps,
     int bandwidth) {
+  if (bandwidth <= 0) {
+    return 0.0;
+  }
   return (speedMbps / bandwidth) * 100;
 }
 
