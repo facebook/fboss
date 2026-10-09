@@ -129,6 +129,8 @@
         <package name="libdwarf"/>
         <package name="libunwind"/>
         <package name="xxhash-libs"/>
+        <package name="snappy"/>
+        <package name="libevent"/>
         <package name="libgpiod"/>
         <package name="glog"/>
         <package name="python3-pip"/>
