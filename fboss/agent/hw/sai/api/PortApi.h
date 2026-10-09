@@ -792,7 +792,7 @@ struct SaiPortTraits {
       Attributes::Speed,
       std::optional<Attributes::AdminState>,
       std::optional<Attributes::FecMode>,
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0) && !defined(SAI_BRCM_PAI_IMPL)
       std::optional<Attributes::UseExtendedFec>,
       std::optional<Attributes::ExtendedFecMode>,
 #endif

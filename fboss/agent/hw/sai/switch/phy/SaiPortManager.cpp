@@ -182,7 +182,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     fecMode = utility::getSaiPortFecMode(phyFecMode);
   }
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+// Extended FEC is not used on PAI and is not modeled in its port attributes.
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0) && !defined(SAI_BRCM_PAI_IMPL)
   std::optional<SaiPortTraits::Attributes::UseExtendedFec> useExtendedFec(
       std::nullopt);
   std::optional<SaiPortTraits::Attributes::ExtendedFecMode> extendedFecMode(
@@ -274,7 +275,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       static_cast<uint32_t>(speed),
       enabled,
       fecMode,
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0) && !defined(SAI_BRCM_PAI_IMPL)
       useExtendedFec,
       extendedFecMode,
 #endif
