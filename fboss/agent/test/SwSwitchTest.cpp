@@ -35,13 +35,10 @@
 #include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
 
-<<<<<<< HEAD
 #include <algorithm>
-=======
 #include <atomic>
 #include <thread>
 #include <vector>
->>>>>>> f688638d26 (NOS-18394: Warm boot sw_agent on a graceful hw_agent exit instead of forcing a cold boot (#2417))
 
 using namespace facebook::fboss;
 using folly::IPAddressV4;

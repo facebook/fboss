@@ -8,18 +8,13 @@
  *
  */
 
-<<<<<<< HEAD
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-
-=======
 #include <fb303/ServiceData.h>
 #include <folly/ScopeGuard.h>
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossEventBase.h"
->>>>>>> f688638d26 (NOS-18394: Warm boot sw_agent on a graceful hw_agent exit instead of forcing a cold boot (#2417))
 #include "fboss/agent/MultiHwSwitchHandler.h"
 #include "fboss/agent/MultiSwitchThriftHandler.h"
 #include "fboss/agent/SwSwitch.h"
