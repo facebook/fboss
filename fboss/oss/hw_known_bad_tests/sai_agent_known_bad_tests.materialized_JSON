@@ -83,6 +83,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -380,6 +383,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -542,6 +548,9 @@
         },
         {
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -836,6 +845,9 @@
         },
         {
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -1104,6 +1116,9 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -1398,6 +1413,9 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -1542,6 +1560,9 @@
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
@@ -1841,6 +1862,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
@@ -2135,19 +2159,10 @@
           "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
         },
         {
-          "test_name_regex": "AgentMirrorOnDrop.*"
+          "test_name_regex": "AgentMirrorOnDropStateless.*$"
         },
         {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.MultipleEventIDs/"
-        },
-        {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingAclDrop/"
-        },
-        {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingDefaultRouteDrop/"
-        },
-        {
-          "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
+          "test_name_regex": "AgentMirrorOnDropDestMacTest.ModOnInterfacePortCleanup$"
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
@@ -2217,6 +2232,54 @@
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/1.SflowMirrorWithErspanMirrorOnePortSflow$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.ConfigChangePostWarmboot/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.ModWithMultipleMirrors/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.ModWithSflowMirrorPresent/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.MultipleEventIDs/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.NoInfiniteLoopRecirculated/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingAclDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingDefaultRouteDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingNullRouteDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PrecedenceDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.VoqReject/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.VsqReject/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.ModWithMultipleMirrors/RECYCLE_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PrecedenceDrop/RECYCLE_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.VsqReject/RECYCLE_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropMtuTest.MtuTrapStillWorks$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic$"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/11.7.0.0_dnx_odp/jericho3/multi_switch": [
@@ -2312,6 +2375,9 @@
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
@@ -2608,6 +2674,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
@@ -2647,19 +2716,10 @@
           "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
         },
         {
-          "test_name_regex": "AgentMirrorOnDrop.*"
+          "test_name_regex": "AgentMirrorOnDropStateless.*$"
         },
         {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.MultipleEventIDs/"
-        },
-        {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingAclDrop/"
-        },
-        {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingDefaultRouteDrop/"
-        },
-        {
-          "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
+          "test_name_regex": "AgentMirrorOnDropDestMacTest.ModOnInterfacePortCleanup$"
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
@@ -2708,6 +2768,54 @@
         },
         {
           "test_name_regex": "warm_boot.AgentVoqSwitchWithFabricPortsTest.fdrCellDrops"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.ConfigChangePostWarmboot/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.ModWithMultipleMirrors/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.ModWithSflowMirrorPresent/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.MultipleEventIDs/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.NoInfiniteLoopRecirculated/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingAclDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingDefaultRouteDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingNullRouteDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PrecedenceDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.VoqReject/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.VsqReject/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.ModWithMultipleMirrors/RECYCLE_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PrecedenceDrop/RECYCLE_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.VsqReject/RECYCLE_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropMtuTest.MtuTrapStillWorks$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic$"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/11.7.0.0_dnx_odp/ramon3/mono": [
@@ -2813,6 +2921,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -3108,6 +3219,9 @@
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -3301,6 +3415,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -3601,6 +3718,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -3898,19 +4018,10 @@
           "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
         },
         {
-          "test_name_regex": "AgentMirrorOnDrop.*"
+          "test_name_regex": "AgentMirrorOnDropStateless.*$"
         },
         {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.MultipleEventIDs/"
-        },
-        {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingAclDrop/"
-        },
-        {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingDefaultRouteDrop/"
-        },
-        {
-          "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
+          "test_name_regex": "AgentMirrorOnDropDestMacTest.ModOnInterfacePortCleanup$"
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
@@ -3959,6 +4070,54 @@
         },
         {
           "test_name_regex": "AgentVoqSwitchTest.verifyAI23ModeConfig$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.ConfigChangePostWarmboot/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.ModWithMultipleMirrors/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.ModWithSflowMirrorPresent/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.MultipleEventIDs/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.NoInfiniteLoopRecirculated/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingAclDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingDefaultRouteDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingNullRouteDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PrecedenceDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.VoqReject/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.VsqReject/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.ModWithMultipleMirrors/RECYCLE_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PrecedenceDrop/RECYCLE_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.VsqReject/RECYCLE_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropMtuTest.MtuTrapStillWorks$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -4057,6 +4216,9 @@
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -4356,6 +4518,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -4398,19 +4563,10 @@
           "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
         },
         {
-          "test_name_regex": "AgentMirrorOnDrop.*"
+          "test_name_regex": "AgentMirrorOnDropStateless.*$"
         },
         {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.MultipleEventIDs/"
-        },
-        {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingAclDrop/"
-        },
-        {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingDefaultRouteDrop/"
-        },
-        {
-          "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
+          "test_name_regex": "AgentMirrorOnDropDestMacTest.ModOnInterfacePortCleanup$"
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
@@ -4456,6 +4612,54 @@
         },
         {
           "test_name_regex": "AgentVoqSwitchTest.verifyAI23ModeConfig$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.ConfigChangePostWarmboot/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.ModWithMultipleMirrors/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.ModWithSflowMirrorPresent/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.MultipleEventIDs/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.NoInfiniteLoopRecirculated/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingAclDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingDefaultRouteDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingNullRouteDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PrecedenceDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.VoqReject/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.VsqReject/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.ModWithMultipleMirrors/RECYCLE_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PrecedenceDrop/RECYCLE_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.VsqReject/RECYCLE_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropMtuTest.MtuTrapStillWorks$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -4564,6 +4768,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -4859,6 +5066,9 @@
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -5052,6 +5262,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -5347,6 +5560,9 @@
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -5612,6 +5828,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -5912,6 +6131,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -6209,19 +6431,10 @@
           "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
         },
         {
-          "test_name_regex": "AgentMirrorOnDrop.*"
+          "test_name_regex": "AgentMirrorOnDropStateless.*$"
         },
         {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.MultipleEventIDs/"
-        },
-        {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingAclDrop/"
-        },
-        {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingDefaultRouteDrop/"
-        },
-        {
-          "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
+          "test_name_regex": "AgentMirrorOnDropDestMacTest.ModOnInterfacePortCleanup$"
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
@@ -6355,6 +6568,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -6655,6 +6871,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -6952,19 +7171,10 @@
           "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
         },
         {
-          "test_name_regex": "AgentMirrorOnDrop.*"
+          "test_name_regex": "AgentMirrorOnDropStateless.*$"
         },
         {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.MultipleEventIDs/"
-        },
-        {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingAclDrop/"
-        },
-        {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingDefaultRouteDrop/"
-        },
-        {
-          "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
+          "test_name_regex": "AgentMirrorOnDropDestMacTest.ModOnInterfacePortCleanup$"
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
@@ -7119,6 +7329,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -7416,6 +7629,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -7458,19 +7674,10 @@
           "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
         },
         {
-          "test_name_regex": "AgentMirrorOnDrop.*"
+          "test_name_regex": "AgentMirrorOnDropStateless.*$"
         },
         {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.MultipleEventIDs/"
-        },
-        {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingAclDrop/"
-        },
-        {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingDefaultRouteDrop/"
-        },
-        {
-          "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
+          "test_name_regex": "AgentMirrorOnDropDestMacTest.ModOnInterfacePortCleanup$"
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
@@ -7613,6 +7820,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -7910,6 +8120,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -7952,19 +8165,10 @@
           "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
         },
         {
-          "test_name_regex": "AgentMirrorOnDrop.*"
+          "test_name_regex": "AgentMirrorOnDropStateless.*$"
         },
         {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.MultipleEventIDs/"
-        },
-        {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingAclDrop/"
-        },
-        {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingDefaultRouteDrop/"
-        },
-        {
-          "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
+          "test_name_regex": "AgentMirrorOnDropDestMacTest.ModOnInterfacePortCleanup$"
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
@@ -8164,6 +8368,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -8459,6 +8666,9 @@
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -8652,6 +8862,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -8947,6 +9160,9 @@
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -9140,6 +9356,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -9437,6 +9656,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -9623,6 +9845,9 @@
         },
         {
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -9917,6 +10142,9 @@
         },
         {
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -10185,6 +10413,9 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -10477,6 +10708,9 @@
         },
         {
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -10628,6 +10862,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -10923,6 +11160,9 @@
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -11260,6 +11500,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -11560,6 +11803,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -11857,19 +12103,10 @@
           "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
         },
         {
-          "test_name_regex": "AgentMirrorOnDrop.*"
+          "test_name_regex": "AgentMirrorOnDropStateless.*$"
         },
         {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.MultipleEventIDs/"
-        },
-        {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingAclDrop/"
-        },
-        {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingDefaultRouteDrop/"
-        },
-        {
-          "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
+          "test_name_regex": "AgentMirrorOnDropDestMacTest.ModOnInterfacePortCleanup$"
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
@@ -11915,6 +12152,33 @@
         },
         {
           "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.MultipleEventIDs/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingAclDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingDefaultRouteDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingNullRouteDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PrecedenceDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.VoqReject/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.VsqReject/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.VsqReject/RECYCLE_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
@@ -12015,6 +12279,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -12315,6 +12582,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -12612,19 +12882,10 @@
           "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
         },
         {
-          "test_name_regex": "AgentMirrorOnDrop.*"
+          "test_name_regex": "AgentMirrorOnDropStateless.*$"
         },
         {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.MultipleEventIDs/"
-        },
-        {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingAclDrop/"
-        },
-        {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingDefaultRouteDrop/"
-        },
-        {
-          "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
+          "test_name_regex": "AgentMirrorOnDropDestMacTest.ModOnInterfacePortCleanup$"
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
@@ -12670,6 +12931,33 @@
         },
         {
           "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.MultipleEventIDs/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingAclDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingDefaultRouteDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingNullRouteDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PrecedenceDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.VoqReject/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.VsqReject/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.VsqReject/RECYCLE_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
@@ -12779,6 +13067,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -13079,6 +13370,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -13376,19 +13670,10 @@
           "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
         },
         {
-          "test_name_regex": "AgentMirrorOnDrop.*"
+          "test_name_regex": "AgentMirrorOnDropStateless.*$"
         },
         {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.MultipleEventIDs/"
-        },
-        {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingAclDrop/"
-        },
-        {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingDefaultRouteDrop/"
-        },
-        {
-          "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
+          "test_name_regex": "AgentMirrorOnDropDestMacTest.ModOnInterfacePortCleanup$"
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
@@ -13464,6 +13749,9 @@
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -13562,6 +13850,9 @@
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -13861,6 +14152,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -13903,19 +14197,10 @@
           "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
         },
         {
-          "test_name_regex": "AgentMirrorOnDrop.*"
+          "test_name_regex": "AgentMirrorOnDropStateless.*$"
         },
         {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.MultipleEventIDs/"
-        },
-        {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingAclDrop/"
-        },
-        {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingDefaultRouteDrop/"
-        },
-        {
-          "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
+          "test_name_regex": "AgentMirrorOnDropDestMacTest.ModOnInterfacePortCleanup$"
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
@@ -13958,6 +14243,33 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.MultipleEventIDs/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingAclDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingDefaultRouteDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingNullRouteDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PrecedenceDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.VoqReject/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.VsqReject/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.VsqReject/RECYCLE_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
@@ -14070,6 +14382,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -14367,6 +14682,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -14409,19 +14727,10 @@
           "test_name_regex": "roundtrip.*.AgentRouteRollbackTest.VerifyRollback"
         },
         {
-          "test_name_regex": "AgentMirrorOnDrop.*"
+          "test_name_regex": "AgentMirrorOnDropStateless.*$"
         },
         {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.MultipleEventIDs/"
-        },
-        {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingAclDrop/"
-        },
-        {
-          "test_name_regex": "cold_boot.AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingDefaultRouteDrop/"
-        },
-        {
-          "test_name_regex": "roundtrip.*AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic"
+          "test_name_regex": "AgentMirrorOnDropDestMacTest.ModOnInterfacePortCleanup$"
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/0.*$"
@@ -14464,6 +14773,33 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.MultipleEventIDs/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingAclDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingDefaultRouteDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PacketProcessingNullRouteDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.PrecedenceDrop/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.VoqReject/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.VsqReject/EVENTOR_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropDnxTest/AgentMirrorOnDropDnxTest.VsqReject/RECYCLE_PORT$"
+        },
+        {
+          "test_name_regex": "AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
@@ -14633,6 +14969,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -14928,6 +15267,9 @@
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -15133,6 +15475,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -15428,6 +15773,9 @@
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -15621,6 +15969,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -15916,6 +16267,9 @@
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -16109,6 +16463,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -16404,6 +16761,9 @@
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -16657,6 +17017,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -16954,6 +17317,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -17116,6 +17482,9 @@
         },
         {
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -17410,6 +17779,9 @@
         },
         {
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -17678,6 +18050,9 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -17970,6 +18345,9 @@
         },
         {
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -18118,6 +18496,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -18413,6 +18794,9 @@
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -18669,6 +19053,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -18964,6 +19351,9 @@
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -19220,6 +19610,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -19515,6 +19908,9 @@
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -19768,6 +20164,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -20063,6 +20462,9 @@
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -20316,6 +20718,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -20611,6 +21016,9 @@
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -20864,6 +21272,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -21161,6 +21572,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -21379,6 +21793,9 @@
           "test_name_regex": "AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentEcmpTrunkTest.*$"
         },
         {
@@ -21451,6 +21868,9 @@
         },
         {
           "test_name_regex": "AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentEcmpTrunkTest.*$"
@@ -21737,6 +22157,9 @@
           "test_name_regex": "AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentEcmpTrunkTest.*$"
         },
         {
@@ -21809,6 +22232,9 @@
         },
         {
           "test_name_regex": "AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentEcmpTrunkTest.*$"
@@ -22327,6 +22753,9 @@
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -22857,6 +23286,9 @@
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -23464,6 +23896,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -23886,6 +24321,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -24261,6 +24699,9 @@
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -24797,6 +25238,9 @@
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -25339,6 +25783,9 @@
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -25895,6 +26342,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -26449,6 +26899,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -26763,6 +27216,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -27069,6 +27525,9 @@
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -27382,6 +27841,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -27693,6 +28155,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -28001,6 +28466,9 @@
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -28279,6 +28747,9 @@
           "test_name_regex": "AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentEcmpTrunkTest.*$"
         },
         {
@@ -28351,6 +28822,9 @@
         },
         {
           "test_name_regex": "AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentEcmpTrunkTest.*$"
@@ -28637,6 +29111,9 @@
           "test_name_regex": "AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
+        },
+        {
           "test_name_regex": "AgentEcmpTrunkTest.*$"
         },
         {
@@ -28709,6 +29186,9 @@
         },
         {
           "test_name_regex": "AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
+        },
+        {
+          "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
           "test_name_regex": "AgentEcmpTrunkTest.*$"
