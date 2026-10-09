@@ -80,12 +80,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -383,34 +377,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "roundtrip.*.AgentIngressAclSpanMirroringTest/IPv[46].SpanAclMirror$"
@@ -444,6 +423,15 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.ArpRequestFloodTest$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
@@ -556,12 +544,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -856,31 +838,16 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest.*$"
@@ -902,6 +869,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_prod_2_trunk.warm_boot.AgentTrafficPfcWatchdogTest.PfcWatchdogDetection$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
           "test_name_regex": "AgentIngressBufferTest.validatePGParamChange$"
@@ -1131,12 +1104,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -1431,22 +1398,10 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
@@ -1455,7 +1410,10 @@
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
         },
         {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
           "test_name_regex": "warm_boot.AgentCoppTest/0.Ipv6LinkLocalMcastToMidPriQ$"
@@ -1480,6 +1438,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.NdpFloodTest$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
@@ -1578,12 +1539,6 @@
         },
         {
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -1883,31 +1838,16 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
@@ -2238,6 +2178,18 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
@@ -2359,12 +2311,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -2659,31 +2605,16 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
@@ -2759,6 +2690,18 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentTrafficPfcGenTest.verifyBufferPoolWatermarks"
@@ -2867,12 +2810,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -3170,34 +3107,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
@@ -3261,6 +3183,21 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -3359,12 +3296,6 @@
         },
         {
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -3667,34 +3598,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
@@ -4027,6 +3943,18 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
           "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         },
         {
@@ -4126,12 +4054,6 @@
         },
         {
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -4431,34 +4353,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
@@ -4534,6 +4441,18 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentVoqSwitchTest.verifyAI23ModeConfig$"
@@ -4642,12 +4561,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -4945,34 +4858,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
@@ -5036,6 +4934,21 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -5136,12 +5049,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -5439,34 +5346,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentQueuePerHostTest.VerifyHostToQueueMappingClassIDsAfterResolve$"
@@ -5595,6 +5487,15 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -5708,12 +5609,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -6014,34 +5909,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
@@ -6372,6 +6252,18 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
@@ -6460,12 +6352,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -6766,34 +6652,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
@@ -7124,6 +6995,18 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
@@ -7233,12 +7116,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -7536,34 +7413,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
@@ -7639,6 +7501,18 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -7736,12 +7610,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -8039,34 +7907,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
@@ -8142,6 +7995,18 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
@@ -8296,12 +8161,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -8599,34 +8458,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
@@ -8690,6 +8534,21 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -8790,12 +8649,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -9093,34 +8946,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
@@ -9184,6 +9022,21 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -9284,12 +9137,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -9587,34 +9434,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
@@ -9678,6 +9510,21 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -9778,12 +9625,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -10078,31 +9919,16 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest.*$"
@@ -10124,6 +9950,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_prod_2_trunk.warm_boot.AgentTrafficPfcWatchdogTest.PfcWatchdogDetection$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
           "test_name_regex": "AgentIngressBufferTest.validatePGParamChange$"
@@ -10214,6 +10046,9 @@
         },
         {
           "test_name_regex": ".*AgentAccessPolicyClassId.*$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         }
     ],
     "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk4/multi_switch": [
@@ -10350,12 +10185,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -10650,22 +10479,10 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
@@ -10674,7 +10491,10 @@
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
         },
         {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
           "test_name_regex": "warm_boot.AgentCoppTest/0.Ipv6LinkLocalMcastToMidPriQ$"
@@ -10717,6 +10537,12 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.NdpFloodTest$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         }
     ],
     "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk5/multi_switch": [
@@ -10799,12 +10625,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -11102,34 +10922,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentQueuePerHostTest.VerifyHostToQueueMappingClassIDsAfterResolve$"
@@ -11256,6 +11061,15 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -11443,12 +11257,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -11749,34 +11557,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
@@ -12109,10 +11902,31 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
           "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         },
         {
-          "test_name_regex": "AgentAqmEcnOnlyTest.*$"
+          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
+        },
+        {
+          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnTrafficNoDrop$"
+        },
+        {
+          "test_name_regex": "AgentAqmEcnOnlyTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnWithoutWredPostWarmboot$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -12198,12 +12012,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -12504,34 +12312,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
@@ -12864,10 +12657,31 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
           "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         },
         {
-          "test_name_regex": "AgentAqmEcnOnlyTest.*$"
+          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
+        },
+        {
+          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnTrafficNoDrop$"
+        },
+        {
+          "test_name_regex": "AgentAqmEcnOnlyTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnWithoutWredPostWarmboot$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
@@ -12962,12 +12776,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -13268,34 +13076,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
@@ -13628,10 +13421,31 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
           "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
         },
         {
-          "test_name_regex": "AgentAqmEcnOnlyTest.*$"
+          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
+        },
+        {
+          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnTrafficNoDrop$"
+        },
+        {
+          "test_name_regex": "AgentAqmEcnOnlyTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnWithoutWredPostWarmboot$"
         },
         {
           "test_name_regex": "AgentInPauseDiscardsCounterTest.*$"
@@ -13647,6 +13461,9 @@
         },
         {
           "test_name_regex": "AgentInPauseFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentAqmEcnOnlyTest.*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -13744,12 +13561,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -14047,34 +13858,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
@@ -14152,7 +13948,28 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
-          "test_name_regex": "AgentAqmEcnOnlyTest.*$"
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
+        },
+        {
+          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnTrafficNoDrop$"
+        },
+        {
+          "test_name_regex": "AgentAqmEcnOnlyTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnWithoutWredPostWarmboot$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -14250,12 +14067,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -14553,34 +14364,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
@@ -14658,7 +14454,28 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
-          "test_name_regex": "AgentAqmEcnOnlyTest.*$"
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
+        },
+        {
+          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnTrafficNoDrop$"
+        },
+        {
+          "test_name_regex": "AgentAqmEcnOnlyTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnWithoutWredPostWarmboot$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
@@ -14813,12 +14630,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -15116,34 +14927,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
@@ -15209,7 +15005,31 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
-          "test_name_regex": "AgentAqmEcnOnlyTest.*$"
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
+        },
+        {
+          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
+        },
+        {
+          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnTrafficNoDrop$"
+        },
+        {
+          "test_name_regex": "AgentAqmEcnOnlyTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnWithoutWredPostWarmboot$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -15310,12 +15130,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -15613,34 +15427,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
@@ -15704,6 +15503,21 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -15804,12 +15618,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -16107,34 +15915,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
@@ -16198,6 +15991,21 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -16298,12 +16106,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -16601,34 +16403,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
@@ -16710,6 +16497,15 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
           "test_name_regex": "AgentOlympicQosSchedulerTest.VerifySingleWRRAndNC$"
@@ -16858,12 +16654,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -17161,34 +16951,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "roundtrip.*.AgentIngressAclSpanMirroringTest/IPv[46].SpanAclMirror$"
@@ -17222,6 +16997,15 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.ArpRequestFloodTest$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentHwAclStatTest.StatNumberOfCounters$"
@@ -17334,12 +17118,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -17634,31 +17412,16 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest.*$"
@@ -17680,6 +17443,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_prod_2_trunk.warm_boot.AgentTrafficPfcWatchdogTest.PfcWatchdogDetection$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
           "test_name_regex": "AgentIngressBufferTest.validatePGParamChange$"
@@ -17770,6 +17539,9 @@
         },
         {
           "test_name_regex": ".*AgentAccessPolicyClassId.*$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         }
     ],
     "brcm/15.4.0.0_odp/15.4.0.0_odp/tomahawk4/multi_switch": [
@@ -17906,12 +17678,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -18206,22 +17972,10 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
@@ -18230,7 +17984,10 @@
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
         },
         {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
           "test_name_regex": "warm_boot.AgentCoppTest/0.Ipv6LinkLocalMcastToMidPriQ$"
@@ -18255,6 +18012,9 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.NdpFloodTest$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
@@ -18355,12 +18115,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -18658,34 +18412,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentQueuePerHostTest.VerifyHostToQueueMappingClassIDsAfterResolve$"
@@ -18812,6 +18551,15 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -18918,12 +18666,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -19221,34 +18963,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentQueuePerHostTest.VerifyHostToQueueMappingClassIDsAfterResolve$"
@@ -19377,6 +19104,15 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -19479,12 +19215,6 @@
         },
         {
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -19784,34 +19514,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
@@ -19893,6 +19608,15 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
           "test_name_regex": "AgentOlympicQosSchedulerTest.VerifySingleWRRAndNC$"
@@ -20041,12 +19765,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -20344,34 +20062,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
@@ -20453,6 +20156,15 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
           "test_name_regex": "AgentOlympicQosSchedulerTest.VerifySingleWRRAndNC$"
@@ -20601,12 +20313,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -20904,34 +20610,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
@@ -21013,6 +20704,15 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
           "test_name_regex": "AgentOlympicQosSchedulerTest.VerifySingleWRRAndNC$"
@@ -21161,12 +20861,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -21464,34 +21158,19 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
-        },
-        {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentQueuePerHostTest.VerifyHostToQueueMappingClassIDsAfterResolve$"
@@ -21620,6 +21299,15 @@
           "test_name_regex": "AgentPacketFloodTest.*$"
         },
         {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -21671,9 +21359,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "warm_boot.AgentV6FlowLabelEcmpLoadBalancerTest.EcmpLoadBalanceFullWithFlowLabelHashCpuTraffic$"
@@ -21748,9 +21433,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "warm_boot.AgentV6FlowLabelEcmpLoadBalancerTest.EcmpLoadBalanceFullWithFlowLabelHashCpuTraffic$"
@@ -22037,9 +21719,6 @@
           "test_name_regex": "warm_boot.AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "warm_boot.AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentV6FlowLabelEcmpLoadBalancerTest.EcmpLoadBalanceFullWithFlowLabelHashCpuTraffic$"
         },
         {
@@ -22112,9 +21791,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "warm_boot.AgentV6FlowLabelEcmpLoadBalancerTest.EcmpLoadBalanceFullWithFlowLabelHashCpuTraffic$"
@@ -22383,7 +22059,13 @@
           "test_name_regex": "AgentDeepPacketInspectionTest.*$"
         },
         {
-          "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentDiagShellStressTest.stressDiagCmds$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentDiagShellStressTest.stressDiagCmds$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalMcastToMidPriQ$"
@@ -22479,16 +22161,10 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
         },
         {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
-          "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
         },
         {
           "test_name_regex": "AgentHwAclQualifierTest.AclIcmp4Qualifiers$"
@@ -22651,12 +22327,6 @@
         },
         {
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -22900,9 +22570,21 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         }
     ],
     "leaba/24.8.3001/24.8.3001/gibraltar/multi_switch": [
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
         {
           "test_name_regex": "AgentAclAndDscpQueueMappingTest.VerifyAclAndQosMap$"
         },
@@ -23009,16 +22691,10 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
         },
         {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
-          "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
         },
         {
           "test_name_regex": "AgentHwAclQualifierTest.AclIcmp4Qualifiers$"
@@ -23181,12 +22857,6 @@
         },
         {
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -23430,6 +23100,15 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         }
     ],
     "leaba/24.8.3001/24.8.3001/graphene200/multi_switch": [
@@ -23479,9 +23158,6 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV4.StressRecreateMirror$"
         },
         {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
-        },
-        {
           "test_name_regex": "AgentAclAndDscpQueueMappingTest.VerifyAclAndQosMap$"
         },
         {
@@ -23492,9 +23168,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
-          "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
         },
         {
           "test_name_regex": "AgentHwAclQualifierTest.AclIcmp4Qualifiers$"
@@ -23600,6 +23273,15 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentOlympicQosSchedulerTest.VerifySingleWRRAndNC$"
@@ -23780,12 +23462,6 @@
         },
         {
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -24042,16 +23718,10 @@
           "test_name_regex": "AgentHwMirrorTest/1.HwMirrorStat$"
         },
         {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
-          "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
         },
         {
           "test_name_regex": "AgentHwAclQualifierTest.AclIcmp4Qualifiers$"
@@ -24214,12 +23884,6 @@
         },
         {
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -24463,6 +24127,15 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         }
     ],
     "leaba/25.11.4210/25.11.4210/graphene202x/multi_switch": [
@@ -24477,9 +24150,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
-          "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
         },
         {
           "test_name_regex": "AgentHwAclQualifierTest.AclIcmp4Qualifiers$"
@@ -24498,9 +24168,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentAclTableRecreateTest.AclEntryCount$"
@@ -24594,12 +24261,6 @@
         },
         {
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -24832,9 +24493,6 @@
     ],
     "leaba/25.5.4210/25.5.4210/graphene200/multi_switch": [
         {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
-        },
-        {
           "test_name_regex": "AgentAclAndDscpQueueMappingTest.VerifyAclAndQosMap$"
         },
         {
@@ -24845,9 +24503,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
-          "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
         },
         {
           "test_name_regex": "AgentHwAclQualifierTest.AclIcmp4Qualifiers$"
@@ -24953,6 +24608,15 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentOlympicQosSchedulerTest.VerifySingleWRRAndNC$"
@@ -25133,12 +24797,6 @@
         },
         {
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -25377,9 +25035,6 @@
     ],
     "leaba/26.2.4210/26.2.4210/graphene200/multi_switch": [
         {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
-        },
-        {
           "test_name_regex": "AgentAclAndDscpQueueMappingTest.VerifyAclAndQosMap$"
         },
         {
@@ -25390,9 +25045,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
-          "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
         },
         {
           "test_name_regex": "AgentHwAclQualifierTest.AclIcmp4Qualifiers$"
@@ -25498,6 +25150,15 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentOlympicQosSchedulerTest.VerifySingleWRRAndNC$"
@@ -25678,12 +25339,6 @@
         },
         {
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -25934,9 +25589,6 @@
           "test_name_regex": "AgentHwMirrorTest/1.PortMirrorUpdateIfMirrorUpdate$"
         },
         {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
-        },
-        {
           "test_name_regex": "AgentAclAndDscpQueueMappingTest.VerifyAclAndQosMap$"
         },
         {
@@ -25947,9 +25599,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
-          "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
         },
         {
           "test_name_regex": "AgentHwAclQualifierTest.AclIcmp4Qualifiers$"
@@ -26055,6 +25704,15 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentOlympicQosSchedulerTest.VerifySingleWRRAndNC$"
@@ -26235,12 +25893,6 @@
         },
         {
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -26491,9 +26143,6 @@
           "test_name_regex": "AgentHwMirrorTest/1.PortMirrorUpdateIfMirrorUpdate$"
         },
         {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
-        },
-        {
           "test_name_regex": "AgentAclAndDscpQueueMappingTest.VerifyAclAndQosMap$"
         },
         {
@@ -26504,9 +26153,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
-          "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
         },
         {
           "test_name_regex": "AgentHwAclQualifierTest.AclIcmp4Qualifiers$"
@@ -26612,6 +26258,15 @@
         },
         {
           "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentOlympicQosSchedulerTest.VerifySingleWRRAndNC$"
@@ -26792,12 +26447,6 @@
         },
         {
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -27114,12 +26763,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -27426,12 +27069,6 @@
         },
         {
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
@@ -27745,12 +27382,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -28062,12 +27693,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -28376,12 +28001,6 @@
           "test_name_regex": "roundtrip.prod_2_trunk_2_prod.cold_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
           "test_name_regex": "AgentHwMirrorTrunkTest/[01].*$"
         },
         {
@@ -28645,9 +28264,6 @@
           "test_name_regex": "warm_boot.AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "warm_boot.AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentV6FlowLabelEcmpLoadBalancerTest.EcmpLoadBalanceFullWithFlowLabelHashCpuTraffic$"
         },
         {
@@ -28720,9 +28336,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "warm_boot.AgentV6FlowLabelEcmpLoadBalancerTest.EcmpLoadBalanceFullWithFlowLabelHashCpuTraffic$"
@@ -29009,9 +28622,6 @@
           "test_name_regex": "warm_boot.AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "warm_boot.AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentV6FlowLabelEcmpLoadBalancerTest.EcmpLoadBalanceFullWithFlowLabelHashCpuTraffic$"
         },
         {
@@ -29084,9 +28694,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "warm_boot.AgentV6FlowLabelEcmpLoadBalancerTest.EcmpLoadBalanceFullWithFlowLabelHashCpuTraffic$"
@@ -29467,9 +29074,6 @@
         },
         {
           "test_name_regex": "AgentErspanIngressSamplingTest.SamplePacketFormat$"
-        },
-        {
-          "test_name_regex": "AgentHashPolarizationTest/0.verifyNoPolarization$"
         },
         {
           "test_name_regex": "AgentHwMirrorTest/0.NoPortMirroringIfUnResolved$"
