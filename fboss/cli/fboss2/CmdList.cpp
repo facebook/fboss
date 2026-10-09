@@ -404,7 +404,7 @@ const CommandTree& kCommandTree() {
                  argTypeHandler<CmdShowInterfaceTransceiverEepromTraits>,
                  {
                      {"dump",
-                      "Dump all EEPROM pages (3 iterations with 2s delay)",
+                      "Dump all diagnostic EEPROM pages",
                       commandHandler<CmdShowInterfaceTransceiverEepromDump>,
                       argTypeHandler<
                           CmdShowInterfaceTransceiverEepromDumpTraits>},

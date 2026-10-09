@@ -10,8 +10,6 @@
 
 #include <fmt/format.h>
 #include <folly/MapUtil.h>
-#include <chrono>
-#include <thread>
 
 namespace facebook::fboss {
 
@@ -21,9 +19,6 @@ namespace {
 constexpr uint8_t kIdentifierQsfpDD = 0x18;
 constexpr uint8_t kIdentifierOsfp = 0x19;
 constexpr uint8_t kIdentifierQsfpPlusCmis = 0x1E;
-
-constexpr int kNumDumps = 3;
-constexpr int kDumpDelaySeconds = 2;
 
 bool isCmisModule(uint8_t identifier) {
   return identifier == kIdentifierQsfpDD || identifier == kIdentifierOsfp ||
@@ -191,50 +186,36 @@ CmdShowInterfaceTransceiverEepromDump::queryClient(
       identifierToString(identifier),
       identifier);
 
-  // 4. Perform 3 dumps with 2s delay between each
-  for (int dump = 1; dump <= kNumDumps; dump++) {
-    output +=
-        fmt::format("========== Dump {}/{} ==========\n", dump, kNumDumps);
+  for (const auto& page : pages) {
+    ReadRequest req;
+    TransceiverIOParameters param;
+    req.ids() = {transceiverId};
+    param.offset() = page.offset;
+    param.length() = page.length;
+    if (page.page >= 0) {
+      param.page() = page.page;
+    }
+    req.parameter() = param;
 
-    for (const auto& page : pages) {
-      ReadRequest req;
-      TransceiverIOParameters param;
-      req.ids() = {transceiverId};
-      param.offset() = page.offset;
-      param.length() = page.length;
-      if (page.page >= 0) {
-        param.page() = page.page;
-      }
-      req.parameter() = param;
-
-      std::map<int32_t, ReadResponse> resp;
-      try {
-        qsfpService->sync_readTransceiverRegister(resp, req);
-      } catch (const std::exception& ex) {
-        output += fmt::format("\n--- {} ---\n", page.name);
-        output += fmt::format("  Error: {}\n", ex.what());
-        continue;
-      }
-
-      auto* respPtr = folly::get_ptr(resp, transceiverId);
-      if (!respPtr) {
-        output += fmt::format("\n--- {} ---\n", page.name);
-        output += "  Error: No response for transceiver\n";
-        continue;
-      }
-
+    std::map<int32_t, ReadResponse> resp;
+    try {
+      qsfpService->sync_readTransceiverRegister(resp, req);
+    } catch (const std::exception& ex) {
       output += fmt::format("\n--- {} ---\n", page.name);
-      output += formatHexDump(
-          respPtr->data()->data(), page.offset, respPtr->data()->length());
+      output += fmt::format("  Error: {}\n", ex.what());
+      continue;
     }
 
-    output += "\n";
-
-    if (dump < kNumDumps) {
-      // Intentional delay between EEPROM dumps to capture register changes
-      std::this_thread::sleep_for( // NOLINT(facebook-hte-BadCall-sleep_for)
-          std::chrono::seconds(kDumpDelaySeconds));
+    auto* respPtr = folly::get_ptr(resp, transceiverId);
+    if (!respPtr) {
+      output += fmt::format("\n--- {} ---\n", page.name);
+      output += "  Error: No response for transceiver\n";
+      continue;
     }
+
+    output += fmt::format("\n--- {} ---\n", page.name);
+    output += formatHexDump(
+        respPtr->data()->data(), page.offset, respPtr->data()->length());
   }
 
   return output;
