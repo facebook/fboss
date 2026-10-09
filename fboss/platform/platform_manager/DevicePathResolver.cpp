@@ -2,8 +2,12 @@
 
 #include "fboss/platform/platform_manager/DevicePathResolver.h"
 
+#include <chrono>
 #include <filesystem>
 #include <stdexcept>
+#include <thread>
+
+#include <folly/logging/xlog.h>
 
 #include "fboss/platform/platform_manager/PciExplorer.h"
 #include "fboss/platform/platform_manager/Utils.h"
@@ -13,6 +17,12 @@ namespace fs = std::filesystem;
 namespace {
 const re2::RE2 kHwmonRe{"hwmon\\d+"};
 const re2::RE2 kIioDeviceRe{"iio:device\\d+"};
+
+// Retry timeout configuration for sensor device path resolution
+// Initial delay = 10ms, max exp backoff delay = 500ms, max total delay = 5s
+constexpr int kInitialRetryDelayMs = 10;
+constexpr int kMaxRetryDelayMs = 500;
+constexpr int kTotalTimeoutMs = 5000;
 } // namespace
 
 namespace facebook::fboss::platform::platform_manager {
@@ -22,22 +32,58 @@ DevicePathResolver::DevicePathResolver(const DataStore& dataStore)
 
 std::string DevicePathResolver::resolveSensorPath(
     const std::string& devicePath) const {
+  // Retry with exponential backoff to handle kernel driver probe delays in
+  // subsystem device creation
+  int retryDelayMs = kInitialRetryDelayMs;
+  int totalElapsedMs = 0;
+  int retryCount = 0;
   auto sensorPath = dataStore_.getSysfsPath(devicePath);
-  if (fs::exists(fmt::format("{}/hwmon", sensorPath))) {
-    sensorPath = fmt::format("{}/hwmon", sensorPath);
-  }
-  for (const auto& dirEntry : fs::directory_iterator(sensorPath)) {
-    auto dirName = dirEntry.path().filename();
-    if (re2::RE2::FullMatch(dirName.string(), kHwmonRe) ||
-        re2::RE2::FullMatch(dirName.string(), kIioDeviceRe)) {
-      return dirEntry.path();
+
+  while (totalElapsedMs < kTotalTimeoutMs) {
+    try {
+      if (sensorPath.find("/hwmon") == std::string::npos &&
+          fs::exists(fmt::format("{}/hwmon", sensorPath))) {
+        sensorPath = fmt::format("{}/hwmon", sensorPath);
+      }
+      for (const auto& dirEntry : fs::directory_iterator(sensorPath)) {
+        auto dirName = dirEntry.path().filename();
+        if (re2::RE2::FullMatch(dirName.string(), kHwmonRe) ||
+            re2::RE2::FullMatch(dirName.string(), kIioDeviceRe)) {
+          if (retryCount > 0) {
+            XLOG(INFO) << fmt::format(
+                "Found sensor device for {} after {} retries ({} ms)",
+                devicePath,
+                retryCount,
+                totalElapsedMs);
+          }
+          return dirEntry.path();
+        }
+      }
+    } catch (const fs::filesystem_error& e) {
+      XLOG(DBG3) << fmt::format(
+          "Filesystem error while checking {}: {}", sensorPath, e.what());
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(retryDelayMs));
+    totalElapsedMs += retryDelayMs;
+    retryCount++;
+    retryDelayMs = std::min(retryDelayMs * 2, kMaxRetryDelayMs);
+
+    if (retryCount == 1 || retryCount % 10 == 0) {
+      XLOG(INFO) << fmt::format(
+          "Waiting for sensor device for {} (retry {}, elapsed {} ms)",
+          devicePath,
+          retryCount,
+          totalElapsedMs);
     }
   }
   throw std::runtime_error(
       fmt::format(
-          "Couldn't find hwmon[num] nor iio:device[num] folder under {} for {}",
+          "Couldn't find hwmon[num] nor iio:device[num] folder under {} for {} "
+          "after {} seconds",
           sensorPath,
-          devicePath));
+          devicePath,
+          kTotalTimeoutMs / 1000));
 }
 
 std::string DevicePathResolver::resolveEepromPath(
