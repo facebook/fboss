@@ -424,17 +424,26 @@ _WARNING_PREFIX = "# WARNING:"
 
 
 def _warning(text: str) -> str:
-    return f"{_WARNING_PREFIX} {text}"
+    # Warning text interpolates JSON-sourced names and values; a control
+    # character in one would end the `#` comment and become shell input.
+    return f"{_WARNING_PREFIX} {_printable(text)}"
 
 
 _BOOLEAN_OPERATOR_NAMES = {1: "AND", 2: "OR", 3: "NOT"}
 
 
 def _boolean_operator_name(raw: Any) -> str:
-    """routing_policy.BooleanOperator as its name, from the int or the name."""
+    """routing_policy.BooleanOperator as its name, from the int or the name.
+
+    Not a validator: an unrecognised value is returned as-is so the CLI
+    rejects it on replay with its own message.
+    """
     if isinstance(raw, str):
         return raw
-    return _BOOLEAN_OPERATOR_NAMES.get(int(raw), str(raw))
+    try:
+        return _BOOLEAN_OPERATOR_NAMES.get(int(raw), str(raw))
+    except (TypeError, ValueError):
+        return str(raw)
 
 
 def generate_as_path_list_commands(as_path_list: dict[str, Any]) -> list[str]:
@@ -543,6 +552,234 @@ def generate_community_list_commands(community_list: dict[str, Any]) -> list[str
     return commands
 
 
+_COMPARISON_OPERATOR_NAMES = {
+    1: "EQ",
+    2: "GE",
+    3: "LE",
+    4: "NE",
+    5: "GT",
+    6: "LT",
+    7: "RG",
+}
+_IP_VERSION_KEYWORDS = {4: "v4", 6: "v6"}
+
+
+def _comparison_operator_name(raw: Any) -> str:
+    """routing_policy.ComparisonOperator as its name; see _boolean_operator_name."""
+    if isinstance(raw, str):
+        return raw
+    try:
+        return _COMPARISON_OPERATOR_NAMES.get(int(raw), str(raw))
+    except (TypeError, ValueError):
+        return str(raw)
+
+
+def _prefix_list_warnings(name: str, prefix_list: dict[str, Any]) -> list[str]:
+    """Warnings for PrefixList fields that have no CLI spelling."""
+    warnings = []
+    if prefix_list.get("prefix_list_names"):
+        warnings.append(
+            _warning(
+                f"prefix-list {name}: prefix_list_names has no CLI equivalent; "
+                "not emitted"
+            )
+        )
+    if "ip_version" in prefix_list:
+        warnings.append(
+            _warning(
+                f"prefix-list {name}: ip_version has no CLI equivalent (the CLI "
+                "writes `version`); not emitted"
+            )
+        )
+    return warnings
+
+
+def generate_prefix_list_commands(prefix_list: dict[str, Any]) -> list[str]:
+    """Generate `config protocol bgp policy prefix-list` commands for one list.
+
+    `ip-version` is the CLI spelling of the `version` field (4/6). bgpd
+    accepts only `boolean_operator` OR and no list-level `compare_operator`
+    (PrefixTreeMatch::validateAndCreatePrefixTree), and the CLI offers nothing
+    else, so other values surface as warnings rather than commands. The
+    `prefix_list_names` references, the `ip_version` enum field and (until the
+    entry subcommand lands) `prefixes` have no CLI spelling and also warn.
+    """
+    name = prefix_list.get("name", "")
+    if not name:
+        return []
+
+    prefix = f"config protocol bgp policy prefix-list {escape_shell_arg(name)}"
+    commands = []
+    if prefix_list.get("description"):
+        commands.append(
+            f"{prefix} description {escape_shell_arg(prefix_list['description'])}"
+        )
+    if "boolean_operator" in prefix_list:
+        operator = _boolean_operator_name(prefix_list["boolean_operator"])
+        if operator != "OR":
+            commands.append(
+                _warning(
+                    f"prefix-list {name}: boolean_operator {operator} is not "
+                    "accepted by bgpd (only OR); not emitted"
+                )
+            )
+    if "compare_operator" in prefix_list:
+        operator = _comparison_operator_name(prefix_list["compare_operator"])
+        commands.append(
+            _warning(
+                f"prefix-list {name}: list-level compare_operator {operator} is "
+                "not accepted by bgpd; not emitted"
+            )
+        )
+    if "version" in prefix_list:
+        keyword = _IP_VERSION_KEYWORDS.get(prefix_list["version"])
+        if keyword is None:
+            commands.append(
+                _warning(
+                    f"prefix-list {name}: version {prefix_list['version']} is "
+                    "neither 4 nor 6; not emitted"
+                )
+            )
+        else:
+            commands.append(f"{prefix} ip-version {keyword}")
+    commands.extend(_prefix_list_warnings(name, prefix_list))
+    for entry in prefix_list.get("prefixes") or []:
+        commands.extend(generate_prefix_list_entry_commands(name, entry))
+    if not commands:
+        # Nothing to set: still recreate the (empty) prefix-list by name.
+        commands.append(prefix)
+    return commands
+
+
+_MATCH_LOGIC_NAMES = {0: "EQUAL", 1: "NOT_EQUAL"}
+
+
+def _prefix_list_entry_scalar_commands(
+    prefix: str, label: str, entry: dict[str, Any]
+) -> list[str]:
+    """The single-valued entry attributes, in the CLI's attribute order.
+
+    bgpd accepts only match_logic EQUAL (PrefixTreeMatch), so any other value
+    is a warning, not a command.
+    """
+    commands = []
+    if entry.get("description"):
+        commands.append(
+            f"{prefix} description {escape_shell_arg(entry['description'])}"
+        )
+    if "match_logic" in entry:
+        raw = entry["match_logic"]
+        logic = (
+            raw if isinstance(raw, str) else _MATCH_LOGIC_NAMES.get(int(raw), str(raw))
+        )
+        if logic != "EQUAL":
+            commands.append(
+                _warning(
+                    f"{label}: match_logic {logic} is not accepted by bgpd "
+                    "(only EQUAL); not emitted"
+                )
+            )
+    if "max_allowed_golden_prefix_subnet_count" in entry:
+        commands.append(
+            f"{prefix} max-allowed-subnet-count "
+            f"{escape_shell_arg(entry['max_allowed_golden_prefix_subnet_count'])}"
+        )
+    return commands
+
+
+def _prefix_list_entry_range_commands(
+    prefix: str, label: str, entry: dict[str, Any]
+) -> list[str]:
+    """`prefix-len-range` lines for the single range the CLI can express."""
+    ranges = entry.get("prefix_len_ranges") or []
+    if not ranges:
+        return []
+    first = ranges[0]
+    commands = []
+    if "compare_operator" in first:
+        operator = _comparison_operator_name(first["compare_operator"])
+        if operator == "RG":
+            # bgpd's toPolicyComparisonOperator() throws on RG, and a range
+            # replayed without its operator would store an unset enum that
+            # bgpd rejects just the same, so the whole range is dropped.
+            commands.append(
+                _warning(
+                    f"{label}: prefix_len_ranges compare_operator RG is not "
+                    "accepted by bgpd; the range is not emitted"
+                )
+            )
+            if len(ranges) > 1:
+                commands.append(
+                    _warning(
+                        f"{label}: only the first of {len(ranges)} "
+                        "prefix_len_ranges is expressible; the rest are not "
+                        "emitted"
+                    )
+                )
+            return commands
+        commands.append(
+            f"{prefix} prefix-len-range compare-operator {escape_shell_arg(operator)}"
+        )
+    if "value" in first:
+        commands.append(
+            f"{prefix} prefix-len-range value {escape_shell_arg(first['value'])}"
+        )
+    if len(ranges) > 1:
+        commands.append(
+            _warning(
+                f"{label}: only the first of {len(ranges)} prefix_len_ranges is "
+                "expressible; the rest are not emitted"
+            )
+        )
+    return commands
+
+
+def generate_prefix_list_entry_commands(
+    list_name: str, entry: dict[str, Any]
+) -> list[str]:
+    """Generate `... prefix-list <name> prefix <prefix/len>` commands for one entry.
+
+    The CLI keys entries by base_prefix, the identity bgpd keeps (it merges
+    entries by prefix and rejects seq_num), and supports a single
+    prefix_len_range; anything beyond that surfaces as a warning.
+    """
+    if not entry.get("base_prefix"):
+        return [
+            _warning(
+                f"prefix-list {list_name}: an entry has no base_prefix and cannot "
+                "be addressed by the CLI; not emitted"
+            )
+        ]
+    base_prefix = entry["base_prefix"]
+    label = f"prefix-list {list_name} prefix {base_prefix}"
+    prefix = (
+        f"config protocol bgp policy prefix-list {escape_shell_arg(list_name)} "
+        f"prefix {escape_shell_arg(base_prefix)}"
+    )
+    commands = []
+    if "seq_num" in entry:
+        commands.append(
+            _warning(
+                f"{label}: seq_num {entry['seq_num']} is rejected by bgpd and "
+                "not part of the CLI's entry identity; dropped"
+            )
+        )
+    commands.extend(_prefix_list_entry_scalar_commands(prefix, label, entry))
+    commands.extend(_prefix_list_entry_range_commands(prefix, label, entry))
+    if entry.get("regex"):
+        commands.append(f"{prefix} regex {escape_shell_arg(entry['regex'])}")
+    for community in sorted(entry.get("communities") or []):
+        commands.append(f"{prefix} communities {escape_shell_arg(community)}")
+    if "ip_version" in entry:
+        commands.append(
+            _warning(f"{label}: ip_version has no CLI equivalent; not emitted")
+        )
+    if all(c.startswith(_WARNING_PREFIX) for c in commands):
+        # Nothing expressible to set: still create the entry by its prefix.
+        commands.append(prefix)
+    return commands
+
+
 def generate_policy_commands(config: dict[str, Any]) -> list[str]:
     """Generate the `config protocol bgp policy ...` commands.
 
@@ -556,6 +793,8 @@ def generate_policy_commands(config: dict[str, Any]) -> list[str]:
         commands.extend(generate_as_path_list_commands(as_path_list))
     for community_list in policies.get("community_lists", []):
         commands.extend(generate_community_list_commands(community_list))
+    for prefix_list in policies.get("prefix_lists", []):
+        commands.extend(generate_prefix_list_commands(prefix_list))
     return commands
 
 
