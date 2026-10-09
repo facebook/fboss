@@ -308,6 +308,8 @@ NextHopWeight totalWeight(const RouteNextHopEntry::NextHopSet& nhops);
 
 using RouteNextHopSet = RouteNextHopEntry::NextHopSet;
 
+bool hasSrv6AndNonSrv6NextHops(const RouteNextHopSet& nextHops);
+
 namespace util {
 
 /**

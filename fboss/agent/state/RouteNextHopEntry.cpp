@@ -45,6 +45,22 @@ DEFINE_double(ucmp_max_error, 0.05, "Max UCMP normalization error");
 
 namespace facebook::fboss {
 
+bool hasSrv6AndNonSrv6NextHops(const RouteNextHopSet& nextHops) {
+  bool hasSrv6 = false;
+  bool hasNonSrv6 = false;
+  for (const auto& nextHop : nextHops) {
+    if (nextHop.srv6SegmentList().empty()) {
+      hasNonSrv6 = true;
+    } else {
+      hasSrv6 = true;
+    }
+    if (hasSrv6 && hasNonSrv6) {
+      return true;
+    }
+  }
+  return false;
+}
+
 namespace util {
 
 namespace {

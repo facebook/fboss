@@ -62,6 +62,19 @@ const folly::IPAddress nextHopAddr7 =
 const folly::IPAddress nextHopAddr8 =
     folly::IPAddress("2401:db00:e117:9103:1028::1b");
 
+UnresolvedNextHop makeSrv6NextHop(const folly::IPAddress& addr) {
+  return UnresolvedNextHop(
+      addr,
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      {folly::IPAddressV6("2001:db8::1")},
+      TunnelType::SRV6_ENCAP,
+      kSrv6Tunnel0);
+}
+
 NetworkTopologyInformation getTopologyInfo() {
   NetworkTopologyInformation topologyInfo;
   topologyInfo.rack_id() = 2;
@@ -1428,6 +1441,21 @@ std::vector<AddrAndWeight> replicateWeighted(const RouteNextHopSet& nhs) {
 }
 
 } // namespace
+
+TEST(RouteNextHopEntry, DetectMixedSrv6NextHops) {
+  EXPECT_FALSE(hasSrv6AndNonSrv6NextHops({}));
+  EXPECT_FALSE(hasSrv6AndNonSrv6NextHops(
+      {UnresolvedNextHop(nextHopAddr2, ECMP_WEIGHT)}));
+  EXPECT_FALSE(hasSrv6AndNonSrv6NextHops(
+      {UnresolvedNextHop(nextHopAddr2, ECMP_WEIGHT),
+       UnresolvedNextHop(nextHopAddr3, ECMP_WEIGHT)}));
+  EXPECT_FALSE(hasSrv6AndNonSrv6NextHops({makeSrv6NextHop(nextHopAddr2)}));
+  EXPECT_FALSE(hasSrv6AndNonSrv6NextHops(
+      {makeSrv6NextHop(nextHopAddr2), makeSrv6NextHop(nextHopAddr3)}));
+  EXPECT_TRUE(hasSrv6AndNonSrv6NextHops(
+      {makeSrv6NextHop(nextHopAddr2),
+       UnresolvedNextHop(nextHopAddr3, ECMP_WEIGHT)}));
+}
 
 TEST(RouteNextHopEntry, ReplicateWeightedNexthopsExpandsWeight) {
   const std::vector<AddrAndWeight> expected{
