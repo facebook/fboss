@@ -22059,10 +22059,7 @@
           "test_name_regex": "AgentDeepPacketInspectionTest.*$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentDiagShellStressTest.stressDiagCmds$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentDiagShellStressTest.stressDiagCmds$"
+          "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
