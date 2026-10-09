@@ -801,7 +801,8 @@
         112,
         113,
         49,
-        111
+        111,
+        134
     ]
   },
   "asicToFeatureNames": {
@@ -1606,7 +1607,8 @@
         "PORT_DEBOUNCE",
         "SRV6_BINDING_SID",
         "MIRROR_ON_DROP",
-        "MIRROR_ON_DROP_STATELESS"
+        "MIRROR_ON_DROP_STATELESS",
+        "MIRROR_ON_DROP_AGGREGATE_RATE_LIMIT"
     ]
   },
   "featureSupportSpecs": [
