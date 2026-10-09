@@ -27,7 +27,7 @@ credentials, and non-public paths.
 plain JSON. Regenerate with:
 
 ```bash
-jq '.defaultCommandLineArgs.multi_switch = "true"' \
+jq '.defaultCommandLineArgs.multi_switch = "true" | .platform = {}' \
   fboss/github/fboss-sim/docker/runtime/mono.conf > fboss/github/fboss-image/components/fake/payload/etc/coop/agent.conf
 ```
 
