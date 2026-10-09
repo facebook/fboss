@@ -525,31 +525,39 @@ class AgentSrv6MidpointUsdTest : public AgentSrv6MidpointTest<PortType> {
         getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState()));
   }
 
-  // FRR header -> original SRv6 header -> original IPv6 header. Outer dst is
-  // the uA sid with nothing behind it; middle dst repeats that sid with one
+  // FRR header -> original SRv6 header -> original IPv4/IPv6 header. Outer dst
+  // is the uA sid with nothing behind it; middle dst repeats that sid with one
   // more uSID behind it.
-  void sendUsdPacket(PortID injectPort) {
+  void sendUsdPacket(PortID injectPort, bool isV4) {
     auto intfMac =
         getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
-    auto txPacket = utility::makeIpInIpInIpPacket(
-        this->getSw(),
-        this->getVlanIDForTx().value(),
-        intfMac,
-        intfMac,
-        folly::IPAddressV6("100::1") /* outerSrc */,
-        kUsdOuterDst /* outerDst */,
-        folly::IPAddressV6("2001:db8::1") /* middleSrc */,
-        kUsdMiddleDst /* middleDst */,
-        folly::IPAddressV6("2001:db8:2::1") /* innerSrc */,
-        folly::IPAddressV6("2001:db8:2::2") /* innerDst */,
-        8000 /* srcPort */,
-        8001 /* dstPort */,
-        0 /* outerTrafficClass */,
-        0 /* middleTrafficClass */,
-        0 /* innerTrafficClass */,
-        24 /* outerHopLimit */,
-        64 /* middleHopLimit */,
-        64 /* innerHopLimit */);
+    auto makePacket = [&](const auto& innerSrc, const auto& innerDst) {
+      return utility::makeIpInIpInIpPacket(
+          this->getSw(),
+          this->getVlanIDForTx().value(),
+          intfMac,
+          intfMac,
+          folly::IPAddressV6("100::1") /* outerSrc */,
+          kUsdOuterDst /* outerDst */,
+          folly::IPAddressV6("2001:db8::1") /* middleSrc */,
+          kUsdMiddleDst /* middleDst */,
+          innerSrc,
+          innerDst,
+          8000 /* srcPort */,
+          8001 /* dstPort */,
+          0 /* outerTrafficClass */,
+          0 /* middleTrafficClass */,
+          0 /* innerTrafficClassOrDscp */,
+          24 /* outerHopLimit */,
+          64 /* middleHopLimit */,
+          64 /* innerHopLimit */);
+    };
+    auto txPacket = isV4
+        ? makePacket(
+              folly::IPAddressV4("10.0.0.1"), folly::IPAddressV4("10.0.0.2"))
+        : makePacket(
+              folly::IPAddressV6("2001:db8:2::1"),
+              folly::IPAddressV6("2001:db8:2::2"));
     this->getSw()->sendPacketOutOfPortAsync(std::move(txPacket), injectPort);
   }
 
@@ -558,16 +566,19 @@ class AgentSrv6MidpointUsdTest : public AgentSrv6MidpointTest<PortType> {
   // hop for one injected packet.
   void verifyUsdDecapThenShift(PortID egressPort) {
     auto injectPort = this->findInjectPort(egressPort);
-    auto pktsBefore =
-        *this->getLatestPortStats(egressPort).outUnicastPkts__ref();
-
-    sendUsdPacket(injectPort);
-
-    WITH_RETRIES({
-      auto pktsAfter =
+    for (bool isV4 : {false, true}) {
+      SCOPED_TRACE(isV4 ? "inner IPv4" : "inner IPv6");
+      auto pktsBefore =
           *this->getLatestPortStats(egressPort).outUnicastPkts__ref();
-      EXPECT_EVENTUALLY_EQ(pktsAfter - pktsBefore, 2);
-    });
+
+      sendUsdPacket(injectPort, isV4);
+
+      WITH_RETRIES({
+        auto pktsAfter =
+            *this->getLatestPortStats(egressPort).outUnicastPkts__ref();
+        EXPECT_EVENTUALLY_EQ(pktsAfter - pktsBefore, 2);
+      });
+    }
   }
 };
 

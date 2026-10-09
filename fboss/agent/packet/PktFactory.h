@@ -157,6 +157,29 @@ std::unique_ptr<TxPacket> makeIpInIpInIpPacket(
     uint32_t outerFlowLabel = 0,
     std::optional<std::vector<uint8_t>> payload = std::nullopt);
 
+// Ethernet / IPv6 / IPv6 / IPv4 / UDP / payload.
+std::unique_ptr<TxPacket> makeIpInIpInIpPacket(
+    const AllocatePktFn& allocatePkt,
+    std::optional<VlanID> vlan,
+    folly::MacAddress outerSrcMac,
+    folly::MacAddress outerDstMac,
+    const folly::IPAddressV6& outerSrcIp,
+    const folly::IPAddressV6& outerDstIp,
+    const folly::IPAddressV6& middleSrcIp,
+    const folly::IPAddressV6& middleDstIp,
+    const folly::IPAddressV4& innerSrcIp,
+    const folly::IPAddressV4& innerDstIp,
+    uint16_t srcPort,
+    uint16_t dstPort,
+    uint8_t outerTrafficClass = 0,
+    uint8_t middleTrafficClass = 0,
+    uint8_t innerDscp = 0,
+    uint8_t outerHopLimit = 255,
+    std::optional<uint8_t> middleHopLimit = std::nullopt,
+    std::optional<uint8_t> innerHopLimit = std::nullopt,
+    uint32_t outerFlowLabel = 0,
+    std::optional<std::vector<uint8_t>> payload = std::nullopt);
+
 std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     const AllocatePktFn& allocatePkt,
     std::optional<VlanID> vlan,
@@ -425,7 +448,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
       payload);
 }
 
-template <typename SwitchT>
+template <typename SwitchT, typename InnerIPAddrT>
 std::unique_ptr<TxPacket> makeIpInIpInIpPacket(
     const SwitchT* switchT,
     std::optional<VlanID> vlan,
@@ -435,8 +458,8 @@ std::unique_ptr<TxPacket> makeIpInIpInIpPacket(
     const folly::IPAddressV6& outerDstIp,
     const folly::IPAddressV6& middleSrcIp,
     const folly::IPAddressV6& middleDstIp,
-    const folly::IPAddressV6& innerSrcIp,
-    const folly::IPAddressV6& innerDstIp,
+    const InnerIPAddrT& innerSrcIp,
+    const InnerIPAddrT& innerDstIp,
     uint16_t srcPort,
     uint16_t dstPort,
     uint8_t outerTrafficClass = 0,
