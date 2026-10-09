@@ -203,6 +203,7 @@ cpp_unittest(
         "//folly/executors/thread_factory:named_thread_factory",
         "//folly/io:iobuf",
         "//folly/logging:logging",
+        "//folly/portability:gflags",
         "//folly/portability:gtest",
         "//folly/synchronization:baton",
         "//folly/testing:test_util",

@@ -7,8 +7,10 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -22,6 +24,7 @@
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 
 #include <fmt/format.h>
+#include <folly/portability/GFlags.h>
 #include <gtest/gtest.h>
 #include <optional>
 #include <set>
@@ -3084,7 +3087,47 @@ TEST_F(RouteTest, addRouteWithMultipleSrv6NextHops) {
   }
 }
 
-TEST_F(RouteTest, addRouteWithMixedSrv6AndPlainNextHops) {
+TEST_F(RouteTest, allowMixedSrv6AndPlainNextHopsWhenSrv6IsDisabled) {
+  folly::FlagSaver flagSaver;
+  FLAGS_srv6 = false;
+
+  auto rid = RouterID(0);
+  const std::vector<folly::IPAddressV6> sidList{
+      folly::IPAddressV6("3001:db8:1::")};
+  RouteNextHopSet nhops{
+      UnresolvedNextHop(
+          folly::IPAddress("1::10"),
+          ECMP_WEIGHT,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          sidList,
+          TunnelType::SRV6_ENCAP,
+          kSrv6Tunnel0),
+      UnresolvedNextHop(folly::IPAddress("2::10"), ECMP_WEIGHT)};
+
+  auto updater = this->sw_->getRouteUpdater();
+  updater.addRoute(
+      rid,
+      IPAddress("2800:3::"),
+      64,
+      kClientA,
+      RouteNextHopEntry(nhops, EBGP_DISTANCE));
+  updater.program();
+
+  auto route = this->findRoute6(this->sw_->getState(), rid, "2800:3::/64");
+  ASSERT_NE(nullptr, route);
+  ASSERT_TRUE(route->isResolved());
+  const auto fwdNhops =
+      getClientNextHops(this->sw_->getState(), *route->getBestEntry().second);
+  EXPECT_EQ(2, fwdNhops.size());
+}
+
+TEST_F(RouteTest, rejectRouteWithMixedSrv6AndPlainNextHopsAndRollback) {
+  folly::FlagSaver flagSaver;
+  FLAGS_srv6 = true;
+
   auto rid = RouterID(0);
   const std::vector<folly::IPAddressV6> sidList1{
       folly::IPAddressV6("3001:db8:1::"), folly::IPAddressV6("3001:db8:2::")};
@@ -3135,43 +3178,109 @@ TEST_F(RouteTest, addRouteWithMixedSrv6AndPlainNextHops) {
     }
   }
 
+  auto stateBeforeUpdate = this->sw_->getState();
+  const auto fibPrefixesBeforeUpdate =
+      routePrefixesFromState(stateBeforeUpdate, rid);
+  const auto ribPrefixesBeforeUpdate = routePrefixesFromRouteDetails(
+      this->sw_->getRib()->getRouteTableDetails(rid));
+
   auto updater = this->sw_->getRouteUpdater();
+  updater.addRoute(
+      rid,
+      IPAddress("2700:3::"),
+      64,
+      kClientA,
+      RouteNextHopEntry(
+          RouteNextHopSet{
+              UnresolvedNextHop(folly::IPAddress("1::20"), ECMP_WEIGHT)},
+          EBGP_DISTANCE));
   updater.addRoute(
       rid,
       IPAddress("2800:3::"),
       64,
       kClientA,
       RouteNextHopEntry(nhops, EBGP_DISTANCE));
-  updater.program();
+  EXPECT_THROW(updater.program(), FbossHwUpdateError);
 
-  auto rt = this->findRoute6(this->sw_->getState(), rid, "2800:3::/64");
-  ASSERT_NE(nullptr, rt);
+  EXPECT_EQ(stateBeforeUpdate, this->sw_->getState());
+  EXPECT_EQ(
+      fibPrefixesBeforeUpdate,
+      routePrefixesFromState(this->sw_->getState(), rid));
+  EXPECT_EQ(
+      ribPrefixesBeforeUpdate,
+      routePrefixesFromRouteDetails(
+          this->sw_->getRib()->getRouteTableDetails(rid)));
+  EXPECT_EQ(
+      this->findRoute6(this->sw_->getState(), rid, "2800:3::/64"), nullptr);
+  EXPECT_EQ(
+      this->findRoute6(this->sw_->getState(), rid, "2700:3::/64"), nullptr);
+}
 
-  auto fwdNhops =
-      getClientNextHops(this->sw_->getState(), *rt->getBestEntry().second);
-  ASSERT_EQ(fwdNhops.size(), 4);
+TEST_F(RouteTest, rejectRouteThatBecomesMixedAfterRecursiveResolution) {
+  folly::FlagSaver flagSaver;
+  FLAGS_srv6 = true;
 
-  for (const auto& nh : fwdNhops) {
-    if (nh.addr() == folly::IPAddress("1::10")) {
-      // SRv6 next hop 1: fields must match input
-      EXPECT_EQ(nh.srv6SegmentList(), sidList1);
-      EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-      EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
-    } else if (nh.addr() == folly::IPAddress("2::10")) {
-      // SRv6 next hop 2: fields must match input
-      EXPECT_EQ(nh.srv6SegmentList(), sidList2);
-      EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-      EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
-    } else {
-      // Plain next hops (3::10 or 4::10): no SRv6 fields
-      EXPECT_TRUE(
-          nh.addr() == folly::IPAddress("3::10") ||
-          nh.addr() == folly::IPAddress("4::10"));
-      EXPECT_TRUE(nh.srv6SegmentList().empty());
-      EXPECT_EQ(nh.tunnelType(), std::nullopt);
-      EXPECT_EQ(nh.tunnelId(), std::nullopt);
-    }
-  }
+  auto rid = RouterID(0);
+  const std::vector<folly::IPAddressV6> sidList{
+      folly::IPAddressV6("3001:db8:1::")};
+
+  RouteNextHopSet srv6ChildNextHops{UnresolvedNextHop(
+      folly::IPAddress("1::10"),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidList,
+      TunnelType::SRV6_ENCAP,
+      kSrv6Tunnel0)};
+  RouteNextHopSet plainChildNextHops{
+      UnresolvedNextHop(folly::IPAddress("2::10"), ECMP_WEIGHT)};
+
+  auto childUpdater = this->sw_->getRouteUpdater();
+  childUpdater.addRoute(
+      rid,
+      IPAddress("100::"),
+      64,
+      kClientA,
+      RouteNextHopEntry(srv6ChildNextHops, EBGP_DISTANCE));
+  childUpdater.addRoute(
+      rid,
+      IPAddress("200::"),
+      64,
+      kClientA,
+      RouteNextHopEntry(plainChildNextHops, EBGP_DISTANCE));
+  childUpdater.program();
+
+  RouteNextHopSet parentNextHops{
+      UnresolvedNextHop(folly::IPAddress("100::10"), ECMP_WEIGHT),
+      UnresolvedNextHop(folly::IPAddress("200::10"), ECMP_WEIGHT)};
+  ASSERT_FALSE(hasSrv6AndNonSrv6NextHops(parentNextHops));
+
+  auto stateBeforeUpdate = this->sw_->getState();
+  const auto fibPrefixesBeforeUpdate =
+      routePrefixesFromState(stateBeforeUpdate, rid);
+  const auto ribPrefixesBeforeUpdate = routePrefixesFromRouteDetails(
+      this->sw_->getRib()->getRouteTableDetails(rid));
+
+  auto parentUpdater = this->sw_->getRouteUpdater();
+  parentUpdater.addRoute(
+      rid,
+      IPAddress("300::"),
+      64,
+      kClientA,
+      RouteNextHopEntry(parentNextHops, EBGP_DISTANCE));
+  EXPECT_THROW(parentUpdater.program(), FbossHwUpdateError);
+
+  EXPECT_EQ(stateBeforeUpdate, this->sw_->getState());
+  EXPECT_EQ(
+      fibPrefixesBeforeUpdate,
+      routePrefixesFromState(this->sw_->getState(), rid));
+  EXPECT_EQ(
+      ribPrefixesBeforeUpdate,
+      routePrefixesFromRouteDetails(
+          this->sw_->getRib()->getRouteTableDetails(rid)));
+  EXPECT_EQ(this->findRoute6(this->sw_->getState(), rid, "300::/64"), nullptr);
 }
 
 TEST_F(RouteTest, resolveRouteWithSrv6NextHopToMultipleResolvedNextHops) {
