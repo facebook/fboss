@@ -43,6 +43,9 @@ common_overrides: |
   CONFIG_AQTION=y
   CONFIG_AQUANTIA_PHY=m
 
+  # Drivers for interrupt-driven I2C support
+  CONFIG_I2C_XILINX=m
+  CONFIG_GPIO_PCI_IDIO_16=m
 
 # Kernel version overrides
 # Add kernel version as key, then add config lines in the value
