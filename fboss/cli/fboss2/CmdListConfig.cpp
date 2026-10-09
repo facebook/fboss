@@ -45,6 +45,11 @@
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/CmdConfigProtocolBgpPolicy.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/as-path-list/CmdConfigProtocolBgpPolicyAsPathList.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/community-list/CmdConfigProtocolBgpPolicyCommunityList.h"
+#include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/prefix-list/CmdConfigProtocolBgpPolicyPrefixList.h"
+#include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/prefix-list/entry/CmdConfigProtocolBgpPolicyPrefixListEntry.h"
+#include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/routing-policy/CmdConfigProtocolBgpPolicyRoutingPolicy.h"
+#include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/routing-policy/term/CmdConfigProtocolBgpPolicyRoutingPolicyTerm.h"
+#include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/routing-policy/term/action/CmdConfigProtocolBgpPolicyRoutingPolicyTermAction.h"
 #include "fboss/cli/fboss2/commands/config/protocol/static/CmdConfigProtocolStatic.h"
 #include "fboss/cli/fboss2/commands/config/protocol/static/route/add/CmdConfigProtocolStaticRouteAdd.h"
 #include "fboss/cli/fboss2/commands/config/ptp/CmdConfigPtp.h"
@@ -112,6 +117,9 @@
 #include "fboss/cli/fboss2/commands/delete/protocol/bgp/policy/CmdDeleteProtocolBgpPolicy.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/bgp/policy/as-path-list/CmdDeleteProtocolBgpPolicyAsPathList.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/bgp/policy/community-list/CmdDeleteProtocolBgpPolicyCommunityList.h"
+#include "fboss/cli/fboss2/commands/delete/protocol/bgp/policy/prefix-list/CmdDeleteProtocolBgpPolicyPrefixList.h"
+#include "fboss/cli/fboss2/commands/delete/protocol/bgp/policy/routing-policy/CmdDeleteProtocolBgpPolicyRoutingPolicy.h"
+#include "fboss/cli/fboss2/commands/delete/protocol/bgp/policy/routing-policy/term/CmdDeleteProtocolBgpPolicyRoutingPolicyTerm.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.h"
 #include "fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.h"
@@ -444,6 +452,73 @@ const CommandTree& kConfigCommandTree() {
                                    CmdConfigProtocolBgpPolicyCommunityList>,
                                argRegistrar<
                                    CmdConfigProtocolBgpPolicyCommunityListTraits>,
+                           },
+                           {
+                               "prefix-list",
+                               "Configure BGP prefix-list: <name> "
+                               "[<attribute> <value> ...] "
+                               "(boolean-operator, description, "
+                               "ip-version)",
+                               commandHandler<
+                                   CmdConfigProtocolBgpPolicyPrefixList>,
+                               argRegistrar<
+                                   CmdConfigProtocolBgpPolicyPrefixListTraits>,
+                               {{
+                                   "prefix",
+                                   "Configure a prefix-list entry: "
+                                   "<prefix/len> [<attribute> <value> ...] "
+                                   "(communities, description, match-logic, "
+                                   "max-allowed-subnet-count, "
+                                   "prefix-len-range, regex)",
+                                   commandHandler<
+                                       CmdConfigProtocolBgpPolicyPrefixListEntry>,
+                                   argRegistrar<
+                                       CmdConfigProtocolBgpPolicyPrefixListEntryTraits>,
+                               }},
+                           },
+                           {
+                               "routing-policy",
+                               "Configure BGP routing-policy: <name> "
+                               "[<attribute> <value> ...] "
+                               "(description)",
+                               commandHandler<
+                                   CmdConfigProtocolBgpPolicyRoutingPolicy>,
+                               argRegistrar<
+                                   CmdConfigProtocolBgpPolicyRoutingPolicyTraits>,
+                               {{
+                                   "term",
+                                   "Configure a routing-policy term: "
+                                   "<seq-num> [<attribute> <value> ...] "
+                                   "(description)",
+                                   commandHandler<
+                                       CmdConfigProtocolBgpPolicyRoutingPolicyTerm>,
+                                   argRegistrar<
+                                       CmdConfigProtocolBgpPolicyRoutingPolicyTermTraits>,
+                                   {{
+                                       "action",
+                                       "Configure a term action",
+                                       {{
+                                            "result",
+                                            "Set the term result: "
+                                            "<ACCEPT|REJECT|CONTINUE>",
+                                            commandHandler<
+                                                CmdConfigProtocolBgpPolicyRoutingPolicyTermActionResult>,
+                                            argRegistrar<
+                                                CmdConfigProtocolBgpPolicyRoutingPolicyTermActionResultTraits>,
+                                        },
+                                        {
+                                            "set",
+                                            "Set a route attribute: "
+                                            "as-path prepend|community|"
+                                            "local-pref|med|next-hop|"
+                                            "origin|weight <value> ...",
+                                            commandHandler<
+                                                CmdConfigProtocolBgpPolicyRoutingPolicyTermActionSet>,
+                                            argRegistrar<
+                                                CmdConfigProtocolBgpPolicyRoutingPolicyTermActionSetTraits>,
+                                        }},
+                                   }},
+                               }},
                            }},
                       },
                   },
@@ -808,6 +883,30 @@ const CommandTree& kConfigCommandTree() {
                              CmdDeleteProtocolBgpPolicyCommunityList>,
                          argRegistrar<
                              CmdDeleteProtocolBgpPolicyCommunityListTraits>,
+                     },
+                     {
+                         "prefix-list",
+                         "Delete a BGP prefix-list, or one of its "
+                         "entries: <name> [prefix <prefix/len>]",
+                         commandHandler<CmdDeleteProtocolBgpPolicyPrefixList>,
+                         argRegistrar<
+                             CmdDeleteProtocolBgpPolicyPrefixListTraits>,
+                     },
+                     {
+                         "routing-policy",
+                         "Delete a BGP routing-policy: <name>",
+                         commandHandler<
+                             CmdDeleteProtocolBgpPolicyRoutingPolicy>,
+                         argRegistrar<
+                             CmdDeleteProtocolBgpPolicyRoutingPolicyTraits>,
+                         {{
+                             "term",
+                             "Delete a routing-policy term: <seq-num>",
+                             commandHandler<
+                                 CmdDeleteProtocolBgpPolicyRoutingPolicyTerm>,
+                             argRegistrar<
+                                 CmdDeleteProtocolBgpPolicyRoutingPolicyTermTraits>,
+                         }},
                      }},
                 }},
            },

@@ -237,6 +237,22 @@ CmdConfigProtocolBgpPolicyCommunityList::queryClient(
     if (!args.attr().empty()) {
       result.message += fmt::format(" for community-list {}", args.listName());
     }
+    if (args.attr() == kBooleanOperator || args.attr() == kExactMatch) {
+      // bgpd requires a term's inline copy of the list to carry the same
+      // boolean_operator ("Conflicting boolean_operator from the reference")
+      // and reads exact_match only from that copy, so keep every match
+      // reference in step with the named list.
+      for (auto& ref :
+           bgpcli::findTermsReferencingCommunityList(cfg, args.listName())) {
+        if (ref.filter == nullptr) {
+          continue;
+        }
+        ref.filter->boolean_operator() = *list.boolean_operator();
+        if (list.exact_match().has_value()) {
+          ref.filter->exact_match() = *list.exact_match();
+        }
+      }
+    }
     session.saveBgpConfig();
     result.message +=
         fmt::format("\nConfig saved to: {}", session.getBgpSessionConfigPath());
