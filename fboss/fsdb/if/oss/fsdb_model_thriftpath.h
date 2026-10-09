@@ -3446,6 +3446,7 @@ class ChildThriftPath<::facebook::fboss::cfg::MirrorOnDropReport, ::facebook::fb
     STRUCT_CHILD_GETTERS(mirrorPort, 13);
     STRUCT_CHILD_GETTERS(samplingRate, 14);
     STRUCT_CHILD_GETTERS(dropPacketRateThreshold, 15);
+    STRUCT_CHILD_GETTERS(aggregateDropPacketRateThreshold, 16);
 };
 
 
@@ -9293,6 +9294,7 @@ class ChildThriftPath<::facebook::fboss::state::MirrorOnDropReportFields, ::face
     STRUCT_CHILD_GETTERS(resolvedEgressPort, 18);
     STRUCT_CHILD_GETTERS(samplingRate, 19);
     STRUCT_CHILD_GETTERS(dropPacketRateThreshold, 20);
+    STRUCT_CHILD_GETTERS(aggregateDropPacketRateThreshold, 21);
 };
 
 

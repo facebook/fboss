@@ -7265,7 +7265,8 @@ ThriftConfigApplier::createMirrorOnDropReport(
       *config->modEventToConfigMap(),
       *config->agingGroupAgingIntervalUsecs(),
       config->samplingRate().to_optional(),
-      config->dropPacketRateThreshold().to_optional());
+      config->dropPacketRateThreshold().to_optional(),
+      config->aggregateDropPacketRateThreshold().to_optional());
 }
 
 std::shared_ptr<MirrorOnDropReport>

@@ -152,6 +152,60 @@ TEST_F(MirrorOnDropReportTest, CreateReportV6) {
       100);
 }
 
+TEST_F(MirrorOnDropReportTest, RateThresholdsUnsetByDefault) {
+  config_.mirrorOnDropReports()->push_back(
+      makeReportCfg(kRecyclePortId, "2401::1"));
+
+  state_ = publishAndApplyConfig(
+      state_, &config_, platform_.get(), nullptr, &mockPlatformMapping_);
+
+  auto report = state_->getMirrorOnDropReports()->getNodeIf("mod-1");
+  ASSERT_NE(report, nullptr);
+  EXPECT_FALSE(report->getDropPacketRateThreshold().has_value());
+  EXPECT_FALSE(report->getAggregateDropPacketRateThreshold().has_value());
+}
+
+TEST_F(MirrorOnDropReportTest, RateThresholds) {
+  auto reportCfg = makeReportCfg(kRecyclePortId, "2401::1");
+  reportCfg.dropPacketRateThreshold() = 2000;
+  reportCfg.aggregateDropPacketRateThreshold() = 500;
+  config_.mirrorOnDropReports()->push_back(reportCfg);
+
+  state_ = publishAndApplyConfig(
+      state_, &config_, platform_.get(), nullptr, &mockPlatformMapping_);
+
+  auto report = state_->getMirrorOnDropReports()->getNodeIf("mod-1");
+  ASSERT_NE(report, nullptr);
+  EXPECT_EQ(report->getDropPacketRateThreshold(), 2000);
+  EXPECT_EQ(report->getAggregateDropPacketRateThreshold(), 500);
+
+  // Changing only the aggregate threshold must produce a new report.
+  config_.mirrorOnDropReports()->at(0).aggregateDropPacketRateThreshold() =
+      1000;
+  auto newState = publishAndApplyConfig(
+      state_, &config_, platform_.get(), nullptr, &mockPlatformMapping_);
+  ASSERT_NE(newState, nullptr);
+  auto newReport = newState->getMirrorOnDropReports()->getNodeIf("mod-1");
+  ASSERT_NE(newReport, nullptr);
+  EXPECT_EQ(newReport->getDropPacketRateThreshold(), 2000);
+  EXPECT_EQ(newReport->getAggregateDropPacketRateThreshold(), 1000);
+
+  // Removing the aggregate threshold from config must clear it in state.
+  config_.mirrorOnDropReports()
+      ->at(0)
+      .aggregateDropPacketRateThreshold()
+      .reset();
+  auto clearedState = publishAndApplyConfig(
+      newState, &config_, platform_.get(), nullptr, &mockPlatformMapping_);
+  ASSERT_NE(clearedState, nullptr);
+  auto clearedReport =
+      clearedState->getMirrorOnDropReports()->getNodeIf("mod-1");
+  ASSERT_NE(clearedReport, nullptr);
+  EXPECT_EQ(clearedReport->getDropPacketRateThreshold(), 2000);
+  EXPECT_FALSE(
+      clearedReport->getAggregateDropPacketRateThreshold().has_value());
+}
+
 TEST_F(MirrorOnDropReportTest, CreateReportByMirrorDestinationLogicalId) {
   cfg::MirrorDestination destination;
   destination.egressPort().ensure().set_logicalID(kRecyclePortId);

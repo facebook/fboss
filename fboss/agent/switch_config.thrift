@@ -483,6 +483,13 @@ struct MirrorOnDropReport {
    * discarded. If not set, no rate limiting is applied.
    */
   15: optional i32 dropPacketRateThreshold;
+  /*
+   * Optional packets-per-second cap on the combined MoD report rate across
+   * all drop reasons, applied after the per-reason dropPacketRateThreshold.
+   * Maps to SAI_TAM_REPORT_ATTR_MAX_REPORT_RATE on the MoD report. If not
+   * set, no aggregate cap is applied.
+   */
+  16: optional i32 aggregateDropPacketRateThreshold;
 }
 
 /**

@@ -455,6 +455,8 @@ struct MirrorOnDropReportFields {
   19: optional i32 samplingRate;
   // Optional packets-per-second rate cap for drop report generation
   20: optional i32 dropPacketRateThreshold;
+  // Optional packets-per-second cap on combined MoD reports across drop reasons
+  21: optional i32 aggregateDropPacketRateThreshold;
 }
 
 struct ControlPlaneFields {
