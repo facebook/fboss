@@ -1,6 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEeprom.h"
+#include "fboss/cli/fboss2/commands/show/interface/transceiver/eeprom/CmdShowInterfaceTransceiverEeprom.h"
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
@@ -13,7 +13,7 @@
 
 namespace facebook::fboss {
 
-std::string CmdShowTransceiverEeprom::formatHexDump(
+std::string CmdShowInterfaceTransceiverEeprom::formatHexDump(
     const uint8_t* data,
     int offset,
     size_t length) {
@@ -31,32 +31,31 @@ std::string CmdShowTransceiverEeprom::formatHexDump(
   return result;
 }
 
-CmdShowTransceiverEeprom::RetType CmdShowTransceiverEeprom::queryClient(
+CmdShowInterfaceTransceiverEeprom::RetType
+CmdShowInterfaceTransceiverEeprom::queryClient(
     const HostInfo& hostInfo,
-    const utils::PortList& /* queriedPorts */,
+    const utils::PortList& queriedIfs,
     const ObjectArgType& args) {
-  // Usage: show transceiver eeprom <port> <page> <offset> <length>
-  // All args come through the MESSAGE type: port, page, offset, length
-  if (args.size() < 4) {
-    return "Usage: show transceiver eeprom <port> <page> <offset> <length>\n"
+  if (queriedIfs.size() != 1 || args.size() != 3) {
+    return "Usage: show interface <port> transceiver eeprom <page> <offset> <length>\n"
            "  page:   EEPROM page number (hex 0x10 or decimal 16, -1 for lower page 0)\n"
            "  offset: byte offset within the page (0-255)\n"
            "  length: number of bytes to read (1-128)\n"
            "\nExamples:\n"
-           "  show transceiver eeprom eth1/18/5 -1 0 128      # Lower page 0\n"
-           "  show transceiver eeprom eth1/18/5 0x10 128 128   # Page 0x10 upper\n"
-           "  show transceiver eeprom eth1/18/5 0x11 128 128   # Page 0x11 upper\n";
+           "  show interface eth1/18/5 transceiver eeprom -1 0 128      # Lower page 0\n"
+           "  show interface eth1/18/5 transceiver eeprom 0x10 128 128   # Page 0x10 upper\n"
+           "  show interface eth1/18/5 transceiver eeprom 0x11 128 128   # Page 0x11 upper\n";
   }
 
-  const auto& portName = args[0];
+  const auto& portName = queriedIfs[0];
 
   // Parse page, offset, length - support both hex (0x prefix) and decimal
   int page, offset, length;
   try {
     // std::stoi with base 0 auto-detects decimal and hex (0x prefix)
-    page = std::stoi(args[1], nullptr, 0);
-    offset = std::stoi(args[2], nullptr, 0);
-    length = std::stoi(args[3], nullptr, 0);
+    page = std::stoi(args[0], nullptr, 0);
+    offset = std::stoi(args[1], nullptr, 0);
+    length = std::stoi(args[2], nullptr, 0);
   } catch (const std::exception& ex) {
     return fmt::format("Error: Invalid numeric argument: {}\n", ex.what());
   }
@@ -137,17 +136,18 @@ CmdShowTransceiverEeprom::RetType CmdShowTransceiverEeprom::queryClient(
   return output;
 }
 
-void CmdShowTransceiverEeprom::printOutput(
+void CmdShowInterfaceTransceiverEeprom::printOutput(
     const RetType& output,
     std::ostream& out) {
   out << output;
 }
 
-std::string_view CmdShowTransceiverEepromTraits::description() {
-  return "Reads and hex-dumps a contiguous byte range from a transceiver's EEPROM. Takes the port, a page (hex like 0x10 or decimal; -1 for the lower page), a byte offset within the page (0-255), and a length (1-128). Use it to inspect specific optic registers during low-level debugging.";
+std::string_view CmdShowInterfaceTransceiverEepromTraits::description() {
+  return "Reads and hex-dumps a contiguous byte range from the EEPROM of the transceiver on the given interface. Takes a page (hex like 0x10 or decimal; -1 for the lower page), a byte offset within the page (0-255), and a length (1-128). Use it to inspect specific optic registers during low-level debugging.";
 }
 
-CmdShowTransceiverEeprom::RetType CmdShowTransceiverEeprom::sampleModel() {
+CmdShowInterfaceTransceiverEeprom::RetType
+CmdShowInterfaceTransceiverEeprom::sampleModel() {
   return R"(Port: eth1/1/1
 Transceiver ID: 0
 Page: lower  Offset: 0  Length: 128
@@ -164,7 +164,8 @@ Page: lower  Offset: 0  Length: 128
 }
 
 // Explicit template instantiation
-template void
-CmdHandler<CmdShowTransceiverEeprom, CmdShowTransceiverEepromTraits>::run();
+template void CmdHandler<
+    CmdShowInterfaceTransceiverEeprom,
+    CmdShowInterfaceTransceiverEepromTraits>::run();
 
 } // namespace facebook::fboss

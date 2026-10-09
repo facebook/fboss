@@ -3,7 +3,7 @@
 #pragma once
 
 #include "fboss/cli/fboss2/CmdHandler.h"
-#include "fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEeprom.h"
+#include "fboss/cli/fboss2/commands/show/interface/transceiver/eeprom/CmdShowInterfaceTransceiverEeprom.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 #include <cstdint>
@@ -12,27 +12,28 @@
 
 namespace facebook::fboss {
 
-struct CmdShowTransceiverEepromDumpTraits : public ReadCommandTraits,
-                                            public CliDocsExempt {
-  using ParentCmd = CmdShowTransceiverEeprom;
+struct CmdShowInterfaceTransceiverEepromDumpTraits : public ReadCommandTraits,
+                                                     public CliDocsExempt {
+  using ParentCmd = CmdShowInterfaceTransceiverEeprom;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
-  using ObjectArgType = utils::PortList;
+      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
+  using ObjectArgType = std::monostate;
   using RetType = std::string;
 };
 
-class CmdShowTransceiverEepromDump : public CmdHandler<
-                                         CmdShowTransceiverEepromDump,
-                                         CmdShowTransceiverEepromDumpTraits> {
+class CmdShowInterfaceTransceiverEepromDump
+    : public CmdHandler<
+          CmdShowInterfaceTransceiverEepromDump,
+          CmdShowInterfaceTransceiverEepromDumpTraits> {
  public:
-  using ObjectArgType = CmdShowTransceiverEepromDumpTraits::ObjectArgType;
-  using RetType = CmdShowTransceiverEepromDumpTraits::RetType;
+  using ObjectArgType =
+      CmdShowInterfaceTransceiverEepromDumpTraits::ObjectArgType;
+  using RetType = CmdShowInterfaceTransceiverEepromDumpTraits::RetType;
 
   RetType queryClient(
       const HostInfo& hostInfo,
-      const utils::PortList& transceiverPorts,
-      const utils::Message& eepromArgs,
-      const ObjectArgType& queriedPorts);
+      const utils::PortList& queriedIfs,
+      const utils::Message& eepromArgs);
 
   void printOutput(const RetType& output, std::ostream& out = std::cout);
 

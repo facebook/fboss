@@ -3,7 +3,7 @@
 #pragma once
 
 #include "fboss/cli/fboss2/CmdHandler.h"
-#include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
+#include "fboss/cli/fboss2/commands/show/interface/transceiver/CmdShowInterfaceTransceiver.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 #include <cstdint>
@@ -13,8 +13,8 @@
 
 namespace facebook::fboss {
 
-struct CmdShowTransceiverEepromTraits : public ReadCommandTraits {
-  using ParentCmd = CmdShowTransceiver;
+struct CmdShowInterfaceTransceiverEepromTraits : public ReadCommandTraits {
+  using ParentCmd = CmdShowInterfaceTransceiver;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MESSAGE;
   using ObjectArgType = utils::Message; // page, offset, length
@@ -23,16 +23,17 @@ struct CmdShowTransceiverEepromTraits : public ReadCommandTraits {
   static std::string_view description();
 };
 
-class CmdShowTransceiverEeprom : public CmdHandler<
-                                     CmdShowTransceiverEeprom,
-                                     CmdShowTransceiverEepromTraits> {
+class CmdShowInterfaceTransceiverEeprom
+    : public CmdHandler<
+          CmdShowInterfaceTransceiverEeprom,
+          CmdShowInterfaceTransceiverEepromTraits> {
  public:
-  using ObjectArgType = CmdShowTransceiverEepromTraits::ObjectArgType;
-  using RetType = CmdShowTransceiverEepromTraits::RetType;
+  using ObjectArgType = CmdShowInterfaceTransceiverEepromTraits::ObjectArgType;
+  using RetType = CmdShowInterfaceTransceiverEepromTraits::RetType;
 
   RetType queryClient(
       const HostInfo& hostInfo,
-      const utils::PortList& queriedPorts,
+      const utils::PortList& queriedIfs,
       const ObjectArgType& args);
 
   void printOutput(const RetType& output, std::ostream& out = std::cout);

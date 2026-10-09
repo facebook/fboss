@@ -1,6 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEepromDump.h"
+#include "fboss/cli/fboss2/commands/show/interface/transceiver/eeprom/CmdShowInterfaceTransceiverEepromDump.h"
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
@@ -53,15 +53,15 @@ std::string identifierToString(uint8_t identifier) {
 
 } // namespace
 
-std::vector<CmdShowTransceiverEepromDump::PageReadConfig>
-CmdShowTransceiverEepromDump::getCmisPages() {
+std::vector<CmdShowInterfaceTransceiverEepromDump::PageReadConfig>
+CmdShowInterfaceTransceiverEepromDump::getCmisPages() {
   return {
       {"Page 0x00 Lower (bytes 0-127) - Module state, faults, temp, voltage, LOS/LOL flags",
        -1,
        0,
        128},
       {"Page 0x00 Upper (bytes 128-255) - Cable identity (vendor, PN, SN, date code)",
-       -1,
+       0x00,
        128,
        128},
       {"Page 0x02 (bytes 128-255) - Module-rated thresholds (temp, voltage, bias, power)",
@@ -87,16 +87,16 @@ CmdShowTransceiverEepromDump::getCmisPages() {
   };
 }
 
-std::vector<CmdShowTransceiverEepromDump::PageReadConfig>
-CmdShowTransceiverEepromDump::getSff8636Pages() {
+std::vector<CmdShowInterfaceTransceiverEepromDump::PageReadConfig>
+CmdShowInterfaceTransceiverEepromDump::getSff8636Pages() {
   return {
       {"Page 0x00 Lower (bytes 0-127)", -1, 0, 128},
-      {"Page 0x00 Upper (bytes 128-255)", -1, 128, 128},
+      {"Page 0x00 Upper (bytes 128-255)", 0x00, 128, 128},
       {"Page 0x03 (bytes 128-255)", 0x03, 128, 128},
   };
 }
 
-std::string CmdShowTransceiverEepromDump::formatHexDump(
+std::string CmdShowInterfaceTransceiverEepromDump::formatHexDump(
     const uint8_t* data,
     int offset,
     size_t length) {
@@ -114,16 +114,16 @@ std::string CmdShowTransceiverEepromDump::formatHexDump(
   return result;
 }
 
-CmdShowTransceiverEepromDump::RetType CmdShowTransceiverEepromDump::queryClient(
+CmdShowInterfaceTransceiverEepromDump::RetType
+CmdShowInterfaceTransceiverEepromDump::queryClient(
     const HostInfo& hostInfo,
-    const utils::PortList& /* transceiverPorts */,
-    const utils::Message& /* eepromArgs */,
-    const ObjectArgType& queriedPorts) {
-  if (queriedPorts.empty()) {
-    return "Error: No port specified\n";
+    const utils::PortList& queriedIfs,
+    const utils::Message& /* eepromArgs */) {
+  if (queriedIfs.size() != 1) {
+    return "Usage: show interface <port> transceiver eeprom dump\n";
   }
 
-  const auto& portName = queriedPorts[0];
+  const auto& portName = queriedIfs[0];
 
   // Create thrift clients
   auto agent = utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
@@ -240,7 +240,7 @@ CmdShowTransceiverEepromDump::RetType CmdShowTransceiverEepromDump::queryClient(
   return output;
 }
 
-void CmdShowTransceiverEepromDump::printOutput(
+void CmdShowInterfaceTransceiverEepromDump::printOutput(
     const RetType& output,
     std::ostream& out) {
   out << output;
@@ -248,7 +248,7 @@ void CmdShowTransceiverEepromDump::printOutput(
 
 // Explicit template instantiation
 template void CmdHandler<
-    CmdShowTransceiverEepromDump,
-    CmdShowTransceiverEepromDumpTraits>::run();
+    CmdShowInterfaceTransceiverEepromDump,
+    CmdShowInterfaceTransceiverEepromDumpTraits>::run();
 
 } // namespace facebook::fboss
