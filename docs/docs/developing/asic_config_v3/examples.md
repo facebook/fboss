@@ -138,7 +138,8 @@ The following steps complete the platform.
    on `multistage_role`, as applicable.
 4. Validate, generate, and compare the output against the platform's
    reference in `fboss/lib/asic_config_v2/synced_asic_configs/`. The output
-   appears beside the input as `generated/<name>_<variant>.json`.
+   appears beside the input as `generated/<name>_<variant>.json` and must
+   match the reference as a parsed document, ignoring object key order.
 
 ## Adding a variant
 
