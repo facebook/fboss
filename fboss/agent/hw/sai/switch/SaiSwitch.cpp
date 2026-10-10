@@ -5429,6 +5429,11 @@ std::string SaiSwitch::listObjects(
       case HwObjectType::SAMPLE_PACKET:
         objTypes.push_back(SAI_OBJECT_TYPE_SAMPLEPACKET);
         break;
+      case HwObjectType::MY_MAC:
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+        objTypes.push_back(SAI_OBJECT_TYPE_MY_MAC);
+#endif
+        break;
     }
   }
   FineGrainedLockPolicy policy(saiSwitchMutex_);

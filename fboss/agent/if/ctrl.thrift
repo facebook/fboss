@@ -787,6 +787,7 @@ enum HwObjectType {
   SRV6 = 27,
   NEXT_HOP_GROUP_MEMBER = 28,
   SAMPLE_PACKET = 29,
+  MY_MAC = 30,
 }
 
 exception FbossFibUpdateError {
