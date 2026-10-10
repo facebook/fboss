@@ -1038,6 +1038,10 @@ class HwAsic {
 
   virtual bool portMtuSupported(cfg::PortType portType) const;
 
+  virtual cfg::L2LearningMode getDefaultL2LearningMode() const {
+    return cfg::L2LearningMode::HARDWARE;
+  }
+
  protected:
   static cfg::Range64 makeRange(int64_t min, int64_t max);
 

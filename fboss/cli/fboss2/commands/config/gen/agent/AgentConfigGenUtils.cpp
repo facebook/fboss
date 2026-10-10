@@ -609,6 +609,13 @@ cfg::SwitchConfig generateSwitchConfig(
   if (!asic) {
     throw FbossError("Unable to construct HwAsic from switch settings");
   }
+  // TODO(@joseph5wu) Only update the l2LearningMode for `default` profile. Once
+  // FBOSS Agent team finishes migrating test config to use Software mode for
+  // TH4/5/6, we can remove the profile limitation here
+  if (inputs.profile == kDefaultProfileName) {
+    switchSettings.l2LearningMode() = asic->getDefaultL2LearningMode();
+  }
+
   cfg::SwitchConfig switchConfig;
   switchConfig.switchSettings() = std::move(switchSettings);
   utility::setupDefaultAclTableGroups(switchConfig, *asic);
