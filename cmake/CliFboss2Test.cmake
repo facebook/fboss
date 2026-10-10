@@ -81,6 +81,7 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/CmdShowInterfacePrbsTest.cpp
   fboss/cli/fboss2/test/CmdShowMacDetailsTest.cpp
   fboss/cli/fboss2/test/CmdShowMirrorTest.cpp
+  fboss/cli/fboss2/test/CmdShowMyMacTest.cpp
   fboss/cli/fboss2/test/CmdShowMySidTest.cpp
   fboss/cli/fboss2/test/CmdShowNextHopGroupsTest.cpp
   fboss/cli/fboss2/test/CmdShowPortTest.cpp

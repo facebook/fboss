@@ -200,6 +200,7 @@ cpp_unittest(
         "CmdShowLldpTest.cpp",
         "CmdShowMacDetailsTest.cpp",
         "CmdShowMirrorTest.cpp",
+        "CmdShowMyMacTest.cpp",
         "CmdShowMySidTest.cpp",
         "CmdShowNamedNextHopGroupsTest.cpp",
         "CmdShowNdpTest.cpp",

@@ -62,6 +62,7 @@ class MockFbossCtrlAgent : public apache::thrift::ServiceHandler<FbossCtrl> {
   MOCK_METHOD(void, reloadConfig, ());
   MOCK_METHOD(void, getAclTableGroup, (AclTableThrift&));
   MOCK_METHOD(void, getNdpTable, (std::vector<NdpEntryThrift>&));
+  MOCK_METHOD(void, getMyMacs, (std::vector<cfg::MacAndVlan>&));
 
   MOCK_METHOD(
       void,
