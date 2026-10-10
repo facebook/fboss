@@ -95,6 +95,13 @@ TEST(FeatureDefaultCommandArgsConfigTest, ResolvesCheckedInAgentPolicy) {
           .absentArgs = {"enable_replayer", "multi_switch"},
       },
       {
+          .description = "Chenab hardware-test profile",
+          .profile = "hw_test",
+          .asicType = cfg::AsicType::ASIC_TYPE_CHENAB,
+          .platformType = PlatformType::PLATFORM_MINIPACK3N,
+          .expectedArgs = {{"sai_user_defined_trap", "true"}},
+      },
+      {
           .description = "legacy LED platform default profile",
           .profile = "default",
           .asicType = cfg::AsicType::ASIC_TYPE_TOMAHAWK4,

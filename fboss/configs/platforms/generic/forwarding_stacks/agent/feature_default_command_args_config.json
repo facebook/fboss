@@ -252,7 +252,7 @@
         "srv6": "true"
       }
     },
-    "platform_descriptor_registry": {
+    "platform_descriptor_registry_for_testing": {
       "args": {
         "platform_descriptor_config_path": "/tmp/platform_descriptors/"
       },
@@ -273,7 +273,7 @@
         }
       }
     },
-    "platform_descriptor_registry_for_default": {
+    "platform_descriptor_registry": {
       "args": {
         "platform_descriptor_config_path": "/opt/fboss/share/platform_descriptors/"
       },
@@ -313,7 +313,7 @@
         }
       }
     },
-    "sai_user_defined_trap": {
+    "sai_user_defined_trap_for_testing": {
       "args": {
         "sai_user_defined_trap": "true"
       },
@@ -325,6 +325,27 @@
         },
         "asicTypes": {
           "included": [
+            "ASIC_TYPE_CHENAB"
+          ]
+        }
+      }
+    },
+    "sai_user_defined_trap": {
+      "args": {
+        "sai_user_defined_trap": "true"
+      },
+      "autoEnableWhen": {
+        "configProfiles": {
+          "included": [
+            "default"
+          ]
+        },
+        "asicTypes": {
+          "included": [
+            "ASIC_TYPE_TOMAHAWK",
+            "ASIC_TYPE_TOMAHAWK3",
+            "ASIC_TYPE_TOMAHAWK4",
+            "ASIC_TYPE_TOMAHAWK5",
             "ASIC_TYPE_CHENAB"
           ]
         }
