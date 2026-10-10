@@ -14147,6 +14147,9 @@
           "test_name_regex": "AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic$"
         },
         {
+          "test_name_regex": "AgentMirrorOnDropMtuTest.MtuTrapStillWorks$"
+        },
+        {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
         },
         {
