@@ -1,5 +1,10 @@
 {
   "profileDefaultArgs": {
+    "default": {
+      "enable_replayer": "true",
+      "multi_switch": "true",
+      "use_full_dlb_scale": "true"
+    },
     "hw_test": {
       "check_wb_handles": "true",
       "counter_refresh_interval": "0",
@@ -20,6 +25,7 @@
       "autoEnableWhen": {
         "configProfiles": {
           "included": [
+            "default",
             "hw_test"
           ]
         },
@@ -34,11 +40,6 @@
             "ASIC_TYPE_TOMAHAWKULTRA1"
           ]
         }
-      }
-    },
-    "multi_switch": {
-      "args": {
-        "multi_switch": "true"
       }
     },
     "set_classid_for_my_subnet_and_ip_routes": {
@@ -90,6 +91,7 @@
       "autoEnableWhen": {
         "configProfiles": {
           "included": [
+            "default",
             "hw_test"
           ]
         },
@@ -97,6 +99,45 @@
           "excluded": [
             "ASIC_TYPE_EBRO",
             "ASIC_TYPE_RAMON3"
+          ]
+        }
+      }
+    },
+    "led_controlled_by_led_service": {
+      "args": {
+        "led_controlled_through_led_service": "true"
+      },
+      "autoEnableWhen": {
+        "configProfiles": {
+          "included": [
+            "default"
+          ]
+        },
+        "platforms": {
+          "excluded": [
+            "PLATFORM_WEDGE",
+            "PLATFORM_WEDGE100",
+            "PLATFORM_GALAXY_LC",
+            "PLATFORM_GALAXY_FC",
+            "PLATFORM_MINIPACK",
+            "PLATFORM_YAMP",
+            "PLATFORM_WEDGE400",
+            "PLATFORM_WEDGE400_GRANDTETON",
+            "PLATFORM_WEDGE400C",
+            "PLATFORM_WEDGE400C_VOQ",
+            "PLATFORM_WEDGE400C_FABRIC",
+            "PLATFORM_WEDGE400C_GRANDTETON",
+            "PLATFORM_FUJI",
+            "PLATFORM_ELBERT",
+            "PLATFORM_CLOUDRIPPER_DEPRECATED",
+            "PLATFORM_CLOUDRIPPER_VOQ_DEPRECATED",
+            "PLATFORM_CLOUDRIPPER_FABRIC_DEPRECATED",
+            "PLATFORM_DARWIN",
+            "PLATFORM_DARWIN48V",
+            "PLATFORM_LASSEN_DEPRECATED",
+            "PLATFORM_SANDIA",
+            "PLATFORM_MERU400BFU_DEPRECATED",
+            "PLATFORM_MERU400BIU_DEPRECATED"
           ]
         }
       }
@@ -232,6 +273,27 @@
         }
       }
     },
+    "platform_descriptor_registry_for_default": {
+      "args": {
+        "platform_descriptor_config_path": "/opt/fboss/share/platform_descriptors/"
+      },
+      "autoEnableWhen": {
+        "configProfiles": {
+          "included": [
+            "default"
+          ]
+        },
+        "platforms": {
+          "included": [
+            "PLATFORM_WEDGE800BACT",
+            "PLATFORM_WEDGE800CACT",
+            "PLATFORM_WEDGE800BNHP",
+            "PLATFORM_WEDGE800CNHP",
+            "PLATFORM_M5120CSC"
+          ]
+        }
+      }
+    },
     "use_raw_platform_mapping": {
       "args": {
         "use_raw_platform_mapping": "true"
@@ -239,7 +301,8 @@
       "autoEnableWhen": {
         "configProfiles": {
           "included": [
-            "hw_test"
+            "hw_test",
+            "default"
           ]
         },
         "platforms": {

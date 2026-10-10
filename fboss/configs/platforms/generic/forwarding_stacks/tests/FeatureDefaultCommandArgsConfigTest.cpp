@@ -2,6 +2,9 @@
 
 #include <filesystem>
 #include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
 #include <folly/FileUtil.h>
 #include <gtest/gtest.h>
@@ -26,10 +29,19 @@ std::string readFile(const fs::path& path) {
   return contents;
 }
 
-TEST(FeatureDefaultCommandArgsConfigTest, LoadsAllCheckedInConfigs) {
-  const auto configRoot = build::getResourcePathStd(
+fs::path getConfigRoot() {
+  return build::getResourcePathStd(
       "fboss/configs/platforms/generic/forwarding_stacks/tests/"
       "feature_default_command_args_configs");
+}
+
+FeatureDefaultCommandArgsConfig loadCheckedInAgentConfig() {
+  return parseFeatureDefaultCommandArgsConfig(
+      readFile(getConfigRoot() / "agent" / std::string(kConfigFileName)));
+}
+
+TEST(FeatureDefaultCommandArgsConfigTest, LoadsAllCheckedInConfigs) {
+  const auto configRoot = getConfigRoot();
   size_t configCount = 0;
   for (const auto& entry : fs::recursive_directory_iterator(configRoot)) {
     if (!entry.is_regular_file() ||
@@ -42,6 +54,72 @@ TEST(FeatureDefaultCommandArgsConfigTest, LoadsAllCheckedInConfigs) {
         << entry.path();
   }
   EXPECT_GT(configCount, 0);
+}
+
+TEST(FeatureDefaultCommandArgsConfigTest, ResolvesCheckedInAgentPolicy) {
+  struct Expectation {
+    std::string_view description;
+    std::string_view profile;
+    cfg::AsicType asicType;
+    PlatformType platformType;
+    std::vector<std::pair<std::string_view, std::string_view>> expectedArgs;
+    std::vector<std::string_view> absentArgs;
+  };
+  const std::vector<Expectation> expectations{
+      {
+          .description = "TH5 default profile",
+          .profile = "default",
+          .asicType = cfg::AsicType::ASIC_TYPE_TOMAHAWK5,
+          .platformType = PlatformType::PLATFORM_WEDGE800BACT,
+          .expectedArgs =
+              {
+                  {"enable_acl_table_group", "true"},
+                  {"enable_replayer", "true"},
+                  {"led_controlled_through_led_service", "true"},
+                  {"multi_switch", "true"},
+                  {"platform_descriptor_config_path",
+                   "/opt/fboss/share/platform_descriptors/"},
+                  {"sai_configure_six_tap", "true"},
+                  {"use_full_dlb_scale", "true"},
+              },
+          .absentArgs = {"multi_npu_platform_mapping"},
+      },
+      {
+          .description = "hardware-test profile",
+          .profile = "hw_test",
+          .asicType = cfg::AsicType::ASIC_TYPE_TOMAHAWK5,
+          .platformType = PlatformType::PLATFORM_WEDGE800BACT,
+          .expectedArgs =
+              {{"platform_descriptor_config_path",
+                "/tmp/platform_descriptors/"}},
+          .absentArgs = {"enable_replayer", "multi_switch"},
+      },
+      {
+          .description = "legacy LED platform default profile",
+          .profile = "default",
+          .asicType = cfg::AsicType::ASIC_TYPE_TOMAHAWK4,
+          .platformType = PlatformType::PLATFORM_WEDGE400C,
+          .absentArgs = {"led_controlled_through_led_service"},
+      },
+  };
+  const auto config = loadCheckedInAgentConfig();
+
+  for (const auto& expectation : expectations) {
+    SCOPED_TRACE(expectation.description);
+    const auto args = resolveFeatureDefaultCommandArgs(
+        config,
+        expectation.profile,
+        expectation.asicType,
+        expectation.platformType);
+    for (const auto& [name, expectedValue] : expectation.expectedArgs) {
+      const auto it = args.find(std::string(name));
+      ASSERT_NE(it, args.end()) << name;
+      EXPECT_EQ(it->second, expectedValue) << name;
+    }
+    for (const auto name : expectation.absentArgs) {
+      EXPECT_FALSE(args.contains(std::string(name))) << name;
+    }
+  }
 }
 
 TEST(FeatureDefaultCommandArgsConfigTest, RejectsInvalidFieldType) {
