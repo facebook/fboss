@@ -265,6 +265,14 @@
                         "generate_phb_control": {
                             "type": "boolean",
                             "description": "When true, emits the PHB_CONTROL output table from the ASIC phb_control_defaults block."
+                        },
+                        "enable_sai_managed_udf_groups": {
+                            "type": "boolean",
+                            "description": "When true, disables Broadcom SDK internal UDF groups so FBOSS can manage UDF objects through SAI."
+                        },
+                        "enable_large_ecmp_member_capacity": {
+                            "type": "boolean",
+                            "description": "When true, enables a platform-defined conditional setting that increases ECMP member capacity."
                         }
                     }
                 },
