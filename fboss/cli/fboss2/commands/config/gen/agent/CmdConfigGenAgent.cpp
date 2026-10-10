@@ -14,11 +14,13 @@
 #include <iostream>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include <folly/FileUtil.h>
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/cli/fboss2/CmdHandler.cpp"
+#include "fboss/cli/fboss2/commands/config/gen/ConfigGenerationUtils.h"
 #include "fboss/cli/fboss2/commands/config/gen/agent/AgentConfigComparisonUtils.h"
 #include "fboss/cli/fboss2/commands/config/gen/agent/AgentConfigGenUtils.h"
 
@@ -63,6 +65,33 @@ std::string formatComparisonResult(
   return output;
 }
 
+void rejectManifestModeOptions(
+    const std::vector<std::pair<std::string_view, std::string_view>>& options) {
+  std::string invalidOptions;
+  for (const auto& [name, value] : options) {
+    if (value.empty()) {
+      continue;
+    }
+    if (!invalidOptions.empty()) {
+      invalidOptions += ", ";
+    }
+    invalidOptions += name;
+  }
+  if (!invalidOptions.empty()) {
+    throw FbossError(
+        "The following options require --platform: ", invalidOptions);
+  }
+}
+
+std::string formatGeneratedPaths(
+    const std::vector<std::filesystem::path>& outputPaths) {
+  std::string output = "Generated Agent configurations:";
+  for (const auto& outputPath : outputPaths) {
+    output += "\n  " + outputPath.string();
+  }
+  return output;
+}
+
 } // namespace
 
 CmdConfigGenAgent::RetType CmdConfigGenAgent::queryClient(
@@ -82,6 +111,22 @@ CmdConfigGenAgent::RetType CmdConfigGenAgent::queryClient(
       std::string(kConfigGenAgentCommand), kConfigGenAgentReferenceConfigFile);
   auto outputDirectory = options->getLocalOption(
       std::string(kConfigGenAgentCommand), kConfigGenAgentOutputDirectory);
+
+  if (platform.empty()) {
+    // Manifest entries own target selection and canonical output paths. Reject
+    // single-target overrides instead of silently ignoring them.
+    rejectManifestModeOptions(
+        {{kConfigGenAgentProfile, profile},
+         {kConfigGenAgentAsicConfigFile, asicConfigFile},
+         {kConfigGenAgentAsicConfigType, asicConfigType},
+         {kConfigGenAgentReferenceConfigFile, referenceConfigFile},
+         {kConfigGenAgentOutputDirectory, outputDirectory}});
+    return formatGeneratedPaths(
+        configgen::generateConfigsFromManifest(
+            fbossRoot,
+            configgen::ServiceType::AGENT,
+            configgen::generateAgentConfigForManifest));
+  }
 
   std::optional<std::filesystem::path> asicConfigFilePath;
   if (!asicConfigFile.empty()) {

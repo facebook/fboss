@@ -35,7 +35,8 @@ struct CmdConfigGenAgentTraits : public WriteCommandTraits {
   using ObjectArgType = std::monostate;
   using RetType = std::string;
   std::vector<utils::LocalOption> LocalOptions = {
-      {kConfigGenAgentPlatform, "Target platform [required]"},
+      {kConfigGenAgentPlatform,
+       "Target platform; omit to generate every manifest target"},
       {kConfigGenAgentProfile, "ASIC configuration profile [default: default]"},
       {kConfigGenAgentFbossRoot, "Path to the fboss source root [required]"},
       {kConfigGenAgentAsicConfigFile,
@@ -59,7 +60,7 @@ class CmdConfigGenAgent
  public:
   using RetType = CmdConfigGenAgentTraits::RetType;
 
-  // Reads the command options and returns the path of the generated agent.conf.
+  // Reads the command options and returns the generated configuration paths.
   RetType queryClient(const HostInfo& hostInfo);
 
   // Prints the generated configuration path for the caller.

@@ -1106,11 +1106,13 @@ cpp_library(
 cpp_library(
     name = "fboss2-config-gen-lib",
     srcs = [
+        "commands/config/gen/ConfigGenerationUtils.cpp",
         "commands/config/gen/PlatformConfigPathUtils.cpp",
         "commands/config/gen/agent/AgentConfigComparisonUtils.cpp",
         "commands/config/gen/agent/AgentConfigGenUtils.cpp",
     ],
     headers = [
+        "commands/config/gen/ConfigGenerationUtils.h",
         "commands/config/gen/PlatformConfigPathUtils.h",
         "commands/config/gen/agent/AgentConfigComparisonUtils.h",
         "commands/config/gen/agent/AgentConfigGenUtils.h",
@@ -1120,12 +1122,13 @@ cpp_library(
         ":fboss2-config-file-utils",
         "//fboss/agent:fboss-error",
         "//fboss/agent/hw/switch_asics:switch_asics",
-        "//fboss/configs/platforms/generic/forwarding_stack/utils:config_generation_utils",  # @manual
+        "//fboss/configs/platforms/generic/forwarding_stack/utils:config_generation_utils",
         "//fboss/lib/config:fboss_agent_config_utils",
         "//fboss/lib/config:fboss_config_utils",
         "//fboss/lib/platforms:platform_descriptor",
         "//fboss/lib/platforms:platform_mapping_utils",
         "//folly:file_util",
+        "//folly:string",
         "//folly/json:dynamic",
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
@@ -1134,6 +1137,8 @@ cpp_library(
     exported_deps = [
         "//fboss/agent:agent_config-cpp2-types",
         "//fboss/agent/platforms/common:platform_mapping",
+        "//fboss/configs/platforms/generic/forwarding_stack:config_generation-cpp2-types",
+        "//fboss/lib/if:fboss_common-cpp2-types",
         "//fboss/lib/platforms:platform_descriptor_thrift-cpp2-types",
     ],
 )

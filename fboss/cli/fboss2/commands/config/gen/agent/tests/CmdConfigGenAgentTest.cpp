@@ -30,6 +30,7 @@
 #include "fboss/cli/fboss2/CmdList.h"
 #include "fboss/cli/fboss2/CmdLocalOptions.h"
 #include "fboss/cli/fboss2/CmdSubcommands.h"
+#include "fboss/cli/fboss2/commands/config/gen/ConfigGenerationUtils.h"
 #include "fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.h"
 #include "fboss/cli/fboss2/utils/CLIParserUtils.h"
 #include "fboss/configs/platforms/generic/forwarding_stack/utils/FeatureDefaultCommandArgsUtils.h" // @manual=//fboss/configs/platforms/generic/forwarding_stack/utils:config_generation_utils
@@ -99,11 +100,14 @@ void writePortAssignments(
           std::to_string(static_cast<int>(portType)) + ",\"scope\":0}}}\n");
 }
 
-void writePlatformDescriptor(const fs::path& path, int16_t numSwitchAsics) {
+void writePlatformDescriptor(
+    const fs::path& path,
+    int16_t numSwitchAsics,
+    std::string_view platform = kPlatform) {
   PlatformDescriptor descriptor;
   descriptor.platformType() = PlatformType::PLATFORM_WEDGE800BACT;
   descriptor.productNamePrefixes() = {"TestPlatform"};
-  descriptor.modeNames() = {std::string(kPlatform)};
+  descriptor.modeNames() = {std::string(platform)};
   descriptor.asicType() = cfg::AsicType::ASIC_TYPE_TOMAHAWK5;
   descriptor.numSwitchAsics() = numSwitchAsics;
   writeTestFile(
@@ -357,8 +361,17 @@ fs::path createTestPlatform(
   writeRawPlatformMapping(
       generatedMappingDirectory / "raw_platform_mapping.json", kPortName);
   writePlatformDescriptor(
-      generatedMappingDirectory / "platform_descriptor.json", 1);
+      generatedMappingDirectory / "platform_descriptor.json", 1, platform);
   return asicConfigDirectory.parent_path();
+}
+
+void writeConfigGenerationManifest(
+    const fs::path& fbossRoot,
+    std::string_view contents) {
+  writeTestFile(
+      fbossRoot / "configs" / "platforms" / "generic" / "forwarding_stack" /
+          "config_generation_manifest.json",
+      contents);
 }
 
 std::string readFile(const fs::path& path) {
@@ -1217,6 +1230,57 @@ TEST(AgentConfigGenTest, DoesNotOverwriteExistingConfig) {
           readFile(outputPath), config));
 }
 
+TEST(AgentConfigGenTest, GeneratesAndRefreshesManifestOutputs) {
+  folly::test::TemporaryDirectory sourceDirectory;
+  const auto fbossRoot = fs::path(sourceDirectory.path().string()) / "fboss";
+  constexpr std::string_view kManifestPlatform = "wedge800bact";
+  const auto platformDirectory =
+      createTestPlatform(fbossRoot, "test_vendor", kManifestPlatform);
+  writeConfigGenerationManifest(
+      fbossRoot,
+      R"({"targets":[{"platform":"PLATFORM_WEDGE800BACT","serviceToOptions":{"AGENT":[{"profile":"DEFAULT"},{"profile":"HW_TEST"}]}}]})");
+
+  const std::vector<fs::path> expectedPaths{
+      platformDirectory / "forwarding_stack" / "generated" / "agent" /
+          "default.conf",
+      platformDirectory / "forwarding_stack" / "generated" / "agent" /
+          "hw_test.conf"};
+  EXPECT_EQ(
+      generateConfigsFromManifest(
+          fbossRoot, ServiceType::AGENT, generateAgentConfigForManifest),
+      expectedPaths);
+  for (const auto& path : expectedPaths) {
+    cfg::AgentConfig config;
+    EXPECT_NO_THROW(
+        apache::thrift::SimpleJSONSerializer::deserialize(
+            readFile(path), config));
+  }
+
+  writeTestFile(expectedPaths.front(), "stale\n");
+  EXPECT_EQ(
+      generateConfigsFromManifest(
+          fbossRoot, ServiceType::AGENT, generateAgentConfigForManifest),
+      expectedPaths);
+  EXPECT_NE(readFile(expectedPaths.front()), "stale\n");
+}
+
+TEST(AgentConfigGenTest, DoesNotPartiallyWriteManifestOutputs) {
+  folly::test::TemporaryDirectory sourceDirectory;
+  const auto fbossRoot = fs::path(sourceDirectory.path().string()) / "fboss";
+  constexpr std::string_view kManifestPlatform = "wedge800bact";
+  const auto platformDirectory =
+      createTestPlatform(fbossRoot, "test_vendor", kManifestPlatform);
+  writeConfigGenerationManifest(
+      fbossRoot,
+      R"({"targets":[{"platform":"PLATFORM_WEDGE800BACT","serviceToOptions":{"AGENT":[{"profile":"HW_TEST"}]}},{"platform":"PLATFORM_MONTBLANC","serviceToOptions":{"AGENT":[{"profile":"DEFAULT"}]}}]})");
+
+  EXPECT_THROW(
+      generateConfigsFromManifest(
+          fbossRoot, ServiceType::AGENT, generateAgentConfigForManifest),
+      FbossError);
+  EXPECT_FALSE(fs::exists(platformDirectory / "forwarding_stack"));
+}
+
 TEST(AgentConfigGenTest, RejectsUnknownPlatformOrProfile) {
   folly::test::TemporaryDirectory sourceDirectory;
   folly::test::TemporaryDirectory outputDirectory;
@@ -1256,6 +1320,27 @@ TEST(CmdConfigGenAgentTest, RegistersAgentCommand) {
   auto* gen = utils::getSubcommandIf(*config, "gen");
   ASSERT_NE(gen, nullptr);
   EXPECT_NE(utils::getSubcommandIf(*gen, "agent"), nullptr);
+}
+
+TEST(CmdConfigGenAgentTest, RejectsSingleTargetOptionsInManifestMode) {
+  auto localOptions = CmdLocalOptions::getInstance();
+  localOptions->clear();
+  localOptions->setLocalOption(
+      std::string(kConfigGenAgentCommand),
+      kConfigGenAgentFbossRoot,
+      "/tmp/fboss");
+  localOptions->setLocalOption(
+      std::string(kConfigGenAgentCommand),
+      kConfigGenAgentProfile,
+      std::string(kProfile));
+
+  testing::internal::CaptureStderr();
+  EXPECT_THROW(CmdConfigGenAgent().run(), std::runtime_error);
+  const auto error = testing::internal::GetCapturedStderr();
+  localOptions->clear();
+
+  EXPECT_NE(error.find("--profile"), std::string::npos);
+  EXPECT_NE(error.find("require --platform"), std::string::npos);
 }
 
 TEST(CmdConfigGenAgentTest, ReportsContentMismatchAsLocalError) {

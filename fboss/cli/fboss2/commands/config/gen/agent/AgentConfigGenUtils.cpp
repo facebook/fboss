@@ -15,7 +15,6 @@
 #include <set>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include <folly/FileUtil.h>
 #include <folly/json/json.h>
@@ -632,11 +631,12 @@ cfg::PlatformConfig generatePlatformConfig(
   return assemblePlatformConfig(inputs.chipConfig, inputs.portAssignments);
 }
 
-fs::path generateAgentConfig(
+namespace {
+
+std::string generateAgentConfigContents(
     std::string_view platform,
     std::string_view profile,
     const fs::path& fbossRoot,
-    const std::optional<fs::path>& outputDirectory,
     const std::optional<fs::path>& asicConfigFile,
     const std::optional<cfg::AsicConfigType>& asicConfigType) {
   auto inputs = resolveAgentConfigInputs(
@@ -652,11 +652,46 @@ fs::path generateAgentConfig(
       std::move(defaultCommandLineArgs),
       std::move(switchConfig),
       generatePlatformConfig(inputs));
+  return utils::serializeToPrettyJson(config) + "\n";
+}
+
+} // namespace
+
+fs::path generateAgentConfig(
+    std::string_view platform,
+    std::string_view profile,
+    const fs::path& fbossRoot,
+    const std::optional<fs::path>& outputDirectory,
+    const std::optional<fs::path>& asicConfigFile,
+    const std::optional<cfg::AsicConfigType>& asicConfigType) {
   auto directory = utils::prepareOutputDirectory(outputDirectory);
   auto outputPath = directory / kAgentConfigFileName;
   utils::writeFileWithoutOverwrite(
-      outputPath, utils::serializeToPrettyJson(config) + "\n");
+      outputPath,
+      generateAgentConfigContents(
+          platform, profile, fbossRoot, asicConfigFile, asicConfigType));
   return outputPath;
+}
+
+std::string generateAgentConfigForManifest(
+    const ConfigGenerationRequest& request) {
+  if (request.service != ServiceType::AGENT) {
+    throw FbossError("Agent config generator received a non-Agent request");
+  }
+  if (request.variant) {
+    throw FbossError(
+        "Agent config generation does not yet support variant '",
+        *request.variant,
+        "' for platform '",
+        request.platform,
+        "'");
+  }
+  return generateAgentConfigContents(
+      request.platform,
+      request.profile,
+      request.fbossRoot,
+      std::nullopt,
+      std::nullopt);
 }
 
 } // namespace facebook::fboss::configgen

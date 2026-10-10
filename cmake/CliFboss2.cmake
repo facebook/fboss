@@ -416,6 +416,8 @@ target_link_libraries(fboss2_config_file_utils
 )
 
 add_library(fboss2_config_gen_lib
+  fboss/cli/fboss2/commands/config/gen/ConfigGenerationUtils.h
+  fboss/cli/fboss2/commands/config/gen/ConfigGenerationUtils.cpp
   fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.h
   fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.cpp
   fboss/cli/fboss2/commands/config/gen/agent/AgentConfigComparisonUtils.h

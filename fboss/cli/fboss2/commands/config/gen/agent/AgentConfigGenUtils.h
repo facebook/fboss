@@ -20,6 +20,7 @@
 
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
+#include "fboss/cli/fboss2/commands/config/gen/ConfigGenerationUtils.h"
 #include "fboss/lib/platforms/gen-cpp2/platform_descriptor_types.h"
 
 namespace facebook::fboss::configgen {
@@ -112,5 +113,10 @@ std::filesystem::path generateAgentConfig(
     const std::optional<std::filesystem::path>& outputDirectory = std::nullopt,
     const std::optional<std::filesystem::path>& asicConfigFile = std::nullopt,
     const std::optional<cfg::AsicConfigType>& asicConfigType = std::nullopt);
+
+// Produces serialized Agent config contents for a generic manifest request.
+// Agent does not currently define service variants.
+std::string generateAgentConfigForManifest(
+    const ConfigGenerationRequest& request);
 
 } // namespace facebook::fboss::configgen
