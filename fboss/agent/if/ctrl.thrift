@@ -1624,6 +1624,15 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
     1: list<switch_config.MacAndVlan> macAddrsToblock,
   ) throws (1: fboss.FbossBaseError error);
 
+  /*
+   * Get the list of additional router MACs (MY_MAC). Packets to these MACs on
+   * the given VLAN are routed, in addition to packets to the interface MAC.
+   * Empty if none are configured.
+   */
+  list<switch_config.MacAndVlan> getMyMacs() throws (
+    1: fboss.FbossBaseError error,
+  );
+
   # Deprecated
   list<TeFlowDetails> getTeFlowTableDetails() throws (
     1: fboss.FbossBaseError error,
