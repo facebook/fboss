@@ -1626,8 +1626,15 @@
         },
         {
           "asics": [
-            "tomahawk4",
             "tomahawk5"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "11.7.0.0_odp",
+          "note": "MY_MAC verified by AgentMyMacTest"
+        },
+        {
+          "asics": [
+            "tomahawk4"
           ],
           "sdk": 1,
           "minSdkVersion": "15.4.0.0_odp",
