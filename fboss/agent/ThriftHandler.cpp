@@ -3388,6 +3388,15 @@ void ThriftHandler::setMacAddrsToBlock(
       });
 }
 
+void ThriftHandler::getMyMacs(std::vector<cfg::MacAndVlan>& myMacs) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+  if (auto switchSettings =
+          utility::getFirstNodeIf(sw_->getState()->getSwitchSettings())) {
+    myMacs = switchSettings->getMyMacs();
+  }
+}
+
 void ThriftHandler::publishLinkSnapshots(
     std::unique_ptr<std::vector<std::string>> portNames) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats(), portNames);
