@@ -1565,7 +1565,9 @@ add_dependencies(fboss_agent_benchmark_libs
 )
 add_custom_target(fboss_platform_services)
 add_dependencies(fboss_platform_services
+  rma-showtech
   # Services
+  led_service
   sensor_service
   fan_service
   rackmon
