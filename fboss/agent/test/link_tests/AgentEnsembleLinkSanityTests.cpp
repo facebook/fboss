@@ -1,6 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include <folly/Random.h>
+#include <folly/String.h>
 #include <folly/Subprocess.h>
 #include <gtest/gtest.h>
 #include "fboss/agent/AgentFeatures.h"
@@ -11,6 +12,7 @@
 #include "fboss/agent/test/link_tests/LinkTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
+#include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
@@ -440,6 +442,83 @@ TEST_F(AgentEnsembleLinkTest, opticsTxDisableEnable) {
     EXPECT_NO_THROW(waitForLinkStatus(opticalPorts, true));
     XLOG(DBG2) << "opticsTxDisableEnable: links are up";
   }
+}
+
+// Disable the transceiver Rx output (host side) through the qsfp_service
+// setInterfaceTxRx thrift API and verify the links go down, then re-enable and
+// verify the links come back up
+TEST_F(AgentEnsembleLinkTest, opticsRxOutputDisableEnable) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::
+           TRANSCEIVER_RX_OUTPUT_DISABLE});
+
+  // 1. Find the optical ports whose transceiver supports Rx output control
+  auto [opticalPorts, opticalPortNames] =
+      getOpticalAndActiveCabledPortsAndNames();
+  std::vector<int32_t> tcvrIds;
+  for (const auto& port : opticalPorts) {
+    tcvrIds.push_back(
+        getSw()->getPlatformMapping()->getTransceiverIdFromSwPort(port));
+  }
+  auto tcvrInfos = utility::waitForTransceiverInfo(tcvrIds);
+
+  std::vector<PortID> rxCtrlPorts;
+  std::vector<std::string> rxCtrlPortNames;
+  for (const auto& port : opticalPorts) {
+    auto tcvrId =
+        getSw()->getPlatformMapping()->getTransceiverIdFromSwPort(port);
+    auto tcvrInfo = tcvrInfos.find(tcvrId);
+    if (tcvrInfo == tcvrInfos.end()) {
+      continue;
+    }
+    const auto& diagCapability =
+        tcvrInfo->second.tcvrState()->diagCapability().as_const();
+    if (diagCapability.has_value() && *diagCapability->rxOutputControl()) {
+      rxCtrlPorts.push_back(port);
+      rxCtrlPortNames.push_back(getPortName(port));
+    }
+  }
+  addTestedPorts(rxCtrlPorts);
+  ASSERT_FALSE(rxCtrlPorts.empty())
+      << "opticsRxOutputDisableEnable: No transceivers support Rx output control";
+  XLOG(DBG2) << "opticsRxOutputDisableEnable: Testing ports "
+             << folly::join(" ", rxCtrlPortNames);
+
+  // The transceiver Rx output is the host facing (system side) transmitter
+  auto setRxOutput = [&](bool enable) {
+    std::vector<phy::TxRxEnableRequest> requests;
+    for (const auto& portName : rxCtrlPortNames) {
+      phy::TxRxEnableRequest request;
+      request.portName() = portName;
+      request.component() = phy::PortComponent::TRANSCEIVER_SYSTEM;
+      request.direction() = phy::Direction::TRANSMIT;
+      request.enable() = enable;
+      requests.push_back(request);
+    }
+    std::vector<phy::TxRxEnableResponse> responses;
+    auto qsfpServiceClient = utils::createQsfpServiceClient();
+    qsfpServiceClient->sync_setInterfaceTxRx(responses, requests);
+    EXPECT_EQ(responses.size(), requests.size());
+    for (const auto& response : responses) {
+      EXPECT_TRUE(*response.success())
+          << "opticsRxOutputDisableEnable: Failed to "
+          << (enable ? "enable" : "disable") << " Rx output on "
+          << *response.portName();
+    }
+  };
+
+  // 2. Disable Rx output and 3. confirm the links go down within 30s
+  setRxOutput(false);
+  XLOG(DBG2)
+      << "opticsRxOutputDisableEnable: Rx disabled. Awaiting links to go down";
+  EXPECT_NO_THROW(waitForLinkStatus(rxCtrlPorts, false, 30, 1s));
+
+  // 4. Enable Rx output and 5. confirm the links come back up within 2min
+  setRxOutput(true);
+  XLOG(DBG2)
+      << "opticsRxOutputDisableEnable: Rx enabled. Awaiting links to go up";
+  EXPECT_NO_THROW(waitForLinkStatus(rxCtrlPorts, true, 120, 1s));
+  XLOG(DBG2) << "opticsRxOutputDisableEnable: links are up";
 }
 
 // Tests that when link goes down then remediation is triggered

@@ -48,6 +48,7 @@ const std::vector<std::string> l1LinkTestNames = {
     "getTransceivers",
     "opticsTxDisableRandomPorts",
     "opticsTxDisableEnable",
+    "opticsRxOutputDisableEnable",
     "testOpticsRemediation",
     "qsfpColdbootAfterAgentUp",
     "fabricLinkHealth",
