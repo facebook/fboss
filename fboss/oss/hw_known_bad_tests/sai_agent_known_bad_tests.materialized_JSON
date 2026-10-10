@@ -5893,6 +5893,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentIngressBufferTest.validatePGHeadroomLimitChange$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3/mono": [
