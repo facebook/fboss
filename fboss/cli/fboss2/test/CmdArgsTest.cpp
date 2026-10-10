@@ -149,6 +149,10 @@ TEST(CmdArgsTest, HwObjectList) {
   EXPECT_THAT(
       utils::HwObjectList({"SAMPLE_PACKET"}).data(),
       ElementsAre(HwObjectType::SAMPLE_PACKET));
+  ASSERT_NO_THROW(utils::HwObjectList({"MY_MAC"}));
+  EXPECT_THAT(
+      utils::HwObjectList({"MY_MAC"}).data(),
+      ElementsAre(HwObjectType::MY_MAC));
 
   // test invalid arguments
   ASSERT_THROW(utils::HwObjectList({"M"}), std::out_of_range);
