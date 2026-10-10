@@ -565,10 +565,19 @@
           "test_name_regex": "DummyTest.*$"
         },
         {
+          "test_name_regex": "HwStateMachineTest.CheckPortsProgrammed$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
           "test_name_regex": "HwXphyPortReprogramTest.ProgramRemoveReprogramCycle$"
+        },
+        {
+          "test_name_regex": "HwXphyPrbsStatsCollectionTest.getLinePrbsStats$"
+        },
+        {
+          "test_name_regex": "HwXphyPrbsStatsCollectionTest.getSystemPrbsStats$"
         },
         {
           "test_name_regex": "OpticsFwUpgradeTest.*$"
@@ -582,10 +591,19 @@
           "test_name_regex": "DummyTest.*$"
         },
         {
+          "test_name_regex": "HwStateMachineTest.CheckPortsProgrammed$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
           "test_name_regex": "HwXphyPortReprogramTest.ProgramRemoveReprogramCycle$"
+        },
+        {
+          "test_name_regex": "HwXphyPrbsStatsCollectionTest.getLinePrbsStats$"
+        },
+        {
+          "test_name_regex": "HwXphyPrbsStatsCollectionTest.getSystemPrbsStats$"
         },
         {
           "test_name_regex": "OpticsFwUpgradeTest.*$"
@@ -599,10 +617,19 @@
           "test_name_regex": "DummyTest.*$"
         },
         {
+          "test_name_regex": "HwStateMachineTest.CheckPortsProgrammed$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
           "test_name_regex": "HwXphyPortReprogramTest.ProgramRemoveReprogramCycle$"
+        },
+        {
+          "test_name_regex": "HwXphyPrbsStatsCollectionTest.getLinePrbsStats$"
+        },
+        {
+          "test_name_regex": "HwXphyPrbsStatsCollectionTest.getSystemPrbsStats$"
         },
         {
           "test_name_regex": "OpticsFwUpgradeTest.*$"
@@ -616,10 +643,19 @@
           "test_name_regex": "DummyTest.*$"
         },
         {
+          "test_name_regex": "HwStateMachineTest.CheckPortsProgrammed$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
           "test_name_regex": "HwXphyPortReprogramTest.ProgramRemoveReprogramCycle$"
+        },
+        {
+          "test_name_regex": "HwXphyPrbsStatsCollectionTest.getLinePrbsStats$"
+        },
+        {
+          "test_name_regex": "HwXphyPrbsStatsCollectionTest.getSystemPrbsStats$"
         },
         {
           "test_name_regex": "OpticsFwUpgradeTest.*$"
