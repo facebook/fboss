@@ -13,5 +13,5 @@ thrift_library(
 buck_filegroup(
     name = "feature_default_command_args_configs",
     srcs = glob(["*/feature_default_command_args_config.json"]),
-    visibility = ["//fboss/configs/platforms/generic/forwarding_stacks/tests/..."],
+    visibility = ["//fboss/configs/platforms/generic/forwarding_stack/tests/..."],
 )

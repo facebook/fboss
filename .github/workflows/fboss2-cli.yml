@@ -6,6 +6,7 @@ on:
     paths:
       - 'fboss-sim/**'
       - 'fboss/cli/**'
+      - 'fboss/configs/platforms/generic/forwarding_stack/**'
       - 'cmake/CliFboss2.cmake'
       - 'cmake/CliFboss2Test.cmake'
       - 'cmake/CliFboss2TestConfig.cmake'

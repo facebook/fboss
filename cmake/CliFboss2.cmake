@@ -405,7 +405,7 @@ add_fbthrift_cpp_library(
 
 add_fbthrift_cpp_library(
   feature_default_command_args_cpp2
-  fboss/configs/platforms/generic/forwarding_stacks/feature_default_command_args.thrift
+  fboss/configs/platforms/generic/forwarding_stack/feature_default_command_args.thrift
   OPTIONS
     json
 )

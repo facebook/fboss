@@ -8,7 +8,7 @@ cpp_unittest(
     srcs = ["FeatureDefaultCommandArgsConfigTest.cpp"],
     network_access = network_access_utils.none(),
     resources = {
-        "feature_default_command_args_configs": "//fboss/configs/platforms/generic/forwarding_stacks:feature_default_command_args_configs",
+        "feature_default_command_args_configs": "//fboss/configs/platforms/generic/forwarding_stack:feature_default_command_args_configs",
     },
     deps = [
         "fbsource//third-party/googletest:gtest",

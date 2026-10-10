@@ -1,6 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-package "facebook.com/fboss/configs/platforms/generic/forwarding_stacks"
+package "facebook.com/fboss/configs/platforms/generic/forwarding_stack"
 
 namespace cpp2 facebook.fboss.configgen
 

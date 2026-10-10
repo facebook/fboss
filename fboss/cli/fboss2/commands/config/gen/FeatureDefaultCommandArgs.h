@@ -16,12 +16,12 @@
 #include <string_view>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/configs/platforms/generic/forwarding_stacks/gen-cpp2/feature_default_command_args_types.h"
+#include "fboss/configs/platforms/generic/forwarding_stack/gen-cpp2/feature_default_command_args_types.h"
 #include "fboss/lib/if/gen-cpp2/fboss_common_types.h"
 
 namespace facebook::fboss::configgen {
 
-// Selects the service-specific config below generic/forwarding_stacks. Add a
+// Selects the service-specific config below generic/forwarding_stack. Add a
 // value when another service starts consuming default command-line arguments.
 enum class ServiceType {
   AGENT,

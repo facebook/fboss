@@ -27,7 +27,7 @@ namespace {
 
 fs::path getConfigPath(ServiceType serviceType) {
   constexpr std::string_view kBasePath =
-      "configs/platforms/generic/forwarding_stacks";
+      "configs/platforms/generic/forwarding_stack";
   constexpr std::string_view kJsonFile =
       "feature_default_command_args_config.json";
   switch (serviceType) {

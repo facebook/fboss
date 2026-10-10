@@ -309,7 +309,7 @@ void writeFeatureDefaultCommandArgsConfig(const fs::path& fbossRoot) {
       {"PLATFORM_WEDGE800BACT"});
 
   writeTestFile(
-      fbossRoot / "configs" / "platforms" / "generic" / "forwarding_stacks" /
+      fbossRoot / "configs" / "platforms" / "generic" / "forwarding_stack" /
           "agent" / "feature_default_command_args_config.json",
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(config));
 }
@@ -450,10 +450,10 @@ TEST(PlatformConfigPathUtilsTest, DoesNotTreatGenericDataAsAPlatform) {
   folly::test::TemporaryDirectory temporaryDirectory;
   const auto fbossRoot = fs::path(temporaryDirectory.path().string()) / "fboss";
   fs::create_directories(
-      fbossRoot / "configs" / "platforms" / "generic" / "forwarding_stacks");
+      fbossRoot / "configs" / "platforms" / "generic" / "forwarding_stack");
 
   EXPECT_THROW(
-      findPlatformConfigDirectory(fbossRoot, "forwarding_stacks"), FbossError);
+      findPlatformConfigDirectory(fbossRoot, "forwarding_stack"), FbossError);
 }
 
 TEST(FeatureDefaultCommandArgsTest, ResolvesMatchingAutomaticFeatures) {

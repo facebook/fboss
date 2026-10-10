@@ -16,7 +16,7 @@ cpp_unittest(
         "//fboss/cli/fboss2:cmd-subcommands",
         "//fboss/cli/fboss2:fboss2-config-gen-lib",
         "//fboss/cli/fboss2:fboss2-lib",
-        "//fboss/configs/platforms/generic/forwarding_stacks:feature_default_command_args-cpp2-types",
+        "//fboss/configs/platforms/generic/forwarding_stack:feature_default_command_args-cpp2-types",
         "//fboss/lib/config:fboss_agent_config_utils",
         "//folly:file_util",
         "//folly/testing:test_util",

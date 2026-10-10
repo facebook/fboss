@@ -31,7 +31,7 @@ std::string readFile(const fs::path& path) {
 
 fs::path getConfigRoot() {
   return build::getResourcePathStd(
-      "fboss/configs/platforms/generic/forwarding_stacks/tests/"
+      "fboss/configs/platforms/generic/forwarding_stack/tests/"
       "feature_default_command_args_configs");
 }
 
