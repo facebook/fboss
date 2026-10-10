@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2004-present, Facebook, Inc.
+ *  Copyright (c) Meta Platforms, Inc. and affiliates.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -16,16 +16,11 @@
 #include <string_view>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/configs/platforms/generic/forwarding_stack/gen-cpp2/config_generation_types.h"
 #include "fboss/configs/platforms/generic/forwarding_stack/gen-cpp2/feature_default_command_args_types.h"
 #include "fboss/lib/if/gen-cpp2/fboss_common_types.h"
 
 namespace facebook::fboss::configgen {
-
-// Selects the service-specific config below generic/forwarding_stack. Add a
-// value when another service starts consuming default command-line arguments.
-enum class ServiceType {
-  AGENT,
-};
 
 // Parses JSON into the shared Thrift model and rejects unknown fields, invalid
 // field types, and semantic errors. This entry point is also used by the

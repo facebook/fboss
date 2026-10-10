@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2004-present, Facebook, Inc.
+ *  Copyright (c) Meta Platforms, Inc. and affiliates.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -8,18 +8,16 @@
  *
  */
 
-#include "fboss/cli/fboss2/commands/config/gen/FeatureDefaultCommandArgs.h"
+#include "fboss/configs/platforms/generic/forwarding_stack/utils/FeatureDefaultCommandArgsUtils.h"
 
 #include <algorithm>
 #include <optional>
 #include <string>
 
 #include <folly/FileUtil.h>
-#include <folly/json/json.h>
-#include <thrift/lib/cpp/util/EnumUtils.h>
-#include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/configs/platforms/generic/forwarding_stack/utils/ThriftConfigUtils.h"
 
 namespace facebook::fboss::configgen {
 namespace fs = std::filesystem;
@@ -35,44 +33,6 @@ fs::path getConfigPath(ServiceType serviceType) {
       return fs::path(kBasePath) / "agent" / kJsonFile;
   }
   throw FbossError("Unsupported service type");
-}
-
-// SimpleJSON intentionally ignores unknown fields. Comparing the input with
-// its Thrift-normalized form makes misspelled fields visible without
-// duplicating the IDL as a handwritten schema. Keep this check in production:
-// callers can load configs from an arbitrary fbossRoot, while the config GTest
-// only protects files checked into this repository.
-void validateNoUnknownFields(
-    const folly::dynamic& input,
-    const folly::dynamic& normalized,
-    const std::string& path) {
-  if (input.isObject() && normalized.isObject()) {
-    for (const auto& [name, value] : input.items()) {
-      const auto normalizedIt = normalized.find(name);
-      if (normalizedIt == normalized.items().end()) {
-        throw FbossError("Unknown field '", name.asString(), "' at ", path);
-      }
-      validateNoUnknownFields(
-          value, normalizedIt->second, path + "." + name.asString());
-    }
-  } else if (input.isArray() && normalized.isArray()) {
-    const auto commonSize = std::min(input.size(), normalized.size());
-    for (size_t index = 0; index < commonSize; ++index) {
-      validateNoUnknownFields(
-          input[index],
-          normalized[index],
-          path + "[" + std::to_string(index) + "]");
-    }
-  }
-}
-
-void validateNoUnknownFields(
-    std::string_view contents,
-    const FeatureDefaultCommandArgsConfig& config) {
-  const auto input = folly::parseJson(contents);
-  const auto normalized = folly::parseJson(
-      apache::thrift::SimpleJSONSerializer::serialize<std::string>(config));
-  validateNoUnknownFields(input, normalized, "$");
 }
 
 // The remaining validation helpers enforce semantic constraints that the
@@ -107,11 +67,7 @@ void validateEnumNames(
     std::string_view typeName) {
   const auto validate = [typeName](const auto& names) {
     for (const auto& name : names) {
-      Enum value;
-      if (!apache::thrift::util::tryParseEnum(name, &value)) {
-        throw FbossError(
-            "Unknown ", typeName, " in feature conditions: ", name);
-      }
+      parseThriftEnumName<Enum>(name, typeName);
     }
   };
   validate(*values.included());
@@ -191,9 +147,7 @@ bool matchesEnum(
   }
   const auto matchesValue = [value](const auto& names) {
     return std::any_of(names.begin(), names.end(), [value](const auto& name) {
-      Enum candidate;
-      return apache::thrift::util::tryParseEnum(name, &candidate) &&
-          candidate == value;
+      return thriftEnumNameMatches(name, value);
     });
   };
   if (matchesValue(*condition->excluded())) {
@@ -235,9 +189,8 @@ void mergeArgs(
 
 FeatureDefaultCommandArgsConfig parseFeatureDefaultCommandArgsConfig(
     std::string_view contents) {
-  auto config = apache::thrift::SimpleJSONSerializer::deserialize<
-      FeatureDefaultCommandArgsConfig>(contents);
-  validateNoUnknownFields(contents, config);
+  auto config =
+      parseStrictSimpleJson<FeatureDefaultCommandArgsConfig>(contents);
   validateConfig(config);
   return config;
 }

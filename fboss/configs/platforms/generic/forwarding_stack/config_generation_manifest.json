@@ -1,0 +1,30 @@
+{
+  "targets": [
+    {
+      "platform": "PLATFORM_MONTBLANC",
+      "serviceToOptions": {
+        "AGENT": [
+          {
+            "profile": "DEFAULT"
+          },
+          {
+            "profile": "HW_TEST"
+          }
+        ]
+      }
+    },
+    {
+      "platform": "PLATFORM_WEDGE800BACT",
+      "serviceToOptions": {
+        "AGENT": [
+          {
+            "profile": "DEFAULT"
+          },
+          {
+            "profile": "HW_TEST"
+          }
+        ]
+      }
+    }
+  ]
+}

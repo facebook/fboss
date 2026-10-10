@@ -24,9 +24,9 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/cli/fboss2/commands/config/gen/FeatureDefaultCommandArgs.h"
 #include "fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.h"
 #include "fboss/cli/fboss2/utils/ConfigFileUtils.h"
+#include "fboss/configs/platforms/generic/forwarding_stack/utils/FeatureDefaultCommandArgsUtils.h" // @manual=//fboss/configs/platforms/generic/forwarding_stack/utils:config_generation_utils
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/config/agent/AclConfigUtils.h"
 #include "fboss/lib/config/agent/CoppConfigUtils.h"

@@ -30,9 +30,9 @@
 #include "fboss/cli/fboss2/CmdList.h"
 #include "fboss/cli/fboss2/CmdLocalOptions.h"
 #include "fboss/cli/fboss2/CmdSubcommands.h"
-#include "fboss/cli/fboss2/commands/config/gen/FeatureDefaultCommandArgs.h"
 #include "fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.h"
 #include "fboss/cli/fboss2/utils/CLIParserUtils.h"
+#include "fboss/configs/platforms/generic/forwarding_stack/utils/FeatureDefaultCommandArgsUtils.h" // @manual=//fboss/configs/platforms/generic/forwarding_stack/utils:config_generation_utils
 #include "fboss/lib/config/agent/InterfaceConfigUtils.h"
 #include "fboss/lib/config/agent/PortConfigUtils.h"
 #include "fboss/lib/config/agent/VlanConfigUtils.h"
