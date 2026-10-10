@@ -1380,6 +1380,35 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getSwitchIndicesForInterfaces) {
   }
 }
 
+TEST_F(ThriftTest, getMyMacs) {
+  ThriftHandler handler(sw_);
+
+  std::vector<cfg::MacAndVlan> myMacs;
+  handler.getMyMacs(myMacs);
+  EXPECT_TRUE(myMacs.empty());
+
+  auto config = testConfigA();
+  std::vector<cfg::MacAndVlan> cfgMyMacs;
+  for (const auto& macAddress : {"02:00:00:00:00:01", "02:00:00:00:00:02"}) {
+    cfg::MacAndVlan myMac;
+    myMac.vlanID() = 1;
+    myMac.macAddress() = macAddress;
+    cfgMyMacs.push_back(myMac);
+  }
+  config.switchSettings()->myMacs() = cfgMyMacs;
+  sw_->applyConfig("add myMacs", config);
+
+  handler.getMyMacs(myMacs);
+  EXPECT_EQ(myMacs, cfgMyMacs);
+
+  config.switchSettings()->myMacs()->clear();
+  sw_->applyConfig("remove myMacs", config);
+
+  myMacs.clear();
+  handler.getMyMacs(myMacs);
+  EXPECT_TRUE(myMacs.empty());
+}
+
 TEST_F(ThriftTest, getAndSetMacAddrsToBlock) {
   ThriftHandler handler(sw_);
 
