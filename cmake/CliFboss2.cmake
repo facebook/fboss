@@ -124,6 +124,13 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  show_mymac_model
+  fboss/cli/fboss2/commands/show/mymac/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
   show_mysid_model
   fboss/cli/fboss2/commands/show/mysid/model.thrift
   OPTIONS
@@ -596,6 +603,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/mac/CmdShowMacDetails.cpp
   fboss/cli/fboss2/commands/show/mirror/CmdShowMirror.h
   fboss/cli/fboss2/commands/show/mirror/CmdShowMirror.cpp
+  fboss/cli/fboss2/commands/show/mymac/CmdShowMyMac.h
+  fboss/cli/fboss2/commands/show/mymac/CmdShowMyMac.cpp
   fboss/cli/fboss2/commands/show/mysid/CmdShowMySid.h
   fboss/cli/fboss2/commands/show/mysid/CmdShowMySid.cpp
   fboss/cli/fboss2/commands/show/nexthopgroups/CmdShowNextHopGroups.h
@@ -816,6 +825,7 @@ target_link_libraries(fboss2_lib
   show_host_model
   show_lldp_model
   show_mirror_model
+  show_mymac_model
   show_mysid_model
   show_nexthopgroups_model
   show_ndp_model

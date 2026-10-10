@@ -90,6 +90,7 @@
 #include "fboss/cli/fboss2/commands/show/mac/CmdShowMacDetails.h"
 #include "fboss/cli/fboss2/commands/show/mirror/CmdShowMirror.h"
 #include "fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.h"
+#include "fboss/cli/fboss2/commands/show/mymac/CmdShowMyMac.h"
 #include "fboss/cli/fboss2/commands/show/mysid/CmdShowMySid.h"
 #include "fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h"
 #include "fboss/cli/fboss2/commands/show/nexthopgroups/CmdShowNextHopGroups.h"
@@ -463,6 +464,12 @@ const CommandTree& kCommandTree() {
        "Show mirror",
        commandHandler<CmdShowMirror>,
        argTypeHandler<CmdShowMirrorTraits>},
+
+      {"show",
+       "my-mac",
+       "Show MY_MAC entries",
+       commandHandler<CmdShowMyMac>,
+       argTypeHandler<CmdShowMyMacTraits>},
 
       {"show",
        "mysid",
