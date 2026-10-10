@@ -20,6 +20,26 @@ auto constexpr kDefaultVlanId1 = 1;
 auto constexpr kDefaultVlanId4094 = 4094;
 auto constexpr kFbossLoopbackVlanId = 10;
 
+/*
+ * Use vlan 2000 as the base vlan for ports in configs generated here.
+ * Anything except 0 and 1 would work. 0 is reserved, and Broadcom uses 1 as
+ * its default VLAN, including the CPU port as a member.
+ */
+auto constexpr kBaseVlanId = 2000;
+auto constexpr kDownlinkBaseVlanId = 2000;
+auto constexpr kUplinkBaseVlanId = 4000;
+
+// TunManager's legacy NPU mapping converts interface IDs in the 2000 band to
+// routing table IDs using `tableId = interfaceId - 2000 + 1`. Since the kernel
+// table ID range available to TunManager ends at 253, 2252 is the largest
+// interface/VLAN ID that is valid when 1:1 interface-to-table mapping is off.
+auto constexpr kInterfaceVlanIdMin = kBaseVlanId + 1;
+auto constexpr kInterfaceVlanIdMax = 2252;
+
+// Default-profile management ports allocate downward from that safe upper
+// bound while regular interface VLANs allocate upward from the lower bound.
+auto constexpr kManagementVlanIdMax = kInterfaceVlanIdMax;
+
 cfg::Vlan createVlanConfig(VlanID id);
 
 // Return the default VLAN ID required by the ASIC's hardware pipeline.

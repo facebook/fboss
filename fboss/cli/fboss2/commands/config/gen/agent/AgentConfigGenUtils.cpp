@@ -423,7 +423,7 @@ void addDefaultProfilePortGraph(
       utility::getSafeProfileIDs(platformMapping, supportedPortGroups, options);
 
   auto interfaceVlanID = utility::kInterfaceVlanIdMin;
-  auto managementVlanID = utility::kInterfaceVlanIdMax;
+  auto managementVlanID = utility::kManagementVlanIdMax;
   for (const auto& [portID, profileID] : portProfiles) {
     if (interfaceVlanID > managementVlanID) {
       throw FbossError("No free VLAN ID available for default port config");
@@ -432,12 +432,11 @@ void addDefaultProfilePortGraph(
         *platformMapping.getPlatformPort(portID).mapping()->portType();
     int32_t vlanID;
     if (portType == cfg::PortType::MANAGEMENT_PORT) {
-      // Allocate management VLANs downward from the high end so they stay
-      // separate from interface VLANs and later low-to-high port additions.
+      // Allocate management VLANs downward to keep them separate from regular
+      // interface VLANs and later low-to-high port additions.
       vlanID = managementVlanID--;
     } else {
-      // Allocate interface VLANs upward from the low end, preserving room for
-      // tools such as link_test to add more interface ports afterward.
+      // Allocate regular interface VLANs upward from the low end.
       vlanID = interfaceVlanID++;
     }
     utility::addRoutedPortToConfig(

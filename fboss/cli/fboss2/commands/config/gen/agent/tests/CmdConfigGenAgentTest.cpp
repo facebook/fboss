@@ -50,7 +50,9 @@ constexpr std::string_view kKeyValueConfig =
     "{\"foo\":\"bar\",\"answer\":\"42\"}\n";
 constexpr std::string_view kPortName = "eth1/1/1";
 constexpr std::string_view kManagementPortName = "management0";
+constexpr std::string_view kSecondManagementPortName = "management1";
 constexpr int32_t kManagementPortId = 100;
+constexpr int32_t kSecondManagementPortId = 101;
 constexpr auto kPortProfile = cfg::PortProfileID::PROFILE_100G_4_NRZ_NOFEC;
 constexpr auto kWidePortProfile =
     cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N;
@@ -187,6 +189,10 @@ void writeInterfaceAndManagementPortMapping(const fs::path& mappingDirectory) {
           "\":{\"portName\":\"" + std::string(kManagementPortName) +
           "\",\"portType\":" +
           std::to_string(static_cast<int>(cfg::PortType::MANAGEMENT_PORT)) +
+          ",\"scope\":0},\"" + std::to_string(kSecondManagementPortId) +
+          "\":{\"portName\":\"" + std::string(kSecondManagementPortName) +
+          "\",\"portType\":" +
+          std::to_string(static_cast<int>(cfg::PortType::MANAGEMENT_PORT)) +
           ",\"scope\":0}}}\n");
 
   cfg::PlatformPortEntry interfacePort;
@@ -205,6 +211,16 @@ void writeInterfaceAndManagementPortMapping(const fs::path& mappingDirectory) {
   managementPort.mapping()->controllingPortName() = kManagementPortName;
   managementPort.supportedProfiles()[kPortProfile] = cfg::PlatformPortConfig{};
 
+  cfg::PlatformPortEntry secondManagementPort;
+  secondManagementPort.mapping()->id() = 0;
+  secondManagementPort.mapping()->name() = kSecondManagementPortName;
+  secondManagementPort.mapping()->controllingPort() = 0;
+  secondManagementPort.mapping()->pins() = {};
+  secondManagementPort.mapping()->controllingPortName() =
+      kSecondManagementPortName;
+  secondManagementPort.supportedProfiles()[kPortProfile] =
+      cfg::PlatformPortConfig{};
+
   cfg::PlatformPortProfileConfigEntry profile;
   profile.factor()->profileID() = kPortProfile;
   profile.profile()->speed() = cfg::PortSpeed::HUNDREDG;
@@ -218,6 +234,8 @@ void writeInterfaceAndManagementPortMapping(const fs::path& mappingDirectory) {
       std::move(interfacePort);
   (*mapping.rawPlatformPorts())[std::string(kManagementPortName)] =
       std::move(managementPort);
+  (*mapping.rawPlatformPorts())[std::string(kSecondManagementPortName)] =
+      std::move(secondManagementPort);
   writeTestFile(
       mappingDirectory / "raw_platform_mapping.json",
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(mapping));
@@ -677,7 +695,7 @@ TEST(AgentConfigGenTest, GeneratesDefaultProfilePortGraph) {
   EXPECT_EQ(*switchConfig.defaultVlan(), utility::kDefaultVlanId4094);
 }
 
-TEST(AgentConfigGenTest, AllocatesManagementPortVlanFromHighEnd) {
+TEST(AgentConfigGenTest, AllocatesManagementPortsDownward) {
   folly::test::TemporaryDirectory temporaryDirectory;
   const auto fbossRoot = fs::path(temporaryDirectory.path().string()) / "fboss";
   createTestPlatform(fbossRoot, "test_vendor");
@@ -687,6 +705,8 @@ TEST(AgentConfigGenTest, AllocatesManagementPortVlanFromHighEnd) {
   const auto inputs = resolveAgentConfigInputs(fbossRoot, kPlatform, "default");
 
   const auto switchConfig = generateSwitchConfig(inputs);
+  constexpr int32_t kExpectedFirstManagementVlan = 2252;
+  constexpr int32_t kExpectedSecondManagementVlan = 2251;
 
   auto expectedInterfacePort = utility::createInterfacePortConfig(
       *inputs.platformMapping,
@@ -701,32 +721,52 @@ TEST(AgentConfigGenTest, AllocatesManagementPortVlanFromHighEnd) {
       *inputs.platformMapping,
       PortID(kManagementPortId),
       kPortProfile,
-      VlanID(utility::kInterfaceVlanIdMax));
+      VlanID(kExpectedFirstManagementVlan));
   expectedManagementPort.state() = cfg::PortState::ENABLED;
   expectedManagementPort.loopbackMode() = cfg::PortLoopbackMode::NONE;
   expectedManagementPort.maxFrameSize() =
       cfg::switch_config_constants::DEFAULT_PORT_MTU();
+  auto expectedSecondManagementPort = utility::createRoutedPortConfig(
+      *inputs.platformMapping,
+      PortID(kSecondManagementPortId),
+      kPortProfile,
+      VlanID(kExpectedSecondManagementVlan));
+  expectedSecondManagementPort.state() = cfg::PortState::ENABLED;
+  expectedSecondManagementPort.loopbackMode() = cfg::PortLoopbackMode::NONE;
+  expectedSecondManagementPort.maxFrameSize() =
+      cfg::switch_config_constants::DEFAULT_PORT_MTU();
   const std::vector<cfg::Port> expectedPorts{
-      expectedInterfacePort, expectedManagementPort};
+      expectedInterfacePort,
+      expectedManagementPort,
+      expectedSecondManagementPort};
   EXPECT_EQ(*switchConfig.ports(), expectedPorts);
 
   const std::vector<cfg::VlanPort> expectedVlanPorts{
       utility::createVlanPortConfig(
           PortID(1), VlanID(utility::kInterfaceVlanIdMin)),
       utility::createVlanPortConfig(
-          PortID(kManagementPortId), VlanID(utility::kInterfaceVlanIdMax))};
+          PortID(kManagementPortId), VlanID(kExpectedFirstManagementVlan)),
+      utility::createVlanPortConfig(
+          PortID(kSecondManagementPortId),
+          VlanID(kExpectedSecondManagementVlan))};
   EXPECT_EQ(*switchConfig.vlanPorts(), expectedVlanPorts);
 
   auto expectedManagementInterface = utility::createVlanInterfaceConfig(
-      InterfaceID(utility::kInterfaceVlanIdMax),
-      VlanID(utility::kInterfaceVlanIdMax));
+      InterfaceID(kExpectedFirstManagementVlan),
+      VlanID(kExpectedFirstManagementVlan));
   expectedManagementInterface.isVirtual() = true;
   expectedManagementInterface.isStateSyncDisabled() = true;
+  auto expectedSecondManagementInterface = utility::createVlanInterfaceConfig(
+      InterfaceID(kExpectedSecondManagementVlan),
+      VlanID(kExpectedSecondManagementVlan));
+  expectedSecondManagementInterface.isVirtual() = true;
+  expectedSecondManagementInterface.isStateSyncDisabled() = true;
   const std::vector<cfg::Interface> expectedInterfaces{
       utility::createVlanInterfaceConfig(
           InterfaceID(utility::kInterfaceVlanIdMin),
           VlanID(utility::kInterfaceVlanIdMin)),
       expectedManagementInterface,
+      expectedSecondManagementInterface,
       makeLoopbackInterface()};
   EXPECT_EQ(*switchConfig.interfaces(), expectedInterfaces);
 
@@ -734,7 +774,8 @@ TEST(AgentConfigGenTest, AllocatesManagementPortVlanFromHighEnd) {
       makeLoopbackVlan(),
       makeDefaultVlan(),
       utility::createVlanConfig(VlanID(utility::kInterfaceVlanIdMin)),
-      utility::createVlanConfig(VlanID(utility::kInterfaceVlanIdMax)),
+      utility::createVlanConfig(VlanID(kExpectedFirstManagementVlan)),
+      utility::createVlanConfig(VlanID(kExpectedSecondManagementVlan)),
   };
   EXPECT_EQ(*switchConfig.vlans(), expectedVlans);
 }

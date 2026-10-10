@@ -16,6 +16,7 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/config/agent/VlanConfigUtils.h"
 
 namespace facebook::fboss {
 class PlatformMapping;
@@ -26,26 +27,6 @@ namespace utility {
  * SwitchConfig. This library is shared by FBOSS hardware tests and the fboss2
  * config CLI so both paths use the same configuration logic.
  */
-
-/*
- * Use vlan 2000, as the base vlan for ports in configs generated here.
- * Anything except 0, 1 would actually work fine. 0 because
- * its reserved, and 1 because BRCM uses that as default VLAN.
- * So for example if we use VLAN 1, BRCM will also add cpu port to
- * that vlan along with our configured ports. This causes unnecessary
- * confusion for our tests.
- */
-auto constexpr kBaseVlanId = 2000;
-auto constexpr kDownlinkBaseVlanId = 2000;
-auto constexpr kUplinkBaseVlanId = 4000;
-
-// Per-port interface-vlan allocation band. INTERFACE_PORTs allocate from the
-// low end while MANAGEMENT_PORTs allocate from the high end. The band starts
-// just above the shared downlink base (kBaseVlanId) and stops before the
-// sidelink band (3000), so allocated ids avoid every reserved range (loopback
-// 10/11, sidelink 3000-3024, uplink 3100/4001+, default 4094).
-auto constexpr kInterfaceVlanIdMin = kBaseVlanId + 1;
-auto constexpr kInterfaceVlanIdMax = 2999;
 
 struct SafeProfileSelectionOptions {
   cfg::AsicType asicType{cfg::AsicType::ASIC_TYPE_FAKE};
