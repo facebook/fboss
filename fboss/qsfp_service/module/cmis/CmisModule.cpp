@@ -4086,9 +4086,6 @@ void CmisModule::programTunableModule(
   // Disable TX and RX squelch on all lanes
   disableTxRxSquelchForTunableOptics();
 
-  // Workaround to set PCS to AM Transparent: T289920421
-  setPcsToAmTransparent();
-
   switch (centerFreq->getType()) {
     case cfg::CenterFrequencyConfig::Type::frequencyMhz: {
       frequencyMhz = centerFreq->frequencyMhz().value();
@@ -5599,7 +5596,10 @@ void CmisModule::resetDataPathForTunableOptics(
         "Data path initialize not yet completed for port ", portName);
   }
 
-  // Step 4: Update last reset time for affected lanes
+  // Step 4: Workaround to set PCS to AM Transparent: T289920421
+  setPcsToAmTransparent();
+
+  // Step 5: Update last reset time for affected lanes
   for (int lane = 0; lane < CmisModule::kMaxOsfpNumLanes; lane++) {
     if ((1 << lane) & hostLaneMask) {
       lastDatapathResetTimes_[lane] = std::time(nullptr);
