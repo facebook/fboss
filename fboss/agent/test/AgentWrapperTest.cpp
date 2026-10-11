@@ -24,7 +24,7 @@
 #include <thread>
 #include <type_traits>
 
-DEFINE_int32(num_retries, 5, "number of retries for agent to start");
+DEFINE_int32(num_retries, 9, "number of retries for agent to start");
 DEFINE_int32(wait_timeout, 15, "number of seconds to wait before retry");
 DEFINE_string(
     agent_service_unit,
