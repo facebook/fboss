@@ -428,7 +428,8 @@ class NextHopIDManager {
   // policy's persisted NamedNextHopGroupAndID.
   void reconstructClassBasedPolicyPass(
       const std::shared_ptr<MultiSwitchClassBasedPolicyMap>&
-          classBasedPolicyMaps);
+          classBasedPolicyMaps,
+      ReconstructionContext& ctx);
 
   // Returns the first SetID strictly above every persisted SetID. Used by
   // reconstructFromSwitchStateMaps to mint fresh SetIDs for deduped

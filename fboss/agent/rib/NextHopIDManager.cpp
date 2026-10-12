@@ -983,7 +983,7 @@ void NextHopIDManager::reconstructFromSwitchStateMaps(
   reconstructMySidPass(mySidMap, ctx);
   reconstructMplsFibPass(labelFib, ctx);
   reconstructUnresolvedRibPass(ribTables, ctx);
-  reconstructClassBasedPolicyPass(classBasedPolicyMaps);
+  reconstructClassBasedPolicyPass(classBasedPolicyMaps, ctx);
 
   // Set next available IDs. The SetID watermark must clear both the highest
   // persisted SetID and any fresh SetIDs minted for deduped member sets.
@@ -1023,11 +1023,25 @@ void NextHopIDManager::reconstructFromSwitchStateMaps(
 }
 
 void NextHopIDManager::reconstructClassBasedPolicyPass(
-    const std::shared_ptr<MultiSwitchClassBasedPolicyMap>&
-        classBasedPolicyMaps) {
+    const std::shared_ptr<MultiSwitchClassBasedPolicyMap>& classBasedPolicyMaps,
+    ReconstructionContext& ctx) {
   if (!classBasedPolicyMaps) {
     return;
   }
+  auto registerNormalizedId =
+      [&](ClassBasedPolicyNhgs& policy,
+          const state::NamedNextHopGroupAndID& namedNhg) {
+        const auto& name = *namedNhg.name();
+        if (policy.normalizedIds.count(name) || !ctx.fibId2NhopMap ||
+            !ctx.fibId2NhopIdSetMap) {
+          return;
+        }
+        NextHopSetID setId(*namedNhg.id());
+        processNextHopSetIdForReconstruction(
+            setId, ctx.fibId2NhopMap, ctx.fibId2NhopIdSetMap, ctx);
+        policy.normalizedIds[name] =
+            ctx.setIdRemap.contains(setId) ? ctx.setIdRemap.at(setId) : setId;
+      };
   for (const auto& [matcher, policyMap] :
        std::as_const(*classBasedPolicyMaps)) {
     for (const auto& [policyName, policyNode] : std::as_const(*policyMap)) {
@@ -1036,8 +1050,10 @@ void NextHopIDManager::reconstructClassBasedPolicyPass(
       }
       ClassBasedPolicyNhgs policy;
       policy.defaultNexthopGroup = *policyNode->getDefaultNextHopGroup().name();
+      registerNormalizedId(policy, policyNode->getDefaultNextHopGroup());
       for (const auto& [fc, named] : policyNode->getClass2NextHopGroup()) {
         policy.class2NextHopGroup[fc] = *named.name();
+        registerNormalizedId(policy, named);
       }
       pbrPolicyToNamedNhg_[policyName] = std::move(policy);
     }
