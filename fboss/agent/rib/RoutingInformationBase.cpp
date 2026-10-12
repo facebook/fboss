@@ -537,7 +537,8 @@ void RibRouteTables::reconfigure(
     const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
     const std::vector<MySidWithNextHops>& staticMySids,
     RibToSwitchStateFunction ribToSwitchStateFunc,
-    void* cookie) {
+    void* cookie,
+    bool ecmpModeChanged) {
   // Config application is accomplished in the following sequence of steps:
   // 1. Update the VRFs held in RoutingInformationBase's
   // SynchronizedRouteTables data-structure
@@ -606,7 +607,7 @@ void RibRouteTables::reconfigure(
               // Apply config
               configApplier.apply();
             });
-        updateFib(resolver, vrf, ribToSwitchStateFunc, cookie);
+        updateFib(resolver, vrf, ribToSwitchStateFunc, cookie, ecmpModeChanged);
       };
   // Because of this sequential loop over each VRF, config application scales
   // linearly with the number of VRFs. If FBOSS is run in a multi-VRF routing
@@ -832,7 +833,8 @@ void RibRouteTables::updateFib(
     const SwitchIdScopeResolver* resolver,
     RouterID vrf,
     const RibToSwitchStateFunction& ribToSwitchStateFunc,
-    void* cookie) {
+    void* cookie,
+    bool ecmpModeChanged) {
   std::optional<StateDelta> fibDelta;
   try {
     auto lockedRouteTables = synchronizedRouteTables_.rlock();
@@ -911,7 +913,14 @@ void RibRouteTables::updateFib(
     }
   }
   CHECK(fibDelta.has_value());
-  updateEcmpOverrides(vrf, *fibDelta);
+  if (ecmpModeChanged) {
+    // The config's own state update re-moded overrides before this fib update,
+    // so fibDelta does not carry that change. Sync from all routes instead.
+    updateEcmpOverrides(
+        vrf, StateDelta(std::make_shared<SwitchState>(), fibDelta->newState()));
+  } else {
+    updateEcmpOverrides(vrf, *fibDelta);
+  }
 }
 
 void RibRouteTables::updateFib(
@@ -1023,12 +1032,6 @@ void RibRouteTables::updateEcmpOverrides(
   auto rnitr = rid2prefix2Nhops.find(vrf);
   if (rnitr != rid2prefix2Nhops.end()) {
     setOverrideEcmpNhops(vrf, rnitr->second);
-  }
-}
-
-void RibRouteTables::updateEcmpOverrides(const StateDelta& delta) {
-  for (auto vrf : getVrfList()) {
-    updateEcmpOverrides(vrf, delta);
   }
 }
 
@@ -1287,7 +1290,8 @@ void RoutingInformationBase::reconfigure(
     const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
     const std::vector<MySidWithNextHops>& staticMySids,
     RibToSwitchStateFunction ribToSwitchStateFunc,
-    void* cookie) {
+    void* cookie,
+    bool ecmpModeChanged) {
   ensureRunning();
   auto updateFn = [&] {
     ribTables_.reconfigure(
@@ -1302,7 +1306,8 @@ void RoutingInformationBase::reconfigure(
         staticMplsRoutesToCpu,
         staticMySids,
         ribToSwitchStateFunc,
-        cookie);
+        cookie,
+        ecmpModeChanged);
   };
   ribUpdateEventBase_.runInFbossEventBaseThreadAndWait(updateFn);
 }
@@ -1404,14 +1409,6 @@ void RoutingInformationBase::setClassIDImpl(
   } else {
     ribUpdateEventBase_.runInFbossEventBaseThreadAndWait(updateFn);
   }
-}
-
-void RoutingInformationBase::updateEcmpOverrides(const StateDelta& delta) {
-  ensureRunning();
-  auto updateFn = [=, &delta, this]() {
-    ribTables_.updateEcmpOverrides(delta);
-  };
-  ribUpdateEventBase_.runInFbossEventBaseThreadAndWait(updateFn);
 }
 
 void RibRouteTables::backfillNextHopIds(

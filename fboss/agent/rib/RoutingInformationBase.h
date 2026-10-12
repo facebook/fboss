@@ -243,7 +243,8 @@ class RibRouteTables {
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
       const std::vector<MySidWithNextHops>& staticMySids,
       RibToSwitchStateFunction ribToSwitchStateFunc,
-      void* cookie);
+      void* cookie,
+      bool ecmpModeChanged = false);
 
   // ECMP width used to normalize nexthops in the RIB, sourced from
   // cfg.SwitchSettings.ecmpWidth; set at config apply.
@@ -309,8 +310,6 @@ class RibRouteTables {
       uint32_t ecmpWidth);
   std::map<int32_t, state::RouteTableFields> warmBootState() const;
 
-  void updateEcmpOverrides(const StateDelta& delta);
-
   std::string getPolicyDefaultNextHopGroup(const std::string& policyName) const;
 
  private:
@@ -318,7 +317,8 @@ class RibRouteTables {
       const SwitchIdScopeResolver* resolver,
       RouterID vrf,
       const RibToSwitchStateFunction& ribToSwitchStateFunc,
-      void* cookie);
+      void* cookie,
+      bool ecmpModeChanged = false);
   template <typename RibUpdateFn>
   void updateRib(RouterID vrf, const RibUpdateFn& updateRib);
   void updateEcmpOverrides(RouterID vrf, const StateDelta& delta);
@@ -552,7 +552,10 @@ class RoutingInformationBase {
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
       const std::vector<MySidWithNextHops>& staticMySids,
       RibToSwitchStateFunction ribToSwitchStateFunc,
-      void* cookie);
+      void* cookie,
+      // Set when config changed the ECMP backup switching mode. Overrides then
+      // changed outside any fib update, so sync them for all routes.
+      bool ecmpModeChanged = false);
 
   void setEcmpWidth(uint32_t ecmpWidth);
   uint32_t getEcmpWidth() const;
@@ -589,7 +592,6 @@ class RoutingInformationBase {
     setClassIDImpl(
         resolver, rid, prefixes, ribToSwitchStateFunc, classId, cookie, true);
   }
-  void updateEcmpOverrides(const StateDelta& delta);
   void updateStateInRibThread(const std::function<void()>& fn);
 
   /*

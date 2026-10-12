@@ -124,6 +124,22 @@ constexpr auto kHyperPortSpeed = cfg::PortSpeed::THREEPOINTTWOT;
 // and validate during a config change.
 std::optional<std::string> sharedBufferPoolName;
 
+// ECMP resource manager re-modes existing backup group routes' overrides
+// whenever the backup switching mode changes.
+bool ecmpOverrideModeChanged(
+    const SwitchState& orig,
+    const cfg::SwitchConfig& cfg) {
+  std::optional<cfg::SwitchingMode> oldMode;
+  if (auto flowletCfg = orig.getFlowletSwitchingConfig()) {
+    oldMode = flowletCfg->getBackupSwitchingMode();
+  }
+  std::optional<cfg::SwitchingMode> newMode;
+  if (auto flowletCfg = cfg.flowletSwitchingConfig()) {
+    newMode = *flowletCfg->backupSwitchingMode();
+  }
+  return oldMode != newMode;
+}
+
 StateDelta updateFibFromConfig(
     const facebook::fboss::SwitchIdScopeResolver* resolver,
     facebook::fboss::RouterID vrf,
@@ -1003,7 +1019,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
         *cfg_->staticMplsRoutesWithNhops(),
         *cfg_->staticMplsRoutesToNull(),
         *cfg_->staticMplsRoutesToCPU(),
-        std::move(staticMySids));
+        std::move(staticMySids),
+        ecmpOverrideModeChanged(*orig_, *cfg_));
   } else if (rib_) {
     auto newFibInfo = updateForwardingInformationBaseInfo();
     if (newFibInfo) {
@@ -1029,7 +1046,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
         *cfg_->staticMplsRoutesToCPU(),
         staticMySids,
         &updateFibFromConfig,
-        static_cast<void*>(&new_));
+        static_cast<void*>(&new_),
+        ecmpOverrideModeChanged(*orig_, *cfg_));
   } else {
     // switch state UTs don't necessary care about RIB updates
     XLOG(WARNING)
