@@ -27,6 +27,7 @@ credentials, and non-public paths.
 | `../components/login-containers/payload/etc/systemd/nspawn/*.nspawn` | same paths | RPM (same-uid, shared net, ro binds) |
 | `../components/login-containers/payload/usr/lib/systemd/system/*-machine.service` | same paths | RPM (enabled in `%post`) |
 | `../components/login-containers/payload/usr/local/bin/*-shell` | same paths | RPM (login shells; assigned in the execute hook; self-escalate, resolve the leader, `nsenter` all namespaces as the role user) |
+| `../components/login-containers/payload/usr/local/bin/role-entry` | same path | RPM (container-side cert-login entry; refuses host; sets `LOGIN_IDENTITY`) |
 | `../components/login-containers/payload/etc/sudoers.d/login-containers` | same path | RPM (each account may run exactly its attach) |
 | `../manifests/fake_after_pkgs_*.json` | (build input only, deleted after use) | manifest `image_build_hooks` (users + `systemd-container` + shell assignment) |
 
@@ -49,6 +50,15 @@ only the fake manifest wires it until proven, then other manifests plug in.
   wanted directly by `multi-user.target` (`machines.target` is pulled by
   nothing); machine `sbin` is a link to `usr/sbin`; `dbus.service` is an
   alias to `dbus-broker.service`, mirroring the host.
+- Cert identity: issuance embeds
+  `-O force-command='/usr/local/bin/role-entry ROLE USER'` (absolute:
+  inner `PATH` lacks `/usr/local/bin`); `sshd` runs it through the
+  role shell, which `nsenter`s, so `role-entry`
+  always lands inside. It asserts the container (`systemd-detect-virt`)
+  and the role (`whoami`), exports `LOGIN_IDENTITY`, logs one journal
+  line (tag `role-entry`), prints one banner line when stdin is not a TTY,
+  and execs `bash`. Banner/record format (frozen for collectors):
+  `login-context role=<role> identity=<user> user=<role> machine-id=<mid>`.
 
 `agent.conf` is generated once from the in-repo sim seed and committed as
 plain JSON. Regenerate with:

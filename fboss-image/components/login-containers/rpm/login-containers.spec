@@ -54,6 +54,7 @@ for f in /var/lib/machines/netops/etc/passwd \
     /usr/lib/systemd/system/netadmin-machine.service \
     /usr/local/bin/netops-shell \
     /usr/local/bin/netadmin-shell \
+    /usr/local/bin/role-entry \
     /etc/sudoers.d/login-containers; do
   [ -s "$f" ] || { echo "login-containers: missing $f" >&2; exit 1; }
 done
@@ -69,6 +70,7 @@ done
 %defattr(-,root,root,-)
 %attr(0755,root,root) /usr/local/bin/netops-shell
 %attr(0755,root,root) /usr/local/bin/netadmin-shell
+%attr(0755,root,root) /usr/local/bin/role-entry
 %attr(0440,root,root) /etc/sudoers.d/login-containers
 /etc/systemd/nspawn/netops.nspawn
 /etc/systemd/nspawn/netadmin.nspawn
