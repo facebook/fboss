@@ -14,6 +14,10 @@
     {
       "execute": ["../components/fake/rpm/build_fake_ident.sh"],
       "artifact": "fake-ident-*.rpm"
+    },
+    {
+      "execute": ["../components/login-containers/rpm/build_login_containers.sh"],
+      "artifact": "login-containers-*.rpm"
     }
   ],
   "fboss-platform-stack": {

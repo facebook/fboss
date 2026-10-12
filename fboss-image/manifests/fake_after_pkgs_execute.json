@@ -3,13 +3,20 @@
                "Fake-only post-install setup for the login-container foundation.",
                "Referenced only by 6.11.1_fake.json image_build_hooks.",
                "Runs in the chrooted rootfs; the file is deleted afterwards.",
-               "Passwords are lab-only and fenced to the fake variant."
+               "Passwords are lab-only and fenced to the fake variant.",
+               "Host uids/gids are pinned to match the login-containers machine",
+               "passwd/group, wrappers, and RPM %post (1000:1000, 1001:1002);",
+               "any collision fails the build loudly instead of diverging."
                ],
 
   "execute": [
-    [ "useradd", "-m", "-s", "/bin/bash", "netops" ],
-    [ "useradd", "-m", "-s", "/bin/bash", "netadmin" ],
+    [ "groupadd", "-g", "1000", "netops" ],
+    [ "useradd", "-m", "-u", "1000", "-g", "1000", "-s", "/bin/bash", "netops" ],
+    [ "groupadd", "-g", "1002", "netadmin" ],
+    [ "useradd", "-m", "-u", "1001", "-g", "1002", "-s", "/bin/bash", "netadmin" ],
     [ "sh", "-c", "echo 'netops:netops' | chpasswd" ],
-    [ "sh", "-c", "echo 'netadmin:netadmin' | chpasswd" ]
+    [ "sh", "-c", "echo 'netadmin:netadmin' | chpasswd" ],
+    [ "usermod", "-s", "/usr/local/bin/netops-shell", "netops" ],
+    [ "usermod", "-s", "/usr/local/bin/netadmin-shell", "netadmin" ]
   ]
 }

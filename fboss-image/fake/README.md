@@ -22,6 +22,33 @@ credentials, and non-public paths.
 | `../components/fake/payload/etc/fboss/fake_platform_manager.json` | `/etc/fboss/fake_platform_manager.json` | RPM |
 | `../components/fake/payload/etc/systemd/system/*.service.d/fake.conf` | same paths | RPM |
 | `%post` in the spec | `/usr/local/fake_bsp/<kver>/kmods.json` | RPM (`<kver>` known only at install time) |
+| `../components/login-containers/rpm/login-containers.spec`, `../components/login-containers/rpm/build_login_containers.sh` | (build input only) | `execute` |
+| `../components/login-containers/payload/var/lib/machines/{netops,netadmin}/` | same paths | RPM (machine rootfs skeleton; `/usr` + `/opt` bind-mounted ro from host at boot) |
+| `../components/login-containers/payload/etc/systemd/nspawn/*.nspawn` | same paths | RPM (same-uid, shared net, ro binds) |
+| `../components/login-containers/payload/usr/lib/systemd/system/*-machine.service` | same paths | RPM (enabled in `%post`) |
+| `../components/login-containers/payload/usr/local/bin/*-shell` | same paths | RPM (login shells; assigned in the execute hook; self-escalate, resolve the leader, `nsenter` all namespaces as the role user) |
+| `../components/login-containers/payload/etc/sudoers.d/login-containers` | same path | RPM (each account may run exactly its attach) |
+| `../manifests/fake_after_pkgs_*.json` | (build input only, deleted after use) | manifest `image_build_hooks` (users + `systemd-container` + shell assignment) |
+
+## Login machines (fixed at build, recorded here)
+
+The `login-containers` RPM is a shared component (sibling of `fake/`);
+only the fake manifest wires it until proven, then other manifests plug in.
+
+- Machine IDs (unique per machine, distinct from the host's; duplicates
+  would conflate D-Bus and journal entries):
+  - netops: `5e41703e0d69408593dfdb07116e1420`
+  - netadmin: `55b4fba27bb44704964fe7b48872be31`
+- Machine users mirror host uids/gids (`netops` 1000:1000, `netadmin`
+  1001:1002); machine passwords locked — entry only via the login wrapper
+  (`nsenter` as the role user).
+- Machines boot guest systemd from shared `/usr` into the minimal
+  `login-shell.target` (journald + tmpfiles + dbus-broker).
+- Attach is `nsenter`-based, not `machinectl shell`: the latter's PTY
+  forwarding fails here (container unit cannot chown the slave). Units are
+  wanted directly by `multi-user.target` (`machines.target` is pulled by
+  nothing); machine `sbin` is a link to `usr/sbin`; `dbus.service` is an
+  alias to `dbus-broker.service`, mirroring the host.
 
 `agent.conf` is generated once from the in-repo sim seed and committed as
 plain JSON. Regenerate with:
