@@ -504,16 +504,26 @@ void RibRouteTables::updateRib(RouterID vrf, const RibUpdateFn& updateRibFn) {
       &lockedRouteTables->mySidTable,
       lockedRouteTables->nextHopIDManager.get(),
       lockedRouteTables->ecmpWidth);
-  if (lockedRouteTables->nextHopIDManager &&
-      !lockedRouteTables->mySidTable.empty()) {
-    auto routeTables =
-        makeVrfRouteTables(lockedRouteTables->routerIDToRouteTable);
-    RibMySidUpdater mySidUpdater(
-        routeTables,
-        lockedRouteTables->nextHopIDManager.get(),
-        &lockedRouteTables->mySidTable,
-        lockedRouteTables->ecmpWidth);
-    mySidUpdater.resolve();
+  if (lockedRouteTables->nextHopIDManager) {
+    auto* nhIdManager = lockedRouteTables->nextHopIDManager.get();
+    const bool hasMySids = !lockedRouteTables->mySidTable.empty();
+    const bool hasPolicies = !nhIdManager->getPbrPolicyToNamedNhg().empty();
+    if (hasMySids || hasPolicies) {
+      auto routeTables =
+          makeVrfRouteTables(lockedRouteTables->routerIDToRouteTable);
+      if (hasMySids) {
+        RibMySidUpdater mySidUpdater(
+            routeTables,
+            nhIdManager,
+            &lockedRouteTables->mySidTable,
+            lockedRouteTables->ecmpWidth);
+        mySidUpdater.resolve();
+      }
+      if (hasPolicies) {
+        resolveNamedNhgs(
+            routeTables, nhIdManager, lockedRouteTables->ecmpWidth);
+      }
+    }
   }
 }
 
@@ -2838,6 +2848,22 @@ void resolveNamedNhgs(
         resolveNextHopSetFromRib(routeTables, manager, *nhops, ecmpWidth),
         ecmpWidth);
   }
+}
+
+void resolveNamedNhgs(
+    const VrfRouteTables& routeTables,
+    NextHopIDManager* manager,
+    uint32_t ecmpWidth) {
+  // Runs on every route update, so walk the policies rather than every named
+  // group - only groups a policy names carry a normalized id.
+  std::set<std::string> names;
+  for (const auto& [_policyName, policy] : manager->getPbrPolicyToNamedNhg()) {
+    names.insert(policy.defaultNexthopGroup);
+    for (const auto& [_fc, nhgName] : policy.class2NextHopGroup) {
+      names.insert(nhgName);
+    }
+  }
+  resolveNamedNhgs(routeTables, manager, names, ecmpWidth);
 }
 
 } // namespace facebook::fboss

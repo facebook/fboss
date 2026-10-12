@@ -811,4 +811,9 @@ void resolveNamedNhgs(
     const std::set<std::string>& names,
     uint32_t ecmpWidth);
 
+void resolveNamedNhgs(
+    const VrfRouteTables& routeTables,
+    NextHopIDManager* manager,
+    uint32_t ecmpWidth);
+
 } // namespace facebook::fboss
