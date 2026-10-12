@@ -468,7 +468,8 @@
         124,
         126,
         127,
-        133
+        133,
+        132
     ],
     "tomahawk4": [
         2,
@@ -1274,7 +1275,8 @@
         "EMPTY_ACL_MATCHER",
         "ACL_DENY_DATA_AND_CONTROL_PLANE",
         "PORT_USER_METADATA",
-        "MY_MAC"
+        "MY_MAC",
+        "ACCESS_POLICY_CLASS_ID_ACL"
     ],
     "tomahawk4": [
         "CPU_RX_TX",
