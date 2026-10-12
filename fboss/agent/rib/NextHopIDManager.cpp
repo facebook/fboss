@@ -340,6 +340,46 @@ NextHopIDManager::updateNamedNextHopGroup(
   return result;
 }
 
+std::optional<NextHopSetID> NextHopIDManager::updatePolicyNormalizedId(
+    const std::string& policyName,
+    const std::string& nhgName,
+    const RouteNextHopSet& normalized,
+    bool& moved) {
+  auto& ids = pbrPolicyToNamedNhg_.at(policyName).normalizedIds;
+  auto it = ids.find(nhgName);
+  const std::optional<NextHopSetID> oldId =
+      it != ids.end() ? std::optional<NextHopSetID>(it->second) : std::nullopt;
+
+  std::optional<NextHopSetID> newId;
+  if (!normalized.empty()) {
+    // Take this policy's reference before releasing the one it holds below:
+    // when both name the same set, releasing first would free it and the id
+    // would not survive the call.
+    newId = getOrAllocRouteNextHopSetID(normalized).nextHopIdSetIter->second.id;
+  }
+
+  if (it != ids.end()) {
+    decrOrDeallocRouteNextHopSetID(it->second);
+    if (newId.has_value()) {
+      it->second = *newId;
+    } else {
+      ids.erase(it);
+    }
+  } else if (newId.has_value()) {
+    ids.emplace(nhgName, *newId);
+  }
+
+  if (oldId == newId) {
+    return newId;
+  }
+  moved = true;
+  XLOG(DBG3) << "[NextHop ID Manager] normalized named NHG '" << nhgName
+             << "' for policy '" << policyName << "' id "
+             << (oldId ? folly::to<std::string>(*oldId) : "none") << " -> "
+             << (newId ? folly::to<std::string>(*newId) : "none");
+  return newId;
+}
+
 NextHopIDManager::NextHopDeallocationResult
 NextHopIDManager::deallocateNamedNextHopGroup(const std::string& name) {
   // Check if this name exists

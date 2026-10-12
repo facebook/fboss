@@ -343,6 +343,16 @@ class NextHopIDManager {
   // Returns true if deallocated, false otherwise.
   bool decrOrDeallocateNextHopByID(const NextHopID& nextHopID);
 
+  // Move one policy's normalized id for `nhgName` onto the set id for
+  // `normalized`, taking a reference for the policy and releasing the one it
+  // held. Returns the new id. Sets `moved` when the id changed and never
+  // clears it, so one flag accumulates across a group's policies.
+  std::optional<NextHopSetID> updatePolicyNormalizedId(
+      const std::string& policyName,
+      const std::string& nhgName,
+      const RouteNextHopSet& normalized,
+      bool& moved);
+
   static constexpr int64_t kNextHopIDStart = 1;
   static constexpr int64_t kNextHopSetIDStart = 1LL << 62;
 
