@@ -47,6 +47,16 @@ namespace facebook::fboss {
 
 namespace {
 
+template <typename RouterIDToRouteTableT>
+RibMySidUpdater::VrfRouteTables makeVrfRouteTables(
+    RouterIDToRouteTableT& routerIDToRouteTable) {
+  RibMySidUpdater::VrfRouteTables routeTables;
+  for (auto& [_rid, rt] : routerIDToRouteTable) {
+    routeTables.emplace_back(&rt.v4NetworkToRoute, &rt.v6NetworkToRoute);
+  }
+  return routeTables;
+}
+
 class RibIpRouteUpdate {
  public:
   using ThriftRoute = UnicastRoute;
@@ -496,10 +506,8 @@ void RibRouteTables::updateRib(RouterID vrf, const RibUpdateFn& updateRibFn) {
       lockedRouteTables->ecmpWidth);
   if (lockedRouteTables->nextHopIDManager &&
       !lockedRouteTables->mySidTable.empty()) {
-    RibMySidUpdater::VrfRouteTables routeTables;
-    for (auto& [rid, rt] : lockedRouteTables->routerIDToRouteTable) {
-      routeTables.emplace_back(&rt.v4NetworkToRoute, &rt.v6NetworkToRoute);
-    }
+    auto routeTables =
+        makeVrfRouteTables(lockedRouteTables->routerIDToRouteTable);
     RibMySidUpdater mySidUpdater(
         routeTables,
         lockedRouteTables->nextHopIDManager.get(),
@@ -512,11 +520,8 @@ void RibRouteTables::updateRib(RouterID vrf, const RibUpdateFn& updateRibFn) {
 template <typename RibUpdateFn>
 void RibRouteTables::updateRibMySids(const RibUpdateFn& updateRibFn) {
   auto lockedRouteTables = synchronizedRouteTables_.wlock();
-  RibMySidUpdater::VrfRouteTables routeTables;
-  for (auto& [rid, routeTable] : lockedRouteTables->routerIDToRouteTable) {
-    routeTables.emplace_back(
-        &routeTable.v4NetworkToRoute, &routeTable.v6NetworkToRoute);
-  }
+  auto routeTables =
+      makeVrfRouteTables(lockedRouteTables->routerIDToRouteTable);
   updateRibFn(
       routeTables,
       &lockedRouteTables->mySidTable,
@@ -2305,11 +2310,8 @@ void RibRouteTables::addOrUpdateNamedNextHopGroups(
     }
 
     if (!mySidsToReresolve.empty()) {
-      RibMySidUpdater::VrfRouteTables routeTables;
-      for (auto& [_rid, routeTable] : lockedRouteTables->routerIDToRouteTable) {
-        routeTables.emplace_back(
-            &routeTable.v4NetworkToRoute, &routeTable.v6NetworkToRoute);
-      }
+      auto routeTables =
+          makeVrfRouteTables(lockedRouteTables->routerIDToRouteTable);
       RibMySidUpdater updater(
           routeTables,
           nhIdManager,
