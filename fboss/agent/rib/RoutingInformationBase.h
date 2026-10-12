@@ -802,4 +802,13 @@ RouteNextHopSet resolveNextHopSetFromRib(
     const RouteNextHopSet& nhops,
     uint32_t ecmpWidth);
 
+// Resolve each named group's next hops against the RIB and point the policies
+// referencing it at the normalized set id for the result. A name with no such
+// group is skipped.
+void resolveNamedNhgs(
+    const VrfRouteTables& routeTables,
+    NextHopIDManager* manager,
+    const std::set<std::string>& names,
+    uint32_t ecmpWidth);
+
 } // namespace facebook::fboss

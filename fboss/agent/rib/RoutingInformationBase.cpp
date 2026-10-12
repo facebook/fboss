@@ -2309,9 +2309,9 @@ void RibRouteTables::addOrUpdateNamedNextHopGroups(
       }
     }
 
+    auto routeTables =
+        makeVrfRouteTables(lockedRouteTables->routerIDToRouteTable);
     if (!mySidsToReresolve.empty()) {
-      auto routeTables =
-          makeVrfRouteTables(lockedRouteTables->routerIDToRouteTable);
       RibMySidUpdater updater(
           routeTables,
           nhIdManager,
@@ -2319,6 +2319,12 @@ void RibRouteTables::addOrUpdateNamedNextHopGroups(
           lockedRouteTables->ecmpWidth);
       updater.resolve(mySidsToReresolve);
     }
+    std::set<std::string> groupNames;
+    for (const auto& [name, _nextHopSet] : groups) {
+      groupNames.insert(name);
+    }
+    resolveNamedNhgs(
+        routeTables, nhIdManager, groupNames, lockedRouteTables->ecmpWidth);
   }
 
   for (auto& [key, routes] : routesToReprogram) {
@@ -2381,15 +2387,24 @@ void RibRouteTables::addOrUpdatePolicies(
             "'");
       }
     };
+    std::set<std::string> names;
     for (const auto& policy : policies) {
       requireNamedNhg(*policy.name(), *policy.defaultNexthopGroup());
+      names.insert(*policy.defaultNexthopGroup());
       for (const auto& [_fc, nhg] : *policy.class2NextHopGroup()) {
-        requireNamedNhg(*policy.name(), nhg.name().value_or(""));
+        const auto nhgName = nhg.name().value_or("");
+        requireNamedNhg(*policy.name(), nhgName);
+        names.insert(nhgName);
       }
     }
     for (const auto& policy : policies) {
       nhIdManager->addOrUpdatePolicy(policy);
     }
+
+    auto routeTables =
+        makeVrfRouteTables(lockedRouteTables->routerIDToRouteTable);
+    resolveNamedNhgs(
+        routeTables, nhIdManager, names, lockedRouteTables->ecmpWidth);
   }
   updateFibNamedNextHopGroups(stateUpdateFn);
 }
@@ -2804,6 +2819,25 @@ RouteNextHopSet resolveNextHopSetFromRib(
     resolved.insert(nhResolved.begin(), nhResolved.end());
   }
   return resolved;
+}
+
+void resolveNamedNhgs(
+    const VrfRouteTables& routeTables,
+    NextHopIDManager* manager,
+    const std::set<std::string>& names,
+    uint32_t ecmpWidth) {
+  for (const auto& name : names) {
+    auto nhops = manager->getNextHopsForName(name);
+    if (!nhops.has_value()) {
+      XLOG(WARN) << "no named next-hop group '" << name
+                 << "'; leaving its normalized id in place";
+      continue;
+    }
+    manager->updateNormalizedNamedNhgId(
+        name,
+        resolveNextHopSetFromRib(routeTables, manager, *nhops, ecmpWidth),
+        ecmpWidth);
+  }
 }
 
 } // namespace facebook::fboss
