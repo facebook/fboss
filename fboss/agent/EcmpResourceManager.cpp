@@ -1501,6 +1501,7 @@ std::vector<StateDelta> EcmpResourceManager::reconstructFromSwitchState(
       0 /*virtualEcmpGroupsCnt*/,
       0 /*ecmpMemberCnt*/,
       delta);
+  inOutState.reconstructing = true;
   auto deltas = consolidateImpl(delta, &inOutState);
   if (!getEcmpCompressionThresholdPct()) {
     // For getBackupEcmpSwitchingMode() reclaim is completed on
@@ -1543,6 +1544,14 @@ EcmpResourceManager::routeAddedNoCompressionThreshold(
   auto nhopSet = getNormalizedNextHops(
       inOutState->getInputNewState(), newRoute->getForwardInfo());
   auto [grpInfo, grpInserted] = getOrCreateGroupInfo(nhopSet, *inOutState);
+  // Override presence alone does not prove the mode is current: the rib can
+  // re-push routes carrying a backup mode from before a mode change.
+  auto hasStaleBackupMode = [this, &newRoute, inOutState](
+                                const auto& groupInfo) {
+    return !inOutState->reconstructing && groupInfo->isBackupEcmpGroupType() &&
+        newRoute->getForwardInfo().getOverrideEcmpSwitchingMode() !=
+        getBackupEcmpSwitchingMode();
+  };
   if (grpInserted) {
     DCHECK(grpInfo->isUninitialized());
     XLOG(DBG2) << " Route: " << newRoute->str()
@@ -1559,7 +1568,12 @@ EcmpResourceManager::routeAddedNoCompressionThreshold(
       grpInfo->setIsBackupEcmpGroupType(newRoute->getForwardInfo()
                                             .getOverrideEcmpSwitchingMode()
                                             .has_value());
-      inOutState->addOrUpdateRoute(rid, newRoute);
+      if (hasStaleBackupMode(grpInfo)) {
+        grpInfo = updateForwardingInfoAndInsertDelta(
+            rid, newRoute, grpInfo, false /*ecmpLimitReached*/, inOutState);
+      } else {
+        inOutState->addOrUpdateRoute(rid, newRoute);
+      }
     }
     inOutState->ecmpMemberCnt += grpInfo->numNhops();
     if (!grpInfo->hasOverrides() && isVirtualArsGroup(grpInfo->getNhops())) {
@@ -1571,7 +1585,8 @@ EcmpResourceManager::routeAddedNoCompressionThreshold(
     XLOG(DBG2) << " Route: " << newRoute->str()
                << " points to existing group: " << *grpInfo;
     if (grpInfo->hasOverrides() !=
-        newRoute->getForwardInfo().hasOverrideSwitchingModeOrNhops()) {
+            newRoute->getForwardInfo().hasOverrideSwitchingModeOrNhops() ||
+        hasStaleBackupMode(grpInfo)) {
       auto existingGrpInfo = updateForwardingInfoAndInsertDelta(
           rid, newRoute, grpInfo, false /*ecmpLimitReached*/, inOutState);
       CHECK_EQ(existingGrpInfo, grpInfo);

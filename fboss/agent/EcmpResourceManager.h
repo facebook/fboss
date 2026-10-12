@@ -239,6 +239,8 @@ class EcmpResourceManager {
     uint32_t virtualEcmpGroupsCnt{0};
     uint32_t ecmpMemberCnt{0};
     bool updated{false};
+    // Set while replaying a recovered state, whose overrides are taken as-is.
+    bool reconstructing{false};
 
     std::shared_ptr<SwitchState> getInputNewState() const {
       return inputDelta_.newState();
