@@ -47,6 +47,7 @@ class CmdConfigMirrorTestFixture : public CmdConfigTestBase {
     "ports": [
       {
         "logicalID": 4,
+        "name": "eth1/1/4",
         "state": 2,
         "speed": 100000
       },
@@ -296,6 +297,9 @@ TEST_F(CmdConfigMirrorTestFixture, deletesUnreferencedMirror) {
 TEST_F(CmdConfigMirrorTestFixture, refusesToDeleteReferencedMirror) {
   auto& port = ConfigSession::getInstance().getAgentConfig().sw()->ports()[0];
   port.ingressMirror() = "existing_span";
+  // Loading the session requires named ports, so drop the name afterwards to
+  // cover the referrer message for a port without one.
+  port.name().reset();
 
   CmdDeleteMirror cmd;
   try {
