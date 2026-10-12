@@ -2077,6 +2077,142 @@ TEST_F(NextHopIDManagerTest, namedNextHopGroupWarmBoot) {
   EXPECT_EQ(*nhOpt, nhSet1);
 }
 
+// Warm boot restores a named NHG's normalized id from the policies naming it,
+// not by re-normalizing.
+TEST_F(NextHopIDManagerTest, namedNextHopGroupNormalizedIdSurvivesWarmBoot) {
+  RouteNextHopSet nhSet;
+  nhSet.emplace(
+      ResolvedNextHop(folly::IPAddress("10.0.0.1"), InterfaceID(1), 1));
+  nhSet.emplace(
+      ResolvedNextHop(folly::IPAddress("10.0.0.2"), InterfaceID(2), 1));
+  manager_->allocateNamedNextHopGroup("warmGroup", nhSet);
+  ClassBasedPolicy prebootPolicy;
+  prebootPolicy.name() = "warmPolicy";
+  prebootPolicy.defaultNexthopGroup() = "warmGroup";
+  manager_->addOrUpdatePolicy(prebootPolicy);
+  // These next hops already carry an interface, so RIB resolution passes them
+  // through untouched.
+  manager_->updateNormalizedNamedNhgId("warmGroup", nhSet, kEcmpWidth);
+
+  const auto rawId = manager_->getNextHopSetIDForName("warmGroup");
+  const auto normalizedId =
+      manager_->getNormalizedNextHopSetIDForPolicyNhg("warmGroup");
+  ASSERT_TRUE(rawId.has_value());
+  ASSERT_TRUE(normalizedId.has_value());
+
+  // Persist what the pre-boot manager published, then reconstruct from it.
+  auto idToNextHopMap = std::make_shared<IdToNextHopMap>();
+  for (const auto& [id, entry] : manager_->getIdToNextHop()) {
+    idToNextHopMap->addNextHop(
+        static_cast<NextHopId>(id), entry.nextHop.toThrift());
+  }
+  auto idToNextHopIdSetMap = std::make_shared<IdToNextHopIdSetMap>();
+  for (const auto& [id, idSet] : manager_->getIdToNextHopIdSet()) {
+    std::set<NextHopId> ids;
+    for (auto nhId : idSet) {
+      ids.insert(static_cast<NextHopId>(nhId));
+    }
+    idToNextHopIdSetMap->addNextHopIdSet(static_cast<NextHopSetId>(id), ids);
+  }
+  auto fibInfoMap =
+      createMultiSwitchFibInfoMap(nullptr, idToNextHopMap, idToNextHopIdSetMap);
+  auto fibInfo = fibInfoMap->getNodeIf("id=0");
+  ASSERT_NE(fibInfo, nullptr);
+  fibInfo->setNameToNextHopSetId(
+      {{"warmGroup", static_cast<NextHopSetId>(*rawId)}});
+
+  state::ClassBasedPolicyFields policyFields;
+  policyFields.name() = "warmPolicy";
+  policyFields.defaultNextHopGroup()->name() = "warmGroup";
+  policyFields.defaultNextHopGroup()->id() =
+      static_cast<int64_t>(*normalizedId);
+  policyFields.referenced() = true;
+  auto policyMap = std::make_shared<ClassBasedPolicyMap>();
+  policyMap->addPolicy(std::make_shared<ClassBasedPolicyNode>(policyFields));
+  auto policyMaps = std::make_shared<MultiSwitchClassBasedPolicyMap>();
+  policyMaps->addMapNode(policyMap, HwSwitchMatcher("id=0"));
+
+  NextHopIDManager rebooted;
+  rebooted.reconstructFromSwitchStateMaps(
+      fibInfoMap, nullptr, nullptr, nullptr, policyMaps);
+
+  EXPECT_EQ(rebooted.getNextHopSetIDForName("warmGroup"), rawId);
+  EXPECT_EQ(
+      rebooted.getNormalizedNextHopSetIDForPolicyNhg("warmGroup"),
+      normalizedId);
+}
+
+// Reconstruction has to re-establish one reference per policy: registering a
+// shared name once would underflow the refcount when the later policies go.
+TEST_F(NextHopIDManagerTest, warmBootRefcountsSharedNamedNhgOncePerPolicy) {
+  RouteNextHopSet nhSet;
+  nhSet.emplace(
+      ResolvedNextHop(folly::IPAddress("10.0.0.1"), InterfaceID(1), 1));
+  manager_->allocateNamedNextHopGroup("sharedGroup", nhSet);
+
+  const std::vector<std::string> policyNames{"polA", "polB", "polC"};
+  for (const auto& name : policyNames) {
+    ClassBasedPolicy policy;
+    policy.name() = name;
+    policy.defaultNexthopGroup() = "sharedGroup";
+    manager_->addOrUpdatePolicy(policy);
+  }
+  manager_->updateNormalizedNamedNhgId("sharedGroup", nhSet, kEcmpWidth);
+
+  const auto rawId = manager_->getNextHopSetIDForName("sharedGroup");
+  const auto normalizedId =
+      manager_->getNormalizedNextHopSetIDForPolicyNhg("sharedGroup");
+  ASSERT_TRUE(rawId.has_value());
+  ASSERT_TRUE(normalizedId.has_value());
+
+  auto idToNextHopMap = std::make_shared<IdToNextHopMap>();
+  for (const auto& [id, entry] : manager_->getIdToNextHop()) {
+    idToNextHopMap->addNextHop(
+        static_cast<NextHopId>(id), entry.nextHop.toThrift());
+  }
+  auto idToNextHopIdSetMap = std::make_shared<IdToNextHopIdSetMap>();
+  for (const auto& [id, idSet] : manager_->getIdToNextHopIdSet()) {
+    std::set<NextHopId> ids;
+    for (auto nhId : idSet) {
+      ids.insert(static_cast<NextHopId>(nhId));
+    }
+    idToNextHopIdSetMap->addNextHopIdSet(static_cast<NextHopSetId>(id), ids);
+  }
+  auto fibInfoMap =
+      createMultiSwitchFibInfoMap(nullptr, idToNextHopMap, idToNextHopIdSetMap);
+  auto fibInfo = fibInfoMap->getNodeIf("id=0");
+  ASSERT_NE(fibInfo, nullptr);
+  fibInfo->setNameToNextHopSetId(
+      {{"sharedGroup", static_cast<NextHopSetId>(*rawId)}});
+
+  auto policyMap = std::make_shared<ClassBasedPolicyMap>();
+  for (const auto& name : policyNames) {
+    state::ClassBasedPolicyFields fields;
+    fields.name() = name;
+    fields.defaultNextHopGroup()->name() = "sharedGroup";
+    fields.defaultNextHopGroup()->id() = static_cast<int64_t>(*normalizedId);
+    fields.referenced() = true;
+    policyMap->addPolicy(std::make_shared<ClassBasedPolicyNode>(fields));
+  }
+  auto policyMaps = std::make_shared<MultiSwitchClassBasedPolicyMap>();
+  policyMaps->addMapNode(policyMap, HwSwitchMatcher("id=0"));
+
+  NextHopIDManager rebooted;
+  rebooted.reconstructFromSwitchStateMaps(
+      fibInfoMap, nullptr, nullptr, nullptr, policyMaps);
+  EXPECT_EQ(
+      rebooted.getNormalizedNextHopSetIDForPolicyNhg("sharedGroup"),
+      normalizedId);
+
+  // Dropping all three must not underflow, and must leave nothing behind once
+  // the raw reference goes too.
+  for (const auto& name : policyNames) {
+    rebooted.removePolicy(name);
+  }
+  rebooted.deallocateNamedNextHopGroup("sharedGroup");
+  EXPECT_EQ(rebooted.getIdToNextHopIdSet().count(*normalizedId), 0);
+}
+
 TEST_F(NextHopIDManagerTest, namedNextHopGroupSharesSetIdWithRoutes) {
   // Test that named next-hop groups and routes share the same NextHopSetID
   // when they have the same nexthops (via reference counting)
