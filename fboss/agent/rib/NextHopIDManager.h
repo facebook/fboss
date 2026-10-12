@@ -205,6 +205,16 @@ class NextHopIDManager {
   NextHopDeallocationResult deallocateNamedNextHopGroup(
       const std::string& name);
 
+  /**
+   * Point every class-based policy referencing named group `name` at the
+   * normalized next-hop set id for that group's resolved next hops. This is
+   * the id a PBR ACL synthesized from those policies matches on.
+   */
+  void updateNormalizedNamedNhgId(
+      const std::string& name,
+      const RouteNextHopSet& resolvedNextHopSet,
+      uint32_t ecmpWidth);
+
   // Get the NextHopSetID for a named next-hop group
   // Returns std::nullopt if the group doesn't exist
   std::optional<NextHopSetID> getNextHopSetIDForName(

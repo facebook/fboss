@@ -27,6 +27,22 @@ size_t hash<facebook::fboss::NextHopIDSet>::operator()(
 
 namespace facebook::fboss {
 
+namespace {
+bool policyReferencesNamedNhg(
+    const ClassBasedPolicyNhgs& policy,
+    const std::string& name) {
+  if (policy.defaultNexthopGroup == name) {
+    return true;
+  }
+  for (const auto& [_fc, nhgName] : policy.class2NextHopGroup) {
+    if (nhgName == name) {
+      return true;
+    }
+  }
+  return false;
+}
+} // namespace
+
 NextHopIDManager::NextHopToIDIter NextHopIDManager::getOrAllocateNextHopID(
     const NextHop& nextHop) {
   auto it = nextHopToID_.find(nextHop);
@@ -378,6 +394,38 @@ std::optional<NextHopSetID> NextHopIDManager::updatePolicyNormalizedId(
              << (oldId ? folly::to<std::string>(*oldId) : "none") << " -> "
              << (newId ? folly::to<std::string>(*newId) : "none");
   return newId;
+}
+
+void NextHopIDManager::updateNormalizedNamedNhgId(
+    const std::string& name,
+    const RouteNextHopSet& resolvedNextHopSet,
+    uint32_t ecmpWidth) {
+  std::vector<std::string> owners;
+  for (const auto& [policyName, policy] : pbrPolicyToNamedNhg_) {
+    if (policyReferencesNamedNhg(policy, name)) {
+      owners.push_back(policyName);
+    }
+  }
+  if (owners.empty()) {
+    return;
+  }
+
+  RouteNextHopSet normalized;
+  if (!resolvedNextHopSet.empty()) {
+    normalized =
+        RouteNextHopEntry::normalizeNextHops(resolvedNextHopSet, ecmpWidth);
+  }
+
+  bool moved = false;
+  std::optional<NextHopSetID> setId;
+  for (const auto& policyName : owners) {
+    const auto newId =
+        updatePolicyNormalizedId(policyName, name, normalized, moved);
+    CHECK(!setId.has_value() || newId == setId)
+        << "named NHG '" << name
+        << "' took different normalized ids across its policies";
+    setId = newId;
+  }
 }
 
 NextHopIDManager::NextHopDeallocationResult
