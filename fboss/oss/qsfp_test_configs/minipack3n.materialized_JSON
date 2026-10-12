@@ -116,7 +116,8 @@
         "zPortName": "eth1/65/2",
         "profileID": 62
       }
-    ]
+    ],
+    "qsfpServiceMemLimitBytes": 2500000000
   },
   "transceiverFirmwareVersions": {
     "versionsMap": {
