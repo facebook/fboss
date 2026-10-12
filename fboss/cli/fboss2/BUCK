@@ -154,6 +154,7 @@ cpp_library(
         "//folly/coro:blocking_wait",
         "//folly/coro:task",
         "//folly/executors:cpu_thread_pool_executor",
+        "//folly/json:dynamic",
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2/op:get",
