@@ -3296,4 +3296,74 @@ TEST_F(NextHopIDManagerTest, ClassBasedPolicyStore) {
   EXPECT_TRUE(manager_->getPbrPolicyToNamedNhg().empty());
 }
 
+// A policy's default NHG cannot be deleted out from under it. Without the
+// policy guard this is only caught when the policy has routes.
+TEST_F(NextHopIDManagerTest, deleteNamedNhgReferencedAsPolicyDefaultBlocked) {
+  RouteNextHopSet nhops{
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT)};
+  manager_->allocateNamedNextHopGroup("defaultNhg", nhops);
+
+  ClassBasedPolicy policy;
+  policy.name() = "pol1";
+  policy.defaultNexthopGroup() = "defaultNhg";
+  manager_->addOrUpdatePolicy(policy);
+
+  EXPECT_TRUE(manager_->hasPoliciesForNamedNhg("defaultNhg"));
+  EXPECT_THROW(manager_->deallocateNamedNextHopGroup("defaultNhg"), FbossError);
+  EXPECT_TRUE(manager_->hasNamedNextHopGroup("defaultNhg"));
+
+  // Dropping the policy releases the reference.
+  manager_->removePolicy("pol1");
+  EXPECT_FALSE(manager_->hasPoliciesForNamedNhg("defaultNhg"));
+  manager_->deallocateNamedNextHopGroup("defaultNhg");
+  EXPECT_FALSE(manager_->hasNamedNextHopGroup("defaultNhg"));
+}
+
+// A redirect-only NHG has no routes pointing at it, so the route guard never
+// fires; the policy guard is the only thing protecting it.
+TEST_F(NextHopIDManagerTest, deleteNamedNhgReferencedAsPolicyRedirectBlocked) {
+  RouteNextHopSet defaultNhops{
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT)};
+  RouteNextHopSet redirectNhops{
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.2", UCMP_DEFAULT_WEIGHT)};
+  manager_->allocateNamedNextHopGroup("defaultNhg", defaultNhops);
+  manager_->allocateNamedNextHopGroup("redirectNhg", redirectNhops);
+
+  ClassBasedPolicy policy;
+  policy.name() = "pol1";
+  policy.defaultNexthopGroup() = "defaultNhg";
+  NextHopGroup redirectNhg;
+  redirectNhg.name() = "redirectNhg";
+  policy.class2NextHopGroup()[ForwardingClass::CLASS_1] = redirectNhg;
+  manager_->addOrUpdatePolicy(policy);
+
+  EXPECT_FALSE(manager_->hasRoutesForNamedNhg("redirectNhg"));
+  EXPECT_TRUE(manager_->hasPoliciesForNamedNhg("redirectNhg"));
+  EXPECT_THROW(
+      manager_->deallocateNamedNextHopGroup("redirectNhg"), FbossError);
+  EXPECT_TRUE(manager_->hasNamedNextHopGroup("redirectNhg"));
+
+  manager_->removePolicy("pol1");
+  manager_->deallocateNamedNextHopGroup("redirectNhg");
+  EXPECT_FALSE(manager_->hasNamedNextHopGroup("redirectNhg"));
+}
+
+// An NHG no policy names stays deletable.
+TEST_F(NextHopIDManagerTest, deleteUnreferencedNamedNhgWithPoliciesPresent) {
+  RouteNextHopSet nhops{
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT)};
+  manager_->allocateNamedNextHopGroup("defaultNhg", nhops);
+  manager_->allocateNamedNextHopGroup("unusedNhg", nhops);
+
+  ClassBasedPolicy policy;
+  policy.name() = "pol1";
+  policy.defaultNexthopGroup() = "defaultNhg";
+  manager_->addOrUpdatePolicy(policy);
+
+  EXPECT_FALSE(manager_->hasPoliciesForNamedNhg("unusedNhg"));
+  manager_->deallocateNamedNextHopGroup("unusedNhg");
+  EXPECT_FALSE(manager_->hasNamedNextHopGroup("unusedNhg"));
+  EXPECT_TRUE(manager_->hasNamedNextHopGroup("defaultNhg"));
+}
+
 } // namespace facebook::fboss

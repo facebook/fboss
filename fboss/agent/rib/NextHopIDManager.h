@@ -307,6 +307,10 @@ class NextHopIDManager {
   // Empty if no class-based policy references `name`.
   const PolicySet& getPoliciesForNamedNhg(const std::string& name) const;
 
+  // True if any policy references this named NHG, as its default or as a
+  // redirect target.
+  bool hasPoliciesForNamedNhg(const std::string& name) const;
+
   const std::unordered_map<std::string, ClassBasedPolicyNhgs>&
   getPbrPolicyToNamedNhg() const {
     return pbrPolicyToNamedNhg_;

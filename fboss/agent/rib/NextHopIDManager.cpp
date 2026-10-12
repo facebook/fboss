@@ -429,6 +429,12 @@ NextHopIDManager::deallocateNamedNextHopGroup(const std::string& name) {
         name,
         "' because it is referenced by MySids");
   }
+  if (hasPoliciesForNamedNhg(name)) {
+    throw FbossError(
+        "Cannot delete named next-hop group '",
+        name,
+        "' because it is referenced by class-based policies");
+  }
 
   auto setIdIt = nameToNextHopSetID_.find(name);
   CHECK(setIdIt != nameToNextHopSetID_.end())
@@ -1219,6 +1225,10 @@ const PolicySet& NextHopIDManager::getPoliciesForNamedNhg(
     return it->second;
   }
   return kEmpty;
+}
+
+bool NextHopIDManager::hasPoliciesForNamedNhg(const std::string& name) const {
+  return namedNhgToPbrPolicies_.count(name) != 0;
 }
 
 } // namespace facebook::fboss
