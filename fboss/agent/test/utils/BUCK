@@ -70,8 +70,8 @@ cpp_library(
 
 cpp_library(
     name = "access_policy_acl_test_utils",
-    srcs = ["AccessPolicyAclTestUtils.cpp"],
-    headers = ["AccessPolicyAclTestUtils.h"],
+    srcs = ["facebook/AccessPolicyAclTestUtils.cpp"],
+    headers = ["facebook/AccessPolicyAclTestUtils.h"],
     deps = [
         "fbsource//third-party/fmt:fmt",
         ":acl_test_utils",
