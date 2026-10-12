@@ -6,7 +6,10 @@
                "Passwords are lab-only and fenced to the fake variant.",
                "Host uids/gids are pinned to match the login-containers machine",
                "passwd/group, wrappers, and RPM %post (1000:1000, 1001:1002);",
-               "any collision fails the build loudly instead of diverging."
+               "any collision fails the build loudly instead of diverging.",
+               "Trust: test CA pubkey + sshd drop-in + static role principals;",
+               "private CA stays in fake/scripts/facebook/test-ca (internal).",
+               "Principals MUST equal role names; joiner = off-box mint."
                ],
 
   "execute": [
@@ -17,6 +20,12 @@
     [ "sh", "-c", "echo 'netops:netops' | chpasswd" ],
     [ "sh", "-c", "echo 'netadmin:netadmin' | chpasswd" ],
     [ "usermod", "-s", "/usr/local/bin/netops-shell", "netops" ],
-    [ "usermod", "-s", "/usr/local/bin/netadmin-shell", "netadmin" ]
+    [ "usermod", "-s", "/usr/local/bin/netadmin-shell", "netadmin" ],
+    [ "mkdir", "-p", "/etc/ssh/principals", "/etc/ssh/sshd_config.d" ],
+    [ "sh", "-c", "echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICnkBvM0/7G8Bg/yomdNbwVsTGJ60enxX7cF4POa+8cR fake-test-ca' > /etc/ssh/fake_ca.pub" ],
+    [ "sh", "-c", "{ echo 'TrustedUserCAKeys /etc/ssh/fake_ca.pub'; echo 'AuthorizedPrincipalsFile /etc/ssh/principals/%u'; } > /etc/ssh/sshd_config.d/10-fake-ca.conf" ],
+    [ "sh", "-c", "echo netops > /etc/ssh/principals/netops && echo netadmin > /etc/ssh/principals/netadmin" ],
+    [ "sh", "-c", "chmod 755 /etc/ssh/principals && chmod 644 /etc/ssh/fake_ca.pub /etc/ssh/sshd_config.d/10-fake-ca.conf /etc/ssh/principals/netops /etc/ssh/principals/netadmin" ],
+    [ "sshd", "-t" ]
   ]
 }
