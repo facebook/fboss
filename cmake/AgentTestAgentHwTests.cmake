@@ -203,7 +203,6 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentAclTableTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAclTableGroupTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAclTableGroupTrafficTests.cpp
-  fboss/agent/test/agent_hw_tests/AgentAccessPolicyAclTests.cpp
   fboss/agent/test/agent_hw_tests/AgentHwResourceStatsTests.cpp
   fboss/agent/test/agent_hw_tests/AgentHwParityErrorTests.cpp
   fboss/agent/test/agent_hw_tests/AgentTrafficPfcTests.cpp
@@ -232,7 +231,6 @@ target_link_libraries(agent_hw_test_src
   agent_ars_test_src
   agent_qos_test_src
   agent_voq_test_src
-  access_policy_acl_test_utils
   acl_test_utils
   address_utils
   agent_test_utils
@@ -333,7 +331,6 @@ target_link_libraries(multi_switch_agent_hw_test
 )
 
 add_library(agent_scale_test_src
-  fboss/agent/test/agent_hw_tests/AgentAccessPolicyAclStressTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAclScaleTests.cpp
   fboss/agent/test/agent_hw_tests/AgentEcmpScaleTests.cpp
 )
@@ -346,7 +343,6 @@ target_link_libraries(agent_scale_test_src
   agent_hw_test_src
   ecmp_helper
   production_features_cpp2
-  access_policy_acl_test_utils
   acl_test_utils
   asic_test_utils
   scale_test_utils
