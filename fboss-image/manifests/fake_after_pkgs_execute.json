@@ -1,0 +1,15 @@
+{
+  "_comment" : [
+               "Fake-only post-install setup for the login-container foundation.",
+               "Referenced only by 6.11.1_fake.json image_build_hooks.",
+               "Runs in the chrooted rootfs; the file is deleted afterwards.",
+               "Passwords are lab-only and fenced to the fake variant."
+               ],
+
+  "execute": [
+    [ "useradd", "-m", "-s", "/bin/bash", "netops" ],
+    [ "useradd", "-m", "-s", "/bin/bash", "netadmin" ],
+    [ "sh", "-c", "echo 'netops:netops' | chpasswd" ],
+    [ "sh", "-c", "echo 'netadmin:netadmin' | chpasswd" ]
+  ]
+}

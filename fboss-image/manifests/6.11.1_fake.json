@@ -48,5 +48,8 @@
       "download": "${ARTIFACT_BASE}/led/fboss_bins.tar.zst"
     }
   ],
-  "image_build_hooks": {}
+  "image_build_hooks": {
+    "after_pkgs_install": "fake_after_pkgs_install.json",
+    "after_pkgs_execute": "fake_after_pkgs_execute.json"
+  }
 }
