@@ -9,6 +9,7 @@
 #include <optional>
 #include <set>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/state/FibInfoMap.h"
@@ -27,6 +28,8 @@ class MultiSwitchClassBasedPolicyMap;
 
 // A set of NextHopIDs (used as key for NextHopIDSetID mapping)
 using NextHopIDSet = std::set<NextHopID>;
+
+using PolicySet = std::unordered_set<std::string>;
 
 } // namespace facebook::fboss
 
@@ -301,6 +304,9 @@ class NextHopIDManager {
 
   const ClassBasedPolicyNhgs* getPolicy(const std::string& name) const;
 
+  // Empty if no class-based policy references `name`.
+  const PolicySet& getPoliciesForNamedNhg(const std::string& name) const;
+
   const std::unordered_map<std::string, ClassBasedPolicyNhgs>&
   getPbrPolicyToNamedNhg() const {
     return pbrPolicyToNamedNhg_;
@@ -472,6 +478,14 @@ class NextHopIDManager {
 
   // Class-based policy store: policy name -> the NHG names it references.
   std::unordered_map<std::string, ClassBasedPolicyNhgs> pbrPolicyToNamedNhg_;
+  // Inverse of pbrPolicyToNamedNhg_.
+  std::unordered_map<std::string, PolicySet> namedNhgToPbrPolicies_;
+
+  void addPolicy2NamedNhgMap(
+      const std::string& policyName,
+      const ClassBasedPolicyNhgs& nhgs);
+
+  void delPolicy2NamedNhgMap(const std::string& policyName);
 
   // Get the ref count for a given NextHop
   uint32_t getNextHopRefCount(const NextHop& nextHop);
