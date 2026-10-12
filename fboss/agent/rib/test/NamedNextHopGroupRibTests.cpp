@@ -10,17 +10,22 @@
 
 #include <gtest/gtest.h>
 
+#include <chrono>
+
 #include <folly/logging/xlog.h>
 #include <gflags/gflags.h>
 
 #include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
+#include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/RouteNextHop.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
 
@@ -274,6 +279,161 @@ TEST_F(NamedNextHopGroupRibTest, AddRouteWithNamedNhg) {
       managerCopy->getRoutesForNamedNhg("nhg1").count(
           {RouterID(0), expectedPrefix}),
       1);
+}
+
+TEST_F(
+    NamedNextHopGroupRibTest,
+    MixedNextHopsAfterNamedGroupRecursiveResolutionRollsBack) {
+  gflags::FlagSaver flagSaver;
+  FLAGS_srv6 = true;
+
+  sw_->initialConfigApplied(std::chrono::steady_clock::now());
+  waitForStateUpdates(sw_);
+
+  constexpr auto kNhgName = "srv6_fboss11_1";
+  const auto rid = RouterID(0);
+  const auto srv6BranchPrefix =
+      folly::CIDRNetwork(folly::IPAddress("100::"), 64);
+  const auto plainBranchPrefix =
+      folly::CIDRNetwork(folly::IPAddress("200::"), 64);
+  const auto failedPrefix = folly::CIDRNetwork(folly::IPAddress("300::"), 64);
+  const std::vector<folly::IPAddressV6> sidListA{
+      folly::IPAddressV6("3001:db8:1::")};
+  const std::vector<folly::IPAddressV6> sidListB{
+      folly::IPAddressV6("3001:db8:2::")};
+
+  // Model the CSCO experiment: the named group behind one BGP next-hop branch
+  // is homogeneous SRv6; the sibling branch resolves to an ordinary IP next
+  // hop. Only the recursively resolved BGP route is mixed.
+  RouteNextHopSet srv6NextHops{
+      UnresolvedNextHop(
+          folly::IPAddress("1::10"),
+          ECMP_WEIGHT,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          sidListA,
+          TunnelType::SRV6_ENCAP,
+          "srv6Tunnel0"),
+      UnresolvedNextHop(
+          folly::IPAddress("2::10"),
+          ECMP_WEIGHT,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          sidListB,
+          TunnelType::SRV6_ENCAP,
+          "srv6Tunnel0")};
+  ASSERT_FALSE(hasSrv6AndNonSrv6NextHops(srv6NextHops));
+
+  ThriftHandler handler(sw_);
+  NextHopGroup srv6Group;
+  srv6Group.name() = kNhgName;
+  srv6Group.nexthops() = util::fromRouteNextHopSet(srv6NextHops);
+  auto groups = std::make_unique<std::vector<NextHopGroup>>();
+  groups->push_back(std::move(srv6Group));
+  handler.addNamedNextHopGroups(std::move(groups));
+
+  const auto addRouteViaThrift = [&handler](
+                                     ClientID client, UnicastRoute route) {
+    auto routes = std::make_unique<std::vector<UnicastRoute>>();
+    routes->push_back(std::move(route));
+    handler.addUnicastRoutes(static_cast<int16_t>(client), std::move(routes));
+  };
+
+  // Install the two routes that resolve the BGP next-hop addresses. The TE
+  // branch points at the SRv6-only named group; the other branch is plain IP.
+  UnicastRoute srv6BranchRoute;
+  srv6BranchRoute.dest()->ip() =
+      facebook::network::toBinaryAddress(srv6BranchPrefix.first);
+  srv6BranchRoute.dest()->prefixLength() = srv6BranchPrefix.second;
+  srv6BranchRoute.adminDistance() = AdminDistance::TE_AGENT;
+  NamedRouteDestination namedDest;
+  namedDest.nextHopGroup() = kNhgName;
+  srv6BranchRoute.namedRouteDestination() = namedDest;
+  addRouteViaThrift(ClientID::TE_AGENT, std::move(srv6BranchRoute));
+
+  UnicastRoute plainBranchRoute;
+  plainBranchRoute.dest()->ip() =
+      facebook::network::toBinaryAddress(plainBranchPrefix.first);
+  plainBranchRoute.dest()->prefixLength() = plainBranchPrefix.second;
+  plainBranchRoute.adminDistance() = AdminDistance::OPENR;
+  plainBranchRoute.nextHops() = util::fromRouteNextHopSet(
+      RouteNextHopSet{
+          UnresolvedNextHop(folly::IPAddress("2::20"), ECMP_WEIGHT)});
+  addRouteViaThrift(ClientID::OPENR, std::move(plainBranchRoute));
+
+  auto rib = sw_->getRib();
+  ASSERT_NE(rib, nullptr);
+  const auto stateBeforeUpdate = sw_->getState();
+  const auto ribRoutesBeforeUpdate = rib->getRouteTableDetails(rid);
+  const auto managerBeforeUpdate = rib->getNextHopIDManagerCopy();
+  ASSERT_NE(managerBeforeUpdate, nullptr);
+  ASSERT_TRUE(managerBeforeUpdate->hasNamedNextHopGroup(kNhgName));
+  ASSERT_TRUE(managerBeforeUpdate->hasRoutesForNamedNhg(kNhgName));
+  const auto namedGroupRoutesBeforeUpdate =
+      managerBeforeUpdate->getRoutesForNamedNhg(kNhgName);
+  ASSERT_EQ(namedGroupRoutesBeforeUpdate.count({rid, srv6BranchPrefix}), 1);
+  const auto namedSetIdBeforeUpdate =
+      managerBeforeUpdate->getNextHopSetIDForName(kNhgName);
+  ASSERT_TRUE(namedSetIdBeforeUpdate.has_value());
+  const auto namedNextHopsBeforeUpdate =
+      managerBeforeUpdate->getNextHopsForName(kNhgName);
+  const auto nextHopSetsBeforeUpdate =
+      managerBeforeUpdate->getIdToNextHopIdSet();
+
+  RouteNextHopSet bgpNextHops{
+      UnresolvedNextHop(folly::IPAddress("100::10"), ECMP_WEIGHT),
+      UnresolvedNextHop(folly::IPAddress("200::10"), ECMP_WEIGHT)};
+  ASSERT_FALSE(hasSrv6AndNonSrv6NextHops(bgpNextHops));
+
+  UnicastRoute bgpRoute;
+  bgpRoute.dest()->ip() =
+      facebook::network::toBinaryAddress(failedPrefix.first);
+  bgpRoute.dest()->prefixLength() = failedPrefix.second;
+  bgpRoute.adminDistance() = AdminDistance::EBGP;
+  bgpRoute.nextHops() = util::fromRouteNextHopSet(bgpNextHops);
+  EXPECT_THROW(
+      addRouteViaThrift(ClientID::BGPD, std::move(bgpRoute)),
+      FbossFibUpdateError);
+
+  // The failed update must leave both the applied switch state and RIB at
+  // their pre-update snapshots.
+  EXPECT_EQ(stateBeforeUpdate, sw_->getState());
+  EXPECT_EQ(ribRoutesBeforeUpdate, rib->getRouteTableDetails(rid));
+  EXPECT_EQ(
+      findRoute<folly::IPAddressV6>(rid, failedPrefix, sw_->getState()),
+      nullptr);
+
+  // updateFib() must also reconstruct NextHopIDManager. The named group is
+  // retained, but the failed route reference and its resolved allocations are
+  // absent.
+  const auto managerAfterRollback = rib->getNextHopIDManagerCopy();
+  ASSERT_NE(managerAfterRollback, nullptr);
+  EXPECT_TRUE(managerAfterRollback->hasNamedNextHopGroup(kNhgName));
+  EXPECT_EQ(
+      managerAfterRollback->getNextHopSetIDForName(kNhgName),
+      namedSetIdBeforeUpdate);
+  EXPECT_EQ(
+      managerAfterRollback->getNextHopsForName(kNhgName),
+      namedNextHopsBeforeUpdate);
+  EXPECT_EQ(
+      managerAfterRollback->getRoutesForNamedNhg(kNhgName),
+      namedGroupRoutesBeforeUpdate);
+  EXPECT_EQ(
+      managerAfterRollback->getIdToNextHopIdSet(), nextHopSetsBeforeUpdate);
+  EXPECT_EQ(
+      managerAfterRollback->getIdToNextHop().size(),
+      managerBeforeUpdate->getIdToNextHop().size());
+  for (const auto& [id, entryBefore] : managerBeforeUpdate->getIdToNextHop()) {
+    const auto& idToNextHopAfter = managerAfterRollback->getIdToNextHop();
+    auto entryAfter = idToNextHopAfter.find(id);
+    ASSERT_NE(entryAfter, idToNextHopAfter.end());
+    EXPECT_EQ(entryAfter->second.nextHop, entryBefore.nextHop);
+    EXPECT_EQ(entryAfter->second.refCount, entryBefore.refCount);
+  }
 }
 
 TEST_F(NamedNextHopGroupRibTest, AddRouteWithNonExistentNhgFails) {
