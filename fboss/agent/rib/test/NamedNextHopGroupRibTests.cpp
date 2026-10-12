@@ -19,13 +19,19 @@
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/rib/FibUpdateHelpers.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/rib/SwitchStateNextHopIdUpdater.h"
+#include "fboss/agent/state/FibInfo.h"
+#include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
 
@@ -979,6 +985,239 @@ TEST_F(NamedNextHopGroupRibTest, TeAgentNamedNhgUpdatesRouteCounterID) {
   auto managerCopy = sw_->getRib()->getNextHopIDManagerCopy();
   EXPECT_FALSE(managerCopy->hasRoutesForNamedNhg("nhg1"));
   EXPECT_TRUE(managerCopy->hasRoutesForNamedNhg("nhg2"));
+}
+
+// Driven off a bare RIB rather than SwSwitch: publishing a class-based policy
+// drives PBR ACL synthesis, which a fake switch has no table group to program.
+namespace {
+const RouterID kRid(0);
+const std::string kMatcher{"id=0"};
+
+std::map<int64_t, cfg::SwitchInfo> normalizedIdSwitchInfo() {
+  std::map<int64_t, cfg::SwitchInfo> map;
+  cfg::SwitchInfo info{};
+  info.switchType() = cfg::SwitchType::NPU;
+  info.asicType() = cfg::AsicType::ASIC_TYPE_FAKE;
+  info.switchIndex() = 0;
+  map.emplace(0, info);
+  return map;
+}
+
+const SwitchIdScopeResolver* normalizedIdScopeResolver() {
+  static const SwitchIdScopeResolver kResolver(normalizedIdSwitchInfo());
+  return &kResolver;
+}
+} // namespace
+
+class NormalizedNamedNhgIdTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    FLAGS_enable_nexthop_id_manager = true;
+    rib_.ensureVrf(kRid);
+    switchState_ = std::make_shared<SwitchState>();
+    auto fibsInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
+    fibsInfoMap->addNode(kMatcher, std::make_shared<FibInfo>());
+    switchState_->resetFibsInfoMap(fibsInfoMap);
+    switchState_->publish();
+
+    // Connected coverage for the next hops these tests use. 9.9.9.9 is
+    // deliberately left uncovered so it never resolves.
+    RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+    interfaceRoutes[kRid][{folly::IPAddress("1.1.1.0"), 24}] = {
+        InterfaceID(1), folly::IPAddress("1.1.1.1")};
+    interfaceRoutes[kRid][{folly::IPAddress("2.2.2.0"), 24}] = {
+        InterfaceID(2), folly::IPAddress("2.2.2.2")};
+    rib_.reconfigure(
+        normalizedIdScopeResolver(),
+        interfaceRoutes,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {} /* staticMySids */,
+        ribToSwitchStateUpdate,
+        &switchState_);
+  }
+
+  RouteNextHopSet unresolvedNextHops(
+      const std::vector<std::string>& nexthopStrs) const {
+    std::vector<NextHop> nhops;
+    nhops.reserve(nexthopStrs.size());
+    for (const auto& nhip : nexthopStrs) {
+      nhops.emplace_back(UnresolvedNextHop(folly::IPAddress(nhip), 1));
+    }
+    return RouteNextHopSet(nhops.begin(), nhops.end());
+  }
+
+  std::function<void(const NextHopIDManager*)> nextHopIdStateUpdate() {
+    return [this](const NextHopIDManager* nextHopIDManager) {
+      SwitchStateNextHopIdUpdater updater(nextHopIDManager);
+      switchState_ = updater(switchState_);
+      switchState_->publish();
+    };
+  }
+
+  void addOrUpdateGroups(
+      const std::vector<std::pair<std::string, RouteNextHopSet>>& groups) {
+    rib_.addOrUpdateNamedNextHopGroups(
+        normalizedIdScopeResolver(),
+        groups,
+        ribToSwitchStateUpdate,
+        &switchState_);
+  }
+
+  // Only a policy gives a named group a normalized id.
+  void addPolicyNaming(
+      const std::string& policyName,
+      const std::string& nhgName) {
+    ClassBasedPolicy policy;
+    policy.name() = policyName;
+    policy.defaultNexthopGroup() = nhgName;
+    rib_.addOrUpdatePolicies({policy}, nextHopIdStateUpdate());
+  }
+
+  void removePolicy(const std::string& policyName) {
+    rib_.removePolicies({policyName}, nextHopIdStateUpdate());
+  }
+
+  void addRoute(
+      const std::string& prefix,
+      const std::vector<std::string>& nhips) {
+    auto network = folly::IPAddress::createNetwork(prefix);
+    UnicastRoute route;
+    route.dest()->ip() = facebook::network::toBinaryAddress(network.first);
+    route.dest()->prefixLength() = network.second;
+    for (const auto& nhip : nhips) {
+      route.nextHopAddrs()->push_back(
+          facebook::network::toBinaryAddress(folly::IPAddress(nhip)));
+    }
+    rib_.update(
+        normalizedIdScopeResolver(),
+        kRid,
+        ClientID::BGPD,
+        AdminDistance::EBGP,
+        {route},
+        {},
+        false,
+        "add route",
+        ribToSwitchStateUpdate,
+        &switchState_);
+  }
+
+  void delRoute(const std::string& prefix) {
+    auto network = folly::IPAddress::createNetwork(prefix);
+    IpPrefix toDel;
+    toDel.ip() = facebook::network::toBinaryAddress(network.first);
+    toDel.prefixLength() = network.second;
+    rib_.update(
+        normalizedIdScopeResolver(),
+        kRid,
+        ClientID::BGPD,
+        AdminDistance::EBGP,
+        {},
+        {toDel},
+        false,
+        "del route",
+        ribToSwitchStateUpdate,
+        &switchState_);
+  }
+
+  std::optional<NextHopSetID> normalizedId(const std::string& nhgName) const {
+    return rib_.getNextHopIDManagerCopy()
+        ->getNormalizedNextHopSetIDForPolicyNhg(nhgName);
+  }
+
+  RoutingInformationBase rib_;
+  std::shared_ptr<SwitchState> switchState_;
+};
+
+TEST_F(NormalizedNamedNhgIdTest, NormalizedIdAssignedFromResolvedNextHops) {
+  addOrUpdateGroups({{"nhg1", unresolvedNextHops({"1.1.1.10", "2.2.2.10"})}});
+  addPolicyNaming("pol1", "nhg1");
+
+  EXPECT_TRUE(normalizedId("nhg1").has_value());
+}
+
+TEST_F(NormalizedNamedNhgIdTest, NormalizedIdSurvivesPartialResolution) {
+  addOrUpdateGroups({{"mixed", unresolvedNextHops({"1.1.1.10", "9.9.9.9"})}});
+  addPolicyNaming("mixedPol", "mixed");
+
+  auto mixedId = normalizedId("mixed");
+  ASSERT_TRUE(mixedId.has_value());
+
+  // The id is the one the sole resolvable member alone would produce.
+  addOrUpdateGroups({{"resolvableOnly", unresolvedNextHops({"1.1.1.10"})}});
+  addPolicyNaming("resolvableOnlyPol", "resolvableOnly");
+  EXPECT_EQ(normalizedId("resolvableOnly"), mixedId);
+}
+
+TEST_F(NormalizedNamedNhgIdTest, NormalizedIdDedupsWithRoute) {
+  addOrUpdateGroups({{"nhg1", unresolvedNextHops({"1.1.1.10", "2.2.2.10"})}});
+  addPolicyNaming("pol1", "nhg1");
+
+  addRoute("10.0.0.0/24", {"1.1.1.10", "2.2.2.10"});
+
+  auto ribRoute = findRoute<folly::IPAddressV4>(
+      kRid, folly::CIDRNetwork(folly::IPAddress("10.0.0.0"), 24), switchState_);
+  ASSERT_NE(ribRoute, nullptr);
+  auto routeNormalizedId =
+      ribRoute->getForwardInfo().getNormalizedResolvedNextHopSetID();
+  ASSERT_TRUE(routeNormalizedId.has_value());
+  EXPECT_EQ(normalizedId("nhg1"), NextHopSetID(*routeNormalizedId));
+}
+
+// Resolution moves with the RIB, so the id has to be recomputed every pass,
+// not just when the group's own members change.
+TEST_F(NormalizedNamedNhgIdTest, NormalizedIdRepointsWhenMemberLosesItsRoute) {
+  // 1. 20.0.0.1 is only reachable via a BGP route, and out a different
+  // interface than the connected member, so the two resolve to distinct sets.
+  addRoute("20.0.0.0/24", {"2.2.2.10"});
+
+  addOrUpdateGroups(
+      {{"dyn", unresolvedNextHops({"20.0.0.1", "1.1.1.10"})},
+       {"connectedOnly", unresolvedNextHops({"1.1.1.10"})}});
+  addPolicyNaming("dynPol", "dyn");
+  addPolicyNaming("connectedOnlyPol", "connectedOnly");
+
+  auto bothId = normalizedId("dyn");
+  auto connectedOnlyId = normalizedId("connectedOnly");
+  ASSERT_TRUE(bothId.has_value());
+  ASSERT_TRUE(connectedOnlyId.has_value());
+  EXPECT_NE(bothId, connectedOnlyId);
+
+  // 2. Withdraw the route 20.0.0.1 resolved through. The sweep at the tail of
+  // this update must repoint "dyn" onto its one surviving member.
+  delRoute("20.0.0.0/24");
+
+  EXPECT_EQ(normalizedId("dyn"), connectedOnlyId);
+}
+
+// The sweep runs on every RIB pass, so a refcount that is not balanced on the
+// nothing-moved path leaks once per pass and the set is never freed.
+TEST_F(NormalizedNamedNhgIdTest, RepeatedResolutionLeavesNormalizedIdBalanced) {
+  addOrUpdateGroups({{"steady", unresolvedNextHops({"1.1.1.10"})}});
+  addPolicyNaming("steadyPol", "steady");
+  auto id = normalizedId("steady");
+  ASSERT_TRUE(id.has_value());
+
+  // 1. Unrelated route churn: each update runs another resolution pass over
+  // "steady" without changing it.
+  for (int i = 0; i < 3; ++i) {
+    addRoute(fmt::format("30.0.{}.0/24", i), {"2.2.2.10"});
+  }
+
+  // 2. The id must not have drifted across those passes.
+  EXPECT_EQ(normalizedId("steady"), id);
+
+  // 3. Drop the group. The policy has to go first: a named group a policy
+  // references cannot be deleted.
+  removePolicy("steadyPol");
+  rib_.deleteNamedNextHopGroups({"steady"}, [](const NextHopIDManager*) {});
+  EXPECT_EQ(
+      rib_.getNextHopIDManagerCopy()->getIdToNextHopIdSet().count(*id), 0);
 }
 
 } // namespace facebook::fboss

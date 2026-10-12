@@ -2107,8 +2107,8 @@ TEST_F(NextHopIDManagerTest, namedNextHopGroupSharesSetIdWithRoutes) {
   ASSERT_TRUE(setIdForName.has_value());
   EXPECT_EQ(*setIdForName, routeSetId);
 
-  // Verify refcounts - both route and named group reference the same set
-  // The NextHopIDSet refcount should be 2 (one for route, one for named group)
+  // Referenced twice: once by the route, once by the named group's raw set.
+  // The normalized id is assigned by RIB resolution, which does not run here.
   EXPECT_EQ(
       manager_->getNextHopIDSetRefCount(
           manager_->idToNextHopIdSet_[routeSetId]),
@@ -2153,7 +2153,8 @@ TEST_F(NextHopIDManagerTest, routeReusesNamedNextHopGroupSetId) {
   // No new nexthops should be added
   EXPECT_EQ(routeAllocResult.addedNextHopIds.size(), 0);
 
-  // Verify refcounts
+  // Referenced twice: once by the named group's raw set, once by the route.
+  // The normalized id is assigned by RIB resolution, which does not run here.
   EXPECT_EQ(
       manager_->getNextHopIDSetRefCount(
           manager_->idToNextHopIdSet_[namedSetId]),
