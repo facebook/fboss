@@ -3259,4 +3259,41 @@ TEST_F(NextHopIDManagerTest, reconstructClassBasedPolicyPassRebuildsStore) {
   EXPECT_EQ(manager_->getPbrPolicyToNamedNhg().size(), 1);
 }
 
+// Class-based policy store: add / get / remove. The RIB ingest path reads
+// this store (getPolicy) to translate a policyName route into its default
+// named-NHG route, so the store must round-trip the config policy verbatim.
+TEST_F(NextHopIDManagerTest, ClassBasedPolicyStore) {
+  ClassBasedPolicy policy;
+  policy.name() = "pol1";
+  policy.defaultNexthopGroup() = "defaultNhg";
+  NextHopGroup redirectNhg;
+  redirectNhg.name() = "class1Nhg";
+  policy.class2NextHopGroup()[ForwardingClass::CLASS_1] = redirectNhg;
+
+  EXPECT_EQ(manager_->getPolicy("pol1"), nullptr);
+
+  manager_->addOrUpdatePolicy(policy);
+
+  const auto* stored = manager_->getPolicy("pol1");
+  ASSERT_NE(stored, nullptr);
+  EXPECT_EQ(stored->defaultNexthopGroup, "defaultNhg");
+  EXPECT_EQ(
+      stored->class2NextHopGroup.at(ForwardingClass::CLASS_1), "class1Nhg");
+
+  // Update in place: a changed default group replaces the stored policy, and
+  // the redirects it did not touch survive.
+  policy.defaultNexthopGroup() = "defaultNhg2";
+  manager_->addOrUpdatePolicy(policy);
+  const auto* updated = manager_->getPolicy("pol1");
+  ASSERT_NE(updated, nullptr);
+  EXPECT_EQ(updated->defaultNexthopGroup, "defaultNhg2");
+  EXPECT_EQ(
+      updated->class2NextHopGroup.at(ForwardingClass::CLASS_1), "class1Nhg");
+  EXPECT_EQ(manager_->getPbrPolicyToNamedNhg().size(), 1);
+
+  manager_->removePolicy("pol1");
+  EXPECT_EQ(manager_->getPolicy("pol1"), nullptr);
+  EXPECT_TRUE(manager_->getPbrPolicyToNamedNhg().empty());
+}
+
 } // namespace facebook::fboss
