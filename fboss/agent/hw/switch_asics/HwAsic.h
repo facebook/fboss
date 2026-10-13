@@ -857,6 +857,11 @@ class HwAsic {
     return std::nullopt;
   }
 
+  // Distinct member weights in one SRv6 UCMP next hop group
+  virtual std::optional<uint32_t> getMaxSrv6UcmpDistinctWeights() const {
+    return std::nullopt;
+  }
+
   virtual bool scalingFactorBasedDynamicThresholdSupported() const = 0;
 
   virtual int getBufferDynThreshFromScalingFactor(

@@ -132,6 +132,9 @@ class YubaAsic : public TajoAsic {
   std::optional<uint32_t> getMaxSrv6SingleNextHops() const override {
     return 3000;
   }
+  std::optional<uint32_t> getMaxSrv6UcmpDistinctWeights() const override {
+    return 8;
+  }
   std::optional<uint32_t> getMaxEcmpMembers() const override {
     /*
      * G200 has two level ECMP. Each level owns one resolution stage of the

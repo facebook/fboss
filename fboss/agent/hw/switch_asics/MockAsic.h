@@ -161,6 +161,9 @@ class MockAsic : public HwAsic {
   std::optional<uint32_t> getMaxSrv6SingleNextHops() const override {
     return 8;
   }
+  std::optional<uint32_t> getMaxSrv6UcmpDistinctWeights() const override {
+    return 8;
+  }
   std::optional<uint32_t> getMaxNdpTableSize() const override {
     return 8;
   }
