@@ -428,6 +428,9 @@
           "test_name_regex": "AgentSflowMirror.*TestV[46].VerifySampledPacketRate$"
         },
         {
+          "test_name_regex": "AgentSflowMirror.*V[46]Test.VerifySampledPacketRate$"
+        },
+        {
           "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
@@ -3446,6 +3449,9 @@
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticMacEntryAdd$"
         },
         {
+          "test_name_regex": "AgentBalancedInputModeTest.init$"
+        },
+        {
           "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
         },
         {
@@ -5387,6 +5393,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticMacEntryAdd$"
+        },
+        {
+          "test_name_regex": "AgentBalancedInputModeTest.init$"
         },
         {
           "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
@@ -9199,6 +9208,9 @@
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticMacEntryAdd$"
         },
         {
+          "test_name_regex": "AgentBalancedInputModeTest.init$"
+        },
+        {
           "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
         },
         {
@@ -9717,6 +9729,9 @@
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticMacEntryAdd$"
         },
         {
+          "test_name_regex": "AgentBalancedInputModeTest.init$"
+        },
+        {
           "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
         },
         {
@@ -10233,6 +10248,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticMacEntryAdd$"
+        },
+        {
+          "test_name_regex": "AgentBalancedInputModeTest.init$"
         },
         {
           "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
@@ -16112,6 +16130,9 @@
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticMacEntryAdd$"
         },
         {
+          "test_name_regex": "AgentBalancedInputModeTest.init$"
+        },
+        {
           "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
         },
         {
@@ -16642,6 +16663,9 @@
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticMacEntryAdd$"
         },
         {
+          "test_name_regex": "AgentBalancedInputModeTest.init$"
+        },
+        {
           "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
         },
         {
@@ -17158,6 +17182,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticMacEntryAdd$"
+        },
+        {
+          "test_name_regex": "AgentBalancedInputModeTest.init$"
         },
         {
           "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
@@ -18197,6 +18224,9 @@
         },
         {
           "test_name_regex": "AgentSflowMirror.*TestV[46].VerifySampledPacketRate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirror.*V[46]Test.VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
