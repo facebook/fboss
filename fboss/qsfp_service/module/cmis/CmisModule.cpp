@@ -58,6 +58,9 @@ constexpr int kUsecDiagSelectLatchWaitPrbs = 350000; // 350 ms
 constexpr int kUsecAfterAppProgramming = 500000;
 constexpr int kUsecDatapathStateUpdateTime = 10000000; // 10 seconds
 constexpr int kUsecDatapathStatePollTime = 500000; // 500 ms
+// Application Advertising: ApSel 1-8 in Lower Page 00h, 9-15 in Page 01h
+constexpr uint8_t kNumLowerPageApplications = 8;
+constexpr uint8_t kMaxNumApplications = 15;
 constexpr double kU16TypeLsbDivisor = 256.0;
 constexpr int kVdmDescriptorLength = 2;
 
@@ -1506,17 +1509,27 @@ void CmisModule::getApplicationCapabilities() {
   int dataAddress;
 
   moduleCapabilities_.clear();
-  for (uint8_t i = 0; i < 8; i++) {
-    getQsfpFieldAddress(
-        CmisField::APPLICATION_ADVERTISING1, dataAddress, offset, length);
-    data = getQsfpValuePtr(dataAddress, offset + i * length, length);
+  // Flat memory modules don't have page 01h, so only advertise ApSel 1-8
+  const uint8_t maxApplications =
+      flatMem_ ? kNumLowerPageApplications : kMaxNumApplications;
+  for (uint8_t i = 0; i < maxApplications; i++) {
+    if (i < kNumLowerPageApplications) {
+      getQsfpFieldAddress(
+          CmisField::APPLICATION_ADVERTISING1, dataAddress, offset, length);
+      data = getQsfpValuePtr(dataAddress, offset + i * length, length);
+    } else {
+      getQsfpFieldAddress(
+          CmisField::APPLICATION_ADVERTISING2, dataAddress, offset, length);
+      data = getQsfpValuePtr(
+          dataAddress,
+          offset + (i - kNumLowerPageApplications) * length,
+          length);
+    }
 
     if (data[0] == 0xff) {
       break;
     }
 
-    QSFP_LOG(DBG3, this) << fmt::format(
-        "Adding module capability: {:#x} at position {:d}", data[1], i + 1);
     ApplicationAdvertisingField applicationAdvertisingField;
     applicationAdvertisingField.ApSelCode = (i + 1);
     // For Active cables, we use the Host Interface Code as the designated
@@ -1528,6 +1541,13 @@ void CmisModule::getApplicationCapabilities() {
     } else {
       applicationAdvertisingField.moduleMediaInterface = data[1];
     }
+    if (i >= kNumLowerPageApplications &&
+        applicationAdvertisingField.moduleMediaInterface == 0) {
+      // Unused Page 01h entry that wasn't terminated with 0xFF
+      continue;
+    }
+    QSFP_LOG(DBG3, this) << fmt::format(
+        "Adding module capability: {:#x} at position {:d}", data[1], i + 1);
     applicationAdvertisingField.moduleHostInterface = data[0];
     applicationAdvertisingField.hostLaneCount =
         (data[2] & FieldMasks::UPPER_FOUR_BITS_MASK) >> 4;

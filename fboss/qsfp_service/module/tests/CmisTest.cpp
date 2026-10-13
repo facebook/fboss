@@ -3748,4 +3748,36 @@ TEST_F(CmisTest, setTransceiverLoopbackRejectsSimultaneousHostAndMedia) {
   EXPECT_NO_THROW(xcvr->setTransceiverLoopback(
       portName, phy::Side::SYSTEM, true, phy::LoopbackMode::INPUT));
 }
+
+// Applications 9-15 are advertised in Page 01h. The ZR fixture advertises
+// the vendor-custom application on all of them.
+TEST_F(CmisTest, applicationCapabilitiesIncludePage01Applications) {
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::OSFP);
+
+  auto app = xcvr->getApplicationField(
+      static_cast<uint8_t>(SMFMediaInterfaceCode::ZR_VENDOR_CUSTOM), 0);
+
+  ASSERT_TRUE(app.has_value());
+  EXPECT_EQ(app->ApSelCode, 9);
+  EXPECT_EQ(app->hostLaneCount, 8);
+  EXPECT_EQ(app->mediaLaneCount, 1);
+  EXPECT_EQ(xcvr->getModuleCapabilities().size(), 15);
+}
+
+// A Page 01h entry that isn't terminated with 0xFF but has an undefined
+// (0) media interface is not an application. The fixture's ApSel 9 entry is
+// such an entry and the list ends at ApSel 10, so only the 8 lower page
+// applications remain.
+TEST_F(CmisTest, applicationCapabilitiesSkipUndefinedPage01Entries) {
+  auto xcvr = overrideCmisModule<Cmis2x400GFr4Transceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::OSFP);
+
+  const auto& capabilities = xcvr->getModuleCapabilities();
+
+  EXPECT_EQ(capabilities.size(), 8);
+  for (const auto& capability : capabilities) {
+    EXPECT_LE(capability.ApSelCode, 8);
+  }
+}
 } // namespace facebook::fboss
