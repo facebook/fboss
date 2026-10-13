@@ -761,6 +761,8 @@ class CmisModule : public QsfpModule {
   bool supportRemediate() override;
 
   void resetDataPath(const std::string& portName) override;
+  // Intra-bank mask of lanes with a non-zero active AppSel code
+  uint8_t getActiveAppSelLaneMask(uint8_t bank);
 
   void resetDatapathProgrammingStateLocked() override;
 

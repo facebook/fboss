@@ -70,6 +70,7 @@ class MockCmisModule : public CmisModule {
   using CmisModule::isTunableOptics;
   using CmisModule::portDatapathStates_;
   using CmisModule::readModifyWriteCmisField;
+  using CmisModule::resetDataPath;
   using CmisModule::triggerModuleReset;
 
  private:
@@ -3819,5 +3820,18 @@ TEST_F(CmisTest, configuredMediaLanesSharedByMultipleHostDatapaths) {
   }
   const std::vector<uint8_t> expectedHostLanes = {2, 3};
   EXPECT_EQ(xcvr->configuredHostLanes(2), expectedHostLanes);
+}
+
+// A datapath reset only covers lanes in an active application. Lanes 6-7
+// have none in 3x200G and never activate, so including them would never
+// complete.
+TEST_F(CmisTest, resetDataPathSkipsLanesWithoutApplication) {
+  auto xcvr = overrideCmisModule<Cmis800GZr3x200GTransceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::OSFP);
+  writeUpperPage(
+      lastQsfpImpl(), kPage11h, kActiveAppSelOffset, k3x200GActiveAppSel);
+  xcvr->refresh();
+
+  EXPECT_NO_THROW(xcvr->resetDataPath("eth1/1/1"));
 }
 } // namespace facebook::fboss

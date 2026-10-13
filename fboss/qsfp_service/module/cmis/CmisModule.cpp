@@ -5449,8 +5449,35 @@ bool CmisModule::isDatapathUpdated(
   return true;
 }
 
+uint8_t CmisModule::getActiveAppSelLaneMask(uint8_t bank) {
+  AllLaneConfig activeCtrl;
+  readCmisField(
+      CmisField::ACTIVE_CTRL_ALL_LANES, activeCtrl.data(), false, bank);
+  uint8_t mask = 0;
+  for (int lane = 0; lane < kMaxOsfpNumLanes; lane++) {
+    if ((activeCtrl[lane] & APP_SEL_MASK) >> APP_SEL_BITSHIFT) {
+      mask |= (1 << lane);
+    }
+  }
+  return mask;
+}
+
 void CmisModule::resetDataPath(const std::string& portName) {
-  resetDataPathWithFunc(portName);
+  if (flatMem_) {
+    return;
+  }
+  // Only reset lanes that are part of an active application. Lanes left unused
+  // by the current application (e.g. lanes 6-7 in 3x200G ZR) never reach
+  // DPActivated, so including them would make datapath init never complete.
+  uint8_t hostLaneMask = getActiveAppSelLaneMask(/*bank=*/0);
+  if (hostLaneMask == 0) {
+    hostLaneMask = 0xFF;
+  }
+  QSFP_LOG(INFO, this) << fmt::format(
+      "Port {} resetting datapath on host lane mask {:#x}",
+      portName,
+      hostLaneMask);
+  resetDataPathWithFunc(portName, std::nullopt, hostLaneMask);
 }
 
 void CmisModule::resetDatapathProgrammingStateLocked() {
