@@ -13,6 +13,7 @@
 #include <functional>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "fboss/configs/platforms/generic/forwarding_stack/gen-cpp2/config_generation_types.h"
@@ -20,7 +21,7 @@
 
 namespace facebook::fboss::configgen {
 
-// Service-neutral inputs resolved from one manifest option. Service-specific
+// Service-neutral inputs resolved from one declaration option. Service-specific
 // generators consume this request to produce serialized config contents.
 struct ConfigGenerationRequest {
   std::filesystem::path fbossRoot;
@@ -39,6 +40,7 @@ using ConfigContentsGenerator =
     std::function<std::string(const ConfigGenerationRequest&)>;
 
 struct ConfigVerificationResult {
+  std::optional<PlatformType> platform;
   std::vector<std::filesystem::path> missing;
   std::vector<std::filesystem::path> stale;
   std::vector<std::filesystem::path> obsolete;
@@ -48,21 +50,24 @@ struct ConfigVerificationResult {
   }
 };
 
-// Generates every target for one service from the checked-in manifest. All
-// contents are generated before any output is written, then each canonical
-// platform forwarding_stack/generated/<service> output is atomically
-// refreshed and outputs no longer present in the manifest are removed. Paths
-// are returned in manifest order.
+// Generates every declared target for one service. When platform is set, only
+// that platform's declaration and generated outputs are owned by this call.
+// Otherwise every per-platform declaration and generated output is owned. All
+// contents are generated before any output is written, then canonical
+// forwarding_stack/generated/<service> outputs are atomically refreshed and
+// obsolete owned outputs are removed.
 std::vector<std::filesystem::path> generateConfigsFromManifest(
     const std::filesystem::path& fbossRoot,
     ServiceType service,
-    const ConfigContentsGenerator& generateContents);
+    const ConfigContentsGenerator& generateContents,
+    std::optional<std::string_view> platform = std::nullopt);
 
 // Generates expected contents in memory and compares them byte-for-byte with
 // the service-owned output directory without modifying the filesystem.
 ConfigVerificationResult verifyConfigsFromManifest(
     const std::filesystem::path& fbossRoot,
     ServiceType service,
-    const ConfigContentsGenerator& generateContents);
+    const ConfigContentsGenerator& generateContents,
+    std::optional<std::string_view> platform = std::nullopt);
 
 } // namespace facebook::fboss::configgen

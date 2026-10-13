@@ -17,6 +17,7 @@ cpp_library(
     visibility = ["PUBLIC"],
     deps = [
         "//folly:file_util",
+        "//folly:string",
         "//folly/json:dynamic",
     ],
     exported_deps = [

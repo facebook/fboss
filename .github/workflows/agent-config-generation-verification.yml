@@ -10,6 +10,7 @@ on:
       - 'fboss/cli/fboss2/commands/config/gen/**'
       - 'fboss/configs/platforms/**/asic_config/asic_config.json'
       - 'fboss/configs/platforms/**/asic_config/generated/**'
+      - 'fboss/configs/platforms/**/forwarding_stack/config_generation.json'
       - 'fboss/configs/platforms/**/forwarding_stack/generated/agent/**'
       - 'fboss/configs/platforms/**/platform_mapping/generated/**'
       - 'fboss/configs/platforms/generic/forwarding_stack/**'
@@ -56,7 +57,7 @@ jobs:
           --local
           --num-jobs
           18
-      - name: Verify manifest-generated Agent configs
+      - name: Verify declaration-generated Agent configs
         run: >
           sudo
           docker

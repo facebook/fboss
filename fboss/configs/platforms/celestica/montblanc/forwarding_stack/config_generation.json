@@ -1,0 +1,13 @@
+{
+  "platform": "PLATFORM_MONTBLANC",
+  "serviceToOptions": {
+    "AGENT": [
+      {
+        "profile": "DEFAULT"
+      },
+      {
+        "profile": "HW_TEST"
+      }
+    ]
+  }
+}

@@ -19,12 +19,6 @@ thrift_library(
 )
 
 buck_filegroup(
-    name = "config_generation_manifest",
-    srcs = ["config_generation_manifest.json"],
-    visibility = ["//fboss/configs/platforms/generic/forwarding_stack/tests/..."],
-)
-
-buck_filegroup(
     name = "feature_default_command_args_configs",
     srcs = glob(["*/feature_default_command_args_config.json"]),
     visibility = ["//fboss/configs/platforms/generic/forwarding_stack/tests/..."],

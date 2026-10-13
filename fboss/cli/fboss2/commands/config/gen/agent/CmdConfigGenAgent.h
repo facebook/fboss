@@ -37,8 +37,9 @@ struct CmdConfigGenAgentTraits : public WriteCommandTraits {
   using RetType = std::string;
   std::vector<utils::LocalOption> LocalOptions = {
       {kConfigGenAgentPlatform,
-       "Target platform; omit to generate every manifest target"},
-      {kConfigGenAgentProfile, "ASIC configuration profile [default: default]"},
+       "Target platform; omit to generate every platform declaration"},
+      {kConfigGenAgentProfile,
+       "Generate one profile; omit to generate the platform declaration"},
       {kConfigGenAgentFbossRoot, "Path to the fboss source root [required]"},
       {kConfigGenAgentAsicConfigFile,
        "ASIC configuration file overriding the generated profile artifact"},
@@ -49,7 +50,7 @@ struct CmdConfigGenAgentTraits : public WriteCommandTraits {
       {kConfigGenAgentOutputDirectory,
        "Directory in which to create agent.conf"},
       {kConfigGenAgentVerify,
-       "Verify manifest-generated configs without modifying them",
+       "Verify declaration-generated configs without modifying them",
        std::nullopt,
        /*isFlag=*/true},
   };

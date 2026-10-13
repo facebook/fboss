@@ -15,7 +15,6 @@
 #include <utility>
 
 #include <folly/FileUtil.h>
-#include <folly/String.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
 #include "fboss/agent/FbossError.h"
@@ -33,20 +32,11 @@ struct PendingConfig {
 
 struct ConfigGenerationPlan {
   std::string serviceName;
+  std::optional<PlatformType> platformTypeScope;
+  std::optional<fs::path> platformDirectoryScope;
   std::vector<PendingConfig> configs;
   std::set<fs::path> outputPaths;
 };
-
-std::string getPlatformName(PlatformType platform) {
-  auto name = std::string(apache::thrift::util::enumNameSafe(platform));
-  constexpr std::string_view kPlatformPrefix = "PLATFORM_";
-  if (!name.starts_with(kPlatformPrefix)) {
-    throw FbossError("Invalid PlatformType name: ", name);
-  }
-  name.erase(0, kPlatformPrefix.size());
-  folly::toLowerAscii(name);
-  return name;
-}
 
 std::string getProfileName(ConfigProfileType profile) {
   switch (profile) {
@@ -95,9 +85,24 @@ std::string getOutputFileName(
 ConfigGenerationPlan createConfigGenerationPlan(
     const fs::path& fbossRoot,
     ServiceType service,
-    const ConfigContentsGenerator& generateContents) {
-  const auto manifest = loadConfigGenerationManifest(fbossRoot);
-  ConfigGenerationPlan plan{.serviceName = getServiceName(service)};
+    const ConfigContentsGenerator& generateContents,
+    std::optional<std::string_view> selectedPlatform) {
+  ConfigGenerationManifest manifest;
+  std::optional<PlatformType> platformTypeScope;
+  std::optional<fs::path> platformDirectoryScope;
+  if (selectedPlatform) {
+    platformDirectoryScope =
+        findPlatformConfigDirectory(fbossRoot, *selectedPlatform).path;
+    auto target = loadConfigGenerationTarget(*platformDirectoryScope);
+    platformTypeScope = *target.platform();
+    manifest.targets()->push_back(std::move(target));
+  } else {
+    manifest = loadConfigGenerationManifest(fbossRoot);
+  }
+  ConfigGenerationPlan plan{
+      .serviceName = getServiceName(service),
+      .platformTypeScope = platformTypeScope,
+      .platformDirectoryScope = platformDirectoryScope};
 
   for (const auto& target : *manifest.targets()) {
     const auto optionsIt = target.serviceToOptions()->find(service);
@@ -122,7 +127,7 @@ ConfigGenerationPlan createConfigGenerationPlan(
           plan.serviceName / getOutputFileName(profile, variant);
       if (!plan.outputPaths.insert(outputPath).second) {
         throw FbossError(
-            "Config generation manifest contains duplicate output ",
+            "Config generation declarations contain duplicate output ",
             outputPath.string());
       }
 
@@ -146,14 +151,40 @@ ConfigGenerationPlan createConfigGenerationPlan(
 
   if (plan.configs.empty()) {
     throw FbossError(
-        "Config generation manifest has no ", plan.serviceName, " targets");
+        "Config generation declarations have no ",
+        plan.serviceName,
+        " targets");
   }
   return plan;
 }
 
 std::set<fs::path> findGeneratedConfigPaths(
     const fs::path& fbossRoot,
-    std::string_view serviceName) {
+    std::string_view serviceName,
+    const std::optional<fs::path>& platformDirectoryScope) {
+  const auto addPlatformOutputs = [&](const fs::path& platformDirectory,
+                                      std::set<fs::path>& paths) {
+    const auto serviceDirectory =
+        platformDirectory / "forwarding_stack" / "generated" / serviceName;
+    if (!fs::is_directory(serviceDirectory)) {
+      return;
+    }
+    for (const auto& outputEntry : fs::directory_iterator(serviceDirectory)) {
+      if (!outputEntry.is_regular_file()) {
+        throw FbossError(
+            "Unexpected entry in generated config directory: ",
+            outputEntry.path().string());
+      }
+      paths.insert(outputEntry.path());
+    }
+  };
+
+  std::set<fs::path> paths;
+  if (platformDirectoryScope) {
+    addPlatformOutputs(*platformDirectoryScope, paths);
+    return paths;
+  }
+
   const auto platformsDirectory = fbossRoot / "configs" / "platforms";
   if (!fs::is_directory(platformsDirectory)) {
     throw FbossError(
@@ -161,7 +192,6 @@ std::set<fs::path> findGeneratedConfigPaths(
         platformsDirectory.string());
   }
 
-  std::set<fs::path> paths;
   for (const auto& vendorEntry : fs::directory_iterator(platformsDirectory)) {
     if (!vendorEntry.is_directory() ||
         vendorEntry.path().filename() == "generic") {
@@ -172,19 +202,7 @@ std::set<fs::path> findGeneratedConfigPaths(
       if (!platformEntry.is_directory()) {
         continue;
       }
-      const auto serviceDirectory =
-          platformEntry.path() / "forwarding_stack" / "generated" / serviceName;
-      if (!fs::is_directory(serviceDirectory)) {
-        continue;
-      }
-      for (const auto& outputEntry : fs::directory_iterator(serviceDirectory)) {
-        if (!outputEntry.is_regular_file()) {
-          throw FbossError(
-              "Unexpected entry in generated config directory: ",
-              outputEntry.path().string());
-        }
-        paths.insert(outputEntry.path());
-      }
+      addPlatformOutputs(platformEntry.path(), paths);
     }
   }
   return paths;
@@ -203,13 +221,15 @@ std::string readGeneratedConfig(const fs::path& path) {
 std::vector<fs::path> generateConfigsFromManifest(
     const fs::path& fbossRoot,
     ServiceType service,
-    const ConfigContentsGenerator& generateContents) {
-  auto plan = createConfigGenerationPlan(fbossRoot, service, generateContents);
-  const auto existingPaths =
-      findGeneratedConfigPaths(fbossRoot, plan.serviceName);
+    const ConfigContentsGenerator& generateContents,
+    std::optional<std::string_view> platform) {
+  auto plan = createConfigGenerationPlan(
+      fbossRoot, service, generateContents, platform);
+  const auto existingPaths = findGeneratedConfigPaths(
+      fbossRoot, plan.serviceName, plan.platformDirectoryScope);
 
   // Do not create or update outputs until every target has generated
-  // successfully. This prevents a bad manifest target from leaving a partial
+  // successfully. This prevents a bad declaration from leaving a partial
   // regeneration behind.
   for (const auto& pendingConfig : plan.configs) {
     fs::create_directories(pendingConfig.outputPath.parent_path());
@@ -235,12 +255,13 @@ std::vector<fs::path> generateConfigsFromManifest(
 ConfigVerificationResult verifyConfigsFromManifest(
     const fs::path& fbossRoot,
     ServiceType service,
-    const ConfigContentsGenerator& generateContents) {
-  const auto plan =
-      createConfigGenerationPlan(fbossRoot, service, generateContents);
-  const auto existingPaths =
-      findGeneratedConfigPaths(fbossRoot, plan.serviceName);
-  ConfigVerificationResult result;
+    const ConfigContentsGenerator& generateContents,
+    std::optional<std::string_view> platform) {
+  const auto plan = createConfigGenerationPlan(
+      fbossRoot, service, generateContents, platform);
+  const auto existingPaths = findGeneratedConfigPaths(
+      fbossRoot, plan.serviceName, plan.platformDirectoryScope);
+  ConfigVerificationResult result{.platform = plan.platformTypeScope};
 
   for (const auto& expected : plan.configs) {
     if (!existingPaths.contains(expected.outputPath)) {

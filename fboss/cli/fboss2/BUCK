@@ -1133,7 +1133,6 @@ cpp_library(
         "//fboss/lib/platforms:platform_descriptor",
         "//fboss/lib/platforms:platform_mapping_utils",
         "//folly:file_util",
-        "//folly:string",
         "//folly/json:dynamic",
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
@@ -1554,7 +1553,7 @@ ci_sandcastle(
         "skip_if_error_exists_on_base_revision": True,
         "steps": [
             {
-                "name": "Verify manifest-generated Agent configs",
+                "name": "Verify declaration-generated Agent configs",
                 "shell": "buck2 run --flagfile fbcode//mode/opt fbcode//fboss/cli/fboss2:fboss2 -- config gen agent --fboss-root fbcode/fboss --verify",
             },
         ],
@@ -1573,6 +1572,7 @@ ci_sandcastle(
         "fbcode/fboss/cli/fboss2/commands/config/gen/**",
         "fbcode/fboss/configs/platforms/**/asic_config/asic_config.json",
         "fbcode/fboss/configs/platforms/**/asic_config/generated/**",
+        "fbcode/fboss/configs/platforms/**/forwarding_stack/config_generation.json",
         "fbcode/fboss/configs/platforms/**/forwarding_stack/generated/agent/**",
         "fbcode/fboss/configs/platforms/**/platform_mapping/generated/**",
         "fbcode/fboss/configs/platforms/generic/forwarding_stack/**",
