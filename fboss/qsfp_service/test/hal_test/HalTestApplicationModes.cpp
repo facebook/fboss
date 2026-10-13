@@ -143,15 +143,25 @@ class T1HalTestProgramMode : public T1HalTest {
           }
           const auto& props =
               TransceiverPropertiesManager::getProperties(mediaInterface);
-          bool found = false;
+          const SpeedCombination* found = nullptr;
           for (const auto& combo : *props.supportedSpeedCombinations()) {
             if (*combo.combinationName() == comboDescription_) {
-              found = true;
+              found = &combo;
               break;
             }
           }
-          if (!found) {
+          if (found == nullptr) {
             XLOG(INFO) << "Transceiver " << tcvrId << " does not support mode "
+                       << comboDescription_ << ", skipping";
+            return false;
+          }
+          // ZR modes are programmed with the AppSel the module advertises for
+          // the mode's media interface code; vendor-specific codes may be
+          // absent on some modules
+          if (hal_test::isZrModule(module) &&
+              !hal_test::moduleAdvertisesCombo(module, *found)) {
+            XLOG(INFO) << "Transceiver " << tcvrId
+                       << " does not advertise an application for mode "
                        << comboDescription_ << ", skipping";
             return false;
           }
