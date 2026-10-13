@@ -27,6 +27,7 @@ inline const std::string kConfigGenAgentAsicConfigType = "--asic-config-type";
 inline const std::string kConfigGenAgentReferenceConfigFile =
     "--reference-config-file";
 inline const std::string kConfigGenAgentOutputDirectory = "--output-dir";
+inline const std::string kConfigGenAgentVerify = "--verify";
 
 struct CmdConfigGenAgentTraits : public WriteCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
@@ -47,6 +48,10 @@ struct CmdConfigGenAgentTraits : public WriteCommandTraits {
        "Agent configuration to compare with the generated output"},
       {kConfigGenAgentOutputDirectory,
        "Directory in which to create agent.conf"},
+      {kConfigGenAgentVerify,
+       "Verify manifest-generated configs without modifying them",
+       std::nullopt,
+       /*isFlag=*/true},
   };
 };
 

@@ -1257,11 +1257,49 @@ TEST(AgentConfigGenTest, GeneratesAndRefreshesManifestOutputs) {
   }
 
   writeTestFile(expectedPaths.front(), "stale\n");
+  const auto obsoletePath =
+      expectedPaths.front().parent_path() / "removed.conf";
+  writeTestFile(obsoletePath, "obsolete\n");
   EXPECT_EQ(
       generateConfigsFromManifest(
           fbossRoot, ServiceType::AGENT, generateAgentConfigForManifest),
       expectedPaths);
   EXPECT_NE(readFile(expectedPaths.front()), "stale\n");
+  EXPECT_FALSE(fs::exists(obsoletePath));
+}
+
+TEST(AgentConfigGenTest, VerifiesMissingStaleAndObsoleteManifestOutputs) {
+  folly::test::TemporaryDirectory sourceDirectory;
+  const auto fbossRoot = fs::path(sourceDirectory.path().string()) / "fboss";
+  constexpr std::string_view kManifestPlatform = "wedge800bact";
+  const auto platformDirectory =
+      createTestPlatform(fbossRoot, "test_vendor", kManifestPlatform);
+  writeConfigGenerationManifest(
+      fbossRoot,
+      R"({"targets":[{"platform":"PLATFORM_WEDGE800BACT","serviceToOptions":{"AGENT":[{"profile":"DEFAULT"},{"profile":"HW_TEST"}]}}]})");
+
+  const auto generatedPaths = generateConfigsFromManifest(
+      fbossRoot, ServiceType::AGENT, generateAgentConfigForManifest);
+  EXPECT_TRUE(verifyConfigsFromManifest(
+                  fbossRoot, ServiceType::AGENT, generateAgentConfigForManifest)
+                  .isFresh());
+
+  const auto& missingPath = generatedPaths.front();
+  const auto& stalePath = generatedPaths.back();
+  const auto obsoletePath = platformDirectory / "forwarding_stack" /
+      "generated" / "agent" / "removed.conf";
+  fs::remove(missingPath);
+  writeTestFile(stalePath, "stale\n");
+  writeTestFile(obsoletePath, "obsolete\n");
+
+  const auto result = verifyConfigsFromManifest(
+      fbossRoot, ServiceType::AGENT, generateAgentConfigForManifest);
+  EXPECT_EQ(result.missing, std::vector<fs::path>{missingPath});
+  EXPECT_EQ(result.stale, std::vector<fs::path>{stalePath});
+  EXPECT_EQ(result.obsolete, std::vector<fs::path>{obsoletePath});
+  EXPECT_FALSE(fs::exists(missingPath));
+  EXPECT_EQ(readFile(stalePath), "stale\n");
+  EXPECT_EQ(readFile(obsoletePath), "obsolete\n");
 }
 
 TEST(AgentConfigGenTest, DoesNotPartiallyWriteManifestOutputs) {
@@ -1341,6 +1379,47 @@ TEST(CmdConfigGenAgentTest, RejectsSingleTargetOptionsInManifestMode) {
 
   EXPECT_NE(error.find("--profile"), std::string::npos);
   EXPECT_NE(error.find("require --platform"), std::string::npos);
+}
+
+TEST(CmdConfigGenAgentTest, VerifiesManifestOutputsInManifestMode) {
+  folly::test::TemporaryDirectory sourceDirectory;
+  const auto fbossRoot = fs::path(sourceDirectory.path().string()) / "fboss";
+  constexpr std::string_view kManifestPlatform = "wedge800bact";
+  createTestPlatform(fbossRoot, "test_vendor", kManifestPlatform);
+  writeConfigGenerationManifest(
+      fbossRoot,
+      R"({"targets":[{"platform":"PLATFORM_WEDGE800BACT","serviceToOptions":{"AGENT":[{"profile":"DEFAULT"}]}}]})");
+  const auto generatedPaths = generateConfigsFromManifest(
+      fbossRoot, ServiceType::AGENT, generateAgentConfigForManifest);
+  writeTestFile(generatedPaths.front(), "stale\n");
+
+  auto localOptions = CmdLocalOptions::getInstance();
+  localOptions->clear();
+  localOptions->setLocalOption(
+      std::string(kConfigGenAgentCommand),
+      kConfigGenAgentFbossRoot,
+      fbossRoot.string());
+  localOptions->setLocalOption(
+      std::string(kConfigGenAgentCommand), kConfigGenAgentVerify, "true");
+
+  testing::internal::CaptureStderr();
+  EXPECT_THROW(CmdConfigGenAgent().run(), std::runtime_error);
+  auto error = testing::internal::GetCapturedStderr();
+  EXPECT_NE(error.find("Stale:"), std::string::npos);
+  EXPECT_NE(error.find(generatedPaths.front().string()), std::string::npos);
+  EXPECT_NE(
+      error.find("fboss2 config gen agent --fboss-root " + fbossRoot.string()),
+      std::string::npos);
+
+  localOptions->setLocalOption(
+      std::string(kConfigGenAgentCommand),
+      kConfigGenAgentPlatform,
+      std::string(kManifestPlatform));
+  testing::internal::CaptureStderr();
+  EXPECT_THROW(CmdConfigGenAgent().run(), std::runtime_error);
+  error = testing::internal::GetCapturedStderr();
+  localOptions->clear();
+  EXPECT_NE(error.find("--verify requires manifest mode"), std::string::npos);
 }
 
 TEST(CmdConfigGenAgentTest, ReportsContentMismatchAsLocalError) {

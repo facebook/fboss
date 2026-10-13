@@ -92,6 +92,32 @@ std::string formatGeneratedPaths(
   return output;
 }
 
+void appendPaths(
+    std::string& output,
+    std::string_view label,
+    const std::vector<std::filesystem::path>& paths) {
+  if (paths.empty()) {
+    return;
+  }
+  output += "\n";
+  output += label;
+  for (const auto& path : paths) {
+    output += "\n  " + path.string();
+  }
+}
+
+std::string formatVerificationFailure(
+    const configgen::ConfigVerificationResult& result,
+    const std::filesystem::path& fbossRoot) {
+  std::string output = "Agent generated configurations are out of date:";
+  appendPaths(output, "Missing:", result.missing);
+  appendPaths(output, "Stale:", result.stale);
+  appendPaths(output, "Obsolete:", result.obsolete);
+  output += "\nRegenerate with:\n  fboss2 config gen agent --fboss-root " +
+      fbossRoot.string();
+  return output;
+}
+
 } // namespace
 
 CmdConfigGenAgent::RetType CmdConfigGenAgent::queryClient(
@@ -111,6 +137,9 @@ CmdConfigGenAgent::RetType CmdConfigGenAgent::queryClient(
       std::string(kConfigGenAgentCommand), kConfigGenAgentReferenceConfigFile);
   auto outputDirectory = options->getLocalOption(
       std::string(kConfigGenAgentCommand), kConfigGenAgentOutputDirectory);
+  const auto verify =
+      options->getLocalOption(
+          std::string(kConfigGenAgentCommand), kConfigGenAgentVerify) == "true";
 
   if (platform.empty()) {
     // Manifest entries own target selection and canonical output paths. Reject
@@ -121,11 +150,25 @@ CmdConfigGenAgent::RetType CmdConfigGenAgent::queryClient(
          {kConfigGenAgentAsicConfigType, asicConfigType},
          {kConfigGenAgentReferenceConfigFile, referenceConfigFile},
          {kConfigGenAgentOutputDirectory, outputDirectory}});
+    if (verify) {
+      const auto result = configgen::verifyConfigsFromManifest(
+          fbossRoot,
+          configgen::ServiceType::AGENT,
+          configgen::generateAgentConfigForManifest);
+      if (!result.isFresh()) {
+        throw FbossError(formatVerificationFailure(result, fbossRoot));
+      }
+      return "Agent generated configurations are up to date.";
+    }
     return formatGeneratedPaths(
         configgen::generateConfigsFromManifest(
             fbossRoot,
             configgen::ServiceType::AGENT,
             configgen::generateAgentConfigForManifest));
+  }
+
+  if (verify) {
+    throw FbossError("--verify requires manifest mode; omit --platform");
   }
 
   std::optional<std::filesystem::path> asicConfigFilePath;

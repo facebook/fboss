@@ -31,6 +31,12 @@ struct PendingConfig {
   std::string contents;
 };
 
+struct ConfigGenerationPlan {
+  std::string serviceName;
+  std::vector<PendingConfig> configs;
+  std::set<fs::path> outputPaths;
+};
+
 std::string getPlatformName(PlatformType platform) {
   auto name = std::string(apache::thrift::util::enumNameSafe(platform));
   constexpr std::string_view kPlatformPrefix = "PLATFORM_";
@@ -86,16 +92,12 @@ std::string getOutputFileName(
   return fileName;
 }
 
-} // namespace
-
-std::vector<fs::path> generateConfigsFromManifest(
+ConfigGenerationPlan createConfigGenerationPlan(
     const fs::path& fbossRoot,
     ServiceType service,
     const ConfigContentsGenerator& generateContents) {
   const auto manifest = loadConfigGenerationManifest(fbossRoot);
-  const auto serviceName = getServiceName(service);
-  std::vector<PendingConfig> pendingConfigs;
-  std::set<fs::path> outputPaths;
+  ConfigGenerationPlan plan{.serviceName = getServiceName(service)};
 
   for (const auto& target : *manifest.targets()) {
     const auto optionsIt = target.serviceToOptions()->find(service);
@@ -117,8 +119,8 @@ std::vector<fs::path> generateConfigsFromManifest(
       validateVariant(variant);
 
       auto outputPath = platformDirectory / "forwarding_stack" / "generated" /
-          serviceName / getOutputFileName(profile, variant);
-      if (!outputPaths.insert(outputPath).second) {
+          plan.serviceName / getOutputFileName(profile, variant);
+      if (!plan.outputPaths.insert(outputPath).second) {
         throw FbossError(
             "Config generation manifest contains duplicate output ",
             outputPath.string());
@@ -132,38 +134,127 @@ std::vector<fs::path> generateConfigsFromManifest(
           .profile = profile,
           .variant = std::move(variant),
           .service = service,
-          .serviceName = serviceName,
+          .serviceName = plan.serviceName,
           .platformDirectory = platformDirectory,
           .outputPath = outputPath,
       };
-      pendingConfigs.push_back(
+      plan.configs.push_back(
           {.outputPath = std::move(outputPath),
            .contents = generateContents(request)});
     }
   }
 
-  if (pendingConfigs.empty()) {
+  if (plan.configs.empty()) {
     throw FbossError(
-        "Config generation manifest has no ", serviceName, " targets");
+        "Config generation manifest has no ", plan.serviceName, " targets");
   }
+  return plan;
+}
+
+std::set<fs::path> findGeneratedConfigPaths(
+    const fs::path& fbossRoot,
+    std::string_view serviceName) {
+  const auto platformsDirectory = fbossRoot / "configs" / "platforms";
+  if (!fs::is_directory(platformsDirectory)) {
+    throw FbossError(
+        "Platform config directory does not exist: ",
+        platformsDirectory.string());
+  }
+
+  std::set<fs::path> paths;
+  for (const auto& vendorEntry : fs::directory_iterator(platformsDirectory)) {
+    if (!vendorEntry.is_directory() ||
+        vendorEntry.path().filename() == "generic") {
+      continue;
+    }
+    for (const auto& platformEntry :
+         fs::directory_iterator(vendorEntry.path())) {
+      if (!platformEntry.is_directory()) {
+        continue;
+      }
+      const auto serviceDirectory =
+          platformEntry.path() / "forwarding_stack" / "generated" / serviceName;
+      if (!fs::is_directory(serviceDirectory)) {
+        continue;
+      }
+      for (const auto& outputEntry : fs::directory_iterator(serviceDirectory)) {
+        if (!outputEntry.is_regular_file()) {
+          throw FbossError(
+              "Unexpected entry in generated config directory: ",
+              outputEntry.path().string());
+        }
+        paths.insert(outputEntry.path());
+      }
+    }
+  }
+  return paths;
+}
+
+std::string readGeneratedConfig(const fs::path& path) {
+  std::string contents;
+  if (!folly::readFile(path.c_str(), contents)) {
+    throw FbossError("Unable to read generated config ", path.string());
+  }
+  return contents;
+}
+
+} // namespace
+
+std::vector<fs::path> generateConfigsFromManifest(
+    const fs::path& fbossRoot,
+    ServiceType service,
+    const ConfigContentsGenerator& generateContents) {
+  auto plan = createConfigGenerationPlan(fbossRoot, service, generateContents);
+  const auto existingPaths =
+      findGeneratedConfigPaths(fbossRoot, plan.serviceName);
 
   // Do not create or update outputs until every target has generated
   // successfully. This prevents a bad manifest target from leaving a partial
   // regeneration behind.
-  for (const auto& pendingConfig : pendingConfigs) {
+  for (const auto& pendingConfig : plan.configs) {
     fs::create_directories(pendingConfig.outputPath.parent_path());
   }
-  for (const auto& pendingConfig : pendingConfigs) {
+  for (const auto& pendingConfig : plan.configs) {
     folly::writeFileAtomic(
         pendingConfig.outputPath.c_str(), pendingConfig.contents, 0644);
   }
+  for (const auto& existingPath : existingPaths) {
+    if (!plan.outputPaths.contains(existingPath)) {
+      fs::remove(existingPath);
+    }
+  }
 
   std::vector<fs::path> generatedPaths;
-  generatedPaths.reserve(pendingConfigs.size());
-  for (auto& pendingConfig : pendingConfigs) {
+  generatedPaths.reserve(plan.configs.size());
+  for (auto& pendingConfig : plan.configs) {
     generatedPaths.push_back(std::move(pendingConfig.outputPath));
   }
   return generatedPaths;
+}
+
+ConfigVerificationResult verifyConfigsFromManifest(
+    const fs::path& fbossRoot,
+    ServiceType service,
+    const ConfigContentsGenerator& generateContents) {
+  const auto plan =
+      createConfigGenerationPlan(fbossRoot, service, generateContents);
+  const auto existingPaths =
+      findGeneratedConfigPaths(fbossRoot, plan.serviceName);
+  ConfigVerificationResult result;
+
+  for (const auto& expected : plan.configs) {
+    if (!existingPaths.contains(expected.outputPath)) {
+      result.missing.push_back(expected.outputPath);
+    } else if (readGeneratedConfig(expected.outputPath) != expected.contents) {
+      result.stale.push_back(expected.outputPath);
+    }
+  }
+  for (const auto& existingPath : existingPaths) {
+    if (!plan.outputPaths.contains(existingPath)) {
+      result.obsolete.push_back(existingPath);
+    }
+  }
+  return result;
 }
 
 } // namespace facebook::fboss::configgen

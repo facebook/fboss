@@ -38,11 +38,29 @@ struct ConfigGenerationRequest {
 using ConfigContentsGenerator =
     std::function<std::string(const ConfigGenerationRequest&)>;
 
+struct ConfigVerificationResult {
+  std::vector<std::filesystem::path> missing;
+  std::vector<std::filesystem::path> stale;
+  std::vector<std::filesystem::path> obsolete;
+
+  bool isFresh() const {
+    return missing.empty() && stale.empty() && obsolete.empty();
+  }
+};
+
 // Generates every target for one service from the checked-in manifest. All
 // contents are generated before any output is written, then each canonical
 // platform forwarding_stack/generated/<service> output is atomically
-// refreshed. Paths are returned in manifest order.
+// refreshed and outputs no longer present in the manifest are removed. Paths
+// are returned in manifest order.
 std::vector<std::filesystem::path> generateConfigsFromManifest(
+    const std::filesystem::path& fbossRoot,
+    ServiceType service,
+    const ConfigContentsGenerator& generateContents);
+
+// Generates expected contents in memory and compares them byte-for-byte with
+// the service-owned output directory without modifying the filesystem.
+ConfigVerificationResult verifyConfigsFromManifest(
     const std::filesystem::path& fbossRoot,
     ServiceType service,
     const ConfigContentsGenerator& generateContents);
