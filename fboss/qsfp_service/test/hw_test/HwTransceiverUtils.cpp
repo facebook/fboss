@@ -519,14 +519,18 @@ void HwTransceiverUtils::verify200gProfile(
         *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR2_200G ||
         *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR1_200G ||
         *mediaId.media()->smfCode() == SMFMediaInterfaceCode::FR1_200G ||
-        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::FR2_200G);
+        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::FR2_200G ||
+        // 800G ZR in 3x200G mode
+        *mediaId.media()->smfCode() ==
+            SMFMediaInterfaceCode::ZR_OROADM_FLEXO_6E_DPO_600G);
     EXPECT_TRUE(
         *mediaId.code() == MediaInterfaceCode::FR4_200G ||
         *mediaId.code() == MediaInterfaceCode::LR4_200G ||
         *mediaId.code() == MediaInterfaceCode::DR2_200G ||
         *mediaId.code() == MediaInterfaceCode::DR1_200G ||
         *mediaId.code() == MediaInterfaceCode::FR1_200G ||
-        *mediaId.code() == MediaInterfaceCode::FR2_200G);
+        *mediaId.code() == MediaInterfaceCode::FR2_200G ||
+        *mediaId.code() == MediaInterfaceCode::ZR_800G);
   }
 }
 
