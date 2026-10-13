@@ -23520,6 +23520,9 @@
           "test_name_regex": "AgentAqmTest.verifyPerQueueWredDropStats$"
         },
         {
+          "test_name_regex": "AgentCoppTest/1.JumboFramesToQueues$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRoutesToLowPriQueue$"
         },
         {
