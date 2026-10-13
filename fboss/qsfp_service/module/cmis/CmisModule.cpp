@@ -5553,10 +5553,21 @@ void CmisModule::resetDataPath(const std::string& portName) {
   if (hostLaneMask == 0) {
     hostLaneMask = 0xFF;
   }
+  const uint8_t skippedLaneMask =
+      hostLaneMask & datapathInitDoneInProgramMask_[0];
+  hostLaneMask &= ~skippedLaneMask;
+  if (hostLaneMask == 0) {
+    QSFP_LOG(INFO, this) << fmt::format(
+        "Port {} skipping datapath reset, lanes {:#x} were initialized in this programming cycle",
+        portName,
+        skippedLaneMask);
+    return;
+  }
   QSFP_LOG(INFO, this) << fmt::format(
-      "Port {} resetting datapath on host lane mask {:#x}",
+      "Port {} resetting datapath on host lane mask {:#x}, skipping lanes {:#x} initialized in this programming cycle",
       portName,
-      hostLaneMask);
+      hostLaneMask,
+      skippedLaneMask);
   resetDataPathWithFunc(portName, std::nullopt, hostLaneMask);
 }
 
@@ -5736,6 +5747,7 @@ void CmisModule::resetDataPathForTunableOptics(
   }
 
   dpState.initLaneMask.reset();
+  datapathInitDoneInProgramMask_[bank] |= waitInitMask;
 
   // Step 4: Workaround to set PCS to AM Transparent: T289920421
   setPcsToAmTransparent();
@@ -5816,6 +5828,8 @@ void CmisModule::resetDataPathWithFunc(
       QSFP_LOG(ERR, this) << fmt::format(
           "Datapath didn't come out of deactivated state even after waiting {:d} uSec",
           kUsecDatapathStateUpdateTime);
+    } else {
+      datapathInitDoneInProgramMask_[bank] |= initMask;
     }
 
     // Update the last datapath reset time for all the lanes in hostLaneMask

@@ -802,6 +802,11 @@ class QsfpModule : public Transceiver {
   // the same 0..7 bit range.
   std::map<uint8_t, uint8_t> datapathResetPendingMask_;
 
+  // Per-bank intra-bank lane mask of datapaths initialized during the current
+  // programTransceiver call. A datapath reset requested later in the same call
+  // skips these lanes since they were just reset.
+  std::map<uint8_t, uint8_t> datapathInitDoneInProgramMask_;
+
  private:
   // no copy or assignment
   QsfpModule(QsfpModule const&) = delete;

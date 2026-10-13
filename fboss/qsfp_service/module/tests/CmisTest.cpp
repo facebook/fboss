@@ -3924,4 +3924,21 @@ TEST_F(CmisTest, cmis800GZr3x200GProgramsAllDatapathsTogether) {
           kPage10h, kDataPathDeinitOffset - 128),
       2);
 }
+
+// A datapath reset requested in the same programTransceiver call skips the
+// lanes the AppSel change just initialized.
+TEST_F(CmisTest, programTransceiverSkipsResetOfJustInitializedLanes) {
+  TransceiverPropertiesManager::initDefault();
+  auto xcvr = overrideCmisModule<Cmis800GZr3x200GTransceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::OSFP);
+  auto programTcvrState = make3x200GZrProgramState();
+
+  xcvr->programTransceiver(programTcvrState, true /* needResetDataPath */);
+
+  // Only the AppSel change's deinit and init; no second cycle for the reset
+  EXPECT_EQ(
+      lastQsfpImpl()->getUpperPageWriteCount(
+          kPage10h, kDataPathDeinitOffset - 128),
+      2);
+}
 } // namespace facebook::fboss
