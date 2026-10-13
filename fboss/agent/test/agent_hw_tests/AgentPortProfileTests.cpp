@@ -319,9 +319,9 @@ class AgentPortProfileTest : public AgentHwTest {
 };
 
 #define TEST_PROFILE(PROFILE)                                        \
-  struct AgentTest_##PROFILE                                         \
+  struct AgentPortProfileTest_##PROFILE                              \
       : public AgentPortProfileTest<cfg::PortProfileID::PROFILE> {}; \
-  TEST_F(AgentTest_##PROFILE, TestProfile) {                         \
+  TEST_F(AgentPortProfileTest_##PROFILE, TestProfile) {              \
     runTest();                                                       \
   }
 
