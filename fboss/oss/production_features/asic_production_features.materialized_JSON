@@ -689,7 +689,9 @@
         49,
         111,
         131,
-        133
+        133,
+        106,
+        107
     ],
     "tomahawkultra1": [
         2,
@@ -1496,7 +1498,9 @@
         "MIRROR_ON_DROP",
         "MIRROR_ON_DROP_STATELESS",
         "MPLS_TTL_ACL",
-        "MY_MAC"
+        "MY_MAC",
+        "MPLS_HEADEND",
+        "MPLS_MIDPOINT"
     ],
     "tomahawkultra1": [
         "CPU_RX_TX",
@@ -2102,6 +2106,32 @@
           "sdk": 1,
           "minSdkVersion": "16.0",
           "note": "MPLS label0 TTL ACL qualifier is supported from the BRCM-SAI 16.0 early access drop onward; 15.4 is GA and is not patched for it"
+        }
+      ]
+    },
+    {
+      "feature": 106,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "16.0",
+          "note": "Label imposition needs SAI_NEXT_HOP_ATTR_OUTSEG_TYPE PUSH, which FBOSS sets on Tomahawk6 from the BRCM-SAI 16.0 early access drop onward"
+        }
+      ]
+    },
+    {
+      "feature": 107,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "16.0",
+          "note": "Label push on transit traffic needs SAI_NEXT_HOP_ATTR_OUTSEG_TYPE PUSH, which FBOSS sets on Tomahawk6 from the BRCM-SAI 16.0 early access drop onward"
         }
       ]
     }
