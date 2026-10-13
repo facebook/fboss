@@ -452,6 +452,9 @@ TEST_F(TransceiverPropertiesManagerTest, MediaLaneCodeToMediaInterfaceCode) {
   EXPECT_EQ(
       TransceiverPropertiesManager::mediaLaneCodeToMediaInterfaceCode(0xF7),
       MediaInterfaceCode::ZR_800G);
+  EXPECT_EQ(
+      TransceiverPropertiesManager::mediaLaneCodeToMediaInterfaceCode(0x6A),
+      MediaInterfaceCode::ZR_800G);
 
   // Unknown code throws
   EXPECT_THROW(
