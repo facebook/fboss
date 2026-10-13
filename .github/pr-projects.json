@@ -9,6 +9,8 @@
     "icecube800bc",
     "janga800bic",
     "ladakh800bcls",
+    "m4061nhp",
+    "m4062nhp",
     "meru800bfa",
     "meru800bia",
     "minipack",
@@ -26,5 +28,13 @@
     "wedge800cact",
     "yamp"
   ],
-  "nonNpiProjects": ["bug fix", "bugfix", "feature", "misc"]
+  "nonNpiProjects": [
+    "bug fix",
+    "bugfix",
+    "distro",
+    "fboss2",
+    "fboss2-dev",
+    "feature",
+    "misc"
+  ]
 }
