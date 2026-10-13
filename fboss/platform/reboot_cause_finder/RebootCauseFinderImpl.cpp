@@ -11,6 +11,7 @@
 #include <filesystem>
 #include <optional>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include <fmt/format.h>
@@ -24,6 +25,11 @@
 #include <re2/re2.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
+
+DEFINE_int32(
+    bmc_logfile_poll_timeout_s,
+    300,
+    "How long to keep retrying the BMC logfile endpoint before giving up.");
 
 DEFINE_bool(
     clear_reboot_causes,
@@ -90,6 +96,7 @@ constexpr auto kBmcLogfilePath = "/api/sys/logfile";
 // Content-Type: application/json, only when postData is non-empty.
 constexpr auto kBmcLogfileBody = R"({"lines": 200, "include_rotated": true})";
 constexpr std::chrono::milliseconds kBmcTimeout{2000};
+constexpr std::chrono::seconds kBmcLogfilePollInterval{10};
 
 constexpr auto kSuddenPowerLossProvider = "SuddenPowerLoss";
 // The BMC reports its own uptime here, both as the `uptime` command's output
@@ -731,23 +738,77 @@ folly::StringPiece bmcHostSourceAddress() {
   return kHostSourceAddress;
 }
 
+bool bmcFailureIsRetryable(std::optional<long> responseCode) {
+  // No status at all means the request never reached a response: the BMC is
+  // still booting, or the sideband address is not assignable yet. Both clear
+  // on their own.
+  if (!responseCode) {
+    return true;
+  }
+  // 403 is the ACL that a BMC reboot wipes; it comes back when the BMC is
+  // reconfigured. 404 is an image without the endpoint, which no amount of
+  // waiting changes. Anything else is not known to be transient, and
+  // retrying it would just delay the record.
+  return *responseCode == 403;
+}
+
+namespace {
+
+struct BmcLogfileRead {
+  std::string body;
+  std::string failure;
+  std::optional<long> responseCode;
+  bool retryable{false};
+};
+
+BmcLogfileRead readBmcLogfileOnce() {
+  BmcLogfileRead read;
+  // Declared outside the try so the status survives into the catch.
+  RestClient client(folly::IPAddress(kBmcAddress), kBmcPort);
+  try {
+    client.setSourceAddress(folly::IPAddressV6(kHostSourceAddress));
+    client.setTimeout(kBmcTimeout);
+    read.body = client.requestWithOutput(kBmcLogfilePath, kBmcLogfileBody);
+  } catch (const std::exception& ex) {
+    read.failure = ex.what();
+  }
+  // Settled on one path for both outcomes, so a read that returns without
+  // throwing cannot skip the decision.
+  read.responseCode = client.lastResponseCode();
+  read.retryable = bmcFailureIsRetryable(read.responseCode);
+  return read;
+}
+
+} // namespace
+
 reboot_cause_config::RebootCauseProviderAttempt readBmcWedgePower(
     int64_t btimeSec,
     int64_t windowSec) {
-  std::string body;
-  std::string failure;
-  try {
-    RestClient client(folly::IPAddress(kBmcAddress), kBmcPort);
-    client.setSourceAddress(folly::IPAddressV6(kHostSourceAddress));
-    client.setTimeout(kBmcTimeout);
-    body = client.requestWithOutput(kBmcLogfilePath, kBmcLogfileBody);
-  } catch (const std::exception& ex) {
-    failure = ex.what();
-    XLOG(ERR) << fmt::format(
-        "Failed to reach the BMC logfile API: {}", failure);
-    body.clear();
+  // One attempt up front, then one per interval until the timeout is spent.
+  // Each attempt is itself bounded by kBmcTimeout, so the elapsed time runs
+  // slightly past the nominal timeout; the flag sizes the wait, it is not a
+  // hard deadline.
+  const int maxAttempts = 1 +
+      std::max(0, FLAGS_bmc_logfile_poll_timeout_s) /
+          static_cast<int>(kBmcLogfilePollInterval.count());
+
+  BmcLogfileRead read;
+  for (int attempt = 1; attempt <= maxAttempts; ++attempt) {
+    read = readBmcLogfileOnce();
+    XLOG(INFO) << fmt::format(
+        "BMC logfile attempt {} of {}: status={} retryable={} {}",
+        attempt,
+        maxAttempts,
+        read.responseCode ? std::to_string(*read.responseCode) : "none",
+        read.retryable,
+        read.body.empty() ? read.failure : "ok");
+    if (!read.body.empty() || !read.retryable || attempt == maxAttempts) {
+      break;
+    }
+    std::this_thread::sleep_for(kBmcLogfilePollInterval);
   }
-  if (body.empty()) {
+
+  if (read.body.empty()) {
     // The BMC is unreachable, the source address could not be bound, the
     // image has no logfile endpoint, or its ACL does not admit us.
     // All are a failed read, not an absence of causes.
@@ -755,10 +816,11 @@ reboot_cause_config::RebootCauseProviderAttempt readBmcWedgePower(
         kBmcWedgePowerProvider,
         reboot_cause_config::RebootCauseProviderStatus::READ_FAILED,
         detailWithReason(
-            kBmcLogfilePath, failure.empty() ? "empty response" : failure),
+            kBmcLogfilePath,
+            read.failure.empty() ? "empty response" : read.failure),
         {});
   }
-  return parseBmcWedgePower(body, btimeSec, windowSec);
+  return parseBmcWedgePower(read.body, btimeSec, windowSec);
 }
 
 // Sudden power loss leaves no log line anywhere by definition: nothing had a

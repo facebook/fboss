@@ -2,6 +2,8 @@
 
 #include "fboss/platform/reboot_cause_finder/RebootCauseFinderImpl.h"
 
+DECLARE_int32(bmc_logfile_poll_timeout_s);
+
 #include <sys/stat.h>
 #include <algorithm>
 #include <cerrno>
@@ -1172,6 +1174,9 @@ class DetermineRebootCauseTest : public RebootCauseFinderImplTest {
  protected:
   void SetUp() override {
     RebootCauseFinderImplTest::SetUp();
+    // No BMC here, so every logfile read fails with no response, which is
+    // retryable. Without this the whole poll window elapses per test.
+    FLAGS_bmc_logfile_poll_timeout_s = 0;
     historyDir_ = (tmpDir_ / "history").string();
     procStat_ = (tmpDir_ / "stat").string();
     bootIdPath_ = (tmpDir_ / "boot_id").string();
@@ -1450,3 +1455,24 @@ TEST_F(RebootCauseFinderImplTest, ProviderUnparseableDateKeepsTheCause) {
 }
 
 } // namespace
+
+TEST(BmcFailureIsRetryableTest, NoResponseIsRetryable) {
+  // The BMC is still booting, or the sideband address is not up yet.
+  EXPECT_TRUE(detail::bmcFailureIsRetryable(std::nullopt));
+}
+
+TEST(BmcFailureIsRetryableTest, ForbiddenIsRetryable) {
+  // The ACL a reboot wiped comes back when the BMC is reconfigured.
+  EXPECT_TRUE(detail::bmcFailureIsRetryable(403));
+}
+
+TEST(BmcFailureIsRetryableTest, NotFoundIsNotRetryable) {
+  // An image without the endpoint will not grow one while we wait.
+  EXPECT_FALSE(detail::bmcFailureIsRetryable(404));
+}
+
+TEST(BmcFailureIsRetryableTest, OtherStatusesAreNotRetryable) {
+  EXPECT_FALSE(detail::bmcFailureIsRetryable(200));
+  EXPECT_FALSE(detail::bmcFailureIsRetryable(401));
+  EXPECT_FALSE(detail::bmcFailureIsRetryable(500));
+}

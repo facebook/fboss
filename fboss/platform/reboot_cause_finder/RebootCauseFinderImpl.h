@@ -55,6 +55,11 @@ reboot_cause_config::RebootCauseProviderAttempt readBmcWedgePower(
 // otherwise, and on a switch that throw is indistinguishable from an outage.
 folly::StringPiece bmcHostSourceAddress();
 
+// Whether a failed BMC logfile read can succeed on a later attempt.
+// std::nullopt means the request produced no response at all. Exposed so the
+// retry decision can be tested without an HTTP server.
+bool bmcFailureIsRetryable(std::optional<long> responseCode);
+
 // Exposed separately from readBmcWedgePower so the parsing can be tested
 // without an HTTP server.
 reboot_cause_config::RebootCauseProviderAttempt parseBmcWedgePower(
