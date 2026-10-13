@@ -4018,6 +4018,27 @@ TEST_F(NamedNextHopGroupThriftTest, addAndGetNextHopGroup) {
   EXPECT_EQ(result[0].nexthops()->size(), 2);
 }
 
+TEST_F(NamedNextHopGroupThriftTest, rejectMixedSrv6AndPlainNextHops) {
+  ThriftHandler handler(sw_);
+
+  NextHopGroup group;
+  group.name() = "mixed_group";
+  group.nexthops() = {
+      makeLinkLocalNextHopThrift("fe80:face:b00c::1"),
+      makeLinkLocalSrv6NextHopThrift("fe80:face:b00c::2", "2001:db8::2")};
+  auto groups = std::make_unique<std::vector<NextHopGroup>>();
+  groups->push_back(std::move(group));
+
+  EXPECT_THROW(
+      handler.addOrUpdateNamedNextHopGroups(std::move(groups)), FbossError);
+
+  std::vector<NextHopGroup> result;
+  auto nameFilter = std::make_unique<std::vector<std::string>>();
+  nameFilter->push_back("mixed_group");
+  handler.getNamedNextHopGroups(result, std::move(nameFilter));
+  EXPECT_TRUE(result.empty());
+}
+
 namespace {
 // Weight each next hop of a named group came back with, keyed by address.
 std::map<std::string, int32_t> readGroupWeights(

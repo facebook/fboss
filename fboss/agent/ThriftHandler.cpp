@@ -58,6 +58,7 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/Route.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Transceiver.h"
@@ -3515,12 +3516,17 @@ void ThriftHandler::addNamedNextHopGroupsImpl(
     }
     validateAndDefaultSrv6NextHops(*group.nexthops(), defaultSrv6TunnelId);
     validateLinkLocalNextHopInterfaces(*group.nexthops(), state);
-    groups.emplace_back(
-        *group.name(),
-        util::toRouteNextHopSet(
-            *group.nexthops(),
-            true /* allowV6NonLinkLocal */,
-            combineDuplicatedNextHops));
+    auto nextHops = util::toRouteNextHopSet(
+        *group.nexthops(),
+        true /* allowV6NonLinkLocal */,
+        combineDuplicatedNextHops);
+    if (hasSrv6AndNonSrv6NextHops(nextHops)) {
+      throw FbossError(
+          "Named next-hop group ",
+          *group.name(),
+          " contains mixed SRv6 and non-SRv6 next hops, which are unsupported");
+    }
+    groups.emplace_back(*group.name(), std::move(nextHops));
   }
 
   // RIB handles allocation + route reprogramming on the RIB thread.
