@@ -214,6 +214,7 @@ class ResourceAccountant {
   FRIEND_TEST(ResourceAccountantTest, mySidResourceExceeded);
   FRIEND_TEST(ResourceAccountantTest, checkAndUpdateSrv6NextHopResource);
   FRIEND_TEST(ResourceAccountantTest, srv6NextHopResourceExceeded);
+  FRIEND_TEST(ResourceAccountantTest, srv6UcmpDistinctWeights);
   FRIEND_TEST(ResourceAccountantTest, checkAndUpdateRouteCounterResource);
   FRIEND_TEST(ResourceAccountantTest, routeCounterResourceExceeded);
   FRIEND_TEST(MacTableManagerTest, MacLearnedBulkCb);
