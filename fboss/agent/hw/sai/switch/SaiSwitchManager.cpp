@@ -1690,6 +1690,31 @@ void SaiSwitchManager::setConditionalEntropyRehashPeriodUS(
 #endif
 }
 
+void SaiSwitchManager::setLinkUpDebounceTimeout(
+    [[maybe_unused]] uint32_t linkUpDebounceTimeoutUs) {
+#if defined(BRCM_SAI_SDK_XGS_GTE_15_4)
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::LinkUpDebounceTimeout{
+          linkUpDebounceTimeoutUs});
+#else
+  throw FbossError("Set switch wide link up debounce timeout not supported");
+#endif
+}
+
+uint32_t SaiSwitchManager::getLinkUpDebounceTimeout() const {
+#if defined(BRCM_SAI_SDK_XGS_GTE_15_4)
+  const auto& attr = std::get<
+      std::optional<SaiSwitchTraits::Attributes::LinkUpDebounceTimeout>>(
+      switch_->attributes());
+  // Unset means the switch object was created without the attribute, which
+  // leaves the SDK on its own default of no debounce.
+  if (attr.has_value()) {
+    return attr->value();
+  }
+#endif
+  return 0;
+}
+
 void SaiSwitchManager::setShelConfig(
     const std::optional<cfg::SelfHealingEcmpLagConfig>& shelConfig) {
   if (shelConfig.has_value()) {

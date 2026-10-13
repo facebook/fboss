@@ -1053,6 +1053,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   debounceProgrammable =
       swPort->getLinkScanMode() == cfg::LinkScanMode::HARDWARE;
 #endif
+  const bool upHoldoffIsPerPort = !platform_->getAsic()->isSupported(
+      HwAsic::Feature::SWITCH_WIDE_LINK_UP_DEBOUNCE);
   if (platform_->getAsic()->isSupported(HwAsic::Feature::PORT_DEBOUNCE) &&
       debounceProgrammable) {
     // Hold timers (ms) the SDK applies before reporting link up/down events.
@@ -1068,7 +1070,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         static_cast<sai_uint32_t>(swPort->getPortUpHoldoffTimeMs().value_or(
             kSdkDefaultLinkDebouncePeriodMs))};
 #else
-    if (swPort->getPortUpHoldoffTimeMs().has_value()) {
+    if (upHoldoffIsPerPort && swPort->getPortUpHoldoffTimeMs().has_value()) {
       throw FbossError(
           "Per-port link up debounce timer (portUpHoldoffTimeMs) is not "
           "supported by this SAI SDK; cannot apply to port ",
@@ -1086,7 +1088,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
                 kSdkDefaultLinkDebouncePeriodMs) *
             kLinkDownDebounceUnitsPerMs)};
   } else if (
-      swPort->getPortUpHoldoffTimeMs().has_value() ||
+      (upHoldoffIsPerPort && swPort->getPortUpHoldoffTimeMs().has_value()) ||
       swPort->getPortDownHoldoffTimeMs().has_value()) {
     if (!platform_->getAsic()->isSupported(HwAsic::Feature::PORT_DEBOUNCE)) {
       throw FbossError(
