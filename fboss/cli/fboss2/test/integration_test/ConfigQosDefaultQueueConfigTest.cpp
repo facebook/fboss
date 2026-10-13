@@ -286,6 +286,66 @@ TEST_F(
   deleteQueueAndCommit(queueId);
 }
 
+// maximumLength is the top of the drop ramp: at that queue length the
+// probability applies in full. It is written by the same one-attribute-at-a-
+// time path as the rest of the linear profile, so this case checks that an
+// edit naming only maximum-length moves it and leaves minimumLength and
+// probability as they were.
+TEST_F(ConfigQosDefaultQueueConfigTest, AqmDetectionMaximumLength) {
+  constexpr int kMinLength = 15000;
+  constexpr int kFirstMaxLength = 50000;
+  constexpr int kFinalMaxLength = 90000;
+  // ASICs without ECN_PROBABILISTIC_MARKING reject any ECN probability other
+  // than 100, so use 100 to keep this test runnable on every platform.
+  constexpr int kProbability = kAqmProbability;
+
+  int queueId = pickUnusedQueueId();
+  const auto* q = configureAndCommit(
+      queueId,
+      {"active-queue-management",
+       "congestion-behavior",
+       "ECN",
+       "detection",
+       "linear",
+       "minimum-length",
+       std::to_string(kMinLength),
+       "maximum-length",
+       std::to_string(kFirstMaxLength),
+       "probability",
+       std::to_string(kProbability)});
+  ASSERT_NE(q, nullptr) << "queue-id " << queueId << " not in running config";
+  ASSERT_TRUE(q->count("aqms"));
+  ASSERT_FALSE((*q)["aqms"].empty());
+  EXPECT_EQ(
+      (*q)["aqms"][0]["detection"]["linear"]["maximumLength"].asInt(),
+      kFirstMaxLength);
+
+  discardSession();
+  q = configureAndCommit(
+      queueId,
+      {"active-queue-management",
+       "congestion-behavior",
+       "ECN",
+       "detection",
+       "linear",
+       "maximum-length",
+       std::to_string(kFinalMaxLength)});
+  ASSERT_NE(q, nullptr) << "queue-id " << queueId << " not in running config";
+  ASSERT_TRUE(q->count("aqms"));
+  ASSERT_FALSE((*q)["aqms"].empty());
+  const auto& linear = (*q)["aqms"][0]["detection"]["linear"];
+
+  EXPECT_EQ(linear["maximumLength"].asInt(), kFinalMaxLength)
+      << "the second command must move maximumLength";
+  EXPECT_EQ(linear["minimumLength"].asInt(), kMinLength)
+      << "a maximum-length edit must not disturb minimumLength";
+  EXPECT_EQ(
+      linear.getDefault("probability", kAqmProbability).asInt(), kProbability)
+      << "a maximum-length edit must not reset probability to its default";
+
+  deleteQueueAndCommit(queueId);
+}
+
 // Loss-sensitive traffic: guaranteed buffer plus a dynamic shared threshold, so
 // a burst is absorbed rather than tail-dropped.
 TEST_F(ConfigQosDefaultQueueConfigTest, LossSensitiveQueueCarvesBuffer) {
