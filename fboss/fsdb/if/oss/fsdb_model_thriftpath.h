@@ -957,6 +957,7 @@ class ChildThriftPath<::facebook::fboss::cfg::QsfpTestConfig, ::facebook::fboss:
   
     STRUCT_CHILD_GETTERS(cabledPortPairs, 1);
     STRUCT_CHILD_GETTERS(firmwareForUpgradeTest, 2);
+    STRUCT_CHILD_GETTERS(qsfpServiceMemLimitBytes, 3);
 };
 
 

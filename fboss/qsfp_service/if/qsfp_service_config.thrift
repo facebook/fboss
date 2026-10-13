@@ -65,6 +65,9 @@ struct CabledTestPair {
 struct QsfpTestConfig {
   1: list<CabledTestPair> cabledPortPairs;
   2: TransceiverFirmware firmwareForUpgradeTest;
+  // Maximum qsfp_service RSS (bytes) allowed at the end of each qsfp_hw_test.
+  // The check is skipped when unset.
+  3: optional i64 qsfpServiceMemLimitBytes;
 }
 
 enum FirmwareType {
