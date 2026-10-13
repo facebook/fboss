@@ -64,6 +64,36 @@ void verifyMediaInterfaceCodes(
             apache::thrift::util::enumNameSafe(expectedCodes[i]),
             apache::thrift::util::enumNameSafe(*mediaInterfaces[i].code())));
   }
+
+  // Several raw media codes can map to the same MediaInterfaceCode (e.g. the
+  // 800G ZR applications), so also check the raw code of the active
+  // application on each media lane.
+  for (const auto& port : *combo.ports()) {
+    if (port.mediaLaneCode()->getType() != MediaInterfaceUnion::Type::smfCode) {
+      continue;
+    }
+    const auto expectedRaw = *port.mediaLaneCode()->smfCode();
+    const auto start = *port.mediaLanes()->start();
+    for (int lane = start; lane < start + *port.mediaLanes()->count(); lane++) {
+      if (lane >= static_cast<int>(mediaInterfaces.size())) {
+        break;
+      }
+      const auto& media = *mediaInterfaces[lane].media();
+      HAL_CHECK(
+          result,
+          media.getType() == MediaInterfaceUnion::Type::smfCode &&
+              *media.smfCode() == expectedRaw,
+          fmt::format(
+              "Transceiver {} media lane {} raw media code mismatch for mode {}: expected {} got {}",
+              tcvrId,
+              lane,
+              comboDescription,
+              apache::thrift::util::enumNameSafe(expectedRaw),
+              media.getType() == MediaInterfaceUnion::Type::smfCode
+                  ? apache::thrift::util::enumNameSafe(*media.smfCode())
+                  : std::string("non-SMF")));
+    }
+  }
 }
 
 void bringModuleToReady(
