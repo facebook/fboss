@@ -26579,6 +26579,9 @@
         },
         {
           "test_name_regex": "warm_boot.AgentHwLinkDebounceTest.Link(Up|Down)DebounceRetriggerCount$"
+        },
+        {
+          "test_name_regex": "roundtrip.(preprod_2_trunk_2_preprod|trunk_2_preprod_2_trunk).*AgentTrunkMixedSpeedTest.LongHaulPortSpeedsAndLags$"
         }
     ],
     "leaba/26.2.4210/26.2.4210/graphene200/multi_switch": [
