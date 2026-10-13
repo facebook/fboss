@@ -121,7 +121,9 @@ constexpr uint8_t kDiagSelSnr =
 constexpr int kPage2f = static_cast<int>(CmisPages::PAGE2F);
 constexpr int kVdmLatchRequestUpperPageOffset = 144 - 128;
 
+constexpr uint8_t kPage10h = 0x10;
 constexpr uint8_t kPage11h = 0x11;
+constexpr int kDataPathDeinitOffset = 128;
 constexpr int kActiveAppSelOffset = 206;
 
 void writeUpperPage(
@@ -139,10 +141,45 @@ void writeUpperPage(
   impl->writeTransceiver(param, data.data(), 0, 0);
 }
 
+std::vector<uint8_t>
+readUpperPage(FakeTransceiverImpl* impl, uint8_t page, int offset, int len) {
+  TransceiverAccessParameter pageParam(
+      TransceiverAccessParameter::ADDR_QSFP, 127, 1);
+  impl->writeTransceiver(pageParam, &page, 0, 0);
+  std::vector<uint8_t> data(len);
+  TransceiverAccessParameter param(
+      TransceiverAccessParameter::ADDR_QSFP, offset, len);
+  impl->readTransceiver(param, data.data(), 0);
+  return data;
+}
+
 // Active control set for 3x200G: AppSel 9 on host lanes 0-5 with datapath IDs
 // 0, 2 and 4; lanes 6-7 without an application
 const std::vector<uint8_t> k3x200GActiveAppSel =
     {0x90, 0x90, 0x94, 0x94, 0x98, 0x98, 0x00, 0x00};
+
+ProgramTransceiverState make3x200GZrProgramState() {
+  ProgramTransceiverState programTcvrState;
+  for (uint8_t startHostLane : {0, 2, 4}) {
+    TransceiverPortState portState;
+    portState.portName = fmt::format("eth1/1/{}", startHostLane + 1);
+    portState.startHostLane = startHostLane;
+    portState.speed = cfg::PortSpeed::TWOHUNDREDG;
+    portState.numHostLanes = 2;
+    cfg::OpticalChannelConfig optChanConfig;
+    cfg::FrequencyConfig freqConfig;
+    freqConfig.frequencyGrid() = FrequencyGrid::LASER_6P25GHZ;
+    cfg::CenterFrequencyConfig centerFreq;
+    centerFreq.set_frequencyMhz(CmisModule::kDefaultFrequencyMhz);
+    freqConfig.centerFrequencyConfig() = centerFreq;
+    optChanConfig.frequencyConfig() = freqConfig;
+    optChanConfig.txPower0P01Dbm() = 0;
+    optChanConfig.appSelCode() = 9;
+    portState.opticalChannelConfig = optChanConfig;
+    programTcvrState.ports.emplace(portState.portName, portState);
+  }
+  return programTcvrState;
+}
 } // namespace
 
 // Existing (non-CPO) CMIS modules don't advertise a multi-bank capacity in
@@ -3863,5 +3900,28 @@ TEST_F(CmisTest, allPortsResetLaneMasks) {
   EXPECT_EQ(
       xcvr->getAllPortsResetLaneMasks(state, state.numHostLanes),
       std::make_pair(uint8_t(0x02), uint8_t(0x02)));
+}
+
+// Moving a ZR from 800G to 3x200G programs all three datapaths in one
+// stage set 0 commit and one datapath deinit/init, leaving lanes 6-7 in deinit.
+TEST_F(CmisTest, cmis800GZr3x200GProgramsAllDatapathsTogether) {
+  TransceiverPropertiesManager::initDefault();
+  auto xcvr = overrideCmisModule<Cmis800GZr3x200GTransceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::OSFP);
+  auto programTcvrState = make3x200GZrProgramState();
+
+  xcvr->programTransceiver(programTcvrState, false);
+
+  EXPECT_EQ(
+      readUpperPage(lastQsfpImpl(), kPage11h, kActiveAppSelOffset, 8),
+      k3x200GActiveAppSel);
+  const std::vector<uint8_t> lanes6And7InDeinit = {0xc0};
+  EXPECT_EQ(
+      readUpperPage(lastQsfpImpl(), kPage10h, kDataPathDeinitOffset, 1),
+      lanes6And7InDeinit);
+  EXPECT_EQ(
+      lastQsfpImpl()->getUpperPageWriteCount(
+          kPage10h, kDataPathDeinitOffset - 128),
+      2);
 }
 } // namespace facebook::fboss

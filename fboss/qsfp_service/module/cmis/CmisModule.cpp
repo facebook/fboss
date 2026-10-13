@@ -3580,7 +3580,7 @@ void CmisModule::setApplicationCodeLocked(
     uint8_t moduleMediaInterfaceCode =
         getInterfaceCodeForAppSel(newAppSelCode, kMediaInterfaceCodeOffset);
 
-    programApplicationSelectCode(
+    programPortApplicationSelectCode(
         newAppSelCode, moduleMediaInterfaceCode, state, state.numHostLanes);
     return;
   }
@@ -5723,11 +5723,19 @@ void CmisModule::resetDataPathForTunableOptics(
     }
   }
 
-  // Step 3: Initialize data path
-  if (!dataPathProgram(portName, initMask, true, bank)) {
+  // Step 3: Initialize data path. Retries keep checking the lanes the init was
+  // started on, even if the caller now passes a narrower mask.
+  auto& dpState = portDatapathStates_[portName];
+  if (dpState.initTimers.progStartTimer.time_since_epoch().count() == 0) {
+    dpState.initLaneMask = initMask;
+  }
+  const uint8_t waitInitMask = dpState.initLaneMask.value_or(initMask);
+  if (!dataPathProgram(portName, waitInitMask, true, bank)) {
     throw FbossError(
         "Data path initialize not yet completed for port ", portName);
   }
+
+  dpState.initLaneMask.reset();
 
   // Step 4: Workaround to set PCS to AM Transparent: T289920421
   setPcsToAmTransparent();

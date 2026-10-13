@@ -392,6 +392,9 @@ class CmisModule : public QsfpModule {
     bool dpInitDone{false};
     uint64_t dpDeinitFailureCounter{0};
     uint64_t dpInitFailureCounter{0};
+    // Lanes whose activation the in-progress datapath init waits for. Kept so
+    // retries check the same lanes the init was started on.
+    std::optional<uint8_t> initLaneMask;
   };
 
   /*
