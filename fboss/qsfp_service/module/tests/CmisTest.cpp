@@ -51,6 +51,7 @@ class MockCmisModule : public CmisModule {
   using CmisModule::disableTxRxSquelchForTunableOptics;
   using CmisModule::enableRxLfInsertionForTunableOptics;
   using CmisModule::frequencyGridToGridSelection;
+  using CmisModule::getAllPortsResetLaneMasks;
   using CmisModule::getApplicationField;
   using CmisModule::getBankedQsfpValuePtr;
   using CmisModule::getChannelNumFromFrequency;
@@ -3833,5 +3834,34 @@ TEST_F(CmisTest, resetDataPathSkipsLanesWithoutApplication) {
   xcvr->refresh();
 
   EXPECT_NO_THROW(xcvr->resetDataPath("eth1/1/1"));
+}
+
+// Programming all ports deinitializes every lane in the current and new
+// configs and initializes every lane the new config puts in an application.
+TEST_F(CmisTest, allPortsResetLaneMasks) {
+  TransceiverPropertiesManager::initDefault();
+  auto xcvr = overrideCmisModule<Cmis2x400GFr4Transceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::OSFP);
+  TransceiverPortState state;
+  state.portName = "eth1/1/5";
+  state.startHostLane = 4;
+  state.speed = cfg::PortSpeed::HUNDREDG;
+  state.numHostLanes = 4;
+  ASSERT_FALSE(xcvr->isRequestValidMultiportSpeedConfig(
+      state.speed, state.startHostLane, state.numHostLanes));
+
+  // 100G-CWDM4 on the second port moves both ports (all 8 lanes) to CWDM4
+  EXPECT_EQ(
+      xcvr->getAllPortsResetLaneMasks(state, state.numHostLanes),
+      std::make_pair(uint8_t(0xff), uint8_t(0xff)));
+
+  // With no valid speed combo (no 25G application) only the port's own lane is
+  // reset
+  state.startHostLane = 1;
+  state.speed = cfg::PortSpeed::TWENTYFIVEG;
+  state.numHostLanes = 1;
+  EXPECT_EQ(
+      xcvr->getAllPortsResetLaneMasks(state, state.numHostLanes),
+      std::make_pair(uint8_t(0x02), uint8_t(0x02)));
 }
 } // namespace facebook::fboss
