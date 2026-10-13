@@ -81,7 +81,7 @@ module.exports = async function labelPullRequestMetadata({
   const match = pullRequest.title.match(/^\[([^\]]+)\]\s*\[([^\]]+)\]\s+.+/);
   if (!match) {
     await removeManagedLabels();
-    core.warning(
+    core.setFailed(
       'PR title must use the format "[CompanyName][ProjectName] Your PR title", ' +
         'for example "[Accton][minipack3n] Add transceiver support".',
     );
@@ -92,12 +92,12 @@ module.exports = async function labelPullRequestMetadata({
   const project = match[2].trim().toLowerCase();
   if (!validCompanies.includes(company)) {
     await removeManagedLabels();
-    core.warning(`Company name "${match[1].trim()}" is not recognized.`);
+    core.setFailed(`Company name "${match[1].trim()}" is not recognized.`);
     return;
   }
   if (!validProjects.has(project)) {
     await removeManagedLabels();
-    core.warning(
+    core.setFailed(
       `Project name "${match[2].trim()}" is not recognized. ` +
         `Supported projects: ${projects.join(', ')}.`,
     );
