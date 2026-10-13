@@ -3760,6 +3760,23 @@ Cmis800GZrTransceiver::Cmis800GZrTransceiver(
           kCmis800GZrUpperPages,
           mgr) {}
 
+Cmis800GZr3x200GTransceiver::Cmis800GZr3x200GTransceiver(
+    int module,
+    TransceiverManager* mgr)
+    : Cmis800GZrTransceiver(module, mgr) {
+  // Advertise the 3x200G FlexO-6e-DPO application as AppSel 9 (Page 01h bytes
+  // 223-226): host 200GAUI-2 (0x4E), media 0x6A, 2 host lanes and 1 media lane,
+  // host datapaths starting at lanes 0, 2 and 4
+  TransceiverAccessParameter pageParam(
+      TransceiverAccessParameter::ADDR_QSFP, 127, 1);
+  uint8_t page01 = 0x01;
+  writeTransceiver(pageParam, &page01, 0, 0);
+  TransceiverAccessParameter appParam(
+      TransceiverAccessParameter::ADDR_QSFP, 223, 4);
+  std::array<uint8_t, 4> app9 = {0x4E, 0x6A, 0x21, 0x15};
+  writeTransceiver(appParam, app9.data(), 0, 0);
+}
+
 Cmis800GZrNoHoldOffTmrTransceiver::Cmis800GZrNoHoldOffTmrTransceiver(
     int module,
     TransceiverManager* mgr)

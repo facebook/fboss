@@ -200,6 +200,13 @@ class Cmis800GZrTransceiver : public FakeTransceiverImpl {
   explicit Cmis800GZrTransceiver(int module, TransceiverManager* mgr);
 };
 
+// Cmis800GZr variant that also advertises the 3x200G FlexO-6e-DPO application
+// (AppSel 9).
+class Cmis800GZr3x200GTransceiver : public Cmis800GZrTransceiver {
+ public:
+  explicit Cmis800GZr3x200GTransceiver(int module, TransceiverManager* mgr);
+};
+
 // Cmis800GZr variant that does NOT advertise rxConsActHoldOffTmrImpl support
 // (Page 45h, Byte 129, Bit 2 cleared) for testing the unsupported-module path
 // of configureRxConsActHoldOffTimer.

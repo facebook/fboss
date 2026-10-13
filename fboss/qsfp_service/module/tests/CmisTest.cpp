@@ -118,6 +118,29 @@ constexpr uint8_t kDiagSelSnr =
 // VDM FreezeRequest is Page 2Fh byte 144 (upper-page offset 16).
 constexpr int kPage2f = static_cast<int>(CmisPages::PAGE2F);
 constexpr int kVdmLatchRequestUpperPageOffset = 144 - 128;
+
+constexpr uint8_t kPage11h = 0x11;
+constexpr int kActiveAppSelOffset = 206;
+
+void writeUpperPage(
+    FakeTransceiverImpl* impl,
+    uint8_t page,
+    int offset,
+    const std::vector<uint8_t>& data) {
+  TransceiverAccessParameter pageParam(
+      TransceiverAccessParameter::ADDR_QSFP, 127, 1);
+  impl->writeTransceiver(pageParam, &page, 0, 0);
+  TransceiverAccessParameter param(
+      TransceiverAccessParameter::ADDR_QSFP,
+      offset,
+      static_cast<int>(data.size()));
+  impl->writeTransceiver(param, data.data(), 0, 0);
+}
+
+// Active control set for 3x200G: AppSel 9 on host lanes 0-5 with datapath IDs
+// 0, 2 and 4; lanes 6-7 without an application
+const std::vector<uint8_t> k3x200GActiveAppSel =
+    {0x90, 0x90, 0x94, 0x94, 0x98, 0x98, 0x00, 0x00};
 } // namespace
 
 // Existing (non-CPO) CMIS modules don't advertise a multi-bank capacity in
@@ -3779,5 +3802,22 @@ TEST_F(CmisTest, applicationCapabilitiesSkipUndefinedPage01Entries) {
   for (const auto& capability : capabilities) {
     EXPECT_LE(capability.ApSelCode, 8);
   }
+}
+
+// Host datapaths multiplexed onto one media lane (3x200G ZR) all map to
+// that media lane.
+TEST_F(CmisTest, configuredMediaLanesSharedByMultipleHostDatapaths) {
+  auto xcvr = overrideCmisModule<Cmis800GZr3x200GTransceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::OSFP);
+  writeUpperPage(
+      lastQsfpImpl(), kPage11h, kActiveAppSelOffset, k3x200GActiveAppSel);
+  xcvr->refresh();
+
+  const std::vector<uint8_t> expectedMediaLanes = {0};
+  for (uint8_t startHostLane : {0, 2, 4}) {
+    EXPECT_EQ(xcvr->configuredMediaLanes(startHostLane), expectedMediaLanes);
+  }
+  const std::vector<uint8_t> expectedHostLanes = {2, 3};
+  EXPECT_EQ(xcvr->configuredHostLanes(2), expectedHostLanes);
 }
 } // namespace facebook::fboss

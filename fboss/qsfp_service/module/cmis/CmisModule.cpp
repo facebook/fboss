@@ -1350,10 +1350,14 @@ std::vector<uint8_t> CmisModule::configuredMediaLanes(
     }
 
     const auto index = std::distance(hostStartLanes.begin(), it);
+    const auto& mediaStartLanes = applicationAdvertisingField->mediaStartLanes;
     uint8_t mediaStartLane = 0;
-    if (index < applicationAdvertisingField->mediaStartLanes.size()) {
-      mediaStartLane =
-          globalLane(bank, applicationAdvertisingField->mediaStartLanes[index]);
+    if (index < mediaStartLanes.size()) {
+      mediaStartLane = globalLane(bank, mediaStartLanes[index]);
+    } else if (mediaStartLanes.size() == 1) {
+      // Multiple host datapaths multiplexed onto a single media datapath (e.g.
+      // 3x200G ZR on one coherent media lane) all share that media lane
+      mediaStartLane = globalLane(bank, mediaStartLanes[0]);
     } else {
       QSFP_LOG(ERR, this) << "Index " << index << " out of range for "
                           << folly::join(
