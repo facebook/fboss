@@ -26,6 +26,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/cli/fboss2/test/integration_test/Fboss2IntegrationTest.h"
 
 using namespace facebook::fboss;
@@ -207,6 +208,46 @@ TEST_F(ConfigInterfaceIpv6NdpTest, SetManagedConfigFlag) {
       "routerAdvertisementManagedBit",
       [](const folly::dynamic& v) { return v.asBool(); },
       "== true");
+  XLOG(INFO) << "TEST PASSED";
+}
+
+// ---------------------------------------------------------------------------
+// Test: set prefix-preferred-lifetime and verify prefixPreferredLifetimeSeconds
+// via running config. A second set overwrites the first, and 0 ("deprecated
+// immediately") is accepted. The valid lifetime is a separate field and must
+// not change.
+// ---------------------------------------------------------------------------
+
+TEST_F(ConfigInterfaceIpv6NdpTest, SetAndVerifyPrefixPreferredLifetime) {
+  XLOG(INFO) << "[Step 1] Finding an interface to test...";
+  std::string ifName = getRandomInterfacePortName();
+  int intfID = getInterfaceIdForPort(ifName);
+  XLOG(INFO) << "  Using interface: " << ifName;
+
+  // prefixValidLifetimeSeconds takes its schema default when the ndp block is
+  // absent.
+  auto ndpBefore = getNdpConfig(getRunningConfig(), intfID);
+  const int64_t validBefore = ndpBefore.count("prefixValidLifetimeSeconds")
+      ? ndpBefore["prefixValidLifetimeSeconds"].asInt()
+      : int64_t{*cfg::NdpConfig{}.prefixValidLifetimeSeconds()};
+
+  // Not the schema default (604800).
+  constexpr int64_t kLifetime = 86400;
+  XLOG(INFO) << "[Step 2] Setting prefix-preferred-lifetime to " << kLifetime
+             << "...";
+  setNdpAttr(ifName, "prefix-preferred-lifetime", std::to_string(kLifetime));
+
+  XLOG(INFO) << "[Step 3] Verifying running config via thrift...";
+  expectNdpField(
+      intfID,
+      "prefixPreferredLifetimeSeconds",
+      [&](const folly::dynamic& v) { return v.asInt() == kLifetime; },
+      fmt::format("== {}", kLifetime));
+  expectNdpField(
+      intfID,
+      "prefixValidLifetimeSeconds",
+      [&](const folly::dynamic& v) { return v.asInt() == validBefore; },
+      fmt::format("unchanged at {}", validBefore));
   XLOG(INFO) << "TEST PASSED";
 }
 
