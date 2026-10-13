@@ -1756,10 +1756,20 @@ void SwSwitch::logRouteUpdates(
       RoutePrefix<folly::IPAddress>{folly::IPAddress{addr}, mask},
       identifier,
       false};
+  if (isExiting()) {
+    XLOG(DBG2) << "Skipping route update logging for " << identifier
+               << ": switch is exiting";
+    return;
+  }
   routeUpdateLogger_->startLoggingForPrefix(r);
 }
 
 void SwSwitch::stopLoggingRouteUpdates(const std::string& identifier) {
+  if (isExiting()) {
+    XLOG(DBG2) << "Skipping stop of route update logging for " << identifier
+               << ": switch is exiting";
+    return;
+  }
   routeUpdateLogger_->stopLoggingForIdentifier(identifier);
 }
 
