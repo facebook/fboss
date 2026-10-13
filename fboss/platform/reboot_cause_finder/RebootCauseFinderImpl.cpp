@@ -32,6 +32,13 @@ DEFINE_int32(
     "How long to keep retrying the BMC logfile endpoint before giving up.");
 
 DEFINE_bool(
+    redo_current_boot,
+    false,
+    "Discard this boot's existing record and determine the cause again. For "
+    "debugging: the service is a oneshot and normally refuses to run twice "
+    "for one boot.");
+
+DEFINE_bool(
     clear_reboot_causes,
     false,
     "Clear reboot causes from all providers after reading");
@@ -195,6 +202,52 @@ std::optional<bool> recordExistsForBoot(
     }
   }
   return false;
+}
+
+// Deletes this boot's record so the cause can be determined again. False if
+// anything could not be removed, which must stop the caller: writing a
+// second record for one boot would leave two answers and no way to tell
+// which is current.
+bool removeRecordForBoot(
+    const std::string& historyDir,
+    const std::string& bootId) {
+  std::error_code ec;
+  std::filesystem::directory_iterator it(historyDir, ec);
+  if (ec == std::errc::no_such_file_or_directory) {
+    return true;
+  }
+  if (ec) {
+    XLOG(ERR) << fmt::format(
+        "Failed to read history dir '{}': {}", historyDir, ec.message());
+    return false;
+  }
+
+  const std::filesystem::directory_iterator end;
+  const auto suffix = recordFilenameSuffix(bootId);
+  bool removedAll = true;
+  while (it != end) {
+    const auto path = it->path();
+    if (path.filename().string().ends_with(suffix)) {
+      std::error_code removeEc;
+      std::filesystem::remove(path, removeEc);
+      if (removeEc) {
+        XLOG(ERR) << fmt::format(
+            "Failed to remove '{}': {}", path.string(), removeEc.message());
+        removedAll = false;
+      } else {
+        XLOG(INFO) << fmt::format("Removed '{}'", path.string());
+      }
+    }
+    it.increment(ec);
+    if (ec) {
+      XLOG(ERR) << fmt::format(
+          "Failed while scanning history dir '{}': {}",
+          historyDir,
+          ec.message());
+      return false;
+    }
+  }
+  return removedAll;
 }
 
 // Clearing a provider is destructive and unrecoverable, so it only runs once
@@ -1022,10 +1075,30 @@ void RebootCauseFinderImpl::determineRebootCause() {
     return;
   }
   if (*alreadyHandled) {
-    XLOG(INFO) << fmt::format(
-        "Reboot causes were already determined during boot {}. Nothing to do.",
+    if (!FLAGS_redo_current_boot) {
+      XLOG(INFO) << fmt::format(
+          "Reboot causes were already determined during boot {}. Nothing to "
+          "do.",
+          bootId);
+      return;
+    }
+    if (!removeRecordForBoot(paths_.historyDir, bootId)) {
+      XLOG(ERR) << "Doing nothing: asked to redo this boot, but the existing "
+                   "record could not be removed and a second record for one "
+                   "boot would leave two answers with no way to tell which "
+                   "is current.";
+      return;
+    }
+    XLOG(WARNING) << fmt::format(
+        "Discarded the record for boot {} and re-reading every provider, "
+        "because --redo_current_boot was set.",
         bootId);
-    return;
+    if (FLAGS_clear_reboot_causes) {
+      XLOG(WARNING)
+          << "--clear_reboot_causes is also set. If an earlier run this boot "
+             "already cleared the hardware providers, they have nothing left "
+             "to report and this run will find less than that one did.";
+    }
   }
 
   XLOG(INFO) << "Reading reboot causes from all providers";

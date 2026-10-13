@@ -3,6 +3,8 @@
 #include "fboss/platform/reboot_cause_finder/RebootCauseFinderImpl.h"
 
 DECLARE_int32(bmc_logfile_poll_timeout_s);
+DECLARE_bool(redo_current_boot);
+DECLARE_bool(clear_reboot_causes);
 
 #include <sys/stat.h>
 #include <algorithm>
@@ -1198,6 +1200,16 @@ class DetermineRebootCauseTest : public RebootCauseFinderImplTest {
         historyDir_, procStat_, bootIdPath_, {crashDir_}, {logPath_}};
   }
 
+  // Path of the single record determineRebootCause() persisted.
+  std::string singleRecordPath() const {
+    std::vector<std::string> files;
+    for (const auto& e : std::filesystem::directory_iterator(historyDir_)) {
+      files.push_back(e.path().string());
+    }
+    EXPECT_EQ(files.size(), 1);
+    return files.empty() ? std::string{} : files.front();
+  }
+
   // The single record determineRebootCause() persisted, as parsed JSON.
   folly::dynamic readRecord() const {
     std::vector<std::string> files;
@@ -1304,6 +1316,93 @@ TEST_F(DetermineRebootCauseTest, SecondRunInTheSameBootDoesNothing) {
   RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
       .determineRebootCause();
   EXPECT_EQ(readRecord()["detectedAtMs"].asInt(), first);
+}
+
+// --redo_current_boot lifts that guard, for debugging a boot in place.
+TEST_F(DetermineRebootCauseTest, RedoCurrentBootReplacesTheRecord) {
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+
+  // Mark the record rather than comparing detectedAtMs: that has millisecond
+  // resolution and both runs can land inside the same millisecond, which
+  // makes the timestamp a coin flip rather than a signal. The guard matches
+  // on the filename, so the contents can be anything.
+  ASSERT_TRUE(
+      folly::writeFile(std::string("SENTINEL"), singleRecordPath().c_str()));
+
+  FLAGS_redo_current_boot = true;
+  SCOPE_EXIT {
+    FLAGS_redo_current_boot = false;
+  };
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+
+  // singleRecordPath() asserts there is exactly one file, so this pins both
+  // halves: the marked record is gone and no second one was left beside it.
+  std::string contents;
+  ASSERT_TRUE(folly::readFile(singleRecordPath().c_str(), contents));
+  EXPECT_THAT(contents, testing::Not(testing::HasSubstr("SENTINEL")));
+  EXPECT_THAT(contents, testing::HasSubstr("detectedAtMs"));
+}
+
+// A redo that cannot clear the way for itself must stop. Writing a second
+// record for one boot would leave two answers and no way to tell which is
+// current, which is worse than refusing to redo.
+TEST_F(DetermineRebootCauseTest, RedoStopsWhenTheRecordCannotBeRemoved) {
+  if (::geteuid() == 0) {
+    GTEST_SKIP() << "root ignores the directory permissions this relies on";
+  }
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+  const auto first = readRecord()["detectedAtMs"].asInt();
+
+  // Removing a file needs write permission on its directory, not the file.
+  std::filesystem::permissions(
+      historyDir_,
+      std::filesystem::perms::owner_write,
+      std::filesystem::perm_options::remove);
+  SCOPE_EXIT {
+    std::filesystem::permissions(
+        historyDir_,
+        std::filesystem::perms::owner_write,
+        std::filesystem::perm_options::add);
+  };
+
+  FLAGS_redo_current_boot = true;
+  SCOPE_EXIT {
+    FLAGS_redo_current_boot = false;
+  };
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+
+  // readRecord() asserts on there being exactly one file, so this pins both
+  // halves: the original survived and no second record was written.
+  std::filesystem::permissions(
+      historyDir_,
+      std::filesystem::perms::owner_write,
+      std::filesystem::perm_options::add);
+  EXPECT_EQ(readRecord()["detectedAtMs"].asInt(), first);
+}
+
+// Clearing the providers is destructive, so a redo that follows a run which
+// already cleared them will quietly find less. It is allowed, but it says so.
+TEST_F(DetermineRebootCauseTest, RedoWarnsWhenProviderClearingIsAlsoOn) {
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+
+  FLAGS_redo_current_boot = true;
+  FLAGS_clear_reboot_causes = true;
+  SCOPE_EXIT {
+    FLAGS_redo_current_boot = false;
+    FLAGS_clear_reboot_causes = false;
+  };
+
+  testing::internal::CaptureStderr();
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+  const auto logs = testing::internal::GetCapturedStderr();
+
+  EXPECT_THAT(logs, testing::HasSubstr("--clear_reboot_causes is also set"));
 }
 
 // ------------------------------------------------------- hardware providers
