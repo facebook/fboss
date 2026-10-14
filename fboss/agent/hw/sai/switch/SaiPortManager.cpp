@@ -699,6 +699,15 @@ void fillHwPortStats(
         hwPortStats.fabricControlTxPackets_() = value;
         break;
 #endif
+// 13.3+: see collection site for why GTE_13_0 is the operative gate.
+#if defined(BRCM_SAI_SDK_XGS_GTE_13_0)
+      case SAI_PORT_STAT_IF_IN_HW_PROTECTION_SWITCHOVER_EVENTS:
+        hwPortStats.hwProtectionSwitchoverEvents_() = value;
+        break;
+      case SAI_PORT_STAT_IF_IN_HW_PROTECTION_SWITCHOVER_DROP_PKTS:
+        hwPortStats.hwProtectionSwitchoverDropPkts_() = value;
+        break;
+#endif
 #if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
       case SAI_PORT_STAT_PFC_0_XOFF_TOTAL_DURATION:
       case SAI_PORT_STAT_PFC_1_XOFF_TOTAL_DURATION:

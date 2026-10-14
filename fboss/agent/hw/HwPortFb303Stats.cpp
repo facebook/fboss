@@ -75,6 +75,8 @@ HwPortFb303Stats::kPortMonotonicCounterStatKeys() const {
       kCbfcCcUpdateTx(),
       kCbfcCfUpdateTx(),
       kCbfcCfUpdateRx(),
+      kHwProtectionSwitchoverEvents(),
+      kHwProtectionSwitchoverDropPkts(),
   };
   return kPortKeys;
 }
@@ -448,6 +450,20 @@ void HwPortFb303Stats::updateStats(
   if (curPortStats.cbfcCfUpdateRx_().has_value()) {
     updateStat(
         timeRetrieved_, kCbfcCfUpdateRx(), *curPortStats.cbfcCfUpdateRx_());
+  }
+
+  // HW protection switchover counters, populated only on TH5/TH6.
+  if (curPortStats.hwProtectionSwitchoverEvents_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kHwProtectionSwitchoverEvents(),
+        *curPortStats.hwProtectionSwitchoverEvents_());
+  }
+  if (curPortStats.hwProtectionSwitchoverDropPkts_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kHwProtectionSwitchoverDropPkts(),
+        *curPortStats.hwProtectionSwitchoverDropPkts_());
   }
 
   // Update queue stats
