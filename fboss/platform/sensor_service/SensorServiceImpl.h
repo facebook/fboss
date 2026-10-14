@@ -90,6 +90,12 @@ class SensorServiceImpl {
     return fsdbSyncer_.get();
   }
 
+  // For AVS rails that use load-line regulation (Adaptive Voltage Positioning),
+  // we need to adjust their read vout to account for load-line droops.
+  void processLoadLineDroopAdjust(
+      std::map<std::string, SensorData>& polledData,
+      const std::vector<PmSensor>& loadLineSensors);
+
   // pmUnitInfoMap (default empty): per-slot PmUnitInfo from
   // prefetchPmUnitInfos. processPower consults it to skip per-slot _POWER
   // publication when platform_manager reports a PSU/PEM slot absent. The
