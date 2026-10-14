@@ -75,15 +75,6 @@
         },
         {
           "test_name_regex": "AgentNeighborResolutionOverFlowTest.*$"
-        },
-        {
-          "test_name_regex": "AgentUdfAclCounterTest.*$"
-        },
-        {
-          "test_name_regex": "AgentIngressBufferTest.validatePGHeadroomLimitChange$"
-        },
-        {
-          "test_name_regex": "AgentIngressBufferTest.validatePGParamChange$"
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk3/multi_switch": [
@@ -155,15 +146,6 @@
         },
         {
           "test_name_regex": "AgentSendPacketToMulticastQueueTest.SendPacketOutOfPortToMCQueue$"
-        },
-        {
-          "test_name_regex": "AgentUdfAclCounterTest.*$"
-        },
-        {
-          "test_name_regex": "AgentIngressBufferTest.validatePGHeadroomLimitChange$"
-        },
-        {
-          "test_name_regex": "AgentIngressBufferTest.validatePGParamChange$"
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk4/multi_switch": [
@@ -238,15 +220,6 @@
         },
         {
           "test_name_regex": "AgentHighFrequencyStatsTest.*$"
-        },
-        {
-          "test_name_regex": "AgentUdfAclCounterTest.*$"
-        },
-        {
-          "test_name_regex": "AgentIngressBufferTest.validatePGHeadroomLimitChange$"
-        },
-        {
-          "test_name_regex": "AgentIngressBufferTest.validatePGParamChange$"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/11.7.0.0_dnx_odp/jericho3/mono": [
@@ -315,21 +288,6 @@
         },
         {
           "test_name_regex": "AgentPortProfileTest_PROFILE_.*$"
-        },
-        {
-          "test_name_regex": "AgentMirrorOnDropDnxTest.*/EVENTOR_PORT$"
-        },
-        {
-          "test_name_regex": "AgentMirrorOnDropDnxTest.VsqReject.*$"
-        },
-        {
-          "test_name_regex": "AgentMirrorOnDropDnxTest.PrecedenceDrop.*$"
-        },
-        {
-          "test_name_regex": "AgentMirrorOnDropDnxTest.ModWithMultipleMirrors.*$"
-        },
-        {
-          "test_name_regex": "AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic.*$"
         },
         {
           "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
@@ -428,21 +386,6 @@
         },
         {
           "test_name_regex": "AgentPortProfileTest_PROFILE_.*$"
-        },
-        {
-          "test_name_regex": "AgentMirrorOnDropDnxTest.*/EVENTOR_PORT$"
-        },
-        {
-          "test_name_regex": "AgentMirrorOnDropDnxTest.VsqReject.*$"
-        },
-        {
-          "test_name_regex": "AgentMirrorOnDropDnxTest.PrecedenceDrop.*$"
-        },
-        {
-          "test_name_regex": "AgentMirrorOnDropDnxTest.ModWithMultipleMirrors.*$"
-        },
-        {
-          "test_name_regex": "AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic.*$"
         },
         {
           "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
@@ -631,21 +574,6 @@
           "test_name_regex": "AgentPortProfileTest_PROFILE_.*$"
         },
         {
-          "test_name_regex": "AgentMirrorOnDropDnxTest.*/EVENTOR_PORT$"
-        },
-        {
-          "test_name_regex": "AgentMirrorOnDropDnxTest.VsqReject.*$"
-        },
-        {
-          "test_name_regex": "AgentMirrorOnDropDnxTest.PrecedenceDrop.*$"
-        },
-        {
-          "test_name_regex": "AgentMirrorOnDropDnxTest.ModWithMultipleMirrors.*$"
-        },
-        {
-          "test_name_regex": "AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic.*$"
-        },
-        {
           "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
         },
         {
@@ -760,21 +688,6 @@
         },
         {
           "test_name_regex": "AgentPortProfileTest_PROFILE_.*$"
-        },
-        {
-          "test_name_regex": "AgentMirrorOnDropDnxTest.*/EVENTOR_PORT$"
-        },
-        {
-          "test_name_regex": "AgentMirrorOnDropDnxTest.VsqReject.*$"
-        },
-        {
-          "test_name_regex": "AgentMirrorOnDropDnxTest.PrecedenceDrop.*$"
-        },
-        {
-          "test_name_regex": "AgentMirrorOnDropDnxTest.ModWithMultipleMirrors.*$"
-        },
-        {
-          "test_name_regex": "AgentMirrorOnDropReconfigTest.ReconfigUnderTraffic.*$"
         },
         {
           "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
@@ -985,12 +898,6 @@
         },
         {
           "test_name_regex": "AgentNeighborResolutionOverFlowTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.VerifyEcmp$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSprayTest.VerifyEcmpRandomSpray$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3/mono": [
@@ -2579,13 +2486,10 @@
           "test_name_regex": "AgentNeighborResolutionOverFlowTest.*$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest.*$"
-        },
-        {
-          "test_name_regex": "AgentIngressBufferTest.validatePGHeadroomLimitChange$"
-        },
-        {
           "test_name_regex": "AgentIngressBufferTest.validatePGParamChange$"
+        },
+        {
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         }
     ],
     "brcm/15.4.0.0_odp/15.4.0.0_odp/tomahawk3/multi_switch": [
@@ -2659,13 +2563,10 @@
           "test_name_regex": "AgentSendPacketToMulticastQueueTest.SendPacketOutOfPortToMCQueue$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest.*$"
-        },
-        {
-          "test_name_regex": "AgentIngressBufferTest.validatePGHeadroomLimitChange$"
-        },
-        {
           "test_name_regex": "AgentIngressBufferTest.validatePGParamChange$"
+        },
+        {
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         }
     ],
     "brcm/15.4.0.0_odp/15.4.0.0_odp/tomahawk4/multi_switch": [
@@ -2742,13 +2643,10 @@
           "test_name_regex": "AgentHighFrequencyStatsTest.*$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest.*$"
-        },
-        {
-          "test_name_regex": "AgentIngressBufferTest.validatePGHeadroomLimitChange$"
-        },
-        {
           "test_name_regex": "AgentIngressBufferTest.validatePGParamChange$"
+        },
+        {
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         }
     ],
     "brcm/15.4.0.0_odp/15.4.0.0_odp/tomahawk5/multi_switch": [
