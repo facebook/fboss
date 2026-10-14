@@ -664,6 +664,8 @@ struct FibInfoFields {
   3: map<NextHopSetIdType, set<NextHopIdType>> idToNextHopIdSet;
   // Map from named next-hop group name to NextHopSetID
   4: map<string, NextHopSetIdType> nameToNextHopSetId;
+  // ERM override set ids
+  5: map<NextHopSetIdType, set<NextHopIdType>> overrideIdToNextHopIdSet;
 }
 
 struct TrafficClassToQosAttributeEntry {

@@ -6538,6 +6538,7 @@ class ChildThriftPath<::facebook::fboss::state::FibInfoFields, ::facebook::fboss
     STRUCT_CHILD_GETTERS(idToNextHop, 2);
     STRUCT_CHILD_GETTERS(idToNextHopIdSet, 3);
     STRUCT_CHILD_GETTERS(nameToNextHopSetId, 4);
+    STRUCT_CHILD_GETTERS(overrideIdToNextHopIdSet, 5);
 };
 
 
