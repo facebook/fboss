@@ -140,6 +140,8 @@ CmdConfigGenAgent::RetType CmdConfigGenAgent::queryClient(
       std::string(kConfigGenAgentCommand), kConfigGenAgentProfile);
   auto fbossRoot = options->getLocalOption(
       std::string(kConfigGenAgentCommand), kConfigGenAgentFbossRoot);
+  auto asicConfigVariant = options->getLocalOption(
+      std::string(kConfigGenAgentCommand), kConfigGenAgentAsicConfigVariant);
   auto asicConfigFile = options->getLocalOption(
       std::string(kConfigGenAgentCommand), kConfigGenAgentAsicConfigFile);
   auto asicConfigType = options->getLocalOption(
@@ -158,6 +160,7 @@ CmdConfigGenAgent::RetType CmdConfigGenAgent::queryClient(
     if (platform.empty()) {
       rejectBatchModeOptions(
           {{kConfigGenAgentProfile, profile},
+           {kConfigGenAgentAsicConfigVariant, asicConfigVariant},
            {kConfigGenAgentAsicConfigFile, asicConfigFile},
            {kConfigGenAgentAsicConfigType, asicConfigType},
            {kConfigGenAgentReferenceConfigFile, referenceConfigFile},
@@ -165,7 +168,8 @@ CmdConfigGenAgent::RetType CmdConfigGenAgent::queryClient(
           kConfigGenAgentPlatform);
     } else {
       rejectBatchModeOptions(
-          {{kConfigGenAgentAsicConfigFile, asicConfigFile},
+          {{kConfigGenAgentAsicConfigVariant, asicConfigVariant},
+           {kConfigGenAgentAsicConfigFile, asicConfigFile},
            {kConfigGenAgentAsicConfigType, asicConfigType},
            {kConfigGenAgentReferenceConfigFile, referenceConfigFile},
            {kConfigGenAgentOutputDirectory, outputDirectory}},
@@ -197,6 +201,10 @@ CmdConfigGenAgent::RetType CmdConfigGenAgent::queryClient(
   if (verify) {
     throw FbossError("--verify cannot be combined with --profile");
   }
+  if (!asicConfigVariant.empty() && !asicConfigFile.empty()) {
+    throw FbossError(
+        "--asic-config-variant cannot be combined with --asic-config-file");
+  }
 
   std::optional<std::filesystem::path> asicConfigFilePath;
   if (!asicConfigFile.empty()) {
@@ -210,13 +218,17 @@ CmdConfigGenAgent::RetType CmdConfigGenAgent::queryClient(
   if (!outputDirectory.empty()) {
     outputDirectoryPath = outputDirectory;
   }
+  const auto parsedAsicConfigVariant = asicConfigVariant.empty()
+      ? std::nullopt
+      : std::optional<std::string_view>(asicConfigVariant);
   const auto outputPath = configgen::generateAgentConfig(
       platform,
       profile,
       fbossRoot,
       outputDirectoryPath,
       asicConfigFilePath,
-      parsedAsicConfigType);
+      parsedAsicConfigType,
+      parsedAsicConfigVariant);
   if (referenceConfigFile.empty()) {
     return "Generated Agent configuration at " + outputPath.string();
   }

@@ -108,6 +108,10 @@ void validateTarget(const ConfigGenerationTarget& target) {
       if (variant && variant->empty()) {
         throw FbossError("Config option variant must not be empty");
       }
+      const auto asicConfigVariant = option.asicConfigVariant().to_optional();
+      if (asicConfigVariant && asicConfigVariant->empty()) {
+        throw FbossError("Config option asicConfigVariant must not be empty");
+      }
       if (!uniqueOptions.emplace(profile, variant).second) {
         throw FbossError(
             "Duplicate config option for ",

@@ -63,6 +63,18 @@ std::string normalizeProfile(std::string_view profile) {
                          : std::string(profile);
 }
 
+std::string normalizeAsicConfigVariant(
+    std::string_view profile,
+    std::optional<std::string_view> asicConfigVariant) {
+  const auto variant = std::string(asicConfigVariant.value_or(profile));
+  const fs::path component{variant};
+  if (component.empty() || component.has_parent_path() || component == "." ||
+      component == "..") {
+    throw FbossError("Invalid ASIC config variant: ", variant);
+  }
+  return variant;
+}
+
 std::string readFile(const fs::path& path) {
   std::string contents;
   if (!folly::readFile(path.c_str(), contents)) {
@@ -113,7 +125,7 @@ std::string_view getGeneratedFileExtension(cfg::AsicConfigType configType) {
 GeneratedAsicConfigFile resolveGeneratedAsicConfig(
     const PlatformConfigDirectory& platformDirectory,
     std::string_view platform,
-    std::string_view profile,
+    std::string_view asicConfigVariant,
     const std::optional<fs::path>& asicConfigFile = std::nullopt,
     const std::optional<cfg::AsicConfigType>& asicConfigType = std::nullopt) {
   if (asicConfigType && !asicConfigFile) {
@@ -137,7 +149,7 @@ GeneratedAsicConfigFile resolveGeneratedAsicConfig(
 
   const auto metadata = folly::parseJson(readFile(metadataPath));
   const auto platformName = std::string(platform);
-  const auto profileName = std::string(profile);
+  const auto variantName = std::string(asicConfigVariant);
   if (!metadata.isObject() || !metadata.count("platform_name") ||
       !metadata["platform_name"].isString() ||
       metadata["platform_name"].asString() != platformName) {
@@ -149,10 +161,10 @@ GeneratedAsicConfigFile resolveGeneratedAsicConfig(
         "'");
   }
   if (!metadata.count("variants") || !metadata["variants"].isObject() ||
-      !metadata["variants"].count(profileName)) {
+      !metadata["variants"].count(variantName)) {
     throw FbossError(
-        "ASIC config profile '",
-        profile,
+        "ASIC config variant '",
+        asicConfigVariant,
         "' does not exist for platform '",
         platform,
         "'");
@@ -163,15 +175,15 @@ GeneratedAsicConfigFile resolveGeneratedAsicConfig(
     configTypeName = getConfigTypeName(metadata["defaults"], metadataPath);
   }
   if (const auto variantConfigType =
-          getConfigTypeName(metadata["variants"][profileName], metadataPath)) {
+          getConfigTypeName(metadata["variants"][variantName], metadataPath)) {
     configTypeName = variantConfigType;
   }
   if (!configTypeName) {
     throw FbossError(
         "ASIC config metadata ",
         metadataPath.string(),
-        " does not define config_type for profile '",
-        profile,
+        " does not define config_type for variant '",
+        asicConfigVariant,
         "'");
   }
   cfg::AsicConfigType configType;
@@ -187,7 +199,7 @@ GeneratedAsicConfigFile resolveGeneratedAsicConfig(
   if (asicConfigFile) {
     selectedPath = *asicConfigFile;
   } else {
-    auto fileName = profileName;
+    auto fileName = variantName;
     fileName += getGeneratedFileExtension(configType);
     selectedPath = asicConfigDirectory / "generated" / fileName;
   }
@@ -492,11 +504,17 @@ cfg::PlatformConfig assemblePlatformConfig(
 fs::path findGeneratedAsicConfig(
     const fs::path& fbossRoot,
     std::string_view platform,
-    std::string_view profile) {
+    std::string_view asicConfigVariant) {
   const auto platformDirectory =
       findPlatformConfigDirectory(fbossRoot, platform);
   return resolveGeneratedAsicConfig(
-             platformDirectory, platform, normalizeProfile(profile))
+             platformDirectory,
+             platform,
+             normalizeAsicConfigVariant(
+                 kDefaultProfileName,
+                 asicConfigVariant.empty()
+                     ? std::nullopt
+                     : std::optional<std::string_view>(asicConfigVariant)))
       .path;
 }
 
@@ -531,8 +549,11 @@ ResolvedAgentConfigInputs resolveAgentConfigInputs(
     std::string_view platform,
     std::string_view profile,
     const std::optional<fs::path>& asicConfigFile,
-    const std::optional<cfg::AsicConfigType>& asicConfigType) {
+    const std::optional<cfg::AsicConfigType>& asicConfigType,
+    std::optional<std::string_view> asicConfigVariant) {
   const auto normalizedProfile = normalizeProfile(profile);
+  const auto normalizedAsicConfigVariant =
+      normalizeAsicConfigVariant(normalizedProfile, asicConfigVariant);
   const auto platformDirectory =
       findPlatformConfigDirectory(fbossRoot, platform);
   auto [descriptorPath, descriptor] =
@@ -553,7 +574,7 @@ ResolvedAgentConfigInputs resolveAgentConfigInputs(
       .chipConfig = loadAsicConfig(resolveGeneratedAsicConfig(
           platformDirectory,
           platform,
-          normalizedProfile,
+          normalizedAsicConfigVariant,
           asicConfigFile,
           asicConfigType)),
   };
@@ -634,9 +655,15 @@ std::string generateAgentConfigContents(
     std::string_view profile,
     const fs::path& fbossRoot,
     const std::optional<fs::path>& asicConfigFile,
-    const std::optional<cfg::AsicConfigType>& asicConfigType) {
+    const std::optional<cfg::AsicConfigType>& asicConfigType,
+    std::optional<std::string_view> asicConfigVariant) {
   auto inputs = resolveAgentConfigInputs(
-      fbossRoot, platform, profile, asicConfigFile, asicConfigType);
+      fbossRoot,
+      platform,
+      profile,
+      asicConfigFile,
+      asicConfigType,
+      asicConfigVariant);
   auto switchConfig = generateSwitchConfig(inputs);
   auto defaultCommandLineArgs = generateFeatureDefaultCommandArgs(
       fbossRoot,
@@ -659,13 +686,19 @@ fs::path generateAgentConfig(
     const fs::path& fbossRoot,
     const std::optional<fs::path>& outputDirectory,
     const std::optional<fs::path>& asicConfigFile,
-    const std::optional<cfg::AsicConfigType>& asicConfigType) {
+    const std::optional<cfg::AsicConfigType>& asicConfigType,
+    std::optional<std::string_view> asicConfigVariant) {
   auto directory = utils::prepareOutputDirectory(outputDirectory);
   auto outputPath = directory / kAgentConfigFileName;
   utils::writeFileWithoutOverwrite(
       outputPath,
       generateAgentConfigContents(
-          platform, profile, fbossRoot, asicConfigFile, asicConfigType));
+          platform,
+          profile,
+          fbossRoot,
+          asicConfigFile,
+          asicConfigType,
+          asicConfigVariant));
   return outputPath;
 }
 
@@ -687,7 +720,10 @@ std::string generateAgentConfigForManifest(
       request.profile,
       request.fbossRoot,
       std::nullopt,
-      std::nullopt);
+      std::nullopt,
+      request.asicConfigVariant
+          ? std::optional<std::string_view>(*request.asicConfigVariant)
+          : std::nullopt);
 }
 
 } // namespace facebook::fboss::configgen

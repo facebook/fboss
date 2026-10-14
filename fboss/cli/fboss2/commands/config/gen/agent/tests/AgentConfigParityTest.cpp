@@ -10,6 +10,7 @@
 
 #include <filesystem>
 #include <map>
+#include <optional>
 #include <set>
 #include <string>
 #include <string_view>
@@ -31,6 +32,7 @@ namespace fs = std::filesystem;
 struct AgentConfigParityCandidate {
   std::string_view referencePath;
   std::set<std::string> ignoredPaths;
+  std::optional<std::string_view> asicConfigVariant;
 };
 
 const std::map<
@@ -41,6 +43,20 @@ const std::map<
          {
              .referencePath =
                  "oss/hw_test_configs/wedge800bact.agent.materialized_JSON",
+         }},
+        {{"wedge800bact", "benchmark"},
+         {
+             .referencePath =
+                 "oss/hw_bench_configs/wedge800bact.agent.materialized_JSON",
+             .ignoredPaths =
+                 {
+                     "defaultCommandLineArgs.enable_acl_table_group",
+                     "defaultCommandLineArgs.use_raw_platform_mapping",
+                     "platform.portIdToPortAssignment",
+                     "sw.aclTableGroups",
+                     "sw.switchSettings.needL2EntryForNeighbor",
+                 },
+             .asicConfigVariant = "default",
          }},
     };
 
@@ -63,7 +79,10 @@ TEST(AgentConfigParityTest, AllCandidatesMatchMaterializedConfigs) {
         platform,
         profile,
         fbossRoot,
-        fs::path(outputDirectory.path().string()));
+        fs::path(outputDirectory.path().string()),
+        std::nullopt,
+        std::nullopt,
+        candidate.asicConfigVariant);
     AgentConfigComparisonOptions options;
     options.ignoredPaths = candidate.ignoredPaths;
 

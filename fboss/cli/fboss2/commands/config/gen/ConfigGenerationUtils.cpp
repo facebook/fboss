@@ -44,6 +44,8 @@ std::string getProfileName(ConfigProfileType profile) {
       return "default";
     case ConfigProfileType::HW_TEST:
       return "hw_test";
+    case ConfigProfileType::BENCHMARK:
+      return "benchmark";
   }
   throw FbossError(
       "Unsupported config generation profile: ",
@@ -60,14 +62,16 @@ std::string getServiceName(ServiceType service) {
       apache::thrift::util::enumNameSafe(service));
 }
 
-void validateVariant(const std::optional<std::string>& variant) {
-  if (!variant) {
+void validatePathComponent(
+    const std::optional<std::string>& value,
+    std::string_view field) {
+  if (!value) {
     return;
   }
-  const fs::path component{*variant};
+  const fs::path component{*value};
   if (component.empty() || component.has_parent_path() || component == "." ||
       component == "..") {
-    throw FbossError("Invalid config generation variant: ", *variant);
+    throw FbossError("Invalid config generation ", field, ": ", *value);
   }
 }
 
@@ -121,7 +125,12 @@ ConfigGenerationPlan createConfigGenerationPlan(
       if (option.variant()) {
         variant = *option.variant();
       }
-      validateVariant(variant);
+      validatePathComponent(variant, "variant");
+      std::optional<std::string> asicConfigVariant;
+      if (option.asicConfigVariant()) {
+        asicConfigVariant = *option.asicConfigVariant();
+      }
+      validatePathComponent(asicConfigVariant, "asicConfigVariant");
 
       auto outputPath = platformDirectory / "forwarding_stack" / "generated" /
           plan.serviceName / getOutputFileName(profile, variant);
@@ -138,6 +147,7 @@ ConfigGenerationPlan createConfigGenerationPlan(
           .profileType = profileType,
           .profile = profile,
           .variant = std::move(variant),
+          .asicConfigVariant = std::move(asicConfigVariant),
           .service = service,
           .serviceName = plan.serviceName,
           .platformDirectory = platformDirectory,

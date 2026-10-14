@@ -21,11 +21,13 @@ enum ServiceType {
 enum ConfigProfileType {
   DEFAULT = 1,
   HW_TEST = 2,
+  BENCHMARK = 3,
 }
 
 struct ConfigOption {
   1: ConfigProfileType profile;
   2: optional string variant;
+  3: optional string asicConfigVariant;
 }
 
 struct ConfigGenerationTarget {

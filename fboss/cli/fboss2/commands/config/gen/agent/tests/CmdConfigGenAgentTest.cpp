@@ -45,6 +45,7 @@ namespace fs = std::filesystem;
 
 constexpr std::string_view kPlatform = "test_platform";
 constexpr std::string_view kProfile = "hw_test";
+constexpr std::string_view kBenchmarkProfile = "benchmark";
 constexpr std::string_view kAsicYaml = "ASIC_CONFIG: test\n";
 constexpr std::string_view kAsicJson = "{\"ASIC_CONFIG\":\"test\"}\n";
 constexpr std::string_view kKeyValueConfig =
@@ -290,24 +291,36 @@ void writeFeatureDefaultCommandArgsConfig(const fs::path& fbossRoot) {
       {"use_full_dlb_scale", "true"},
       {"verify_fib_nexthop_id_consistency", "true"},
   };
+  config.profileDefaultArgs()[std::string(kBenchmarkProfile)] = {
+      {"check_wb_handles", "true"},
+      {"counter_refresh_interval", "1"},
+      {"enable_nexthop_id_manager", "true"},
+      {"enable_route_resource_protection", "false"},
+      {"log_variable_name", "true"},
+      {"resolve_nexthops_from_id", "true"},
+      {"skip_transceiver_programming", "true"},
+      {"use_full_dlb_scale", "true"},
+  };
+  const std::set<std::string> testProfiles{
+      std::string(kProfile), std::string(kBenchmarkProfile)};
   config.features()["sai_configure_six_tap"] = makeAutoFeature(
       {{"sai_configure_six_tap", "true"}},
-      {std::string(kProfile)},
+      testProfiles,
       {"ASIC_TYPE_TOMAHAWK5"});
   config.features()["enable_acl_table_group"] = makeAutoFeature(
       {{"enable_acl_table_group", "true"}},
-      {std::string(kProfile)},
+      testProfiles,
       {},
       {"ASIC_TYPE_EBRO", "ASIC_TYPE_RAMON3"});
   config.features()["platform_descriptor_registry"] = makeAutoFeature(
       {{"platform_descriptor_config_path", "/tmp/platform_descriptors/"}},
-      {std::string(kProfile)},
+      testProfiles,
       {},
       {},
       {"PLATFORM_WEDGE800BACT"});
   config.features()["use_raw_platform_mapping"] = makeAutoFeature(
       {{"use_raw_platform_mapping", "true"}},
-      {std::string(kProfile)},
+      testProfiles,
       {},
       {},
       {"PLATFORM_WEDGE800BACT"});
@@ -426,6 +439,23 @@ std::map<std::string, std::string> expectedHwTestCommandLineArgs() {
       {"use_full_dlb_scale", "true"},
       {"use_raw_platform_mapping", "true"},
       {"verify_fib_nexthop_id_consistency", "true"},
+  };
+}
+
+std::map<std::string, std::string> expectedBenchmarkCommandLineArgs() {
+  return {
+      {"check_wb_handles", "true"},
+      {"counter_refresh_interval", "1"},
+      {"enable_acl_table_group", "true"},
+      {"enable_nexthop_id_manager", "true"},
+      {"enable_route_resource_protection", "false"},
+      {"log_variable_name", "true"},
+      {"platform_descriptor_config_path", "/tmp/platform_descriptors/"},
+      {"resolve_nexthops_from_id", "true"},
+      {"sai_configure_six_tap", "true"},
+      {"skip_transceiver_programming", "true"},
+      {"use_full_dlb_scale", "true"},
+      {"use_raw_platform_mapping", "true"},
   };
 }
 
@@ -1099,6 +1129,46 @@ TEST(AgentConfigGenTest, SerializesAndWritesAgentConfig) {
   EXPECT_TRUE(config.thriftApiToRateLimitInQps()->empty());
 }
 
+TEST(AgentConfigGenTest, GeneratesBenchmarkWithDefaultAsicConfigVariant) {
+  folly::test::TemporaryDirectory sourceDirectory;
+  folly::test::TemporaryDirectory outputDirectory;
+  const auto fbossRoot = fs::path(sourceDirectory.path().string()) / "fboss";
+  const auto platformDirectory = createTestPlatform(fbossRoot, "test_vendor");
+  constexpr std::string_view kDefaultAsicYaml = "ASIC_CONFIG: default\n";
+  writeTestFile(
+      platformDirectory / "asic_config" / "generated" / "default.yml",
+      kDefaultAsicYaml);
+
+  const auto outputPath = generateAgentConfig(
+      kPlatform,
+      kBenchmarkProfile,
+      fbossRoot,
+      fs::path(outputDirectory.path().string()),
+      std::nullopt,
+      std::nullopt,
+      "default");
+
+  cfg::AgentConfig config;
+  apache::thrift::SimpleJSONSerializer::deserialize(
+      readFile(outputPath), config);
+  EXPECT_EQ(
+      *config.defaultCommandLineArgs(), expectedBenchmarkCommandLineArgs());
+  EXPECT_EQ(
+      config.platform()->chip()->get_asicConfig().common()->get_yamlConfig(),
+      kDefaultAsicYaml);
+  EXPECT_EQ(
+      *config.platform()->portIdToPortAssignment(),
+      makePortAssignments(1, kPortName));
+  EXPECT_EQ(config.sw()->aclTableGroups()->size(), 1);
+  EXPECT_TRUE(config.sw()->ports()->empty());
+  EXPECT_TRUE(config.sw()->vlans()->empty());
+  EXPECT_TRUE(config.sw()->vlanPorts()->empty());
+  EXPECT_TRUE(config.sw()->interfaces()->empty());
+  EXPECT_TRUE(config.sw()->cpuQueues()->empty());
+  EXPECT_FALSE(config.sw()->cpuTrafficPolicy());
+  EXPECT_FALSE(config.sw()->sdkVersion());
+}
+
 TEST(AgentConfigComparisonTest, ReportsByteMatch) {
   const auto config = serializeAgentConfig("first: 1\nsecond: 2\n");
 
@@ -1234,13 +1304,15 @@ TEST(AgentConfigGenTest, GeneratesAndRefreshesManifestOutputs) {
       createTestPlatform(fbossRoot, "test_vendor", kManifestPlatform);
   writeConfigGenerationTarget(
       platformDirectory,
-      R"({"platform":"PLATFORM_WEDGE800BACT","serviceToOptions":{"AGENT":[{"profile":"DEFAULT"},{"profile":"HW_TEST"}]}})");
+      R"({"platform":"PLATFORM_WEDGE800BACT","serviceToOptions":{"AGENT":[{"profile":"DEFAULT"},{"profile":"HW_TEST"},{"profile":"BENCHMARK","asicConfigVariant":"default"}]}})");
 
   const std::vector<fs::path> expectedPaths{
       platformDirectory / "forwarding_stack" / "generated" / "agent" /
           "default.conf",
       platformDirectory / "forwarding_stack" / "generated" / "agent" /
-          "hw_test.conf"};
+          "hw_test.conf",
+      platformDirectory / "forwarding_stack" / "generated" / "agent" /
+          "benchmark.conf"};
   EXPECT_EQ(
       generateConfigsFromManifest(
           fbossRoot, ServiceType::AGENT, generateAgentConfigForManifest),
@@ -1442,6 +1514,53 @@ TEST(CmdConfigGenAgentTest, RejectsProfileWithoutPlatform) {
 
   EXPECT_NE(error.find("--profile"), std::string::npos);
   EXPECT_NE(error.find("require --platform"), std::string::npos);
+}
+
+TEST(CmdConfigGenAgentTest, UsesExplicitAsicConfigVariant) {
+  folly::test::TemporaryDirectory sourceDirectory;
+  folly::test::TemporaryDirectory outputDirectory;
+  const auto fbossRoot = fs::path(sourceDirectory.path().string()) / "fboss";
+  const auto platformDirectory = createTestPlatform(fbossRoot, "test_vendor");
+  constexpr std::string_view kDefaultAsicYaml = "ASIC_CONFIG: default\n";
+  writeTestFile(
+      platformDirectory / "asic_config" / "generated" / "default.yml",
+      kDefaultAsicYaml);
+
+  auto localOptions = CmdLocalOptions::getInstance();
+  localOptions->clear();
+  localOptions->setLocalOption(
+      std::string(kConfigGenAgentCommand),
+      kConfigGenAgentPlatform,
+      std::string(kPlatform));
+  localOptions->setLocalOption(
+      std::string(kConfigGenAgentCommand),
+      kConfigGenAgentProfile,
+      std::string(kBenchmarkProfile));
+  localOptions->setLocalOption(
+      std::string(kConfigGenAgentCommand),
+      kConfigGenAgentFbossRoot,
+      fbossRoot.string());
+  localOptions->setLocalOption(
+      std::string(kConfigGenAgentCommand),
+      kConfigGenAgentAsicConfigVariant,
+      "default");
+  localOptions->setLocalOption(
+      std::string(kConfigGenAgentCommand),
+      kConfigGenAgentOutputDirectory,
+      outputDirectory.path().string());
+
+  testing::internal::CaptureStdout();
+  EXPECT_NO_THROW(CmdConfigGenAgent().run());
+  testing::internal::GetCapturedStdout();
+  localOptions->clear();
+
+  cfg::AgentConfig config;
+  apache::thrift::SimpleJSONSerializer::deserialize(
+      readFile(fs::path(outputDirectory.path().string()) / "agent.conf"),
+      config);
+  EXPECT_EQ(
+      config.platform()->chip()->get_asicConfig().common()->get_yamlConfig(),
+      kDefaultAsicYaml);
 }
 
 TEST(CmdConfigGenAgentTest, VerifiesDeclaredOutputsGloballyAndForPlatform) {

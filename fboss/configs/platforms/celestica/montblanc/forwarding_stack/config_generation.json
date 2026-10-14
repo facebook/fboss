@@ -7,6 +7,10 @@
       },
       {
         "profile": "HW_TEST"
+      },
+      {
+        "profile": "BENCHMARK",
+        "asicConfigVariant": "default"
       }
     ]
   }

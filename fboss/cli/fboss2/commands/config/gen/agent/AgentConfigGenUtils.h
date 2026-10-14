@@ -59,13 +59,13 @@ cfg::PlatformConfig assemblePlatformConfig(
     cfg::ChipConfig chipConfig,
     std::map<int32_t, cfg::PortAssignment> portAssignments);
 
-// Resolves the generated ASIC configuration selected by platform and profile.
-// An empty profile or "default" selects the default variant. The file extension
-// is derived from config_type in asic_config.json.
+// Resolves the generated ASIC configuration selected by platform and variant.
+// An empty variant selects "default". The file extension is derived from
+// config_type in asic_config.json.
 std::filesystem::path findGeneratedAsicConfig(
     const std::filesystem::path& fbossRoot,
     std::string_view platform,
-    std::string_view profile);
+    std::string_view asicConfigVariant);
 
 // Resolves the generated port-assignment artifact selected with the platform
 // descriptor. Colocated and legacy centralized layouts are both supported.
@@ -90,7 +90,8 @@ ResolvedAgentConfigInputs resolveAgentConfigInputs(
     std::string_view platform,
     std::string_view profile,
     const std::optional<std::filesystem::path>& asicConfigFile = std::nullopt,
-    const std::optional<cfg::AsicConfigType>& asicConfigType = std::nullopt);
+    const std::optional<cfg::AsicConfigType>& asicConfigType = std::nullopt,
+    std::optional<std::string_view> asicConfigVariant = std::nullopt);
 
 // Generates SwitchSettings for a single NPU platform. Multi-ASIC platforms are
 // rejected until their switch IDs and indexes can be supplied explicitly.
@@ -112,7 +113,8 @@ std::filesystem::path generateAgentConfig(
     const std::filesystem::path& fbossRoot,
     const std::optional<std::filesystem::path>& outputDirectory = std::nullopt,
     const std::optional<std::filesystem::path>& asicConfigFile = std::nullopt,
-    const std::optional<cfg::AsicConfigType>& asicConfigType = std::nullopt);
+    const std::optional<cfg::AsicConfigType>& asicConfigType = std::nullopt,
+    std::optional<std::string_view> asicConfigVariant = std::nullopt);
 
 // Produces serialized Agent config contents for a generic declaration request.
 // Agent does not currently define service variants.

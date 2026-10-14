@@ -22,12 +22,13 @@ namespace {
 
 TEST(ConfigGenerationManifestUtilsTest, ParsesEnumNamesIntoTypedTarget) {
   const auto target = parseConfigGenerationTarget(
-      R"({"platform":"PLATFORM_MONTBLANC","serviceToOptions":{"AGENT":[{"profile":"DEFAULT","variant":"example"}]}})");
+      R"({"platform":"PLATFORM_MONTBLANC","serviceToOptions":{"AGENT":[{"profile":"BENCHMARK","variant":"example","asicConfigVariant":"default"}]}})");
 
   EXPECT_EQ(*target.platform(), PlatformType::PLATFORM_MONTBLANC);
   const auto& option = target.serviceToOptions()->at(ServiceType::AGENT).at(0);
-  EXPECT_EQ(*option.profile(), ConfigProfileType::DEFAULT);
+  EXPECT_EQ(*option.profile(), ConfigProfileType::BENCHMARK);
   EXPECT_EQ(*option.variant(), "example");
+  EXPECT_EQ(*option.asicConfigVariant(), "default");
 }
 
 TEST(ConfigGenerationManifestUtilsTest, RejectsInvalidTargets) {
@@ -35,6 +36,7 @@ TEST(ConfigGenerationManifestUtilsTest, RejectsInvalidTargets) {
       R"({"platform":"PLATFORM_MONTBLANC","serviceToOptions":{}})",
       R"({"platform":"PLATFORM_MONTBLANC","serviceToOptions":{"AGENT":[]}})",
       R"({"platform":"PLATFORM_MONTBLANC","serviceToOptions":{"AGENT":[{"profile":"DEFAULT","variant":""}]}})",
+      R"({"platform":"PLATFORM_MONTBLANC","serviceToOptions":{"AGENT":[{"profile":"DEFAULT","asicConfigVariant":""}]}})",
       R"({"platform":"PLATFORM_MONTBLANC","serviceToOptions":{"AGENT":[{"profile":"DEFAULT"},{"profile":"DEFAULT"}]}})",
       R"({"platform":"PLATFORM_MONTBLANC","serviceToOptions":{"AGENT":[{"profile":"DEFAULT","unknown":true}]}})",
       R"({"platform":"NOT_A_PLATFORM","serviceToOptions":{"AGENT":[{"profile":"DEFAULT"}]}})",
