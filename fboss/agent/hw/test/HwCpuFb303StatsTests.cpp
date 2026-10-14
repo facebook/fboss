@@ -136,6 +136,8 @@ HwPortStats getInitedStats() {
       {}, // cbfcVcSenderCreditsFreed
       {}, // cbfcVcReceiverCreditsConsumed
       {}, // cbfcVcReceiverCreditsFreed
+      0, // hwProtectionSwitchoverEvents
+      0, // hwProtectionSwitchoverDropPkts
   };
 }
 

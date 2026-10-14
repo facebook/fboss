@@ -12203,6 +12203,8 @@ class ChildThriftPath<::facebook::fboss::HwPortStats, ::facebook::fboss::fsdb::F
     STRUCT_CHILD_GETTERS(cbfcVcSenderCreditsFreed_, 116);
     STRUCT_CHILD_GETTERS(cbfcVcReceiverCreditsConsumed_, 117);
     STRUCT_CHILD_GETTERS(cbfcVcReceiverCreditsFreed_, 118);
+    STRUCT_CHILD_GETTERS(hwProtectionSwitchoverEvents_, 119);
+    STRUCT_CHILD_GETTERS(hwProtectionSwitchoverDropPkts_, 120);
 };
 
 

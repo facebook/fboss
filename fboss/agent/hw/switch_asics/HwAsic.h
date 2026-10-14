@@ -634,6 +634,11 @@ class HwAsic {
     // Agera3 (Condor SerDes) has no post3: the SDK drops it on set and returns
     // -1 on get.
     XPHY_SERDES_TX_FIR_POST3,
+    // Per-port HW protection switchover counters
+    // (SAI_PORT_STAT_IF_IN_HW_PROTECTION_SWITCHOVER_EVENTS and
+    // SAI_PORT_STAT_IF_IN_HW_PROTECTION_SWITCHOVER_DROP_PKTS). Broadcom
+    // Tomahawk 5/6 with XGS SDK 13.3+.
+    HW_PROTECTION_SWITCHOVER_COUNTERS,
   };
 
   enum class AsicMode {
