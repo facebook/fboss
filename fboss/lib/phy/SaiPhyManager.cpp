@@ -75,6 +75,18 @@ SaiPhyManager::PlatformInfo::PlatformInfo(std::unique_ptr<SaiPlatform> platform)
 
 SaiPhyManager::PlatformInfo::~PlatformInfo() {}
 
+void SaiPhyManager::PlatformInfo::seedStateFromHwSwitch() {
+  std::lock_guard<std::mutex> g(updateMutex_);
+  setState(getHwSwitch()->getProgrammedState());
+}
+
+// PlatformInfo starts with an empty SwitchState in every process. Without
+// seeding it after warm boot, the next applyUpdate computes {} -> {port N}
+// against the restored HwSwitch state and removes every other port.
+void SaiPhyManager::seedPlatformStateAfterWarmBoot(GlobalXphyID xphyID) {
+  getPlatformInfo(xphyID)->seedStateFromHwSwitch();
+}
+
 SaiPhyManager::PlatformInfo* SaiPhyManager::getPlatformInfo(
     GlobalXphyID xphyID) {
   const auto& phyIDInfo = getPhyIDInfo(xphyID);
