@@ -240,6 +240,7 @@ cpp_library(
         "facebook/AgentEnsembleMacsecSessionTests.cpp",
         "facebook/AgentEnsembleMacsecStatTests.cpp",
         "facebook/AgentEnsembleMacsecTest.cpp",
+        "facebook/TransceiverQuirks.cpp",
     ],
     headers = [
         "AgentEnsembleLinkTest.h",

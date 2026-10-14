@@ -471,8 +471,14 @@ TEST_F(AgentEnsembleLinkTest, opticsRxOutputDisableEnable) {
     if (tcvrInfo == tcvrInfos.end()) {
       continue;
     }
-    const auto& diagCapability =
-        tcvrInfo->second.tcvrState()->diagCapability().as_const();
+    const auto& tcvrState = *tcvrInfo->second.tcvrState();
+    if (utility::isRxOutputDisableUnsupported(tcvrState)) {
+      XLOG(DBG2) << "opticsRxOutputDisableEnable: Skipping "
+                 << getPortName(port)
+                 << ", transceiver Rx output disable is unsupported";
+      continue;
+    }
+    const auto& diagCapability = tcvrState.diagCapability().as_const();
     if (diagCapability.has_value() && *diagCapability->rxOutputControl()) {
       rxCtrlPorts.push_back(port);
       rxCtrlPortNames.push_back(getPortName(port));
