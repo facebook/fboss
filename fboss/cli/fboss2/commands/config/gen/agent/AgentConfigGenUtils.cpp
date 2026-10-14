@@ -137,8 +137,7 @@ GeneratedAsicConfigFile resolveGeneratedAsicConfig(
 
   const auto metadata = folly::parseJson(readFile(metadataPath));
   const auto platformName = std::string(platform);
-  const auto profileName =
-      profile == kDefaultProfileName ? std::string{} : std::string(profile);
+  const auto profileName = std::string(profile);
   if (!metadata.isObject() || !metadata.count("platform_name") ||
       !metadata["platform_name"].isString() ||
       metadata["platform_name"].asString() != platformName) {
@@ -188,10 +187,7 @@ GeneratedAsicConfigFile resolveGeneratedAsicConfig(
   if (asicConfigFile) {
     selectedPath = *asicConfigFile;
   } else {
-    auto fileName = platformName;
-    if (!profileName.empty()) {
-      fileName += "_" + profileName;
-    }
+    auto fileName = profileName;
     fileName += getGeneratedFileExtension(configType);
     selectedPath = asicConfigDirectory / "generated" / fileName;
   }

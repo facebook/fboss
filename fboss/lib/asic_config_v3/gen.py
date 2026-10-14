@@ -34,6 +34,13 @@ def get_generator(
     return generator_cls(platform_name, variant, platform_config, paths)
 
 
+def get_output_filename(variant: str, extension: str) -> str:
+    """Return the generated filename for a named platform variant."""
+    if not variant:
+        raise ValueError("ASIC config variant names must not be empty")
+    return f"{variant}{extension}"
+
+
 def _generate_platform(
     platform_name: str,
     platform_config: dict,
@@ -62,12 +69,7 @@ def _generate_platform(
     variants = platform_config.get("variants", {})
 
     for variant_name in variants:
-        # An empty variant name produces filename "<platform><ext>", with no
-        # "_<variant>" suffix, for platforms whose reference config is not
-        # variant-qualified.
-        display_name = (
-            f"{platform_name}/{variant_name}" if variant_name else platform_name
-        )
+        display_name = f"{platform_name}/{variant_name}"
         print(f"Generating ASIC config for {display_name}...", file=sys.stderr)
 
         try:
@@ -76,10 +78,8 @@ def _generate_platform(
             )
             output = generator.generate()
 
-            output_filename = (
-                f"{platform_name}_{variant_name}{generator.output_extension}"
-                if variant_name
-                else f"{platform_name}{generator.output_extension}"
+            output_filename = get_output_filename(
+                variant_name, generator.output_extension
             )
             output_path = os.path.join(output_dir, output_filename)
 

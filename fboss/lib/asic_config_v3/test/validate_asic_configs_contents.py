@@ -28,7 +28,7 @@ from unittest.mock import patch
 
 import yaml
 from fboss.lib.asic_config_v3.base_generator import resolve_variant_config
-from fboss.lib.asic_config_v3.gen import get_generator
+from fboss.lib.asic_config_v3.gen import get_generator, get_output_filename
 from fboss.lib.asic_config_v3.paths import AsicConfigPaths, discover_platforms
 from yaml.nodes import MappingNode, ScalarNode, SequenceNode
 
@@ -97,8 +97,8 @@ class TestValidateAsicConfigV3Contents(unittest.TestCase):
     )
     _MAX_DIFF_LINES = 200
 
-    def _output_filename(self, platform: str, variant: str, extension: str) -> str:
-        suffix = f"_{variant}" if variant else ""
+    def _reference_filename(self, platform: str, variant: str, extension: str) -> str:
+        suffix = "" if variant == "default" else f"_{variant}"
         return f"{platform}{suffix}{extension}"
 
     def _read_materialized_reference(self, path: str) -> str:
@@ -151,12 +151,12 @@ class TestValidateAsicConfigV3Contents(unittest.TestCase):
                 materialized_path
             )
 
-        reference_filename = output_filename
-        if output_filename.endswith(".json"):
-            reference_variant = "" if variant == "default" else variant
-            reference_filename = self._output_filename(
-                platform, reference_variant, ".materialized_JSON"
-            )
+        reference_extension = os.path.splitext(output_filename)[1]
+        if reference_extension == ".json":
+            reference_extension = ".materialized_JSON"
+        reference_filename = self._reference_filename(
+            platform, variant, reference_extension
+        )
         synced_relative_path = os.path.join(
             self._SYNCED_ASIC_CONFIG_DIR, reference_filename
         )
@@ -296,9 +296,7 @@ class TestValidateAsicConfigV3Contents(unittest.TestCase):
                     error=f"{platform}/{display_variant}: generation failed: {error}",
                 ),
             )
-        output_filename = self._output_filename(
-            platform, variant, generator.output_extension
-        )
+        output_filename = get_output_filename(variant, generator.output_extension)
         generated_path = os.path.join(output_dir, output_filename)
         try:
             with open(generated_path, encoding="utf-8") as f:

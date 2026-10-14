@@ -343,14 +343,12 @@ fs::path createTestPlatform(
       "{\"platform_name\":\"" + std::string(platform) +
           "\",\"defaults\":{\"asic_config_params\":{\"config_type\":\"" +
           std::string(configType) +
-          "\"}},\"variants\":{\"\":{},\"hw_test\":{}}}\n");
+          "\"}},\"variants\":{\"default\":{},\"hw_test\":{}}}\n");
   writeTestFile(
-      asicConfigDirectory / "generated" /
-          (std::string(platform) + std::string(extension)),
+      asicConfigDirectory / "generated" / ("default" + std::string(extension)),
       generatedConfig);
   writeTestFile(
-      asicConfigDirectory / "generated" /
-          (std::string(platform) + "_hw_test" + std::string(extension)),
+      asicConfigDirectory / "generated" / ("hw_test" + std::string(extension)),
       generatedConfig);
   const auto generatedMappingDirectory = fbossRoot / "lib" /
       "platform_mapping_v2" / "generated_platform_mappings" / vendor / platform;
@@ -589,14 +587,13 @@ TEST(AgentConfigGenTest, SelectsGeneratedPlatformArtifacts) {
 
   EXPECT_EQ(
       findGeneratedAsicConfig(fbossRoot, kPlatform, kProfile),
-      platformDirectory / "asic_config" / "generated" /
-          "test_platform_hw_test.yml");
+      platformDirectory / "asic_config" / "generated" / "hw_test.yml");
   EXPECT_EQ(
       findGeneratedAsicConfig(fbossRoot, kPlatform, ""),
-      platformDirectory / "asic_config" / "generated" / "test_platform.yml");
+      platformDirectory / "asic_config" / "generated" / "default.yml");
   EXPECT_EQ(
       findGeneratedAsicConfig(fbossRoot, kPlatform, "default"),
-      platformDirectory / "asic_config" / "generated" / "test_platform.yml");
+      platformDirectory / "asic_config" / "generated" / "default.yml");
   EXPECT_EQ(
       findPortIdToPortAssignmentConfig(fbossRoot, kPlatform),
       fbossRoot / "lib" / "platform_mapping_v2" /
@@ -896,8 +893,8 @@ TEST(AgentConfigGenTest, UsesExplicitAsicConfigFile) {
   folly::test::TemporaryDirectory temporaryDirectory;
   const auto fbossRoot = fs::path(temporaryDirectory.path().string()) / "fboss";
   const auto platformDirectory = createTestPlatform(fbossRoot, "test_vendor");
-  const auto generatedConfig = platformDirectory / "asic_config" / "generated" /
-      "test_platform_hw_test.yml";
+  const auto generatedConfig =
+      platformDirectory / "asic_config" / "generated" / "hw_test.yml";
   fs::remove(generatedConfig);
   const auto overrideConfig =
       fs::path(temporaryDirectory.path().string()) / "vendor_config.yml";
@@ -1375,7 +1372,7 @@ TEST(AgentConfigGenTest, DoesNotPartiallyWriteManifestOutputs) {
       failingPlatformDirectory,
       R"({"platform":"PLATFORM_MONTBLANC","serviceToOptions":{"AGENT":[{"profile":"DEFAULT"}]}})");
   fs::remove(
-      failingPlatformDirectory / "asic_config" / "generated" / "montblanc.yml");
+      failingPlatformDirectory / "asic_config" / "generated" / "default.yml");
 
   EXPECT_THROW(
       generateConfigsFromManifest(
