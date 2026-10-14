@@ -190,6 +190,7 @@ cpp_library(
 cpp_library(
     name = "fib_updater",
     srcs = [
+        "ClassBasedPolicyUpdater.cpp",
         "FibUpdateHelpers.cpp",
         "ForwardingInformationBaseUpdater.cpp",
         "MySidMapUpdater.cpp",
@@ -197,6 +198,7 @@ cpp_library(
         "SwitchStateNextHopIdUpdater.cpp",
     ],
     headers = [
+        "ClassBasedPolicyUpdater.h",
         "FibUpdateHelpers.h",
         "ForwardingInformationBaseUpdater.h",
         "MySidMapUpdater.h",
