@@ -265,6 +265,7 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::MY_MAC:
     case HwAsic::Feature::ISOLATION_GROUP:
     case HwAsic::Feature::ACL_ENTRY_OUT_PORT_QUALIFIER:
+    case HwAsic::Feature::XPHY_SERDES_TX_FIR_POST3:
       return false;
   }
   return false;

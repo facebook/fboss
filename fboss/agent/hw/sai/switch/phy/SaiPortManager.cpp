@@ -531,6 +531,8 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
   SaiPortSerdesTraits::Attributes::TxFirPost1::ValueType txPost2;
   SaiPortSerdesTraits::Attributes::TxFirPost1::ValueType txPost3;
+  const bool post3Supported = platform_->getAsic()->isSupported(
+      HwAsic::Feature::XPHY_SERDES_TX_FIR_POST3);
 #endif
 
   // Now use pinConfigs from SW port as the source of truth
@@ -546,7 +548,9 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
       txPost1.push_back(*tx->post());
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       txPost2.push_back(*tx->post2());
-      txPost3.push_back(*tx->post3());
+      if (post3Supported) {
+        txPost3.push_back(*tx->post3());
+      }
 #endif
     }
   }

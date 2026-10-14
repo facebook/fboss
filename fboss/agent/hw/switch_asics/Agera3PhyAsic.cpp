@@ -38,6 +38,7 @@ bool Agera3PhyAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::EMPTY_ACL_MATCHER:
     case HwAsic::Feature::PORT_EYE_VALUES:
     case HwAsic::Feature::XPHY_PORT_STATE_TOGGLE:
+    case HwAsic::Feature::XPHY_SERDES_TX_FIR_POST3:
     case HwAsic::Feature::PCS_RX_LINK_STATUS:
     case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:

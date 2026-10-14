@@ -254,6 +254,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS:
     case HwAsic::Feature::NEXT_HOP_GROUP_MEMBER_MONITORED_OBJECT:
     case HwAsic::Feature::RX_PACKET_TYPE:
+    case HwAsic::Feature::XPHY_SERDES_TX_FIR_POST3:
       return false;
   }
   return false;

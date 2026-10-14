@@ -614,8 +614,10 @@ PhyPortConfig SaiPhyRetimer::getConfigOnePort(
   config.profile.speed = sysSpeed;
 
   // Helper to build PhySideConfig (lane configs with TX settings)
+  const bool post3Supported = platform_->getAsic()->isSupported(
+      HwAsic::Feature::XPHY_SERDES_TX_FIR_POST3);
   auto buildPhySideConfig =
-      [&serdesStore, readFromHw](
+      [&serdesStore, readFromHw, post3Supported](
           std::shared_ptr<SaiObject<SaiPortTraits>> portObj,
           const std::vector<uint32_t>& lanes) -> PhySideConfig {
     PhySideConfig side;
@@ -641,8 +643,10 @@ PhyPortConfig SaiPhyRetimer::getConfigOnePort(
             serdesSaiId, SAI_PORT_SERDES_ATTR_TX_FIR_POST1, numLanes);
         txPost2 = getSerdesAttrFromHw(
             serdesSaiId, SAI_PORT_SERDES_ATTR_TX_FIR_POST2, numLanes);
-        txPost3 = getSerdesAttrFromHw(
-            serdesSaiId, SAI_PORT_SERDES_ATTR_TX_FIR_POST3, numLanes);
+        if (post3Supported) {
+          txPost3 = getSerdesAttrFromHw(
+              serdesSaiId, SAI_PORT_SERDES_ATTR_TX_FIR_POST3, numLanes);
+        }
       } else {
         const auto& attrs = serdes->attributes();
         txPre1 = extractSerdesAttr<SaiPortSerdesTraits::Attributes::TxFirPre1>(
@@ -659,9 +663,11 @@ PhyPortConfig SaiPhyRetimer::getConfigOnePort(
         txPost2 =
             extractSerdesAttr<SaiPortSerdesTraits::Attributes::TxFirPost2>(
                 attrs);
-        txPost3 =
-            extractSerdesAttr<SaiPortSerdesTraits::Attributes::TxFirPost3>(
-                attrs);
+        if (post3Supported) {
+          txPost3 =
+              extractSerdesAttr<SaiPortSerdesTraits::Attributes::TxFirPost3>(
+                  attrs);
+        }
       }
     }
 

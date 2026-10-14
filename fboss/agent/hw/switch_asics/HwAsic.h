@@ -629,6 +629,11 @@ class HwAsic {
     // Extra router MACs via the SAI MY_MAC object: packets destined to a
     // programmed MAC + VLAN are routed like packets to the switch's own MAC.
     MY_MAC,
+    // XPHY only: the xphy SerDes has a TX FIR post3 tap, so program it and read
+    // it back. Only consulted by phy/ code; NPU ASICs report false (n/a).
+    // Agera3 (Condor SerDes) has no post3: the SDK drops it on set and returns
+    // -1 on get.
+    XPHY_SERDES_TX_FIR_POST3,
   };
 
   enum class AsicMode {

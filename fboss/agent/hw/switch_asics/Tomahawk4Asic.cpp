@@ -273,6 +273,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::NEXT_HOP_GROUP_MEMBER_MONITORED_OBJECT:
     case HwAsic::Feature::RX_PACKET_TYPE:
     case HwAsic::Feature::ISOLATION_GROUP:
+    case HwAsic::Feature::XPHY_SERDES_TX_FIR_POST3:
       return false;
   }
   return false;
