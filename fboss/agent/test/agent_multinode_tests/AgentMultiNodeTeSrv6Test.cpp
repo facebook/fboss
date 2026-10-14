@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <exception>
 #include <map>
 #include <memory>
 #include <set>
@@ -269,37 +270,74 @@ class AgentMultiNodeTeSrv6Test : public AgentHwTest {
   bool linksAreUp(
       const std::string& localHostname,
       const std::string& remoteHostname,
-      const std::vector<TestLink>& links) const {
-    const auto localPorts = getUpInterfacePorts(localHostname);
-    const auto remotePorts = getUpInterfacePorts(remoteHostname);
-    return std::all_of(
-               links.begin(),
-               links.end(),
-               [&](const auto& link) {
-                 return localPorts.contains(link.localPort) &&
-                     remotePorts.contains(link.remotePort);
-               }) &&
-        aggregatePortsAreForwarding(localHostname) &&
-        aggregatePortsAreForwarding(remoteHostname);
+      const std::vector<TestLink>& links,
+      std::string& failureReason) const {
+    failureReason.clear();
+    std::set<std::string> localPorts;
+    try {
+      localPorts = getUpInterfacePorts(localHostname);
+    } catch (const std::exception& error) {
+      failureReason = "Failed to query interface ports on " + localHostname +
+          ": " + error.what();
+      throw;
+    }
+
+    std::set<std::string> remotePorts;
+    try {
+      remotePorts = getUpInterfacePorts(remoteHostname);
+    } catch (const std::exception& error) {
+      failureReason = "Failed to query interface ports on " + remoteHostname +
+          ": " + error.what();
+      throw;
+    }
+
+    for (const auto& link : links) {
+      if (!localPorts.contains(link.localPort)) {
+        failureReason = localHostname + ":" + link.localPort + " is down";
+        return false;
+      }
+      if (!remotePorts.contains(link.remotePort)) {
+        failureReason = remoteHostname + ":" + link.remotePort + " is down";
+        return false;
+      }
+    }
+
+    return aggregatePortsAreForwarding(localHostname, failureReason) &&
+        aggregatePortsAreForwarding(remoteHostname, failureReason);
   }
 
-  bool aggregatePortsAreForwarding(const std::string& hostname) const {
+  bool aggregatePortsAreForwarding(
+      const std::string& hostname,
+      std::string& failureReason) const {
     std::vector<AggregatePortThrift> aggregatePorts;
-    auto client = utility::getSwAgentThriftClient(hostname);
-    client->sync_getAggregatePortTable(aggregatePorts);
-    return aggregatePorts.size() == kExpectedLinkCount &&
-        std::all_of(
-               aggregatePorts.begin(),
-               aggregatePorts.end(),
-               [](const auto& port) {
-                 return *port.isUp() &&
-                     std::all_of(
-                         port.memberPorts()->begin(),
-                         port.memberPorts()->end(),
-                         [](const auto& member) {
-                           return *member.isForwarding();
-                         });
-               });
+    try {
+      auto client = utility::getSwAgentThriftClient(hostname);
+      client->sync_getAggregatePortTable(aggregatePorts);
+    } catch (const std::exception& error) {
+      failureReason = "Failed to query aggregate ports on " + hostname + ": " +
+          error.what();
+      throw;
+    }
+
+    if (aggregatePorts.size() != kExpectedLinkCount) {
+      failureReason = hostname + ": expected " +
+          std::to_string(kExpectedLinkCount) + " aggregate ports, found " +
+          std::to_string(aggregatePorts.size());
+      return false;
+    }
+    for (const auto& port : aggregatePorts) {
+      if (!*port.isUp()) {
+        failureReason = hostname + ": an aggregate port is down";
+        return false;
+      }
+      for (const auto& member : *port.memberPorts()) {
+        if (!*member.isForwarding()) {
+          failureReason = hostname + ": an aggregate member is not forwarding";
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   std::set<std::string> getUpInterfacePorts(const std::string& hostname) const {
@@ -366,22 +404,17 @@ TEST_F(AgentMultiNodeTeSrv6Test, VerifySetupAndBasicForwarding) {
   const auto localHostname = *getSw()->getConfig().hostname();
   const auto remoteHostname = getRemoteHostname(links);
 
+  std::string linkReadinessFailure;
   const auto linksUp = checkWithRetryErrorReturn(
-      [&]() { return linksAreUp(localHostname, remoteHostname, links); },
+      [&]() {
+        return linksAreUp(
+            localHostname, remoteHostname, links, linkReadinessFailure);
+      },
       kLinkUpRetries,
       kLinkUpRetryInterval,
       true);
-  if (!linksUp) {
-    const auto localPorts = getUpInterfacePorts(localHostname);
-    const auto remotePorts = getUpInterfacePorts(remoteHostname);
-    for (const auto& link : links) {
-      EXPECT_TRUE(localPorts.contains(link.localPort))
-          << localHostname << ":" << link.localPort << " is down";
-      EXPECT_TRUE(remotePorts.contains(link.remotePort))
-          << remoteHostname << ":" << link.remotePort << " is down";
-    }
-  }
-  ASSERT_TRUE(linksUp);
+  ASSERT_TRUE(linksUp) << "Link readiness check failed: "
+                       << linkReadinessFailure;
 
   auto localClient = utility::getSwAgentThriftClient(localHostname);
   auto remoteClient = utility::getSwAgentThriftClient(remoteHostname);
