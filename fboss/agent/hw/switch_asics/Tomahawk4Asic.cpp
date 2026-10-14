@@ -130,6 +130,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
     case HwAsic::Feature::ACL_ENTRY_OUT_PORT_QUALIFIER:
     case HwAsic::Feature::MY_MAC:
+    case HwAsic::Feature::ANY_ACL_DROP_COUNTER:
       return true;
     // features not working well with bcmsim
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
@@ -191,7 +192,6 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SWITCH_ISOLATE:
     case HwAsic::Feature::RX_SNR:
     case HwAsic::Feature::MANAGEMENT_PORT:
-    case HwAsic::Feature::ANY_ACL_DROP_COUNTER:
     case HwAsic::Feature::EGRESS_FORWARDING_DROP_COUNTER:
     case HwAsic::Feature::ANY_TRAP_DROP_COUNTER:
     case HwAsic::Feature::SWITCH_DROP_DEBUG_COUNTER:
