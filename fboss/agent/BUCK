@@ -891,11 +891,19 @@ cpp_library(
 
 cpp_library(
     name = "override_set_id_manager",
+    srcs = [
+        "OverrideSetIdManager.cpp",
+    ],
     headers = [
         "OverrideSetIdManager.h",
     ],
+    deps = [
+        "fbsource//third-party/glog:glog",
+        ":fboss-error",
+    ],
     exported_deps = [
         ":fboss-types",
+        "//fboss/agent/rib:nexthop_id_manager",
     ],
 )
 

@@ -2,9 +2,20 @@
 
 #include <gtest/gtest.h>
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/OverrideSetIdManager.h"
 
 namespace facebook::fboss {
+
+namespace {
+NextHopIDSet idSet(std::initializer_list<int64_t> ids) {
+  NextHopIDSet out;
+  for (auto id : ids) {
+    out.insert(NextHopID(id));
+  }
+  return out;
+}
+} // namespace
 
 class OverrideSetIdManagerTest : public ::testing::Test {
  protected:
@@ -25,6 +36,29 @@ TEST_F(OverrideSetIdManagerTest, overrideRangeFollowsRibRange) {
   EXPECT_FALSE(
       OverrideSetIdManager::isOverrideSetID(
           NextHopSetID((1LL << 62) + (1LL << 61))));
+}
+
+TEST_F(OverrideSetIdManagerTest, getOrAllocatePopulatesIdToMembers) {
+  const auto start = nextHopIdTypeStart(NextHopIdType::OVERRIDE_SET);
+
+  EXPECT_THROW(mgr_.getOrAllocate(NextHopIDSet{}), FbossError);
+  EXPECT_TRUE(mgr_.getIdToMembers().empty());
+
+  auto a = mgr_.getOrAllocate(idSet({1, 9}))->second;
+  EXPECT_TRUE(OverrideSetIdManager::isOverrideSetID(a));
+  EXPECT_EQ(static_cast<int64_t>(a), start);
+  EXPECT_EQ(mgr_.getOrAllocate(idSet({9, 1}))->second, a);
+
+  auto b = mgr_.getOrAllocate(idSet({1, 3}))->second;
+  auto c = mgr_.getOrAllocate(idSet({42}))->second;
+  EXPECT_EQ(static_cast<int64_t>(b), start + 1);
+  EXPECT_EQ(static_cast<int64_t>(c), start + 2);
+
+  EXPECT_EQ(mgr_.getIdToMembers().size(), 3);
+  EXPECT_EQ(mgr_.getMembersToId().size(), 3);
+  EXPECT_EQ(mgr_.getIdToMembers().at(a), idSet({1, 9}));
+  EXPECT_EQ(mgr_.getIdToMembers().at(b), idSet({1, 3}));
+  EXPECT_EQ(mgr_.getIdToMembers().at(c), idSet({42}));
 }
 
 } // namespace facebook::fboss

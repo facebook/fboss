@@ -1234,6 +1234,7 @@ cpp_unittest(
     network_access = network_access_utils.none(),
     test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
+        "//fboss/agent:fboss-error",
         "//fboss/agent:override_set_id_manager",
     ],
 )

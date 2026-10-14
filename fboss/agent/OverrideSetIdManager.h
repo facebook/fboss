@@ -3,7 +3,9 @@
 #pragma once
 
 #include <cstdint>
+#include <unordered_map>
 
+#include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
@@ -16,9 +18,27 @@ class OverrideSetIdManager {
         NextHopIdType::OVERRIDE_SET;
   }
 
+  using MembersToIdIter =
+      std::unordered_map<NextHopIDSet, NextHopSetID>::const_iterator;
+
+  // Returns the entry for `members`, minting an id on first sight.
+  MembersToIdIter getOrAllocate(const NextHopIDSet& members);
+
+  const std::unordered_map<NextHopIDSet, NextHopSetID>& getMembersToId() const {
+    return membersToId_;
+  }
+
+  const std::unordered_map<NextHopSetID, NextHopIDSet>& getIdToMembers() const {
+    return idToMembers_;
+  }
+
  private:
   static constexpr int64_t kStart =
       nextHopIdTypeStart(NextHopIdType::OVERRIDE_SET);
+
+  std::unordered_map<NextHopIDSet, NextHopSetID> membersToId_;
+  std::unordered_map<NextHopSetID, NextHopIDSet> idToMembers_;
+  int64_t nextAvailable_{kStart};
 };
 
 } // namespace facebook::fboss

@@ -237,6 +237,16 @@ target_link_libraries(fib_helpers
   Folly::folly
 )
 
+add_library(override_set_id_manager
+  fboss/agent/OverrideSetIdManager.cpp
+)
+
+target_link_libraries(override_set_id_manager
+  fboss_error
+  fboss_types
+  nexthop_id_manager
+)
+
 add_library(ecmp_resource_manager
   fboss/agent/EcmpResourceManager.cpp
   fboss/agent/EcmpResourceManagerConfig.cpp
