@@ -416,7 +416,10 @@ void SaiPortManager::programSerdes(
       serdesAttributesFromSwPinConfigs(
           saiLinePort->adapterKey(),
           swPort->getLinePinConfigs().value(),
-          lineSerdes);
+          lineSerdes,
+          false /* zeroPreemphasis */,
+          std::nullopt /* customCollection */,
+          FLAGS_enable_xphy_link_training_line_side);
 
   // create Line port Serdes
   portHandle->serdes = store.setObject(lineSerdesKey, serdesAttributes);
@@ -432,7 +435,12 @@ void SaiPortManager::programSerdes(
   }
 
   serdesAttributes = serdesAttributesFromSwPinConfigs(
-      saiSysPort->adapterKey(), swPort->getPinConfigs(), sysSerdes);
+      saiSysPort->adapterKey(),
+      swPort->getPinConfigs(),
+      sysSerdes,
+      false /* zeroPreemphasis */,
+      std::nullopt /* customCollection */,
+      FLAGS_enable_xphy_link_training_sys_side);
 
   // create System port serdes
   portHandle->sysSerdes = store.setObject(sysSerdesKey, serdesAttributes);
@@ -500,10 +508,19 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     const std::shared_ptr<SaiPortSerdes>& /* serdes */,
     bool /* zeroPreemphasis */,
     const std::optional<std::string>& customCollection,
-    bool /* skipSerdesProgramming */,
+    bool skipSerdesProgramming,
     bool /* txPrecodingEnabled */,
     bool /* rxPrecodingEnabled */) {
   SaiPortSerdesTraits::CreateAttributes attrs;
+  std::get<SaiPortSerdesTraits::Attributes::PortId>(attrs) =
+      static_cast<sai_object_id_t>(portSaiId);
+  // Same as NPU: with link training on, the trained TX FIR taps are owned by
+  // link training, so don't program (or reconcile on warm boot) them.
+  if (skipSerdesProgramming) {
+    XLOG(DBG2) << "skipSerdesProgramming set, skip TX FIR for port serdes "
+               << static_cast<uint64_t>(portSaiId);
+    return attrs;
+  }
 
   SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType txPre1;
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
@@ -541,8 +558,6 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     }
   };
 
-  std::get<SaiPortSerdesTraits::Attributes::PortId>(attrs) =
-      static_cast<sai_object_id_t>(portSaiId);
   setTxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPre1{}, txPre1);
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
   setTxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPre2{}, txPre2);
