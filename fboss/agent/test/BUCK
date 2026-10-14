@@ -1227,6 +1227,18 @@ cpp_unittest(
 )
 
 cpp_unittest(
+    name = "override_set_id_manager_test",
+    srcs = [
+        "OverrideSetIdManagerTests.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    test_main = "//fboss/agent/test:fboss_test_main",
+    deps = [
+        "//fboss/agent:override_set_id_manager",
+    ],
+)
+
+cpp_unittest(
     name = "ecmp_resource_manager_test",
     srcs = [
         "BaseEcmpResourceManagerTest.cpp",

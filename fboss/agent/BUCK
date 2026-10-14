@@ -890,6 +890,16 @@ cpp_library(
 )
 
 cpp_library(
+    name = "override_set_id_manager",
+    headers = [
+        "OverrideSetIdManager.h",
+    ],
+    exported_deps = [
+        ":fboss-types",
+    ],
+)
+
+cpp_library(
     name = "fib_helpers",
     srcs = [
         "FibHelpers.cpp",
