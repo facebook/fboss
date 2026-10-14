@@ -39,10 +39,6 @@ thrift_library(
         "//fboss/agent/if:common",
         "//fboss/agent/if:mpls",
         "//fboss/lib/if:fboss_common",
-        "//thrift/annotation:cpp",
-        "//thrift/annotation:hack",
-        "//thrift/annotation:python",
-        "//thrift/annotation:thrift",
     ],
 )
 
@@ -244,8 +240,6 @@ thrift_library(
         "//fboss/agent/hw:hardware_stats",
         "//fboss/agent/if:asic_temp",
         "//fboss/lib/phy:phy",
-        "//thrift/annotation:cpp",
-        "//thrift/annotation:thrift",
     ],
 )
 
@@ -1054,7 +1048,7 @@ cpp_library(
         "CpuLatencyManager.h",
     ],
     exported_deps = [
-        "fbsource//third-party/googletest:gtest_headers",
+        "fbsource//third-party/googletest:gtest_prod_headers",
         ":fboss-types",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//folly:network_address",

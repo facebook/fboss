@@ -359,6 +359,21 @@ class NextHopIDManager {
       std::unordered_map<NextHopSetID, NextHopSetID>* setIdRemapOut = nullptr);
 
  private:
+  static constexpr int64_t kNextHopIDStart = 1;
+  static constexpr int64_t kNextHopIDEnd =
+      nextHopIdTypeEnd(NextHopIdType::NEXTHOP);
+  static constexpr int64_t kNextHopSetIDStart =
+      nextHopIdTypeStart(NextHopIdType::NEXTHOP_SET);
+  static constexpr int64_t kNextHopSetIDEnd =
+      nextHopIdTypeEnd(NextHopIdType::NEXTHOP_SET);
+
+  static constexpr bool isNextHopID(int64_t id) {
+    return id >= kNextHopIDStart && id < kNextHopIDEnd;
+  }
+  static constexpr bool isNextHopSetID(int64_t id) {
+    return nextHopIdType(id) == NextHopIdType::NEXTHOP_SET;
+  }
+
   // Decrement reference count for a NextHopID and deallocate if count reaches 0
   // Returns true if deallocated, false otherwise.
   bool decrOrDeallocateNextHopByID(const NextHopID& nextHopID);
@@ -372,9 +387,6 @@ class NextHopIDManager {
       const std::string& nhgName,
       const RouteNextHopSet& normalized,
       bool& moved);
-
-  static constexpr int64_t kNextHopIDStart = 1;
-  static constexpr int64_t kNextHopSetIDStart = 1LL << 62;
 
   // Mutable state threaded through the reconstructFromSwitchStateMaps passes.
   // The member maps the passes update are reached directly; only these running
@@ -450,12 +462,10 @@ class NextHopIDManager {
   static NextHopSetID computeFreshSetIdSeed(
       const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap);
 
-  // Counter for generating NextHop IDs, starting from 1
-  // allocate 0 - (2^62 -1) IDs for NextHops.
+  // Allocates from [kNextHopIDStart, kNextHopIDEnd).
   NextHopID nextAvailableNextHopID_{kNextHopIDStart};
 
-  // Counter for generating NextHopSet IDs, starting from 2^62
-  // Allocate 2^62 - INT64_MAX IDs for NextHopIDSets.
+  // Allocates from [kNextHopSetIDStart, kNextHopSetIDEnd).
   NextHopSetID nextAvailableNextHopSetID_{kNextHopSetIDStart};
 
   // Mapping from NextHop to its assigned NextHopID

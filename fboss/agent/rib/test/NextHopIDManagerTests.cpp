@@ -1269,6 +1269,51 @@ TEST_F(NextHopIDManagerTest, reconstructMemberDedupMintsFreshSetId) {
   EXPECT_EQ(newSetIter->second.id, NextHopSetID(kSetIdOffset + 4));
 }
 
+TEST_F(NextHopIDManagerTest, idTypeRanges) {
+  // NextHopSetIDs predate the type nibble; persisted ids must stay in range.
+  EXPECT_EQ(nextHopIdTypeStart(NextHopIdType::NEXTHOP_SET), 1LL << 62);
+  EXPECT_EQ(nextHopIdTypeEnd(NextHopIdType::NEXTHOP), 1LL << 60);
+  EXPECT_EQ(
+      nextHopIdTypeEnd(NextHopIdType::NEXTHOP_SET), (1LL << 62) + (1LL << 60));
+
+  EXPECT_EQ(nextHopIdType(1), NextHopIdType::NEXTHOP);
+  EXPECT_EQ(nextHopIdType((1LL << 60) - 1), NextHopIdType::NEXTHOP);
+  EXPECT_NE(nextHopIdType(1LL << 60), NextHopIdType::NEXTHOP);
+
+  EXPECT_NE(nextHopIdType((1LL << 62) - 1), NextHopIdType::NEXTHOP_SET);
+  EXPECT_EQ(nextHopIdType(1LL << 62), NextHopIdType::NEXTHOP_SET);
+  EXPECT_EQ(
+      nextHopIdType((1LL << 62) + (1LL << 60) - 1), NextHopIdType::NEXTHOP_SET);
+  EXPECT_NE(
+      nextHopIdType((1LL << 62) + (1LL << 60)), NextHopIdType::NEXTHOP_SET);
+}
+
+TEST_F(NextHopIDManagerTest, reconstructRejectsOutOfRangeIds) {
+  NextHop nh1 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  auto reconstruct = [&](int64_t nhId, int64_t setId) {
+    auto idToNextHopMap = std::make_shared<IdToNextHopMap>();
+    idToNextHopMap->addNextHop(nhId, nh1.toThrift());
+    auto idToNextHopIdSetMap = std::make_shared<IdToNextHopIdSetMap>();
+    idToNextHopIdSetMap->addNextHopIdSet(
+        setId, std::set<state::NextHopIdType>{nhId});
+    auto fibsMap = createFibsMap();
+    addV4RouteWithSetId(
+        getFibV4(fibsMap), "10.0.0.0/24", {nh1}, NextHopSetID(setId));
+    NextHopIDManager manager;
+    manager.reconstructFromSwitchStateMaps(
+        createMultiSwitchFibInfoMap(
+            fibsMap, idToNextHopMap, idToNextHopIdSetMap),
+        nullptr,
+        nullptr,
+        nullptr);
+  };
+
+  EXPECT_NO_THROW(reconstruct(1, 1LL << 62));
+  EXPECT_THROW(reconstruct(1, (1LL << 62) + (1LL << 60)), FbossError);
+  EXPECT_THROW(reconstruct(1LL << 60, 1LL << 62), FbossError);
+}
+
 // Verifies that reconstructFromSwitchStateMaps rebuilds per-client
 // clientNextHopSetID refcounts from BOTH sources of truth:
 //   (a) resolved routes carried in the FIB (the per-client entry walk

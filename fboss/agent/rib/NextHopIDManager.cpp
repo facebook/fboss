@@ -40,8 +40,8 @@ NextHopIDManager::NextHopToIDIter NextHopIDManager::getOrAllocateNextHopID(
   NextHopID newID = nextAvailableNextHopID_;
   nextAvailableNextHopID_ = NextHopID(nextAvailableNextHopID_ + 1);
 
-  CHECK(static_cast<int64_t>(newID) > 0 && newID < kNextHopSetIDStart)
-      << "Next Hop ID is in the range of [0, 2^62 - 1], the id space has been exhausted! It does not support wrap around!";
+  CHECK(isNextHopID(newID))
+      << "NextHopID space [1, 2^60) exhausted, no wrap around: " << newID;
 
   auto [nhItr, nhInserted] = nextHopToID_.emplace(nextHop, newID);
   CHECK(nhInserted);
@@ -66,10 +66,9 @@ NextHopIDManager::NextHopIdSetIter NextHopIDManager::getOrAllocateNextHopSetID(
   NextHopSetID newID = nextAvailableNextHopSetID_;
   nextAvailableNextHopSetID_ = NextHopSetID(nextAvailableNextHopSetID_ + 1);
 
-  CHECK(
-      static_cast<int64_t>(newID) >= kNextHopSetIDStart &&
-      static_cast<int64_t>(newID) < std::numeric_limits<int64_t>::max())
-      << "Next Hop Set ID is in the range of [2^62, 2^64-1], the id space has been exhausted! It does not support wrap around!";
+  CHECK(isNextHopSetID(newID))
+      << "NextHopSetID space [2^62, 2^62 + 2^60) exhausted, no wrap around: "
+      << newID;
   auto [idSetInfoItr, idSetInfoInserted] =
       nextHopIdSetToIDInfo_.emplace(nextHopIDSet, NextHopSetIDInfo(newID, 1));
   CHECK(idSetInfoInserted);
@@ -587,6 +586,10 @@ void NextHopIDManager::processNextHopSetIdForReconstruction(
     const std::shared_ptr<IdToNextHopMap>& id2NhopMap,
     const std::shared_ptr<IdToNextHopIdSetMap>& id2NhopIdSetMap,
     ReconstructionContext& ctx) {
+  if (!isNextHopSetID(setId)) {
+    throw FbossError(
+        "Persisted NextHopSetID ", setId, " is outside the NextHopSetID range");
+  }
   // Lookup NextHopIDSet from FibInfo's idToNextHopIdSetMap
   auto nextHopIdSetNode = id2NhopIdSetMap->getNextHopIdSet(
       static_cast<state::NextHopSetIdType>(setId));
@@ -600,6 +603,14 @@ void NextHopIDManager::processNextHopSetIdForReconstruction(
   bool membersRemapped = false;
   for (const auto& elem : std::as_const(*nextHopIdSetNode)) {
     NextHopID persistedNextHopID((*elem).toThrift());
+    if (!isNextHopID(persistedNextHopID)) {
+      throw FbossError(
+          "Persisted NextHopID ",
+          persistedNextHopID,
+          " in SetID ",
+          setId,
+          " is outside the NextHopID range");
+    }
 
     // Lookup NextHop from FibInfo's idToNextHopMap
     auto nhNode = id2NhopMap->getNextHopIf(
