@@ -15,6 +15,7 @@
 #include <re2/re2.h>
 #include <thrift/lib/cpp2/op/Get.h>
 
+#include "fboss/platform/helpers/DeviceNameUtils.h"
 #include "fboss/platform/platform_manager/CpldManager.h"
 #include "fboss/platform/platform_manager/I2cAddr.h"
 #include "fboss/platform/platform_manager/Utils.h"
@@ -30,7 +31,8 @@ const re2::RE2 kSymlinkRegex{"^/run/devmap/(?P<SymlinkDirs>[a-z0-9-]+)/.+"};
 const re2::RE2 kDevPathRegex{"(?P<SlotPath>.*)\\[(?P<DeviceName>.+)\\]"};
 const re2::RE2 kSlotNameRegex{"(?P<SlotType>.([A-Z]+_)+SLOT)@\\d+"};
 const re2::RE2 kSlotPathRegex{"/|(/([A-Z]+_)+SLOT@\\d+)+"};
-const re2::RE2 kInfoRomDevicePrefixRegex{"^fpga_info_(dom|iob|scm|mcb)$"};
+const re2::RE2 kInfoRomDevicePrefixRegex{
+    vendorPrefixedPattern("fpga_info_(dom|iob|scm|mcb)")};
 const re2::RE2 kI2cAdapterNameRegex{"(?P<PmUnitScopedName>.+)@(?P<Num>\\d+)"};
 const re2::RE2 kIncomingBusRegex{"INCOMING@(?P<Index>\\d+)"};
 const re2::RE2 kRpmNameRegex{"(?P<KEYWORD>[a-z]+)_bsp_kmods"};
@@ -530,9 +532,10 @@ bool ConfigValidator::isValidPciDeviceConfig(
     fpgaIpBlockConfigs.push_back(config);
   }
   for (const auto& config : *pciDeviceConfig.xcvrCtrlConfigs()) {
-    if (*config.fpgaIpBlockConfig()->deviceName() != kXcvrDeviceName) {
+    if (!isDeviceName(
+            *config.fpgaIpBlockConfig()->deviceName(), kXcvrDeviceName)) {
       XLOG(ERR) << fmt::format(
-          "Invalid DeviceName : {} in XcvrCtrlConfig. It must be {}",
+          "Invalid DeviceName : {} in XcvrCtrlConfig. It must be {}, optionally with a vendor prefix",
           *config.fpgaIpBlockConfig()->deviceName(),
           kXcvrDeviceName);
       return false;

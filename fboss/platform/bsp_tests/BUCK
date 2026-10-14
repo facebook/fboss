@@ -116,6 +116,7 @@ cpp_binary(
         "BspTest.h",
     ],
     deps = [
+        "//fboss/platform/helpers:device_name_utils",
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
         "fbsource//third-party/re2:re2",
