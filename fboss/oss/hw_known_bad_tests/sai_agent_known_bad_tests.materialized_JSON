@@ -1582,6 +1582,18 @@
         },
         {
           "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTable$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_prod_2_trunk.warm_boot.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.prod_2_trunk_2_prod.warm_boot.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.*$"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/11.7.0.0_dnx_odp/jericho3/mono": [
@@ -11392,6 +11404,18 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_prod_2_trunk.warm_boot.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.prod_2_trunk_2_prod.warm_boot.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.*$"
         }
     ],
     "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk5/multi_switch": [
@@ -19374,6 +19398,18 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_prod_2_trunk.cold_boot.AgentFlowletSprayTest.VerifyEcmpRandomSpray$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_prod_2_trunk.warm_boot.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.prod_2_trunk_2_prod.warm_boot.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.*$"
         }
     ],
     "brcm/15.4.0.0_odp/15.4.0.0_odp/tomahawk5/multi_switch": [
