@@ -53,9 +53,13 @@ cpp_library(
         "SensorServiceThriftHandler.h",
     ],
     deps = [
+        "fbsource//third-party/fmt:fmt",
         ":utils",
         "//fboss/lib:log_thrift_call",
+        "//fboss/platform/reboot_cause_finder/if:reboot_cause_config-cpp2-types",
+        "//folly:file_util",
         "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
     ],
     exported_deps = [
         ":service",

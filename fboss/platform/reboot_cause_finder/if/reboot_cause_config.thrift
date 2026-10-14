@@ -86,6 +86,10 @@ struct RebootCauseProviderAttempt {
   4: list<RebootCause> causes;
 }
 
+// Where reboot_cause_finder persists its per-boot records. Shared so readers
+// (e.g. sensor_service's getRebootHistory) cannot drift from the writer.
+const string REBOOT_HISTORY_DIR = "/var/facebook/fboss/reboot_history";
+
 // `RebootCauseRecord` is the per-boot record persisted under
 // /var/facebook/fboss/reboot_history/.
 //

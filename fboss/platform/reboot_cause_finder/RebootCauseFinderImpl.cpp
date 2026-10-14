@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/platform/reboot_cause_finder/RebootCauseFinderImpl.h"
+#include "fboss/platform/reboot_cause_finder/if/gen-cpp2/reboot_cause_config_constants.h"
 
 #include "fboss/lib/RestClient.h"
 
@@ -62,7 +63,8 @@ namespace facebook::fboss::platform::reboot_cause_finder {
 
 namespace {
 
-constexpr auto kHistoryDir = "/var/facebook/fboss/reboot_history";
+constexpr auto kHistoryDir =
+    reboot_cause_config::reboot_cause_config_constants::REBOOT_HISTORY_DIR();
 constexpr auto kProcBootIdPath = "/proc/sys/kernel/random/boot_id";
 
 // These three come from the kernel, systemd and the crash dump tooling,
