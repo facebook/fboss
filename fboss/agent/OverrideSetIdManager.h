@@ -24,6 +24,9 @@ class OverrideSetIdManager {
   // Returns the entry for `members`, minting an id on first sight.
   MembersToIdIter getOrAllocate(const NextHopIDSet& members);
 
+  // Frees `id`. Returns false if it was not allocated.
+  bool deallocOverrideSetId(NextHopSetID id);
+
   const std::unordered_map<NextHopIDSet, NextHopSetID>& getMembersToId() const {
     return membersToId_;
   }

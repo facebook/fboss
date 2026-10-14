@@ -28,4 +28,14 @@ OverrideSetIdManager::MembersToIdIter OverrideSetIdManager::getOrAllocate(
   return membersItr;
 }
 
+bool OverrideSetIdManager::deallocOverrideSetId(NextHopSetID id) {
+  auto it = idToMembers_.find(id);
+  if (it == idToMembers_.end()) {
+    return false;
+  }
+  CHECK_EQ(membersToId_.erase(it->second), 1u);
+  idToMembers_.erase(it);
+  return true;
+}
+
 } // namespace facebook::fboss
