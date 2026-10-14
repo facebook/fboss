@@ -528,7 +528,7 @@ TYPED_TEST(AgentSrv6DecapTest, verifySrv6DecapEcnMarking) {
             std::optional<uint8_t>(64),
             0,
             std::vector<uint8_t>(7000, 0xff));
-        this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+        this->sendPacketSwitchedAsync(std::move(txPacket));
       }
     };
 
@@ -580,7 +580,7 @@ TYPED_TEST(AgentSrv6DecapTest, VerifyDscpQueueMapping) {
       if (frontPanel) {
         this->getSw()->sendPacketOutOfPortAsync(std::move(txPacket), port);
       } else {
-        this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+        this->sendPacketSwitchedAsync(std::move(txPacket));
       }
     };
 
