@@ -514,8 +514,13 @@ void SaiPhyManager::programOnePort(
     // Before actually calling sai sdk to program the port again, we should
     // check whether the port has been programmed in HW with the same config.
     // We avoid reprogramming the port if the config matches with what we have
-    // already programmed before, unless the needResetDataPath flag is set
+    // already programmed before, unless the needResetDataPath flag is set.
+    // Only Elbert (Credo) still does this; other xphys rely on the SwitchState
+    // delta in applyUpdate (as the agent does): an unchanged port yields an
+    // empty delta and no SAI calls.
+    // TODO: drop this for Elbert after Credo  validation.
     if (!needResetDataPath &&
+        getPhyAsicType() == cfg::AsicType::ASIC_TYPE_ELBERT_8DD &&
         !(wLockedCache->systemLanes.empty() ||
           wLockedCache->lineLanes.empty())) {
       const auto& actualPhyPortConfig =
