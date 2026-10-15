@@ -1332,7 +1332,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclActionPacketAction{std::nullopt};
   /*
    * FBOSS ACL action -> SAI packet action:
-   *  - PERMIT: leave the pipeline's forwarding decision alone (FORWARD).
+   *  - PERMIT: leave the pipeline's forwarding decision alone (FORWARD), except
+   *    on a PBR entry matching a next hop group id, where FORWARD conflicts
+   *    with the redirect action.
    *  - DENY: drop the packet (DROP). A copy to CPU that a lower priority ACL
    *    or a host interface trap asked for still happens.
    *  - DENY_DATA_AND_CONTROL_PLANE: drop the packet and cancel that copy to CPU
@@ -1348,8 +1350,11 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
           SAI_PACKET_ACTION_DENY};
       break;
     case cfg::AclActionType::PERMIT:
-      aclActionPacketAction = SaiAclEntryTraits::Attributes::ActionPacketAction{
-          SAI_PACKET_ACTION_FORWARD};
+      if (!addedAclEntry->getNextHopGroupId().has_value()) {
+        aclActionPacketAction =
+            SaiAclEntryTraits::Attributes::ActionPacketAction{
+                SAI_PACKET_ACTION_FORWARD};
+      }
       break;
   }
 
@@ -2513,9 +2518,14 @@ bool SaiAclTableManager::isQualifierSupported(
           std::get<std::optional<SaiAclTableTraits::Attributes::FieldTc>>(
               attributes));
     case cfg::AclTableQualifier::NEXT_HOP_GROUP_ID:
-      // TODO(zecheng): wire the table-side FieldRouteDestination qualifier (PBR
-      // phase 2).
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      return hasField(
+          std::get<std::optional<
+              SaiAclTableTraits::Attributes::FieldRouteDestination>>(
+              attributes));
+#else
       return false;
+#endif
     case cfg::AclTableQualifier::UDF:
       /* not supported */
       return false;
