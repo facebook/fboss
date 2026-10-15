@@ -1475,9 +1475,11 @@ set(FBOSS_EXPORTED_TARGETS
   # Additional leaf thrift deps reached through the qsfp_state / sensor /
   # service-client portions of the model: transceiver_validation
   # (FirmwarePair/TransceiverAttributes/VendorConfig), sensor_config
-  # (Thresholds), and qsfp (QsfpService client vtable via thrift_service_client).
+  # (Thresholds), reboot_cause_config (RebootCauseRecord), and qsfp
+  # (QsfpService client vtable via thrift_service_client).
   transceiver_validation_cpp2
   sensor_config_cpp2
+  reboot_cause_config_cpp2
   qsfp_cpp2
 )
 
