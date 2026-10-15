@@ -16,13 +16,15 @@ import pathlib
 import tempfile
 import unittest
 
-from fboss.oss.scripts.platform_descriptor_utils import (
+from fboss.oss.scripts.platform_configs_utils import (
+    copy_forwarding_stack_configs,
     copy_platform_descriptors,
+    get_forwarding_stack_config_paths,
     get_platform_descriptor_paths,
 )
 
 
-class PlatformDescriptorUtilsTest(unittest.TestCase):
+class PlatformConfigsUtilsTest(unittest.TestCase):
     def _create_descriptor_dir(
         self, platforms_dir: pathlib.Path, vendor: str, platform: str
     ) -> pathlib.Path:
@@ -104,3 +106,67 @@ class PlatformDescriptorUtilsTest(unittest.TestCase):
 
             with self.assertRaisesRegex(RuntimeError, "platform_mapping.json"):
                 get_platform_descriptor_paths(platforms_dir)
+
+    def _create_forwarding_stack_generated_dir(
+        self, platforms_dir: pathlib.Path, vendor: str, platform: str
+    ) -> pathlib.Path:
+        generated_dir = (
+            platforms_dir / vendor / platform / "forwarding_stack" / "generated"
+        )
+        agent_dir = generated_dir / "agent"
+        agent_dir.mkdir(parents=True)
+        (agent_dir / "default.conf").write_text("default")
+        (agent_dir / "hw_test.conf").write_text("hw_test")
+        return generated_dir
+
+    def test_get_forwarding_stack_config_paths_preserves_source_layout(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            platforms_dir = pathlib.Path(temp_dir) / "platforms"
+            generated_dir = self._create_forwarding_stack_generated_dir(
+                platforms_dir, "accton", "wedge800bact"
+            )
+            platform_without_generated = (
+                platforms_dir / "nexthop" / "m4062nhp" / "forwarding_stack"
+            )
+            platform_without_generated.mkdir(parents=True)
+            (platform_without_generated / "source.conf").write_text("source")
+
+            paths = get_forwarding_stack_config_paths(platforms_dir)
+
+            self.assertEqual(
+                "share/configs/platforms/accton/wedge800bact/"
+                "forwarding_stack/generated/agent/hw_test.conf",
+                paths[generated_dir / "agent/hw_test.conf"],
+            )
+            self.assertEqual(2, len(paths))
+            self.assertNotIn(platform_without_generated / "source.conf", paths)
+
+    def test_copy_forwarding_stack_configs_uses_packaged_layout(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = pathlib.Path(temp_dir)
+            platforms_dir = root / "platforms"
+            self._create_forwarding_stack_generated_dir(
+                platforms_dir, "accton", "wedge800bact"
+            )
+            package_root = root / "package"
+
+            copy_forwarding_stack_configs(platforms_dir, package_root)
+
+            destination = (
+                package_root / "share/configs/platforms/accton/wedge800bact/"
+                "forwarding_stack/generated/agent"
+            )
+            self.assertEqual(
+                {"default.conf", "hw_test.conf"},
+                {path.name for path in destination.iterdir()},
+            )
+
+    def test_forwarding_stack_configs_require_generated_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            platforms_dir = pathlib.Path(temp_dir) / "platforms"
+            platforms_dir.mkdir()
+
+            with self.assertRaisesRegex(
+                RuntimeError, "No generated forwarding stack configs"
+            ):
+                get_forwarding_stack_config_paths(platforms_dir)

@@ -21,6 +21,7 @@ import shutil
 PLATFORM_DESCRIPTOR_ARCHIVE_ROOT = pathlib.PurePosixPath(
     "share/platform_descriptors/platforms"
 )
+PLATFORM_CONFIGS_ARCHIVE_ROOT = pathlib.PurePosixPath("share/configs/platforms")
 
 
 def get_platform_descriptor_paths(
@@ -56,9 +57,36 @@ def get_platform_descriptor_paths(
 def copy_platform_descriptors(
     platform_configs_dir: pathlib.Path, package_root: pathlib.Path
 ) -> None:
-    for source, relative_destination in get_platform_descriptor_paths(
-        platform_configs_dir
-    ).items():
+    _copy_paths(get_platform_descriptor_paths(platform_configs_dir), package_root)
+
+
+def get_forwarding_stack_config_paths(
+    platform_configs_dir: pathlib.Path,
+) -> dict[pathlib.Path, str]:
+    generated_dirs = sorted(platform_configs_dir.glob("*/*/forwarding_stack/generated"))
+    if not generated_dirs:
+        raise RuntimeError(
+            f"No generated forwarding stack configs found under {platform_configs_dir}"
+        )
+
+    paths = {}
+    for generated_dir in generated_dirs:
+        for source in sorted(
+            path for path in generated_dir.rglob("*") if path.is_file()
+        ):
+            relative_path = source.relative_to(platform_configs_dir)
+            paths[source] = str(PLATFORM_CONFIGS_ARCHIVE_ROOT / relative_path)
+    return paths
+
+
+def copy_forwarding_stack_configs(
+    platform_configs_dir: pathlib.Path, package_root: pathlib.Path
+) -> None:
+    _copy_paths(get_forwarding_stack_config_paths(platform_configs_dir), package_root)
+
+
+def _copy_paths(paths: dict[pathlib.Path, str], package_root: pathlib.Path) -> None:
+    for source, relative_destination in paths.items():
         destination = package_root / relative_destination
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, destination)

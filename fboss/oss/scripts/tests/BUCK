@@ -22,11 +22,11 @@ python_unittest(
 )
 
 python_unittest(
-    name = "test_platform_descriptor_utils",
-    srcs = ["test_platform_descriptor_utils.py"],
+    name = "test_platform_configs_utils",
+    srcs = ["test_platform_configs_utils.py"],
     network_access = network_access_utils.none(),
     deps = [
-        "//fboss/oss/scripts:platform_descriptor_utils",
+        "//fboss/oss/scripts:platform_configs_utils",
     ],
 )
 
