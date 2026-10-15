@@ -11,6 +11,9 @@ Shell assignment happens in the manifest execute hook (users exist only
 after the after_pkgs hooks run).
 %install
 cp -a %{_payload}/* %{buildroot}/
+# Build-system shims (BUCK export_files for tests) live next to the scripts
+# they export but must not ship in the RPM: drop them from the buildroot.
+find %{buildroot} -name BUCK -delete
 # Skeleton dirs: empty dirs are not tracked in the repo, so create them here.
 # (%files owns them with %dir; home dirs get numeric ownership via %attr.)
 for m in netops netadmin; do
@@ -55,6 +58,8 @@ for f in /var/lib/machines/netops/etc/passwd \
     /usr/local/bin/netops-shell \
     /usr/local/bin/netadmin-shell \
     /usr/local/bin/role-entry \
+    /usr/local/bin/session-recorder \
+    /usr/local/bin/session-ancestors \
     /etc/sudoers.d/login-containers; do
   [ -s "$f" ] || { echo "login-containers: missing $f" >&2; exit 1; }
 done
@@ -71,6 +76,8 @@ done
 %attr(0755,root,root) /usr/local/bin/netops-shell
 %attr(0755,root,root) /usr/local/bin/netadmin-shell
 %attr(0755,root,root) /usr/local/bin/role-entry
+%attr(0755,root,root) /usr/local/bin/session-recorder
+%attr(0755,root,root) /usr/local/bin/session-ancestors
 %attr(0440,root,root) /etc/sudoers.d/login-containers
 /etc/systemd/nspawn/netops.nspawn
 /etc/systemd/nspawn/netadmin.nspawn
