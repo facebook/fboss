@@ -209,6 +209,7 @@ cpp_library(
         "fbsource//third-party/fmt:fmt",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fib_helpers",
+        "//fboss/agent:hwswitch_matcher",
         "//fboss/agent:switchid_scope_resolver",
         "//fboss/agent/state:nodebase",
         "//folly/logging:logging",
