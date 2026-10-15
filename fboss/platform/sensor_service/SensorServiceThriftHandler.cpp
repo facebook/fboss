@@ -140,7 +140,7 @@ void SensorServiceThriftHandler::getRebootHistory(
     // heuristic for "newest" -- reboot_cause_finder may stamp a record before
     // NTP has corrected the clock. It is good enough to decide which files to
     // read when there are more than the cap; the ordering actually returned is
-    // by detectedAtMs below.
+    // by bootTimeMs below.
     std::sort(paths.begin(), paths.end());
     if (paths.size() > kMaxRecords) {
       *response.skippedCount() +=
@@ -183,13 +183,16 @@ void SensorServiceThriftHandler::getRebootHistory(
       }
     }
 
-    // Newest first. detectedAtMs is the canonical ordering field; filenames are
-    // only a hint and a record with a zero stamp sorts last rather than
-    // breaking the sort.
+    // Newest boot first, like `last reboot`. Ordering by detectedAtMs would
+    // move a boot whose cause was determined late (a manual or redo run) above
+    // later boots. A record with no boot time sorts last.
     std::sort(
         response.records()->begin(),
         response.records()->end(),
         [](const auto& a, const auto& b) {
+          if (*a.bootTimeMs() != *b.bootTimeMs()) {
+            return *a.bootTimeMs() > *b.bootTimeMs();
+          }
           return *a.detectedAtMs() > *b.detectedAtMs();
         });
   } catch (const std::exception& ex) {

@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #include <filesystem>
+#include <optional>
 #include <ranges>
 
 #include <folly/FileUtil.h>
@@ -90,9 +91,13 @@ namespace {
 // Built by concatenation rather than fmt: the JSON braces would have to be
 // doubled to satisfy fmt's compile-time format-string check, which makes the
 // literal unreadable as JSON.
-std::string makeRecord(const std::string& id, int64_t detectedAtMs) {
+std::string makeRecord(
+    const std::string& id,
+    int64_t detectedAtMs,
+    std::optional<int64_t> bootTimeMs = std::nullopt) {
   return std::string("{\n") + "  \"bootId\": \"boot-" + id + "\",\n" +
-      "  \"bootTimeMs\": " + std::to_string(detectedAtMs - 1000) + ",\n" +
+      "  \"bootTimeMs\": " +
+      std::to_string(bootTimeMs.value_or(detectedAtMs - 1000)) + ",\n" +
       "  \"detectedAtMs\": " + std::to_string(detectedAtMs) + ",\n" +
       "  \"detectedAtPacific\": \"2026-10-06 12:48:56 PDT\",\n" +
       "  \"providersAttempted\": []\n}";
@@ -156,8 +161,8 @@ TEST_F(RebootHistoryTest, ReturnsValidRecord) {
   EXPECT_EQ(*response.skippedCount(), 0);
 }
 
-TEST_F(RebootHistoryTest, OrdersNewestFirstByDetectedAtMs) {
-  // Written so filename order disagrees with detectedAtMs order.
+TEST_F(RebootHistoryTest, OrdersNewestFirstByBootTime) {
+  // Written so filename order disagrees with boot order.
   write(path("reboot-cause-a.json"), makeRecord("oldest", 1000));
   write(path("reboot-cause-b.json"), makeRecord("newest", 3000));
   write(path("reboot-cause-c.json"), makeRecord("middle", 2000));
@@ -166,6 +171,32 @@ TEST_F(RebootHistoryTest, OrdersNewestFirstByDetectedAtMs) {
   EXPECT_EQ(*response.records()->at(0).bootId(), "boot-newest");
   EXPECT_EQ(*response.records()->at(1).bootId(), "boot-middle");
   EXPECT_EQ(*response.records()->at(2).bootId(), "boot-oldest");
+}
+
+// A boot whose cause was determined long after it (a manual or redo run) stays
+// in boot order rather than jumping to the top.
+TEST_F(RebootHistoryTest, LateDeterminationKeepsBootOrder) {
+  write(path("reboot-cause-a.json"), makeRecord("older", 9000, 1000));
+  write(path("reboot-cause-b.json"), makeRecord("newer", 3000, 2000));
+  auto response = call();
+  ASSERT_EQ(response.records()->size(), 2);
+  EXPECT_EQ(*response.records()->at(0).bootId(), "boot-newer");
+  EXPECT_EQ(*response.records()->at(1).bootId(), "boot-older");
+}
+
+// bootTimeMs is not optional, so a record written without it deserializes to 0:
+// it is returned, last, rather than failing the call.
+TEST_F(RebootHistoryTest, RecordWithoutBootTimeSortsLast) {
+  write(
+      path("reboot-cause-a.json"),
+      R"({"bootId": "boot-nobtime", "detectedAtMs": 9000})");
+  write(path("reboot-cause-b.json"), makeRecord("dated", 3000, 2000));
+  auto response = call();
+  ASSERT_EQ(response.records()->size(), 2);
+  EXPECT_EQ(*response.skippedCount(), 0);
+  EXPECT_EQ(*response.records()->at(0).bootId(), "boot-dated");
+  EXPECT_EQ(*response.records()->at(1).bootId(), "boot-nobtime");
+  EXPECT_EQ(*response.records()->at(1).bootTimeMs(), 0);
 }
 
 TEST_F(RebootHistoryTest, MalformedRecordIsSkippedAndOthersSurvive) {
