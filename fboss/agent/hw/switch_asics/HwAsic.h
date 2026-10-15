@@ -832,6 +832,11 @@ class HwAsic {
   virtual std::vector<int16_t> getCbfcSenderCreditSizes() const {
     return {};
   }
+  // CBFC sender per-packet overheads, in bytes, that the SAI implementation
+  // accepts. Empty on ASICs without CBFC.
+  virtual std::vector<int16_t> getCbfcSenderPacketOverheads() const {
+    return {};
+  }
   // TODO(zecheng): Define more specific limits for v4/v6 routes with different
   // mask lengths
   virtual std::optional<uint32_t> getMaxRoutes() const {

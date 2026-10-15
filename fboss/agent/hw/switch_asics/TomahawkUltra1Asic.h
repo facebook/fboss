@@ -103,6 +103,9 @@ class TomahawkUltra1Asic : public BroadcomXgsAsic {
   std::vector<int16_t> getCbfcSenderCreditSizes() const override {
     return {32, 56};
   }
+  std::vector<int16_t> getCbfcSenderPacketOverheads() const override {
+    return {0, 16, 32, 48, 64, 80};
+  }
 };
 
 } // namespace facebook::fboss
