@@ -47,6 +47,8 @@
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/ArpTable.h"
+#include "fboss/agent/state/ClassBasedPolicyMap.h"
+#include "fboss/agent/state/ClassBasedPolicyNode.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/FibInfoMap.h"
@@ -855,6 +857,19 @@ void ensureFrrProtectedObjectIsMySid(
       static_cast<int>(protectedObject.getType()));
 }
 
+Policy toThriftPolicy(const std::shared_ptr<ClassBasedPolicyNode>& node) {
+  ClassBasedPolicy cbf;
+  cbf.name() = node->getID();
+  cbf.defaultNexthopGroup() = *node->getDefaultNextHopGroup().name();
+  for (const auto& [fc, named] : node->getClass2NextHopGroup()) {
+    NextHopGroup nhg;
+    nhg.name() = *named.name();
+    cbf.class2NextHopGroup()[fc] = std::move(nhg);
+  }
+  Policy policy;
+  policy.cbfPolicy() = std::move(cbf);
+  return policy;
+}
 } // namespace
 
 namespace facebook::fboss {
@@ -3591,6 +3606,47 @@ void ThriftHandler::deletePolicies(
 
   rib->removePolicies(
       *policyNames, createNextHopIdStateUpdate(sw_, "deletePolicies"));
+}
+
+void ThriftHandler::getAllPolicies(std::vector<Policy>& result) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+  auto state = sw_->getState();
+  std::set<std::string> seen;
+  for (const auto& [_, policyMap] :
+       std::as_const(*state->getClassBasedPolicies())) {
+    for (const auto& [name, node] : std::as_const(*policyMap)) {
+      if (seen.insert(name).second) {
+        result.push_back(toThriftPolicy(node));
+      }
+    }
+  }
+}
+
+void ThriftHandler::getPolicies(
+    std::vector<Policy>& result,
+    std::unique_ptr<std::vector<std::string>> policyNames) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+  auto state = sw_->getState();
+  std::set<std::string> requested(policyNames->begin(), policyNames->end());
+  std::vector<Policy> found;
+  found.reserve(requested.size());
+  for (const auto& name : requested) {
+    std::shared_ptr<ClassBasedPolicyNode> node;
+    for (const auto& [_matcher, policyMap] :
+         std::as_const(*state->getClassBasedPolicies())) {
+      node = policyMap->getPolicyIf(name);
+      if (node) {
+        break;
+      }
+    }
+    if (!node) {
+      throw FbossError("Class-based policy not found: ", name);
+    }
+    found.push_back(toThriftPolicy(node));
+  }
+  result = std::move(found);
 }
 
 namespace {

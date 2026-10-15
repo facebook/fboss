@@ -145,6 +145,10 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void addPolicies(std::unique_ptr<std::vector<Policy>> policies) override;
   void deletePolicies(
       std::unique_ptr<std::vector<std::string>> policyNames) override;
+  void getPolicies(
+      std::vector<Policy>& result,
+      std::unique_ptr<std::vector<std::string>> policyNames) override;
+  void getAllPolicies(std::vector<Policy>& result) override;
 
   SwSwitch* getSw() const {
     return sw_;
