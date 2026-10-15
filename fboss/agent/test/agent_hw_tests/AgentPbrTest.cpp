@@ -132,6 +132,38 @@ class AgentPbrTest : public AgentHwTest {
   std::string kPolicy() const {
     return "pbrPolicy";
   }
+
+  void verifyRedirectAndCounter() {
+    auto state = getProgrammedState();
+    auto aclMap = state->getAclsForTable(
+        cfg::AclStage::INGRESS,
+        cfg::switch_config_constants::DEFAULT_PBR_ACL_TABLE());
+    ASSERT_NE(aclMap, nullptr);
+    int pbrEntries = 0;
+    int entriesWithCounter = 0;
+    std::optional<std::string> counterName;
+    for (const auto& [_, entry] : std::as_const(*aclMap)) {
+      if (entry->getNextHopGroupId().has_value()) {
+        ++pbrEntries;
+        if (auto aclAction = entry->getAclAction()) {
+          auto matchAction = MatchAction::fromThrift(aclAction->toThrift());
+          if (auto trafficCounter = matchAction.getTrafficCounter()) {
+            ++entriesWithCounter;
+            counterName = *trafficCounter->name();
+          }
+        }
+      }
+    }
+    // The fixture programs one policy with one traffic class, so a second
+    // entry means a generation was retired without removing its entry.
+    EXPECT_EQ(pbrEntries, 1);
+
+    if (!isSupportedOnAllAsics(HwAsic::Feature::PBR_ACL)) {
+      return;
+    }
+    EXPECT_EQ(entriesWithCounter, pbrEntries);
+    ASSERT_TRUE(counterName.has_value());
+  }
 };
 
 } // namespace facebook::fboss
