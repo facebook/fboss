@@ -207,6 +207,91 @@ class ConfigQosPolicyMapTest : public Fboss2IntegrationTest {
   }
 };
 
+TEST_F(ConfigQosPolicyMapTest, MplsExpEntryKeying) {
+  XLOG(INFO) << "========================================";
+  XLOG(INFO) << "ConfigQosPolicyMapTest::MplsExpEntryKeying";
+  XLOG(INFO) << "========================================";
+
+  // cfg::ExpQosMap entries live in a list, not a map. Both forms of the
+  // command locate an entry by scanning for a matching internalTrafficClass
+  // and only append a new entry when none is found, so the field acts as the
+  // entry's key rather than as data. This test pins that keying: repeated
+  // commands naming one traffic class must land in a single entry, and
+  // distinct traffic classes must get distinct entries.
+  constexpr int16_t kTcA = 5;
+  constexpr int16_t kTcB = 6;
+
+  XLOG(INFO) << "[Step 1] Issuing several commands against TC " << kTcA;
+  // Three commands, two directions, all naming TC 5 -- one entry expected.
+  configureMap("mpls-exp", 0, "traffic-class", kTcA);
+  configureMap("mpls-exp", 2, "traffic-class", kTcA);
+  configureMap("traffic-class", kTcA, "mpls-exp", 4);
+
+  XLOG(INFO) << "[Step 2] Issuing one command against TC " << kTcB;
+  configureMap("mpls-exp", 1, "traffic-class", kTcB);
+
+  XLOG(INFO) << "[Step 3] Committing config...";
+  commitConfig();
+
+  XLOG(INFO) << "[Step 4] Verifying entry keying in running config...";
+  auto config = getRunningConfig();
+  const auto* policy = findQosPolicy(config, testPolicyName_);
+  ASSERT_NE(policy, nullptr)
+      << "Test policy '" << testPolicyName_ << "' not found in running config"
+      << " -- was the config committed?";
+  ASSERT_TRUE(policy->count("qosMap")) << "qosMap not found in test policy";
+  const auto& qosMap = (*policy)["qosMap"];
+  ASSERT_TRUE(qosMap.count("expMaps")) << "expMaps not found in qosMap";
+  const auto& expMaps = qosMap["expMaps"];
+  ASSERT_TRUE(expMaps.isArray()) << "expMaps is not an array";
+
+  auto countEntriesForTc = [&expMaps](int16_t trafficClass) {
+    size_t count = 0;
+    for (const auto& e : expMaps) {
+      if (e.isObject() && e.count("internalTrafficClass") &&
+          e["internalTrafficClass"].asInt() == trafficClass) {
+        ++count;
+      }
+    }
+    return count;
+  };
+
+  // Two traffic classes were named, so exactly two entries must exist --
+  // four commands must not produce four entries.
+  EXPECT_EQ(countEntriesForTc(kTcA), 1)
+      << "Expected exactly one expMap entry keyed by TC " << kTcA;
+  EXPECT_EQ(countEntriesForTc(kTcB), 1)
+      << "Expected exactly one expMap entry keyed by TC " << kTcB;
+  EXPECT_EQ(expMaps.size(), 2)
+      << "Expected exactly two expMap entries, one per traffic class named";
+
+  // The single TC 5 entry must carry the accumulated state of all three of
+  // its commands, proving they were merged into one entry rather than
+  // shadowing each other.
+  const folly::dynamic* entryA = nullptr;
+  for (const auto& e : expMaps) {
+    if (e.isObject() && e.count("internalTrafficClass") &&
+        e["internalTrafficClass"].asInt() == kTcA) {
+      entryA = &e;
+      break;
+    }
+  }
+  ASSERT_NE(entryA, nullptr) << "No expMap entry keyed by TC " << kTcA;
+  ASSERT_TRUE(entryA->count("fromExpToTrafficClass"))
+      << "fromExpToTrafficClass missing for TC " << kTcA;
+  const auto& ingressA = (*entryA)["fromExpToTrafficClass"];
+  ASSERT_TRUE(ingressA.isArray());
+  EXPECT_EQ(ingressA.size(), 2)
+      << "Both ingress commands for TC " << kTcA << " must share one entry";
+  ASSERT_TRUE(entryA->count("fromTrafficClassToExp"))
+      << "fromTrafficClassToExp missing for TC " << kTcA
+      << " -- the egress command must have reused the existing entry";
+  EXPECT_EQ((*entryA)["fromTrafficClassToExp"].asInt(), 4);
+  XLOG(INFO) << "  Entry keying verified";
+
+  XLOG(INFO) << "TEST PASSED";
+}
+
 TEST_F(ConfigQosPolicyMapTest, CreateSamplePolicy) {
   XLOG(INFO) << "========================================";
   XLOG(INFO) << "ConfigQosPolicyMapTest::CreateSamplePolicy";
