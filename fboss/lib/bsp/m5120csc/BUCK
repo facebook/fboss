@@ -1,0 +1,17 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_optics_phy")
+
+cpp_library(
+    name = "m5120csc_bsp",
+    srcs = [
+        "M5120cscBspPlatformMapping.cpp",
+    ],
+    headers = [
+        "M5120cscBspPlatformMapping.h",
+    ],
+    exported_deps = [
+        "//fboss/lib/bsp:bsp_platform_mapping_lib",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
