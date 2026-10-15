@@ -1345,6 +1345,27 @@ TEST_F(DetermineRebootCauseTest, RedoCurrentBootReplacesTheRecord) {
   EXPECT_THAT(contents, testing::HasSubstr("detectedAtMs"));
 }
 
+// The filename stamp is the boot time, not the time of the run, so a record
+// determined long after its boot still sorts with that boot.
+TEST_F(DetermineRebootCauseTest, RecordIsNamedByBootTime) {
+  const std::time_t btime = btime_ - 86400;
+  ASSERT_TRUE(
+      folly::writeFile(
+          fmt::format("cpu 1 2 3\nbtime {}\n", btime), procStat_.c_str()));
+
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+
+  std::tm tm{};
+  localtime_r(&btime, &tm);
+  char stamp[32];
+  std::strftime(stamp, sizeof(stamp), "%Y-%m-%d-%H-%M-%S", &tm);
+  EXPECT_EQ(
+      std::filesystem::path(singleRecordPath()).filename().string(),
+      fmt::format(
+          "reboot-cause-{}-11111111-2222-3333-4444-555555555555.json", stamp));
+}
+
 // A redo that cannot clear the way for itself must stop. Writing a second
 // record for one boot would leave two answers and no way to tell which is
 // current, which is worse than refusing to redo.

@@ -1265,14 +1265,16 @@ bool RebootCauseFinderImpl::persistResult(
     return false;
   }
 
-  // The boot id suffix is what recordExistsForBoot() matches on; the stamp is
-  // only there to keep the directory readable.
+  // The boot id suffix is what recordExistsForBoot() matches on. The stamp is
+  // the boot time, so the directory lists boots in boot order; it falls back
+  // to now only when btime could not be read.
+  const auto stampTime = *record.bootTimeMs() > 0
+      ? static_cast<std::time_t>(*record.bootTimeMs() / 1000)
+      : std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
   auto filePath = fmt::format(
       "{}/reboot-cause-{}{}",
       paths_.historyDir,
-      filenameStamp(
-          std::chrono::system_clock::to_time_t(
-              std::chrono::system_clock::now())),
+      filenameStamp(stampTime),
       recordFilenameSuffix(*record.bootId()));
 
   auto json = folly::parseJson(
