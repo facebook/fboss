@@ -47,8 +47,7 @@ def _setup_qsfp_service(
         )
     if bsp_platform_mapping_override_path:
         service_utils.validate_path(
-            bsp_platform_mapping_override_path,
-            "bsp_platform_mapping override path",
+            bsp_platform_mapping_override_path, "bsp_platform_mapping override path"
         )
         extra_args += f" {_BSP_PLATFORM_MAPPING_OVERRIDE_PATH_ARG} {bsp_platform_mapping_override_path}"
 
