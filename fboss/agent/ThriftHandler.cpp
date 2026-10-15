@@ -3557,6 +3557,42 @@ void ThriftHandler::deleteNamedNextHopGroups(
   });
 }
 
+void ThriftHandler::addPolicies(std::unique_ptr<std::vector<Policy>> policies) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+
+  auto* rib = sw_->getRib();
+  if (!rib) {
+    throw FbossError("RIB not initialized");
+  }
+
+  std::vector<ClassBasedPolicy> classBasedPolicies;
+  classBasedPolicies.reserve(policies->size());
+  for (auto& policy : *policies) {
+    if (policy.getType() != Policy::Type::cbfPolicy) {
+      throw FbossError("Only class-based (cbf) policies are supported");
+    }
+    classBasedPolicies.push_back(std::move(*policy.cbfPolicy()));
+  }
+
+  rib->addOrUpdatePolicies(
+      classBasedPolicies, createNextHopIdStateUpdate(sw_, "addPolicies"));
+}
+
+void ThriftHandler::deletePolicies(
+    std::unique_ptr<std::vector<std::string>> policyNames) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+
+  auto* rib = sw_->getRib();
+  if (!rib) {
+    throw FbossError("RIB not initialized");
+  }
+
+  rib->removePolicies(
+      *policyNames, createNextHopIdStateUpdate(sw_, "deletePolicies"));
+}
+
 namespace {
 
 struct NhgFibContext {
