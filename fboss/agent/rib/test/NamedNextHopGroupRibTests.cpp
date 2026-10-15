@@ -23,6 +23,7 @@
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/rib/ClassBasedPolicyUpdater.h"
 #include "fboss/agent/rib/FibUpdateHelpers.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
@@ -1054,8 +1055,9 @@ class NormalizedNamedNhgIdTest : public ::testing::Test {
 
   std::function<void(const NextHopIDManager*)> nextHopIdStateUpdate() {
     return [this](const NextHopIDManager* nextHopIDManager) {
-      SwitchStateNextHopIdUpdater updater(nextHopIDManager);
-      switchState_ = updater(switchState_);
+      SwitchStateNextHopIdUpdater nhopUpdater(nextHopIDManager);
+      ClassBasedPolicyUpdater policyUpdater(nextHopIDManager);
+      switchState_ = policyUpdater(nhopUpdater(switchState_));
       switchState_->publish();
     };
   }

@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/rib/ClassBasedPolicyUpdater.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/MySidMapUpdater.h"
 #include "fboss/agent/rib/RouteUpdater.h"
@@ -60,6 +61,7 @@ class RibToSwitchStateUpdater {
   ForwardingInformationBaseUpdater fibUpdater_;
   MySidMapUpdater mySidUpdater_;
   SwitchStateNextHopIdUpdater nhopStateUpdater_;
+  ClassBasedPolicyUpdater classBasedPolicyUpdater_;
   std::optional<StateDelta> lastDelta_;
 };
 

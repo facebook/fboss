@@ -120,6 +120,37 @@ std::map<std::string, PolicyDelta> computePolicyDeltas(
   }
   return deltas;
 }
+
+std::shared_ptr<SwitchState> applyPolicyDeltas(
+    const std::shared_ptr<SwitchState>& state,
+    const std::map<std::string, PolicyDelta>& deltas) {
+  auto newMap = state->getClassBasedPolicies()->clone();
+  for (const auto& [matcher, delta] : deltas) {
+    HwSwitchMatcher hwMatcher(matcher);
+    auto existing = newMap->getMapNodeIf(hwMatcher);
+    auto policyMap =
+        existing ? existing->clone() : std::make_shared<ClassBasedPolicyMap>();
+    for (const auto& policy : delta.toUpdate) {
+      if (policyMap->getPolicyIf(policy->getID())) {
+        policyMap->updateNode(policy);
+      } else {
+        policyMap->addPolicy(policy);
+      }
+    }
+    for (const auto& name : delta.toDel) {
+      policyMap->removePolicy(name);
+    }
+    if (existing) {
+      newMap->updateMapNode(policyMap, hwMatcher);
+    } else {
+      newMap->addMapNode(policyMap, hwMatcher);
+    }
+  }
+  auto nextState = state;
+  SwitchState::modify(&nextState);
+  nextState->resetClassBasedPolicies(newMap);
+  return nextState;
+}
 } // namespace
 
 ClassBasedPolicyUpdater::ClassBasedPolicyUpdater(
@@ -132,7 +163,10 @@ std::shared_ptr<SwitchState> ClassBasedPolicyUpdater::operator()(
     return state;
   }
   auto deltas = computePolicyDeltas(*nextHopIDManager_, state);
-  return state;
+  if (deltas.empty()) {
+    return state;
+  }
+  return applyPolicyDeltas(state, deltas);
 }
 
 } // namespace facebook::fboss
