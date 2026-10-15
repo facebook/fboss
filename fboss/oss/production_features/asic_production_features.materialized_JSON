@@ -209,8 +209,7 @@
         102,
         104,
         112,
-        113,
-        135
+        113
     ],
     "jericho3": [
         2,
@@ -806,8 +805,7 @@
         113,
         49,
         111,
-        134,
-        135
+        134
     ]
   },
   "asicToFeatureNames": {
@@ -1020,8 +1018,7 @@
         "SRV6_DECAP",
         "SRV6_MIDPOINT",
         "PORT_DEBOUNCE",
-        "SRV6_BINDING_SID",
-        "PBR_ACL"
+        "SRV6_BINDING_SID"
     ],
     "jericho3": [
         "CPU_RX_TX",
@@ -1617,8 +1614,7 @@
         "SRV6_BINDING_SID",
         "MIRROR_ON_DROP",
         "MIRROR_ON_DROP_STATELESS",
-        "MIRROR_ON_DROP_AGGREGATE_RATE_LIMIT",
-        "PBR_ACL"
+        "MIRROR_ON_DROP_AGGREGATE_RATE_LIMIT"
     ]
   },
   "featureSupportSpecs": [
