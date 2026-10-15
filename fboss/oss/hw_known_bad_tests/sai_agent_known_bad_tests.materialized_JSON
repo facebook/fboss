@@ -449,6 +449,9 @@
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/2$"
         },
         {
+          "test_name_regex": "AgentPacketFloodTest.ArpRequestFloodTest$"
+        },
+        {
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
@@ -18121,6 +18124,9 @@
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/2$"
         },
         {
+          "test_name_regex": "AgentPacketFloodTest.ArpRequestFloodTest$"
+        },
+        {
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
         },
         {
@@ -23533,6 +23539,12 @@
         },
         {
           "test_name_regex": "AgentQueuePerHostTest.VerifyTtldCounter$"
+        },
+        {
+          "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
