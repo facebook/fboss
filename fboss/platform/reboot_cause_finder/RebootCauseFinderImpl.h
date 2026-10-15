@@ -116,6 +116,7 @@ class RebootCauseFinderImpl {
     std::string historyDir;
     std::string procStat;
     std::string bootId;
+    std::string osRelease;
     std::vector<std::string> crashDirs;
     std::vector<std::string> logPaths;
   };

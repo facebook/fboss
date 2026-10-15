@@ -66,6 +66,7 @@ namespace {
 constexpr auto kHistoryDir =
     reboot_cause_config::reboot_cause_config_constants::REBOOT_HISTORY_DIR();
 constexpr auto kProcBootIdPath = "/proc/sys/kernel/random/boot_id";
+constexpr auto kProcOsReleasePath = "/proc/sys/kernel/osrelease";
 
 // These three come from the kernel, systemd and the crash dump tooling,
 // and are the same on
@@ -152,6 +153,16 @@ constexpr auto kX86ResetPattern = R"(Power reset x86 \(userver\) .*\.\.\.)";
 std::string readBootId(const std::string& bootIdPath) {
   std::string contents;
   if (!folly::readFile(bootIdPath.c_str(), contents)) {
+    return {};
+  }
+  return folly::trimWhitespace(contents).str();
+}
+
+// The binary runs in the boot it records, so the running kernel is that
+// boot's kernel. Empty when unreadable; the record is still worth writing.
+std::string readKernelRelease(const std::string& osReleasePath) {
+  std::string contents;
+  if (!folly::readFile(osReleasePath.c_str(), contents)) {
     return {};
   }
   return folly::trimWhitespace(contents).str();
@@ -1034,6 +1045,7 @@ RebootCauseFinderImpl::Paths RebootCauseFinderImpl::defaultPaths() {
       kHistoryDir,
       kProcStatPath,
       kProcBootIdPath,
+      kProcOsReleasePath,
       detail::kernelPanicCrashDirs(),
       detail::x86RebootCommandLogPaths()};
 }
@@ -1226,6 +1238,7 @@ void RebootCauseFinderImpl::determineRebootCause() {
   }
   record.bootId() = bootId;
   record.bootTimeMs() = bootTimeMs;
+  record.kernelRelease() = readKernelRelease(paths_.osRelease);
   record.providersAttempted() = attempts;
 
   // Writing the record is what arms the guard, so it has to succeed before
