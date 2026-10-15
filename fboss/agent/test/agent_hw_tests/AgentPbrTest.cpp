@@ -103,6 +103,35 @@ class AgentPbrTest : public AgentHwTest {
     ThriftHandler handler(getSw());
     handler.addOrUpdateNamedNextHopGroups(std::move(nhgs));
   }
+
+  NextHopGroup makeLinkLocalNhgGroup(
+      const std::string& name,
+      const std::vector<PortDescriptor>& ports) const {
+    NextHopGroup group;
+    group.name() = name;
+    group.nexthops() = {};
+    auto helper = ecmpHelper();
+    for (const auto& port : ports) {
+      auto ecmpNhop = helper.nhop(port);
+      CHECK(ecmpNhop.linkLocalNhopIp.has_value());
+      NextHop nh = ResolvedNextHop(
+          folly::IPAddress(*ecmpNhop.linkLocalNhopIp),
+          ecmpNhop.intf,
+          ECMP_WEIGHT);
+      group.nexthops()->push_back(nh.toThrift());
+    }
+    return group;
+  }
+
+  std::string kDefaultNhg() const {
+    return "pbrDefaultNhg";
+  }
+  std::string kClassNhg() const {
+    return "pbrClassNhg";
+  }
+  std::string kPolicy() const {
+    return "pbrPolicy";
+  }
 };
 
 } // namespace facebook::fboss
