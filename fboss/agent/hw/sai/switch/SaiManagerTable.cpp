@@ -165,6 +165,28 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   // resets are placed after NeighborManager reset
   neighborManager_.reset();
   fdbManager_.reset();
+  // Mirroring and port has a circular dependency. Monitor port
+  // is an attribute of mirror and mirror oid is an attribute of
+  // Port. The right sequence here is to reset mirror first
+  // which will set all port mirror oids to NULL OID followed by
+  // removing all mirror sessions. Ports no longer has any
+  // dependency with mirror and can be removed. ~SaiMirrorHandle also stops
+  // mirroring on ACLs, so reset it before the ACL managers below.
+  mirrorManager_.reset();
+  // ~SaiMacsecManager removes its ACL entries, so it too goes before them.
+  macsecManager_.reset();
+  // PBR ACL entries reference next-hop-group handles, so the ACL managers go
+  // before the NHG managers. Unbind the table group from the switch first, or
+  // its removal fails with OBJECT IN USE.
+  if (!skipSwitchManager) {
+    switchManager_->resetIngressAcl();
+    switchManager_->resetEgressAcl();
+  }
+  // A port bound to an ACL table holds a reference to it, so unbind before
+  // the tables below are removed.
+  portManager_->resetIngressAcl();
+  aclTableGroupManager_.reset();
+  aclTableManager_.reset();
   nextHopGroupManager_.reset();
   nextHopManager_.reset();
   routerInterfaceManager_.reset();
@@ -174,14 +196,6 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   vlanManager_.reset();
   counterManager_.reset();
   debugCounterManager_.reset();
-  // Mirroring and port has a circular dependency. Monitor port
-  // is an attribute of mirror and mirror oid is an attribute of
-  // Port. The right sequence here is to reset mirror first
-  // which will set all port mirror oids to NULL OID followed by
-  // removing all mirror sessions. Ports no longer has any
-  // dependency with mirror and can be removed.
-  mirrorManager_.reset();
-  macsecManager_.reset();
   systemPortManager_->resetQueues();
   // Reset the qos maps on system port before ports are
   // removed from the system.
@@ -200,21 +214,6 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   switchManager_->resetQosMaps();
   samplePacketManager_.reset();
   myMacManager_.reset();
-
-  // ACL Table Group is going away, reset ingressACL pointing to it
-  if (!skipSwitchManager) {
-    switchManager_->resetIngressAcl();
-    switchManager_->resetEgressAcl();
-  }
-  // A port bound to an ACL table holds a reference to it, so unbind before
-  // the tables below are removed.
-  portManager_->resetIngressAcl();
-
-  // Reset ACL Table group before Acl Table, since ACL Table group members
-  // refer to ACL Table and those references to ACL Table must be released
-  // before attempting to reset (remove) ACL Table.
-  aclTableGroupManager_.reset();
-  aclTableManager_.reset();
 
   if (!skipSwitchManager) {
     switchManager_->resetArsProfile();
