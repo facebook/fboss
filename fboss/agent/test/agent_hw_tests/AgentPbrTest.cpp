@@ -34,6 +34,10 @@ DECLARE_bool(enable_nexthop_id_manager);
 
 namespace facebook::fboss {
 
+namespace {
+constexpr uint8_t kDscp = 10;
+} // namespace
+
 class AgentPbrTest : public AgentHwTest {
  public:
   std::vector<ProductionFeature> getProductionFeaturesVerified()
@@ -45,6 +49,27 @@ class AgentPbrTest : public AgentHwTest {
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
     FLAGS_enable_nexthop_id_manager = true;
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
+        true /*interfaceHasSubnet*/);
+    utility::addAclTable(
+        &cfg,
+        cfg::switch_config_constants::DEFAULT_PBR_ACL_TABLE(),
+        1 /*priority*/,
+        {cfg::AclTableActionType::COUNTER, cfg::AclTableActionType::REDIRECT},
+        {cfg::AclTableQualifier::TC,
+         cfg::AclTableQualifier::NEXT_HOP_GROUP_ID});
+    utility::addQosMapsHelper(
+        cfg,
+        {{1 /*TC==CLASS_1*/, {kDscp}}},
+        "pbrQos",
+        ensemble.getSw()->getHwAsicTable()->getL3Asics());
+    return cfg;
   }
 
   utility::EcmpSetupTargetedPorts6 ecmpHelper() const {
