@@ -2334,6 +2334,12 @@ struct CbfcConfig {
   // and the closest analogue of the ingress buffer pool shared by every PG.
   // Optional: the SDK treats an unset limit as no port ceiling configured.
   2: optional i64 senderCreditLimit;
+  // Bytes per credit the sender charges (SAI_PORT_ATTR_CBFC_SENDER_CREDIT_SIZE).
+  // Must match the peer's receiver, or the two ends count different credits for
+  // the same packet and the link stalls. Unset: the local receiver's value. On
+  // TU1 the receiver's credit size is hardcoded in the SDK and is not SAI
+  // writable.
+  3: optional i16 senderCreditSize;
 }
 
 // Defines PG (priority group) configuration for ports
