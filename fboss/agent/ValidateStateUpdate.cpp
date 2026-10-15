@@ -16,6 +16,8 @@
 #include "fboss/agent/state/SwitchSettings.h"
 #include "fboss/agent/state/SwitchState.h"
 
+#include <folly/ScopeGuard.h>
+
 using facebook::fboss::DeltaFunctions::forEachChanged;
 using std::shared_ptr;
 
@@ -487,6 +489,19 @@ bool StateUpdateValidator::isValidUpdateMultiSwitch(
     const StateDelta& delta) const {
   return isStateUpdateValidMultiSwitch(
       delta, scopeResolver_, asicTable_->getHwAsics());
+}
+
+bool StateUpdateValidator::isValidUpdateDryRun(
+    const StateDelta& delta,
+    SwitchStats* stats) {
+  auto resourceAccountant =
+      std::make_unique<ResourceAccountant>(*resourceAccountant_);
+  auto intfDeltaValidator = intfDeltaValidator_;
+  SCOPE_EXIT {
+    resourceAccountant_ = std::move(resourceAccountant);
+    intfDeltaValidator_ = std::move(intfDeltaValidator);
+  };
+  return isValidUpdate(delta, stats);
 }
 
 void StateUpdateValidator::stateChanged(const StateDelta& delta) {

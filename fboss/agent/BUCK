@@ -2620,6 +2620,7 @@ cpp_library(
         ":hw_switch_handler",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/state:nodebase",
+        "//folly:scope_guard",
     ],
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
