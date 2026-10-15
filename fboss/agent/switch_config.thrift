@@ -2340,6 +2340,9 @@ struct CbfcConfig {
   // TU1 the receiver's credit size is hardcoded in the SDK and is not SAI
   // writable.
   3: optional i16 senderCreditSize;
+  // Per-packet overhead in bytes the sender charges
+  // (SAI_PORT_ATTR_CBFC_SENDER_PACKET_OVERHEAD). Same rules as senderCreditSize.
+  4: optional i16 senderPacketOverhead;
 }
 
 // Defines PG (priority group) configuration for ports

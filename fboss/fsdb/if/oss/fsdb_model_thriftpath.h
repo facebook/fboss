@@ -5583,6 +5583,7 @@ class ChildThriftPath<::facebook::fboss::cfg::CbfcConfig, ::facebook::fboss::fsd
     STRUCT_CHILD_GETTERS(virtualChannels, 1);
     STRUCT_CHILD_GETTERS(senderCreditLimit, 2);
     STRUCT_CHILD_GETTERS(senderCreditSize, 3);
+    STRUCT_CHILD_GETTERS(senderPacketOverhead, 4);
 };
 
 
