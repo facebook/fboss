@@ -470,6 +470,21 @@ install() {
   # Install the hook script to run BEFORE mounting (pre-mount priority 00)
   # $moddir resolves to the directory where this script sits
   inst_hook pre-mount 00 "$moddir/fix-nvme.sh"
+
+  # Raw disk partition LBAs use the device's logical sector size. KIWI checks
+  # the physical size instead, rejecting 512e NVMe drives after fix-nvme.sh
+  # successfully switches them to 512-byte LBAs.
+  local kiwi_dump_hook="$initdir/lib/dracut/hooks/pre-mount/30-kiwi-dump-image.sh"
+  if [ -f "$kiwi_dump_hook" ]; then
+    if grep -q 'queue/physical_block_size' "$kiwi_dump_hook"; then
+      sed -i \
+        's|queue/physical_block_size|queue/logical_block_size|' \
+        "$kiwi_dump_hook"
+    elif ! grep -q 'queue/logical_block_size' "$kiwi_dump_hook"; then
+      dfatal "NVMe-Fix: KIWI target block-size check has an unknown form"
+      return 1
+    fi
+  fi
 }
 EOF
 
