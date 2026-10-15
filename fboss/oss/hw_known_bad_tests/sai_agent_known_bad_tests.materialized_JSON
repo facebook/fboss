@@ -25119,6 +25119,9 @@
           "test_name_regex": "AgentMPLSTest/[01].MplsMatchPktsNottrapped$"
         },
         {
+          "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
