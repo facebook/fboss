@@ -288,6 +288,7 @@ cpp_library(
         "AgentOverflowTestBase.cpp",
         "AgentPacketSendTests.cpp",
         "AgentPacketStreamHandlerTests.cpp",
+        "AgentPbrTest.cpp",
         "AgentPfcConfigTest.cpp",
         "AgentPfcTests.cpp",
         "AgentPortBandWidthTests.cpp",
