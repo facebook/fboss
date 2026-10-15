@@ -253,6 +253,9 @@ class FakeAsic : public HwAsic {
   std::optional<uint32_t> getArsBaseIndex() const override {
     return std::nullopt;
   }
+  std::vector<int16_t> getCbfcSenderCreditSizes() const override {
+    return {32, 56};
+  }
 };
 
 /**
