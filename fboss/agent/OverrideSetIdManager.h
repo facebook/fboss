@@ -3,9 +3,11 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 #include <unordered_map>
 
 #include "fboss/agent/rib/NextHopIDManager.h"
+#include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
@@ -26,6 +28,10 @@ class OverrideSetIdManager {
 
   // Frees `id`. Returns false if it was not allocated.
   bool deallocOverrideSetId(NextHopSetID id);
+
+  // Rebuilds both maps from FibInfo's override id map, e.g. on warm boot.
+  void reconstructFromSwitchStateMap(
+      const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap);
 
   const std::unordered_map<NextHopIDSet, NextHopSetID>& getMembersToId() const {
     return membersToId_;

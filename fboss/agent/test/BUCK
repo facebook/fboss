@@ -1236,6 +1236,7 @@ cpp_unittest(
     deps = [
         "//fboss/agent:fboss-error",
         "//fboss/agent:override_set_id_manager",
+        "//fboss/agent/state:state",
     ],
 )
 

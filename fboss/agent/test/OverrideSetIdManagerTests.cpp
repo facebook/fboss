@@ -4,6 +4,8 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/OverrideSetIdManager.h"
+#include "fboss/agent/state/FibInfo.h"
+#include "fboss/agent/state/FibInfoMap.h"
 
 namespace facebook::fboss {
 
@@ -14,6 +16,21 @@ NextHopIDSet idSet(std::initializer_list<int64_t> ids) {
     out.insert(NextHopID(id));
   }
   return out;
+}
+
+std::shared_ptr<MultiSwitchFibInfoMap> fibsInfoWithOverrides(
+    const std::map<int64_t, std::set<int64_t>>& overrides) {
+  auto overrideMap = std::make_shared<IdToNextHopIdSetMap>();
+  for (const auto& [id, members] : overrides) {
+    overrideMap->addNextHopIdSet(id, members);
+  }
+  auto fibsInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
+  for (const auto& switchId : {"id=0", "id=1"}) {
+    auto fibInfo = std::make_shared<FibInfo>();
+    fibInfo->setOverrideIdToNextHopIdSetMap(overrideMap);
+    fibsInfoMap->addNode(switchId, fibInfo);
+  }
+  return fibsInfoMap;
 }
 } // namespace
 
@@ -83,6 +100,34 @@ TEST_F(OverrideSetIdManagerTest, deallocOverrideSetId) {
   EXPECT_TRUE(mgr_.deallocOverrideSetId(aAgain));
   EXPECT_TRUE(mgr_.getIdToMembers().empty());
   EXPECT_TRUE(mgr_.getMembersToId().empty());
+}
+
+TEST_F(OverrideSetIdManagerTest, reconstructFromSwitchStateMap) {
+  auto start = nextHopIdTypeStart(NextHopIdType::OVERRIDE_SET);
+  mgr_.getOrAllocate(idSet({42}));
+
+  mgr_.reconstructFromSwitchStateMap(
+      fibsInfoWithOverrides({{start + 5, {1, 2}}, {start + 2, {7}}}));
+  EXPECT_EQ(mgr_.getIdToMembers().size(), 2);
+  EXPECT_EQ(mgr_.getMembersToId().size(), 2);
+  EXPECT_FALSE(mgr_.getMembersToId().contains(idSet({42})));
+  EXPECT_EQ(mgr_.getIdToMembers().at(NextHopSetID(start + 2)), idSet({7}));
+  EXPECT_EQ(mgr_.getOrAllocate(idSet({1, 2}))->second, NextHopSetID(start + 5));
+  EXPECT_EQ(mgr_.getOrAllocate(idSet({3}))->second, NextHopSetID(start + 6));
+
+  EXPECT_DEATH(
+      mgr_.reconstructFromSwitchStateMap(
+          fibsInfoWithOverrides({{start - 1, {9}}})),
+      "Not an override");
+  EXPECT_DEATH(
+      mgr_.reconstructFromSwitchStateMap(
+          fibsInfoWithOverrides({{start + 1, {9}}, {start + 2, {9}}})),
+      "Members shared");
+
+  mgr_.reconstructFromSwitchStateMap(fibsInfoWithOverrides({}));
+  EXPECT_TRUE(mgr_.getIdToMembers().empty());
+  EXPECT_TRUE(mgr_.getMembersToId().empty());
+  EXPECT_EQ(mgr_.getOrAllocate(idSet({1, 2}))->second, NextHopSetID(start));
 }
 
 } // namespace facebook::fboss
