@@ -76,6 +76,33 @@ class AgentPbrTest : public AgentHwTest {
     return utility::EcmpSetupTargetedPorts6(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
   }
+
+  RouteNextHopSet makeNamedNhgSet(
+      const std::vector<PortDescriptor>& ports) const {
+    auto helper = ecmpHelper();
+    RouteNextHopSet nhops;
+    for (const auto& port : ports) {
+      nhops.insert(UnresolvedNextHop(
+          folly::IPAddress(helper.nhop(port).ip), ECMP_WEIGHT));
+    }
+    return nhops;
+  }
+
+  void addOrUpdateNamedNhgs(
+      const std::vector<std::pair<std::string, RouteNextHopSet>>& groups) {
+    auto nhgs = std::make_unique<std::vector<NextHopGroup>>();
+    for (const auto& [name, nhops] : groups) {
+      NextHopGroup group;
+      group.name() = name;
+      group.nexthops() = {};
+      for (const auto& nhop : nhops) {
+        group.nexthops()->push_back(nhop.toThrift());
+      }
+      nhgs->push_back(std::move(group));
+    }
+    ThriftHandler handler(getSw());
+    handler.addOrUpdateNamedNextHopGroups(std::move(nhgs));
+  }
 };
 
 } // namespace facebook::fboss
