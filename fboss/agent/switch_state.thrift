@@ -617,6 +617,7 @@ struct RouteNextHopEntry {
   9: optional i64 resolvedNextHopSetID;
   10: optional string namedNextHopGroup;
   11: optional i64 clientNextHopSetID;
+  12: optional i64 overrideNextHopSetID;
 }
 
 struct RouteNextHopsMulti {

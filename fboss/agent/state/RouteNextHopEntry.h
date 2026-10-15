@@ -52,7 +52,8 @@ class RouteNextHopEntry
       std::optional<NextHopSet> overrideNextHops = std::nullopt,
       std::optional<NextHopSetID> normalizedResolvedNextHopSetID = std::nullopt,
       std::optional<NextHopSetID> resolvedNextHopSetID = std::nullopt,
-      std::optional<NextHopSetID> clientNextHopSetID = std::nullopt);
+      std::optional<NextHopSetID> clientNextHopSetID = std::nullopt,
+      std::optional<NextHopSetID> overrideNextHopSetID = std::nullopt);
   RouteNextHopEntry(
       NextHopSet nhopSet,
       AdminDistance distance,
@@ -63,7 +64,8 @@ class RouteNextHopEntry
       std::optional<NextHopSet> overrideNextHops = std::nullopt,
       std::optional<NextHopSetID> normalizedResolvedNextHopSetID = std::nullopt,
       std::optional<NextHopSetID> resolvedNextHopSetID = std::nullopt,
-      std::optional<NextHopSetID> clientNextHopSetID = std::nullopt);
+      std::optional<NextHopSetID> clientNextHopSetID = std::nullopt,
+      std::optional<NextHopSetID> overrideNextHopSetID = std::nullopt);
 
   RouteNextHopEntry(
       NextHop nhop,
@@ -75,7 +77,8 @@ class RouteNextHopEntry
       std::optional<NextHopSet> overrideNextHops = std::nullopt,
       std::optional<NextHopSetID> normalizedResolvedNextHopSetID = std::nullopt,
       std::optional<NextHopSetID> resolvedNextHopSetID = std::nullopt,
-      std::optional<NextHopSetID> clientNextHopSetID = std::nullopt);
+      std::optional<NextHopSetID> clientNextHopSetID = std::nullopt,
+      std::optional<NextHopSetID> overrideNextHopSetID = std::nullopt);
 
   RouteNextHopEntry(RouteNextHopEntry&& other) noexcept {
     this->fromThrift(other.toThrift());
@@ -153,6 +156,22 @@ class RouteNextHopEntry
           static_cast<int64_t>(*nhopSetID);
     } else {
       ref<switch_state_tags::clientNextHopSetID>().reset();
+    }
+  }
+
+  const std::optional<NextHopSetID> getOverrideNextHopSetID() const {
+    if (auto nhopSetID = safe_cref<switch_state_tags::overrideNextHopSetID>()) {
+      return NextHopSetID(nhopSetID->cref());
+    }
+    return std::nullopt;
+  }
+
+  void setOverrideNextHopSetID(const std::optional<NextHopSetID>& nhopSetID) {
+    if (nhopSetID) {
+      ref<switch_state_tags::overrideNextHopSetID>() =
+          static_cast<int64_t>(*nhopSetID);
+    } else {
+      ref<switch_state_tags::overrideNextHopSetID>().reset();
     }
   }
 
@@ -284,7 +303,8 @@ class RouteNextHopEntry
       const std::optional<NextHopSet>& overridNextHops,
       const std::optional<NextHopSetID>& normalizedResolvedNextHopSetID,
       const std::optional<NextHopSetID>& resolvedNextHopSetID,
-      const std::optional<NextHopSetID>& clientNextHopSetID);
+      const std::optional<NextHopSetID>& clientNextHopSetID,
+      const std::optional<NextHopSetID>& overrideNextHopSetID);
   static void normalize(
       std::vector<NextHopWeight>& scaledWeights,
       NextHopWeight totalWeight,

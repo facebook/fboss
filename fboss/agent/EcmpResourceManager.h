@@ -110,6 +110,8 @@ class EcmpResourceManager {
     // mergedGroupInfo is set when the merged nhops get
     // used as part of a merged group
     std::shared_ptr<NextHopGroupInfo> mergedGroupInfo;
+    // Gives an ID to mergedNhops; unset until the merge is in use.
+    std::optional<NextHopSetID> overrideSetId;
   };
   ConsolidationInfo computeConsolidationInfo(
       const NextHopGroupIds& grpIds) const;
