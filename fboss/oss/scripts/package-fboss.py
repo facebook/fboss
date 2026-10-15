@@ -417,9 +417,9 @@ class PackageFboss:
 
     def _sdk_sibling_libs(self, dependencies: set[str]) -> set[str]:
         """
-        Shared libraries shipped beside a dynamically linked libsai_impl.so. An
-        NPU SDK may dlopen these (for example per-device libraries), so ldd does
-        not report them.
+        Shared libraries shipped beside a dynamically linked libsai_impl.so, plus
+        their own dependencies. An NPU SDK may dlopen these (for example
+        per-device libraries), so ldd on the binaries reports neither.
         """
         siblings = set()
         for lib in dependencies:
@@ -436,6 +436,8 @@ class PackageFboss:
                 ):
                     siblings.add(path)
         self.dependencies |= siblings
+        for sibling in list(siblings):
+            siblings |= self._get_dependency_paths(sibling)
         return siblings
 
     def _get_dependency_paths(self, path_to_binary: str) -> {str}:
