@@ -1171,6 +1171,11 @@ SaiAclEntryTraits::Attributes::AttributeFieldRouteDestination::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiAclTableTraits::Attributes::AttributeFieldRouteDestination::operator()() {
+  return SAI_ACL_TABLE_ATTR_FIELD_ROUTE_DST;
+}
+
+std::optional<sai_attr_id_t>
 SaiArsTraits::Attributes::AttributeNextHopGroupType::operator()() {
   return SAI_ARS_ATTR_EXTENSION_NEXT_HOP_GROUP_TYPE;
 }

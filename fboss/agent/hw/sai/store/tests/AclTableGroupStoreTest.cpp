@@ -82,6 +82,9 @@ class AclTableGroupStoreTest : public SaiStoreTest {
             2, // udf group 2
             3, // udf group 3
             4, // udf group 4
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+            true, // route destination
+#endif
             true, // port meta
         },
         0);

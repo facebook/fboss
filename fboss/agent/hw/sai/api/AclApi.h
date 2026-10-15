@@ -271,6 +271,13 @@ struct SaiAclTableTraits {
         sai_object_id_t,
         SaiObjectIdDefault>;
 #endif
+    struct AttributeFieldRouteDestination {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using FieldRouteDestination = SaiExtensionAttribute<
+        bool,
+        AttributeFieldRouteDestination,
+        SaiBoolDefaultFalse>;
   };
 
   using AdapterKey = AclTableSaiId;
@@ -325,6 +332,10 @@ struct SaiAclTableTraits {
       std::optional<Attributes::UserDefinedFieldGroupMin2>,
       std::optional<Attributes::UserDefinedFieldGroupMin3>,
       std::optional<Attributes::UserDefinedFieldGroupMin4>
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      ,
+      std::optional<Attributes::FieldRouteDestination>
 #endif
       ,
       std::optional<Attributes::FieldPortUserMeta>>;
@@ -383,6 +394,9 @@ SAI_ATTRIBUTE_NAME(AclTable, UserDefinedFieldGroupMin1);
 SAI_ATTRIBUTE_NAME(AclTable, UserDefinedFieldGroupMin2);
 SAI_ATTRIBUTE_NAME(AclTable, UserDefinedFieldGroupMin3);
 SAI_ATTRIBUTE_NAME(AclTable, UserDefinedFieldGroupMin4);
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+SAI_ATTRIBUTE_NAME(AclTable, FieldRouteDestination);
 #endif
 
 struct SaiAclEntryTraits {

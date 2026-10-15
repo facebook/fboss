@@ -183,6 +183,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(AclEntry, ActionL3SwitchCancel);
 #endif
   SAI_EXT_ATTR_MAP(AclEntry, FieldRouteDestination);
+  SAI_EXT_ATTR_MAP(AclTable, FieldRouteDestination);
 }
 
 } // namespace

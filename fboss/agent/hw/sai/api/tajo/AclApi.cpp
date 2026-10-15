@@ -28,4 +28,13 @@ SaiAclEntryTraits::Attributes::AttributeFieldRouteDestination::operator()() {
 #endif
 }
 
+std::optional<sai_attr_id_t>
+SaiAclTableTraits::Attributes::AttributeFieldRouteDestination::operator()() {
+#if defined(TAJO_SDK_GTE_26_5)
+  return SAI_ACL_TABLE_ATTR_FIELD_ROUTE_DST;
+#else
+  return std::nullopt;
+#endif
+}
+
 } // namespace facebook::fboss

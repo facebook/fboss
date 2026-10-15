@@ -468,6 +468,9 @@ class AclApiTest : public ::testing::Test {
             kUserDefinedFieldGroup2(), // udf group 2
             kUserDefinedFieldGroup3(), // udf group 3
             kUserDefinedFieldGroup4(), // udf group 4
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+            true, // route destination
+#endif
             true, // port meta
         },
         kSwitchID());
