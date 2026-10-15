@@ -254,6 +254,7 @@ add_library(ecmp_resource_manager
 
 target_link_libraries(ecmp_resource_manager
   fib_helpers
+  override_set_id_manager
   ref_map
   state
   stats

@@ -947,6 +947,7 @@ cpp_library(
     ],
     exported_deps = [
         ":fboss-types",
+        ":override_set_id_manager",
         ":switch_config-cpp2-types",
         "//fboss/agent/state:state",
         "//fboss/lib:ref_map",

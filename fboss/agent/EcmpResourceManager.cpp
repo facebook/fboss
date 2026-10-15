@@ -1472,6 +1472,7 @@ std::vector<StateDelta> EcmpResourceManager::reconstructFromSwitchState(
   prefixToGroupInfo_.clear();
   nextHopGroupIdToInfo_.clear();
   candidateMergeGroups_.clear();
+  overrideSetIdMgr_.reconstructFromSwitchStateMap(curState->getFibsInfoMap());
   /*
    * Restore state from previous input state. To do this we simply
    * replay the state in consolidate. Input state has a guarantee
