@@ -29,7 +29,7 @@
 
 DEFINE_int32(
     bmc_logfile_poll_timeout_s,
-    300,
+    180,
     "How long to keep retrying the BMC logfile endpoint before giving up.");
 
 DEFINE_bool(
