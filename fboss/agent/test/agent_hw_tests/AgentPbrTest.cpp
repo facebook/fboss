@@ -32,4 +32,25 @@
 
 DECLARE_bool(enable_nexthop_id_manager);
 
-namespace facebook::fboss {} // namespace facebook::fboss
+namespace facebook::fboss {
+
+class AgentPbrTest : public AgentHwTest {
+ public:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::PBR_ACL};
+  }
+
+ protected:
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    FLAGS_enable_nexthop_id_manager = true;
+  }
+
+  utility::EcmpSetupTargetedPorts6 ecmpHelper() const {
+    return utility::EcmpSetupTargetedPorts6(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+  }
+};
+
+} // namespace facebook::fboss
