@@ -218,5 +218,7 @@ class ResourceAccountant {
   FRIEND_TEST(ResourceAccountantTest, checkAndUpdateRouteCounterResource);
   FRIEND_TEST(ResourceAccountantTest, routeCounterResourceExceeded);
   FRIEND_TEST(MacTableManagerTest, MacLearnedBulkCb);
+  FRIEND_TEST(StaticMacConfigTest, ApplyConfigAccountsStaticMacsOnce);
+  FRIEND_TEST(StaticMacConfigTest, IsValidStateUpdateDryRun);
 };
 } // namespace facebook::fboss
