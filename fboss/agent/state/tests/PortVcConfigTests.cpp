@@ -69,6 +69,7 @@ TEST(PortVcConfig, ConfigApplied) {
   EXPECT_EQ(port->getCbfcConfigName(), "cbfc_foo");
   EXPECT_EQ(port->getCbfcSenderCreditLimit(), 8192);
   EXPECT_FALSE(port->getCbfcSenderCreditSize().has_value());
+  EXPECT_FALSE(port->getCbfcSenderPacketOverhead().has_value());
 
   auto vcs = port->getVirtualChannels();
   ASSERT_TRUE(vcs);
@@ -329,6 +330,7 @@ TEST(PortVcConfig, RemovalClearsState) {
   auto stateV0 = make_shared<SwitchState>();
   auto cbfcConfig = makeCbfcConfig();
   cbfcConfig.senderCreditSize() = 56;
+  cbfcConfig.senderPacketOverhead() = 16;
   auto config = makeConfigWithCbfc(cbfcConfig);
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
@@ -350,6 +352,7 @@ TEST(PortVcConfig, RemovalClearsState) {
   EXPECT_FALSE(port->getCbfcConfigName().has_value());
   EXPECT_FALSE(port->getCbfcSenderCreditLimit().has_value());
   EXPECT_FALSE(port->getCbfcSenderCreditSize().has_value());
+  EXPECT_FALSE(port->getCbfcSenderPacketOverhead().has_value());
   EXPECT_FALSE(port->getVirtualChannels());
 }
 
@@ -426,6 +429,28 @@ TEST(PortVcConfig, SenderPacketOverheadApplied) {
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
+  auto port = stateV1->getPorts()->getNodeIf(PortID(1));
+  ASSERT_NE(nullptr, port);
+  EXPECT_EQ(port->getCbfcSenderPacketOverhead(), 16);
+}
+
+TEST(PortVcConfig, SenderPacketOverheadChangeApplied) {
+  auto cbfcConfig = makeCbfcConfig();
+  cbfcConfig.senderPacketOverhead() = 0;
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  auto config = makeConfigWithCbfc(cbfcConfig);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+
+  cbfcConfig.senderPacketOverhead() = 16;
+  config.cbfcConfigs() = {{"cbfc_foo", cbfcConfig}};
+
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  ASSERT_NE(nullptr, stateV2);
+  EXPECT_EQ(
+      stateV2->getPorts()->getNodeIf(PortID(1))->getCbfcSenderPacketOverhead(),
+      16);
 }
 
 TEST(PortVcConfig, UnsupportedSenderPacketOverhead) {
