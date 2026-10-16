@@ -107,6 +107,9 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::ECN:
     case HwAsic::Feature::SAI_ECN_WRED:
     case HwAsic::Feature::QUEUE_ECN_COUNTER:
+    case HwAsic::Feature::SAI_MPLS_INSEGMENT:
+    case HwAsic::Feature::MPLS:
+    case HwAsic::Feature::MPLS_ECMP:
       return true;
     // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
@@ -164,7 +167,6 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
     case HwAsic::Feature::EXTENDED_FEC:
     case HwAsic::Feature::SAI_RX_REASON_COUNTER:
-    case HwAsic::Feature::SAI_MPLS_INSEGMENT:
     case HwAsic::Feature::XPHY_PORT_STATE_TOGGLE:
     case HwAsic::Feature::SAI_PORT_GET_PMD_LANES:
     case HwAsic::Feature::SAI_PORT_VCO_CHANGE:
@@ -188,8 +190,6 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::ECMP_DLB_OFFSET:
     case HwAsic::Feature::SPAN:
     case HwAsic::Feature::SFLOWv4:
-    case HwAsic::Feature::MPLS:
-    case HwAsic::Feature::MPLS_ECMP:
     case HwAsic::Feature::RX_SNR:
     case HwAsic::Feature::FEC_CORRECTED_BITS:
     case HwAsic::Feature::ROUTE_COUNTERS:
