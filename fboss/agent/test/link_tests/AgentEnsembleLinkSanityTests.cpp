@@ -24,6 +24,7 @@ using namespace ::testing;
 using namespace facebook::fboss;
 
 namespace {
+constexpr auto kMaxEcmpWidthPerSwitchId = 512;
 bool isEqual(
     const TransceiverIdxThrift& left,
     const TransceiverIdxThrift& right) {
@@ -84,6 +85,9 @@ class AgentEnsembleLinkSanityTestDataPlaneFlood : public AgentEnsembleLinkTest {
 
   void setCmdLineFlagOverrides() const override {
     AgentEnsembleLinkTest::setCmdLineFlagOverrides();
+    // Default ecmp_width (64) is narrower than the cabled port count per NPU,
+    // which would cap the programmed group below what verify() expects.
+    FLAGS_ecmp_width = kMaxEcmpWidthPerSwitchId;
     FLAGS_enable_lldp = false;
     FLAGS_tun_intf = false;
     FLAGS_update_watermark_stats_interval_s = 0;
@@ -201,14 +205,20 @@ TEST_F(AgentEnsembleLinkSanityTestDataPlaneFlood, warmbootIsHitLess) {
   // Create a L3 data plane flood and then assert that none of the
   // traffic bearing ports loss traffic.
   // TODO: Assert that all (non downlink) cabled ports get traffic.
+  const auto switchIdUnderTest = SwitchID(FLAGS_switch_id_for_testing);
   verifyAcrossWarmBoots(
-      [this]() { createL3DataplaneFlood(); },
-      [this]() {
+      [this, switchIdUnderTest]() {
+        createL3DataplaneFlood(
+            getSingleVlanOrRoutedCabledPorts(switchIdUnderTest));
+      },
+      [this, switchIdUnderTest]() {
         // Assert no traffic loss and no ecmp shrink. If ports flap
         // these conditions will not be true
         assertNoInDiscards();
-        auto ecmpSizeInSw = getSingleVlanOrRoutedCabledPorts().size();
-        auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
+        auto ecmpSizeInSw =
+            getSingleVlanOrRoutedCabledPorts(switchIdUnderTest).size();
+        auto client =
+            getAgentEnsemble()->getHwAgentTestClient(switchIdUnderTest);
         facebook::fboss::utility::CIDRNetwork cidr;
         cidr.IPAddress() = "::";
         cidr.mask() = 0;
@@ -229,9 +239,11 @@ TEST_F(AgentEnsembleLinkSanityTestDataPlaneFlood, qsfpWarmbootIsHitLess) {
   addTestedPorts(getCabledPorts());
   // Create a L3 data plane flood and then warmboot qsfp_service. Then assert
   // that none of the traffic bearing ports loss traffic.
+  const auto switchIdUnderTest = SwitchID(FLAGS_switch_id_for_testing);
   verifyAcrossWarmBoots(
-      [this]() {
-        createL3DataplaneFlood();
+      [this, switchIdUnderTest]() {
+        createL3DataplaneFlood(
+            getSingleVlanOrRoutedCabledPorts(switchIdUnderTest));
         utility::restartQsfpService(false /* coldboot */);
         // Wait for all transceivers to converge to Active state
         EXPECT_NO_THROW(
@@ -243,12 +255,14 @@ TEST_F(AgentEnsembleLinkSanityTestDataPlaneFlood, qsfpWarmbootIsHitLess) {
         EXPECT_NO_THROW(waitForPortStateMachineState(
             true, 60 /* retries */, 5s /* retry interval */));
       },
-      [this]() {
+      [this, switchIdUnderTest]() {
         // Assert no traffic loss and no ecmp shrink. If ports flap
         // these conditions will not be true
         assertNoInDiscards();
-        auto ecmpSizeInSw = getSingleVlanOrRoutedCabledPorts().size();
-        auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
+        auto ecmpSizeInSw =
+            getSingleVlanOrRoutedCabledPorts(switchIdUnderTest).size();
+        auto client =
+            getAgentEnsemble()->getHwAgentTestClient(switchIdUnderTest);
         facebook::fboss::utility::CIDRNetwork cidr;
         cidr.IPAddress() = "::";
         cidr.mask() = 0;
