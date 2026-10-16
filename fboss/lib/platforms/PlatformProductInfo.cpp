@@ -232,7 +232,8 @@ void PlatformProductInfo::initMode() {
     } else if (
         modelName.find("Icecube800banw") == 0 ||
         modelName.find("ICECUBE800BANW") == 0 ||
-        modelName.find("ASY-92647-101") == 0) {
+        modelName.find("ASY-92647-101") == 0 ||
+        modelName.find("EFT-7060XE7-64PRS-RV3-L") == 0) {
       type_ = PlatformType::PLATFORM_ICECUBE800BANW;
     } else if (modelName.find("J4Sim") == 0 || modelName.find("J4SIM") == 0) {
       type_ = PlatformType::PLATFORM_J4SIM;
