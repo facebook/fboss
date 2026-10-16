@@ -8,6 +8,7 @@
 
 #include "fboss/platform/bsp_tests/BspTest.h"
 #include "fboss/platform/bsp_tests/utils/CdevUtils.h"
+#include "fboss/platform/helpers/DeviceNameUtils.h"
 
 namespace facebook::fboss::platform::bsp_tests {
 
@@ -58,8 +59,10 @@ TEST_F(XcvrTest, XcvrNames) {
         continue;
       }
 
-      ASSERT_EQ(*auxDevice.id()->deviceName(), "xcvr_ctrl")
-          << "XCVR controller name should be 'xcvr_ctrl'";
+      const auto& xcvrDeviceName = *auxDevice.id()->deviceName();
+      ASSERT_TRUE(isDeviceName(xcvrDeviceName, "xcvr_ctrl"))
+          << "XCVR controller name should be xcvr_ctrl with an optional vendor prefix, got "
+          << xcvrDeviceName;
     }
   }
 }

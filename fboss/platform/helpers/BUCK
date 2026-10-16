@@ -97,6 +97,11 @@ cpp_library(
 )
 
 cpp_library(
+    name = "device_name_utils",
+    headers = ["DeviceNameUtils.h"],
+)
+
+cpp_library(
     name = "platform_fs_utils",
     srcs = [
         "PlatformFsUtils.cpp",
