@@ -3125,6 +3125,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   // disabled.
   std::optional<std::vector<state::PortVcFields>> virtualChannels;
   std::optional<int64_t> cbfcSenderCreditLimit;
+  std::optional<int16_t> cbfcSenderCreditSize;
   std::optional<std::string> newCbfcConfigName;
   if (auto cbfcConfigName = portConf->cbfcConfigName()) {
     newCbfcConfigName = *cbfcConfigName;
@@ -3251,6 +3252,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     if (auto size = it->second.senderCreditSize()) {
       checkSupported(
           "senderCreditSize", *size, asic->getCbfcSenderCreditSizes());
+      cbfcSenderCreditSize = *size;
     }
     if (auto overhead = it->second.senderPacketOverhead()) {
       checkSupported(
@@ -3521,6 +3523,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       newFabricLinkMonSwitchId == orig->getPortSwitchId() &&
       newCbfcConfigName == orig->getCbfcConfigName() &&
       cbfcSenderCreditLimit == orig->getCbfcSenderCreditLimit() &&
+      cbfcSenderCreditSize == orig->getCbfcSenderCreditSize() &&
       virtualChannelsUnchanged && interfaceIDsUnchanged) {
     return nullptr;
   }
@@ -3570,6 +3573,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->setVirtualChannels(virtualChannels);
   newPort->setCbfcConfigName(newCbfcConfigName);
   newPort->setCbfcSenderCreditLimit(cbfcSenderCreditLimit);
+  newPort->setCbfcSenderCreditSize(cbfcSenderCreditSize);
   newPort->setProfileConfig(*newProfileConfigRef);
   newPort->resetPinConfigs(newPinConfigs);
   newPort->setSerdesCustomCollection(newSerdesCustomCollection);

@@ -5803,6 +5803,7 @@ class ChildThriftPath<::facebook::fboss::state::PortFields, ::facebook::fboss::f
     STRUCT_CHILD_GETTERS(virtualChannels, 77);
     STRUCT_CHILD_GETTERS(cbfcSenderCreditLimit, 78);
     STRUCT_CHILD_GETTERS(isolationGroup, 79);
+    STRUCT_CHILD_GETTERS(cbfcSenderCreditSize, 80);
 };
 
 

@@ -212,6 +212,7 @@ struct PortFields {
   // membership does not change the port, and is handled off the isolation
   // group map delta instead.
   79: optional string isolationGroup;
+  80: optional i16 cbfcSenderCreditSize;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields

@@ -407,6 +407,21 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     set<switch_state_tags::cbfcSenderCreditLimit>(limit.value());
   }
 
+  std::optional<int16_t> getCbfcSenderCreditSize() const {
+    if (auto size = cref<switch_state_tags::cbfcSenderCreditSize>()) {
+      return size->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setCbfcSenderCreditSize(const std::optional<int16_t>& size) {
+    if (!size) {
+      ref<switch_state_tags::cbfcSenderCreditSize>().reset();
+      return;
+    }
+    set<switch_state_tags::cbfcSenderCreditSize>(size.value());
+  }
+
   VlanID getIngressVlan() const {
     return VlanID(cref<switch_config_tags::ingressVlan>()->cref());
   }
