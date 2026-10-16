@@ -3228,6 +3228,30 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       }
       cbfcSenderCreditLimit = *limit;
     }
+    auto checkSupported = [&](const char* field,
+                              int16_t value,
+                              const std::vector<int16_t>& supported) {
+      if (std::find(supported.begin(), supported.end(), value) ==
+          supported.end()) {
+        throw FbossError(
+            "Port ",
+            orig->getID(),
+            " cbfc config ",
+            *cbfcConfigName,
+            ": ",
+            field,
+            " ",
+            value,
+            " is not supported by ",
+            asic->getAsicTypeStr(),
+            ", supported: ",
+            folly::join(", ", supported));
+      }
+    };
+    if (auto size = it->second.senderCreditSize()) {
+      checkSupported(
+          "senderCreditSize", *size, asic->getCbfcSenderCreditSizes());
+    }
     virtualChannels = std::move(configuredVcs);
   }
 
