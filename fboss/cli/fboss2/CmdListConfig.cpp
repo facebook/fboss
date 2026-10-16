@@ -46,6 +46,7 @@
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/as-path-list/CmdConfigProtocolBgpPolicyAsPathList.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/community-list/CmdConfigProtocolBgpPolicyCommunityList.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/prefix-list/CmdConfigProtocolBgpPolicyPrefixList.h"
+#include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/prefix-list/entry/CmdConfigProtocolBgpPolicyPrefixListEntry.h"
 #include "fboss/cli/fboss2/commands/config/protocol/static/CmdConfigProtocolStatic.h"
 #include "fboss/cli/fboss2/commands/config/protocol/static/route/add/CmdConfigProtocolStaticRouteAdd.h"
 #include "fboss/cli/fboss2/commands/config/ptp/CmdConfigPtp.h"
@@ -457,6 +458,18 @@ const CommandTree& kConfigCommandTree() {
                                    CmdConfigProtocolBgpPolicyPrefixList>,
                                argRegistrar<
                                    CmdConfigProtocolBgpPolicyPrefixListTraits>,
+                               {{
+                                   "prefix",
+                                   "Configure a prefix-list entry: "
+                                   "<prefix/len> [<attribute> <value> ...] "
+                                   "(communities, description, match-logic, "
+                                   "max-allowed-subnet-count, "
+                                   "prefix-len-range, regex)",
+                                   commandHandler<
+                                       CmdConfigProtocolBgpPolicyPrefixListEntry>,
+                                   argRegistrar<
+                                       CmdConfigProtocolBgpPolicyPrefixListEntryTraits>,
+                               }},
                            }},
                       },
                   },
@@ -824,7 +837,8 @@ const CommandTree& kConfigCommandTree() {
                      },
                      {
                          "prefix-list",
-                         "Delete a BGP prefix-list: <name>",
+                         "Delete a BGP prefix-list, or one of its "
+                         "entries: <name> [prefix <prefix/len>]",
                          commandHandler<CmdDeleteProtocolBgpPolicyPrefixList>,
                          argRegistrar<
                              CmdDeleteProtocolBgpPolicyPrefixListTraits>,
