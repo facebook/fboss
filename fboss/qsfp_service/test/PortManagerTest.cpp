@@ -578,7 +578,7 @@ TEST_F(PortManagerTest, getInterfacePhyInfo) {
   std::map<std::string, phy::PhyInfo> phyInfos;
   // Test a valid interface
   portManager_->getInterfacePhyInfo(phyInfos, "eth1/1/1");
-  EXPECT_TRUE(phyInfos.find("eth1/1/1") != phyInfos.end());
+  EXPECT_TRUE(phyInfos.contains("eth1/1/1"));
   // Simulate an exception from xphyInfo and confirm that the map doesn't
   // include that interface's key
   EXPECT_CALL(*portManager_, getXphyInfo(PortID(9)))
@@ -587,7 +587,7 @@ TEST_F(PortManagerTest, getInterfacePhyInfo) {
   portManager_->getInterfacePhyInfo(phyInfos, "eth1/2/1");
   EXPECT_EQ(phyInfos.size(), 1);
   // We still expect the previous interface to exist in the map
-  EXPECT_TRUE(phyInfos.find("eth1/1/1") != phyInfos.end());
+  EXPECT_TRUE(phyInfos.contains("eth1/1/1"));
 
   // Test an invalid interface
   EXPECT_THROW(
@@ -1029,11 +1029,11 @@ TEST_F(PortManagerTest, getPortStates) {
   EXPECT_NO_THROW(portManager_->getPortStates(states, std::move(portIds)));
 
   // Verify that valid ports are in the map
-  EXPECT_TRUE(states.find(1) != states.end());
-  EXPECT_TRUE(states.find(3) != states.end());
+  EXPECT_TRUE(states.contains(1));
+  EXPECT_TRUE(states.contains(3));
 
   // Verify that invalid port is NOT in the map (it was caught and skipped)
-  EXPECT_TRUE(states.find(999) == states.end());
+  EXPECT_TRUE(!states.contains(999));
 
   // Verify we got the expected number of entries (only valid ports)
   EXPECT_EQ(states.size(), 2);
@@ -1336,7 +1336,7 @@ TEST_F(PortManagerTest, getMultiTransceiverPortProfileIDs) {
       portManager_->getMultiTransceiverPortProfileIDs(tcvrId_, multiPortInput);
 
   EXPECT_EQ(result1.size(), 1);
-  EXPECT_TRUE(result1.find(tcvrId_) != result1.end());
+  EXPECT_TRUE(result1.contains(tcvrId_));
   EXPECT_EQ(result1[tcvrId_].size(), 2);
   EXPECT_EQ(result1[tcvrId_][1], multiPortProfile_);
   EXPECT_EQ(result1[tcvrId_][3], multiPortProfile_);
@@ -1350,7 +1350,7 @@ TEST_F(PortManagerTest, getMultiTransceiverPortProfileIDs) {
       portManager_->getMultiTransceiverPortProfileIDs(tcvrId_, singlePortInput);
 
   EXPECT_EQ(result2.size(), 1);
-  EXPECT_TRUE(result2.find(tcvrId_) != result2.end());
+  EXPECT_TRUE(result2.contains(tcvrId_));
   EXPECT_EQ(result2[tcvrId_].size(), 1);
   EXPECT_EQ(result2[tcvrId_][1], multiPortProfile_);
 
@@ -1365,8 +1365,8 @@ TEST_F(PortManagerTest, getMultiTransceiverPortProfileIDs) {
 
   // Should split into two transceivers with per-transceiver profiles
   EXPECT_EQ(result3.size(), 2);
-  EXPECT_TRUE(result3.find(TransceiverID(0)) != result3.end());
-  EXPECT_TRUE(result3.find(TransceiverID(1)) != result3.end());
+  EXPECT_TRUE(result3.contains(TransceiverID(0)));
+  EXPECT_TRUE(result3.contains(TransceiverID(1)));
 
   // Each transceiver should have one port mapped to the per-transceiver
   // profile
@@ -1388,7 +1388,7 @@ TEST_F(PortManagerTest, getMultiTransceiverPortProfileIDs) {
       tcvrId_, singleTcvrProfileInput);
 
   EXPECT_EQ(result4.size(), 1);
-  EXPECT_TRUE(result4.find(tcvrId_) != result4.end());
+  EXPECT_TRUE(result4.contains(tcvrId_));
   EXPECT_EQ(result4[tcvrId_].size(), 1);
   EXPECT_EQ(
       result4[tcvrId_][1],
