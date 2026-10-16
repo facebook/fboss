@@ -3126,6 +3126,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   std::optional<std::vector<state::PortVcFields>> virtualChannels;
   std::optional<int64_t> cbfcSenderCreditLimit;
   std::optional<int16_t> cbfcSenderCreditSize;
+  std::optional<int16_t> cbfcSenderPacketOverhead;
   std::optional<std::string> newCbfcConfigName;
   if (auto cbfcConfigName = portConf->cbfcConfigName()) {
     newCbfcConfigName = *cbfcConfigName;
@@ -3259,6 +3260,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
           "senderPacketOverhead",
           *overhead,
           asic->getCbfcSenderPacketOverheads());
+      cbfcSenderPacketOverhead = *overhead;
     }
     virtualChannels = std::move(configuredVcs);
   }
@@ -3524,6 +3526,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       newCbfcConfigName == orig->getCbfcConfigName() &&
       cbfcSenderCreditLimit == orig->getCbfcSenderCreditLimit() &&
       cbfcSenderCreditSize == orig->getCbfcSenderCreditSize() &&
+      cbfcSenderPacketOverhead == orig->getCbfcSenderPacketOverhead() &&
       virtualChannelsUnchanged && interfaceIDsUnchanged) {
     return nullptr;
   }
@@ -3574,6 +3577,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->setCbfcConfigName(newCbfcConfigName);
   newPort->setCbfcSenderCreditLimit(cbfcSenderCreditLimit);
   newPort->setCbfcSenderCreditSize(cbfcSenderCreditSize);
+  newPort->setCbfcSenderPacketOverhead(cbfcSenderPacketOverhead);
   newPort->setProfileConfig(*newProfileConfigRef);
   newPort->resetPinConfigs(newPinConfigs);
   newPort->setSerdesCustomCollection(newSerdesCustomCollection);

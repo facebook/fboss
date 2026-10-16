@@ -422,6 +422,21 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     set<switch_state_tags::cbfcSenderCreditSize>(size.value());
   }
 
+  std::optional<int16_t> getCbfcSenderPacketOverhead() const {
+    if (auto overhead = cref<switch_state_tags::cbfcSenderPacketOverhead>()) {
+      return overhead->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setCbfcSenderPacketOverhead(const std::optional<int16_t>& overhead) {
+    if (!overhead) {
+      ref<switch_state_tags::cbfcSenderPacketOverhead>().reset();
+      return;
+    }
+    set<switch_state_tags::cbfcSenderPacketOverhead>(overhead.value());
+  }
+
   VlanID getIngressVlan() const {
     return VlanID(cref<switch_config_tags::ingressVlan>()->cref());
   }
