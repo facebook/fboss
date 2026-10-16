@@ -61,7 +61,7 @@ struct CmdConfigProtocolBgpPolicyPrefixListTraits : public WriteCommandTraits {
   using ParentCmd = CmdConfigProtocolBgpPolicy;
   static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
     // No positionals_at_end() here: CLI11 must stay free to classify the
-    // `entry` token as this command's subcommand rather than swallowing it
+    // `prefix` token as this command's subcommand rather than swallowing it
     // into args. See CmdConfigProtocolBgpPolicyAsPathListTraits.
     cmd.add_option("args", args, "<name> [<attribute> <value> ...]");
   }
