@@ -124,6 +124,7 @@ typedef enum _sai_switch_extensions_attr_t {
   SAI_SWITCH_ATTR_SDK_DUMP_SUPPRESSED_COUNT,
   SAI_SWITCH_ATTR_EXT_PACKET_DROP_TYPE_INGRESS_LIST,
   SAI_SWITCH_ATTR_EXT_PACKET_DROP_TYPE_EGRESS_LIST,
+  SAI_SWITCH_ATTR_ACL_DROP_SNOOP_DISABLED,
 } sai_switch_extensions_attr_t;
 
 typedef enum _sai_tam_event_extensions_attr_t {

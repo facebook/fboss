@@ -1116,6 +1116,11 @@ SaiSwitchTraits::Attributes::AttributePortCl72RetryEnable::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeAclDropSnoopDisabled::operator()() {
+  return SAI_SWITCH_ATTR_ACL_DROP_SNOOP_DISABLED;
+}
+
+std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributePacketDropTypeIngressList::operator()() {
   return SAI_SWITCH_ATTR_EXT_PACKET_DROP_TYPE_INGRESS_LIST;
 }

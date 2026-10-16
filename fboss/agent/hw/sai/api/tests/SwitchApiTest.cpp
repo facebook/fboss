@@ -759,6 +759,21 @@ TEST_F(SwitchApiTest, testPortCl72RetryEnable) {
       false);
 }
 
+TEST_F(SwitchApiTest, testAclDropSnoopDisabled) {
+  EXPECT_FALSE(switchApi->getAttribute(
+      switchId, SaiSwitchTraits::Attributes::AclDropSnoopDisabled{}));
+
+  switchApi->setAttribute(
+      switchId, SaiSwitchTraits::Attributes::AclDropSnoopDisabled{true});
+  EXPECT_TRUE(switchApi->getAttribute(
+      switchId, SaiSwitchTraits::Attributes::AclDropSnoopDisabled{}));
+
+  switchApi->setAttribute(
+      switchId, SaiSwitchTraits::Attributes::AclDropSnoopDisabled{false});
+  EXPECT_FALSE(switchApi->getAttribute(
+      switchId, SaiSwitchTraits::Attributes::AclDropSnoopDisabled{}));
+}
+
 TEST_F(SwitchApiTest, getPacketDropTypeIngressList) {
   const std::vector<sai_int32_t> dropTypes{1, 7, 42};
   fs->switchManager.get(switchId).setPacketDropTypeIngressList(dropTypes);
