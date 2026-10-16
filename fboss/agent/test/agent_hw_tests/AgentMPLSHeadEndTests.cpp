@@ -114,6 +114,10 @@ class AgentMPLSHeadEndTest : public AgentMPLSDataplaneTest<PortType> {
 
   MplsTrapPacketMechanism trapPacketMechanism() const {
     auto asic = checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
+    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_P200) {
+      // P200 NSIM: use MPLS TTL-expiry trap instead of ingress src-port ACL.
+      return MplsTrapPacketMechanism::TtlExpiry;
+    }
     return asic->isSupported(HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER)
         ? MplsTrapPacketMechanism::SrcPortAcl
         : MplsTrapPacketMechanism::TtlExpiry;
