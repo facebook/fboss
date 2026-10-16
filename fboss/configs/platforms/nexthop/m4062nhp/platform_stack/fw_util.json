@@ -4,7 +4,8 @@
       "version": {
         "versionType": "sysfs",
         "path": "/sys/devices/virtual/dmi/id/bios_version"
-      }
+      },
+      "priority": 1
     },
     "SCM_IOB": {
       "version": {
@@ -18,14 +19,42 @@
         "versionType": "sysfs",
         "path": "/run/devmap/inforoms/SMB0_IOB_INFO_ROM/fw_ver"
       },
-      "priority": 2
+      "priority": 3
     },
     "SMB1_IOB": {
       "version": {
         "versionType": "sysfs",
         "path": "/run/devmap/inforoms/SMB1_IOB_INFO_ROM/fw_ver"
       },
-      "priority": 2
+      "priority": 4
+    },
+    "PSU1": {
+      "version": {
+        "versionType": "sysfs",
+        "path": "/run/devmap/sensors/PSU_PRESENT/psu1_fw_version"
+      },
+      "priority": 5
+    },
+    "PSU2": {
+      "version": {
+        "versionType": "sysfs",
+        "path": "/run/devmap/sensors/PSU_PRESENT/psu2_fw_version"
+      },
+      "priority": 6
+    },
+    "PSU3": {
+      "version": {
+        "versionType": "sysfs",
+        "path": "/run/devmap/sensors/PSU_PRESENT/psu3_fw_version"
+      },
+      "priority": 7
+    },
+    "PSU4": {
+      "version": {
+        "versionType": "sysfs",
+        "path": "/run/devmap/sensors/PSU_PRESENT/psu4_fw_version"
+      },
+      "priority": 8
     }
   }
 }
