@@ -3252,6 +3252,12 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       checkSupported(
           "senderCreditSize", *size, asic->getCbfcSenderCreditSizes());
     }
+    if (auto overhead = it->second.senderPacketOverhead()) {
+      checkSupported(
+          "senderPacketOverhead",
+          *overhead,
+          asic->getCbfcSenderPacketOverheads());
+    }
     virtualChannels = std::move(configuredVcs);
   }
 
