@@ -71,6 +71,7 @@ cpp_library(
         "ConfigValidator.h",
     ],
     deps = [
+        "//fboss/platform/helpers:device_name_utils",
         "fbsource//third-party/range-v3:range-v3",
         "fbsource//third-party/re2:re2",
         ":cpld_manager",

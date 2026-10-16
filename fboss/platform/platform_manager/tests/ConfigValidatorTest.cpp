@@ -679,6 +679,33 @@ TEST(ConfigValidatorTest, XcvrCtrlConfig) {
   EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
 }
 
+TEST(ConfigValidatorTest, XcvrCtrlConfigVendorPrefix) {
+  auto makeConfig = [](const std::string& deviceName) {
+    auto pciDevConfig = getValidPciDeviceConfig();
+    XcvrCtrlConfig xcvrCtrlConfig;
+    xcvrCtrlConfig.portNumber() = 3;
+    xcvrCtrlConfig.fpgaIpBlockConfig()->pmUnitScopedName() =
+        "SMB_DOM1_XCVR_CTRL_PORT_3";
+    xcvrCtrlConfig.fpgaIpBlockConfig()->iobufOffset() = "0xab29";
+    xcvrCtrlConfig.fpgaIpBlockConfig()->csrOffset() = "0xaf29";
+    xcvrCtrlConfig.fpgaIpBlockConfig()->deviceName() = deviceName;
+    pciDevConfig.xcvrCtrlConfigs() = {xcvrCtrlConfig};
+    return pciDevConfig;
+  };
+  EXPECT_TRUE(
+      ConfigValidator().isValidPciDeviceConfig(makeConfig("xcvr_ctrl")));
+  EXPECT_TRUE(
+      ConfigValidator().isValidPciDeviceConfig(makeConfig("nh_xcvr_ctrl")));
+  EXPECT_FALSE(
+      ConfigValidator().isValidPciDeviceConfig(makeConfig("foo_ctrl")));
+  EXPECT_FALSE(
+      ConfigValidator().isValidPciDeviceConfig(makeConfig("nhxcvr_ctrl")));
+  EXPECT_FALSE(
+      ConfigValidator().isValidPciDeviceConfig(makeConfig("foo_xcvr_ctrl")));
+  EXPECT_FALSE(
+      ConfigValidator().isValidPciDeviceConfig(makeConfig("xcvr_ctrl_2")));
+}
+
 TEST(ConfigValidatorTest, PciDeviceConfigWithLedCtrlBlockConfigs) {
   auto pciDevConfig = getValidPciDeviceConfig();
 
@@ -728,6 +755,35 @@ TEST(ConfigValidator, InfoRomConfig) {
   fpgaIpBlockConfig.deviceName() = "fpga_info_bad_name";
   pciDevConfig.infoRomConfigs() = {fpgaIpBlockConfig};
   EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+}
+
+TEST(ConfigValidatorTest, InfoRomConfigVendorPrefix) {
+  auto makeConfig = [](const std::string& deviceName) {
+    auto pciDevConfig = getValidPciDeviceConfig();
+    auto fpgaIpBlockConfig = FpgaIpBlockConfig{};
+    fpgaIpBlockConfig.pmUnitScopedName() = "MCB_IOB_INFO_ROM";
+    fpgaIpBlockConfig.iobufOffset() = "0xab29";
+    fpgaIpBlockConfig.csrOffset() = "0xaf29";
+    fpgaIpBlockConfig.deviceName() = deviceName;
+    pciDevConfig.infoRomConfigs() = {fpgaIpBlockConfig};
+    return pciDevConfig;
+  };
+  EXPECT_TRUE(
+      ConfigValidator().isValidPciDeviceConfig(makeConfig("fpga_info_iob")));
+  EXPECT_TRUE(
+      ConfigValidator().isValidPciDeviceConfig(makeConfig("fpga_info_dom")));
+  EXPECT_TRUE(
+      ConfigValidator().isValidPciDeviceConfig(makeConfig("nh_fpga_info_iob")));
+  EXPECT_TRUE(
+      ConfigValidator().isValidPciDeviceConfig(makeConfig("nh_fpga_info_dom")));
+  EXPECT_FALSE(
+      ConfigValidator().isValidPciDeviceConfig(makeConfig("nh_bogus")));
+  EXPECT_FALSE(
+      ConfigValidator().isValidPciDeviceConfig(
+          makeConfig("foo_fpga_info_iob")));
+  EXPECT_FALSE(
+      ConfigValidator().isValidPciDeviceConfig(
+          makeConfig("fpga_info_bad_name")));
 }
 
 TEST(ConfigValidatorTest, SpiDeviceConfig) {

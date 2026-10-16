@@ -8,6 +8,7 @@
 #include "fboss/platform/bsp_tests/BspTest.h"
 #include "fboss/platform/bsp_tests/utils/CdevUtils.h"
 #include "fboss/platform/bsp_tests/utils/I2CUtils.h"
+#include "fboss/platform/helpers/DeviceNameUtils.h"
 
 namespace facebook::fboss::platform::bsp_tests {
 
@@ -39,7 +40,7 @@ void findExpectedLeds(
   std::string expectedLedNamePrefix;
   std::string idStr = std::to_string(ledId);
 
-  if (deviceName == "port_led") {
+  if (isDeviceName(deviceName, "port_led")) {
     if (portNum <= 0) {
       errors.emplace_back("Port Index must be 1-based");
     }
