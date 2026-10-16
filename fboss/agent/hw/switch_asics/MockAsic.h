@@ -251,6 +251,9 @@ class MockAsic : public HwAsic {
   std::optional<uint32_t> getMaxArsWidth() const override {
     return 64;
   }
+  std::vector<int16_t> getCbfcSenderCreditSizes() const override {
+    return {32, 56};
+  }
   const std::set<uint16_t>& getL1FabricPortsToConnectToL2() const override {
     static const std::set<uint16_t> l1FabricPortsToConnectToL2{};
     return l1FabricPortsToConnectToL2;

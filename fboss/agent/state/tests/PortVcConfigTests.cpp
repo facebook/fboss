@@ -367,3 +367,25 @@ TEST(PortVcConfig, AbsentWhenNotConfigured) {
   // so a present-but-empty list would send it on to program hardware.
   EXPECT_FALSE(port->getVirtualChannels());
 }
+
+TEST(PortVcConfig, SenderCreditSizeApplied) {
+  auto cbfcConfig = makeCbfcConfig();
+  cbfcConfig.senderCreditSize() = 56;
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  auto config = makeConfigWithCbfc(cbfcConfig);
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+}
+
+TEST(PortVcConfig, UnsupportedSenderCreditSize) {
+  auto cbfcConfig = makeCbfcConfig();
+  cbfcConfig.senderCreditSize() = 128;
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  auto config = makeConfigWithCbfc(cbfcConfig);
+
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+}
