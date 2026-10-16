@@ -354,8 +354,8 @@
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "SMB_SPI_MASTER_0",
                 "deviceName": "spi_master",
-                "iobufOffset": "0x16000",
-                "csrOffset": "0x16000"
+                "iobufOffset": "0x4000",
+                "csrOffset": "0x4000"
               },
               "spiDeviceConfigs": [
                 {
