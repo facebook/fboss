@@ -280,6 +280,21 @@ TEST_F(PortApiTest, readNativeCbfcReceiverAttributes) {
           id, SaiPortTraits::Attributes::CbfcReceiverNativePacketOverhead{}),
       -16);
 }
+
+TEST_F(PortApiTest, setCbfcSenderCreditSize) {
+  auto id = createPort(100000, {42}, true);
+  EXPECT_EQ(
+      portApi->getAttribute(
+          id, SaiPortTraits::Attributes::CbfcSenderCreditSize{}),
+      128);
+
+  portApi->setAttribute(
+      id, SaiPortTraits::Attributes::CbfcSenderCreditSize{56});
+  EXPECT_EQ(
+      portApi->getAttribute(
+          id, SaiPortTraits::Attributes::CbfcSenderCreditSize{}),
+      56);
+}
 #endif
 
 TEST_F(PortApiTest, fourPorts) {
