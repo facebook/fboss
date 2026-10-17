@@ -2363,6 +2363,9 @@
           "test_name_regex": "warm_boot.AgentVoqSwitchWithFabricPortsTest.fdrCellDrops"
         },
         {
+          "test_name_regex": "AgentVoqSwitchFullScaleDsfNodesTest.systemPortScaleTestWithHyperPort$"
+        },
+        {
           "test_name_regex": "AgentHwSflowMirrorTest/1.HwResolvedMirrorStat$"
         },
         {
