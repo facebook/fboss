@@ -366,6 +366,13 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_CBFC_SENDER_CREDIT_SIZE,
         sai_uint16_t,
         SaiIntDefault<sai_uint16_t>>;
+    // Per-packet overhead in bytes the sender charges. Signed: the SAI range
+    // is -16..127.
+    using CbfcSenderPacketOverhead = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_CBFC_SENDER_PACKET_OVERHEAD,
+        sai_int16_t,
+        SaiIntDefault<sai_int16_t>>;
     // Egress classification: which virtual channel a queue drains into, and
     // so whose credit the sender must hold before transmitting from it.
     using QosQueueToVcMap = SaiAttribute<
@@ -1088,6 +1095,7 @@ SAI_ATTRIBUTE_NAME(Port, QosTcToPriorityGroupMap)
 SAI_ATTRIBUTE_NAME(Port, QosTcToVcMap)
 SAI_ATTRIBUTE_NAME(Port, CbfcSenderCreditLimit)
 SAI_ATTRIBUTE_NAME(Port, CbfcSenderCreditSize)
+SAI_ATTRIBUTE_NAME(Port, CbfcSenderPacketOverhead)
 SAI_ATTRIBUTE_NAME(Port, QosQueueToVcMap)
 SAI_ATTRIBUTE_NAME(Port, CbfcReceiverNativeCreditSize)
 SAI_ATTRIBUTE_NAME(Port, CbfcReceiverNativePacketOverhead)

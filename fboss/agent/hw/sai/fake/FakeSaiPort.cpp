@@ -73,6 +73,7 @@ sai_status_t create_port_fn(
   std::optional<sai_object_id_t> qosTcToVcMap;
   std::optional<sai_uint32_t> cbfcSenderCreditLimit;
   std::optional<sai_uint16_t> cbfcSenderCreditSize;
+  std::optional<sai_int16_t> cbfcSenderPacketOverhead;
   std::optional<sai_object_id_t> qosQueueToVcMap;
   std::optional<sai_object_id_t> qosPfcPriorityToQueueMap;
   std::optional<sai_object_id_t> qosPfcPriorityToPriorityGroupMap;
@@ -260,6 +261,9 @@ sai_status_t create_port_fn(
         break;
       case SAI_PORT_ATTR_CBFC_SENDER_CREDIT_SIZE:
         cbfcSenderCreditSize = attr_list[i].value.u16;
+        break;
+      case SAI_PORT_ATTR_CBFC_SENDER_PACKET_OVERHEAD:
+        cbfcSenderPacketOverhead = attr_list[i].value.s16;
         break;
       case SAI_PORT_ATTR_QOS_QUEUE_TO_VC_MAP:
         qosQueueToVcMap = attr_list[i].value.oid;
@@ -459,6 +463,9 @@ sai_status_t create_port_fn(
   }
   if (cbfcSenderCreditSize.has_value()) {
     port.cbfcSenderCreditSize = cbfcSenderCreditSize.value();
+  }
+  if (cbfcSenderPacketOverhead.has_value()) {
+    port.cbfcSenderPacketOverhead = cbfcSenderPacketOverhead.value();
   }
   if (qosQueueToVcMap.has_value()) {
     port.qosQueueToVcMap = qosQueueToVcMap.value();
@@ -853,6 +860,9 @@ sai_status_t set_port_attribute_fn(
       break;
     case SAI_PORT_ATTR_CBFC_SENDER_CREDIT_SIZE:
       port.cbfcSenderCreditSize = attr->value.u16;
+      break;
+    case SAI_PORT_ATTR_CBFC_SENDER_PACKET_OVERHEAD:
+      port.cbfcSenderPacketOverhead = attr->value.s16;
       break;
     case SAI_PORT_ATTR_QOS_QUEUE_TO_VC_MAP:
       port.qosQueueToVcMap = attr->value.oid;
@@ -1269,6 +1279,9 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_CBFC_SENDER_CREDIT_SIZE:
         attr[i].value.u16 = port.cbfcSenderCreditSize;
+        break;
+      case SAI_PORT_ATTR_CBFC_SENDER_PACKET_OVERHEAD:
+        attr[i].value.s16 = port.cbfcSenderPacketOverhead;
         break;
       case SAI_PORT_ATTR_QOS_QUEUE_TO_VC_MAP:
         attr[i].value.oid = port.qosQueueToVcMap;
