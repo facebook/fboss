@@ -639,6 +639,8 @@ class HwAsic {
     // SAI_PORT_STAT_IF_IN_HW_PROTECTION_SWITCHOVER_DROP_PKTS). Broadcom
     // Tomahawk 5/6 with XGS SDK 13.3+.
     HW_PROTECTION_SWITCHOVER_COUNTERS,
+    // PBR ACL table byte counters, for ASICs without ACL_BYTE_COUNTER.
+    PBR_ACL_BYTE_COUNTER,
   };
 
   enum class AsicMode {

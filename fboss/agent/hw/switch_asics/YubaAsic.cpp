@@ -262,6 +262,7 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::LINK_LAYER_RETRANSMISSION:
     case HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS:
     case HwAsic::Feature::HW_PROTECTION_SWITCHOVER_COUNTERS:
+    case HwAsic::Feature::PBR_ACL_BYTE_COUNTER:
     case HwAsic::Feature::RX_PACKET_TYPE:
     case HwAsic::Feature::MY_MAC:
     case HwAsic::Feature::ISOLATION_GROUP:
