@@ -252,6 +252,14 @@ struct HwPortStats {
   // transitions; drop packets counts packets lost during switchover.
   119: optional i64 hwProtectionSwitchoverEvents_;
   120: optional i64 hwProtectionSwitchoverDropPkts_;
+
+  // Software Fabric Link Monitoring counters, populated by SwSwitch only for
+  // monitored ports.
+  121: optional i64 fabricLinkMonitoringTxPackets_;
+  122: optional i64 fabricLinkMonitoringRxPackets_;
+  123: optional i64 fabricLinkMonitoringDroppedPackets_;
+  124: optional i64 fabricLinkMonitoringInvalidPayloadPackets_;
+  125: optional i64 fabricLinkMonitoringNoPendingSeqNumPackets_;
 }
 
 struct HwSysPortStats {
