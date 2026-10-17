@@ -106,6 +106,7 @@ cpp_unittest(
         "test/NamedNextHopGroupRibTests.cpp",
         "test/NextHopIDManagerTests.cpp",
         "test/NextHopMapPopulationTests.cpp",
+        "test/PolicyRouteBindingTests.cpp",
         "test/ReconstructRibFromSwitchStateTests.cpp",
         "test/RibLpmTests.cpp",
         "test/RibMySidUpdateTests.cpp",
