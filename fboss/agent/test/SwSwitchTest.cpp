@@ -300,8 +300,8 @@ TEST_F(SwSwitchTest, VerifyCbfcSenderChangeRejected) {
   EXPECT_TRUE(sw->isValidStateUpdate(StateDelta(noCbfc, cbfc)));
   // Another port field changing leaves the sender values alone.
   EXPECT_TRUE(sw->isValidStateUpdate(StateDelta(cbfc, withCbfc(cbfc, "b"))));
-  // Dropping CBFC from the port is allowed.
-  EXPECT_TRUE(sw->isValidStateUpdate(StateDelta(cbfc, withoutCbfc(cbfc))));
+  // Removing CBFC from the port needs a coldboot, as for LLR.
+  EXPECT_FALSE(sw->isValidStateUpdate(StateDelta(cbfc, withoutCbfc(cbfc))));
 
   // Changing any sender value on a port that keeps CBFC needs a coldboot.
   EXPECT_FALSE(

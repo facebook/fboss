@@ -138,14 +138,19 @@ bool StateUpdateValidator::isCbfcSenderUpdateValid(
   // when a port takes on CBFC: on a coldboot, or as the first bind on a running
   // agent. On TU1 each size or overhead write makes the SDK recompute the port
   // credit limit, so changing them on a live port briefly resets the sender.
-  // Changing them on a port that keeps CBFC needs a coldboot. Dropping CBFC
-  // from the port is allowed.
+  // Changing them needs a coldboot, and so does removing CBFC from the port,
+  // as for LLR.
   forEachChanged(
       delta.getPortsDelta(),
       [&isValid](
           const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
-        if (!oldPort->getCbfcConfigName().has_value() ||
-            !newPort->getCbfcConfigName().has_value()) {
+        if (!oldPort->getCbfcConfigName().has_value()) {
+          return;
+        }
+        if (!newPort->getCbfcConfigName().has_value()) {
+          XLOG(ERR) << "CBFC cannot be removed from port " << newPort->getID()
+                    << " on a running agent; a coldboot is required";
+          isValid = false;
           return;
         }
         if (oldPort->getCbfcSenderCreditSize() ==
