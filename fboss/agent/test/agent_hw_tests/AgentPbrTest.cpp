@@ -43,6 +43,7 @@ constexpr uint16_t kL4SrcPort = 10000;
 constexpr uint16_t kL4DstPort = 20000;
 constexpr int kNumPkts = 10;
 constexpr uint64_t kVariance = 2;
+constexpr auto kPbrRoutePrefix = "2222::";
 constexpr auto kPbrDstIp = "2222::1";
 constexpr auto kPbrSrcIp = "2001::1";
 
@@ -248,5 +249,62 @@ class AgentPbrTest : public AgentHwTest {
     });
   }
 };
+
+TEST_F(AgentPbrTest, ProgramPolicyAcl) {
+  auto setup = [this]() {
+    auto helper = ecmpHelper();
+    auto ports = helper.ecmpPortDescs(5);
+
+    // 1. Resolve nexthops on the default + class NHG member ports.
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return helper.resolveNextHops(
+          in, {ports[0], ports[1], ports[2], ports[3]});
+    });
+
+    // 2. Create the named next-hop groups the policy references. Both are
+    // multi-member so the default resolves to a SAI next-hop-group (matching
+    // the ACL's ROUTE_DST) and the class exercises ECMP redirect.
+    addOrUpdateNamedNhgs(
+        {{kDefaultNhg(), makeNamedNhgSet({ports[0], ports[1]})},
+         {kClassNhg(), makeNamedNhgSet({ports[2], ports[3]})}});
+
+    // 3. Add a class-based policy: default NHG + CLASS_1 -> class NHG.
+    ThriftHandler handler(getSw());
+    ClassBasedPolicy cbfPolicy;
+    cbfPolicy.name() = kPolicy();
+    cbfPolicy.defaultNexthopGroup() = kDefaultNhg();
+    NextHopGroup classGroup;
+    classGroup.name() = kClassNhg();
+    cbfPolicy.class2NextHopGroup()[ForwardingClass::CLASS_1] = classGroup;
+    Policy policy;
+    policy.cbfPolicy() = cbfPolicy;
+    auto policies = std::make_unique<std::vector<Policy>>();
+    policies->push_back(policy);
+    handler.addPolicies(std::move(policies));
+
+    // 4. Bind a route to the default NHG by name. Nothing is synthesized until
+    // a route references the policy.
+    UnicastRoute route;
+    route.dest()->ip() =
+        facebook::network::toBinaryAddress(folly::IPAddress(kPbrRoutePrefix));
+    route.dest()->prefixLength() = 64;
+    NamedRouteDestination namedDest;
+    namedDest.nextHopGroup() = kDefaultNhg();
+    route.namedRouteDestination() = namedDest;
+    auto updater = getSw()->getRouteUpdater();
+    updater.addRoute(RouterID(0), ClientID::BGPD, route);
+    updater.program();
+  };
+
+  auto verify = [this]() {
+    auto ports = ecmpHelper().ecmpPortDescs(5);
+    verifyRedirectAndCounter(
+        {ports[2].phyPortID(), ports[3].phyPortID()},
+        {ports[0].phyPortID(), ports[1].phyPortID()},
+        ports[4].phyPortID());
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
 
 } // namespace facebook::fboss
