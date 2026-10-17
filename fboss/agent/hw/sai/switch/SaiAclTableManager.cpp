@@ -2072,8 +2072,15 @@ void SaiAclTableManager::removeUnclaimedAclEntries() {
 
 void SaiAclTableManager::updateStats() {
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+  const auto* asic = platform_->getAsic();
+  const bool aclBytes = asic->isSupported(HwAsic::Feature::ACL_BYTE_COUNTER);
+  const bool pbrBytes =
+      asic->isSupported(HwAsic::Feature::PBR_ACL_BYTE_COUNTER);
 
   for (const auto& handle : handles_) {
+    const bool readBytes = aclBytes ||
+        (pbrBytes &&
+         handle.first == cfg::switch_config_constants::DEFAULT_PBR_ACL_TABLE());
     for (const auto& aclMember : handle.second->aclTableMembers) {
       for (const auto& [counterType, counterName] :
            aclMember.second->aclCounterTypeAndName) {
@@ -2086,8 +2093,7 @@ void SaiAclTableManager::updateStats() {
             aclStats_.updateStat(now, counterName, counterPackets);
           } break;
           case cfg::CounterType::BYTES: {
-            if (!platform_->getAsic()->isSupported(
-                    HwAsic::Feature::ACL_BYTE_COUNTER)) {
+            if (!readBytes) {
               break;
             }
             auto counterBytes =
