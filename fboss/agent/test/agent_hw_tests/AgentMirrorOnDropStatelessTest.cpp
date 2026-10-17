@@ -189,7 +189,10 @@ void AgentMirrorOnDropStatelessTest::validateMirrorOnDropPacket(
   EXPECT_EQ(fields.outerSrcIp, kSwitchIp_);
   EXPECT_EQ(fields.outerDstIp, kCollectorIp_);
   EXPECT_EQ(fields.outerDstPort, static_cast<uint16_t>(kMirrorDstPort));
-  EXPECT_EQ(fields.ingressPort, static_cast<uint16_t>(injectionPortId));
+  EXPECT_EQ(
+      fields.ingressPort,
+      static_cast<uint16_t>(
+          getSw()->getHwLogicalPortId(injectionPortId).value()));
   EXPECT_EQ(fields.dropReasonIngress, expectedReasons.ingressDropReason);
   EXPECT_EQ(fields.dropReasonEgress, expectedReasons.egressDropReason);
   EXPECT_EQ(fields.innerSrcIp, expectedInnerSrcIp.value_or(kPacketSrcIp_));
