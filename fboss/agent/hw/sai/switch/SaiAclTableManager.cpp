@@ -873,14 +873,15 @@ SaiAclTableManager::resolvePbrNextHopGroup(
         nextHopGroupId,
         " but no SwitchState is available to resolve it");
   }
+  // getNextHops throws on an unknown id, so an empty result means the id is
+  // live but its named NHG currently resolves to no next hops - every member's
+  // covering route withdrawn, say. Report that as "no group" and let the caller
+  // drop rather than forward; throwing here would fail the whole state update.
   auto nexthops = getNextHops(state, nextHopGroupId);
   if (nexthops.empty()) {
-    throw FbossError(
-        "PBR ACL entry ",
-        aclEntryId,
-        " NextHopSetID ",
-        nextHopGroupId,
-        " not found in switch state or resolved to an empty next hop group");
+    XLOG(DBG2) << "PBR ACL entry " << aclEntryId << " NextHopSetID "
+               << nextHopGroupId << " resolves to an empty next hop group";
+    return nullptr;
   }
   RouteNextHopSet nhops(nexthops.begin(), nexthops.end());
   auto handle = managerTable_->nextHopGroupManager().incRefOrAddNextHopGroup(
@@ -1416,11 +1417,11 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
     matchNhgHandle = resolvePbrNextHopGroup(
         state, *addedAclEntry->getNextHopGroupId(), addedAclEntry->getID());
     if (!matchNhgHandle) {
-      // Multi-NPU: the match NHG has no members on this ASIC, so there is no
-      // SAI next-hop-group to match on and routes resolving to it are already
-      // DROP. Skip programming this PBR entry here.
+      // No SAI next-hop-group to match on, either because the NHG resolved to
+      // no next hops or because none of them are on this ASIC. Routes resolving
+      // to it are already DROP, so skip programming this PBR entry here.
       XLOG(DBG2) << "skip PBR acl entry " << addedAclEntry->getID()
-                 << ": match next-hop-group has no members on this ASIC";
+                 << ": match next-hop-group is unresolved on this ASIC";
       return AclEntrySaiId{0};
     }
     aclFieldRouteDestination =
