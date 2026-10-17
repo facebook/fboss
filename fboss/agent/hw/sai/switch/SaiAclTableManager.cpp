@@ -1329,9 +1329,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclActionPacketAction{std::nullopt};
   /*
    * FBOSS ACL action -> SAI packet action:
-   *  - PERMIT: leave the pipeline's forwarding decision alone (FORWARD), except
-   *    on a PBR entry matching a next hop group id, where FORWARD conflicts
-   *    with the redirect action.
+   *  - PERMIT: leave the pipeline's forwarding decision alone (FORWARD),
+   *    except on a PBR entry whose redirect next-hop group resolved, where
+   *    FORWARD conflicts with the redirect action.
    *  - DENY: drop the packet (DROP). A copy to CPU that a lower priority ACL
    *    or a host interface trap asked for still happens.
    *  - DENY_DATA_AND_CONTROL_PLANE: drop the packet and cancel that copy to CPU
@@ -1347,11 +1347,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
           SAI_PACKET_ACTION_DENY};
       break;
     case cfg::AclActionType::PERMIT:
-      if (!addedAclEntry->getNextHopGroupId().has_value()) {
-        aclActionPacketAction =
-            SaiAclEntryTraits::Attributes::ActionPacketAction{
-                SAI_PACKET_ACTION_FORWARD};
-      }
+      aclActionPacketAction = SaiAclEntryTraits::Attributes::ActionPacketAction{
+          SAI_PACKET_ACTION_FORWARD};
       break;
   }
 
@@ -1694,6 +1691,13 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             AclEntryActionSaiObjectIdT(
                 NextHopGroupSaiId{
                     redirectNhgHandle->nextHopGroup->adapterKey()})};
+        // The redirect already forwards the packet, and the SDK rejects
+        // FORWARD alongside it as a conflicting action.
+        if (aclActionPacketAction.has_value() &&
+            aclActionPacketAction->value().getData() ==
+                SAI_PACKET_ACTION_FORWARD) {
+          aclActionPacketAction.reset();
+        }
       } else {
         // Redirect NHG has no resolved member. Setting action to drop as the
         // packets cannot be forwarded.
