@@ -1407,6 +1407,15 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   std::optional<SaiAclEntryTraits::Attributes::FieldRouteDestination>
       aclFieldRouteDestination{std::nullopt};
   if (addedAclEntry->getNextHopGroupId()) {
+    if (!SaiAclEntryTraits::Attributes::FieldRouteDestination::
+             optionalExtensionAttributeId()
+                 .has_value()) {
+      throw FbossError(
+          "PBR ACL entry ",
+          addedAclEntry->getID(),
+          " matches on a next-hop-group but this SDK does not implement the "
+          "route-dst ACL extension");
+    }
     matchNhgHandle = resolvePbrNextHopGroup(
         state, *addedAclEntry->getNextHopGroupId(), addedAclEntry->getID());
     if (!matchNhgHandle) {
