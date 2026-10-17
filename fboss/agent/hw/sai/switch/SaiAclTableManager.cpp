@@ -883,11 +883,8 @@ SaiAclTableManager::resolvePbrNextHopGroup(
         " not found in switch state or resolved to an empty next hop group");
   }
   RouteNextHopSet nhops(nexthops.begin(), nexthops.end());
-  // TODO(zecheng): Normalized NH should be used to create Sai NHG. See stacked
-  // diff for storing normalized SetID directly in FIB
-  auto normalizedNhops = RouteNextHopEntry::normalizeNextHops(nhops);
   auto handle = managerTable_->nextHopGroupManager().incRefOrAddNextHopGroup(
-      SaiNextHopGroupKey(normalizedNhops, std::nullopt /*switchingMode*/));
+      SaiNextHopGroupKey(nhops, std::nullopt /*switchingMode*/));
   if (!handle->nextHopGroup) {
     // on multi-NPU switches a NHG can
     // legitimately have no members on the local ASIC (all next hops filtered
