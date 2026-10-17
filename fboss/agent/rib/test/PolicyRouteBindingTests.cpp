@@ -34,6 +34,7 @@ const std::string kMatcher{"id=0"};
 // One name used for both a named NHG and a class-based policy.
 const std::string kSharedName{"shared"};
 const std::string kPolicyDefaultNhg{"policyDefaultNhg"};
+const std::string kRedirectNhg{"redirectNhg"};
 
 std::function<void(const NextHopIDManager*)> nextHopIdStateUpdate(
     std::shared_ptr<SwitchState>* switchState) {
@@ -134,6 +135,26 @@ class PolicyRouteBindingTest : public ::testing::Test {
         &switchState_);
   }
 
+  int64_t publishedRedirectId(ForwardingClass fc) const {
+    auto policy = switchState_->getClassBasedPolicies()->getNodeIf(kSharedName);
+    CHECK(policy) << "policy not published";
+    return *policy->getClass2NextHopGroup().at(fc).id();
+  }
+
+  int64_t publishedDefaultId() const {
+    auto policy = switchState_->getClassBasedPolicies()->getNodeIf(kSharedName);
+    CHECK(policy) << "policy not published";
+    return *policy->getDefaultNextHopGroup().id();
+  }
+
+  int64_t normalizedId(const std::string& nhgName) const {
+    auto id =
+        rib_.getNextHopIDManagerCopy()->getNormalizedNextHopSetIDForPolicyNhg(
+            nhgName);
+    CHECK(id.has_value()) << "no normalized id for " << nhgName;
+    return static_cast<int64_t>(*id);
+  }
+
   bool routeBoundTo(const std::string& nhgName, const std::string& prefix) {
     auto manager = rib_.getNextHopIDManagerCopy();
     const auto& routes = manager->getRoutesForNamedNhg(nhgName);
@@ -186,6 +207,30 @@ TEST(PolicyRouteBindingNoIdManagerTest, addPolicyWithoutIdManagerThrows) {
   EXPECT_THROW(
       rib.addOrUpdatePolicies({policy}, nextHopIdStateUpdate(&switchState)),
       FbossError);
+}
+
+TEST_F(PolicyRouteBindingTest, redirectNhgMemberChangeRepublishesPolicy) {
+  addNamedNhg(kRedirectNhg, "fe80::30");
+
+  ClassBasedPolicy policy;
+  policy.name() = kSharedName;
+  policy.defaultNexthopGroup() = kPolicyDefaultNhg;
+  NextHopGroup redirect;
+  redirect.name() = kRedirectNhg;
+  policy.class2NextHopGroup()[ForwardingClass::CLASS_1] = redirect;
+  rib_.addOrUpdatePolicies({policy}, nextHopIdStateUpdate(&switchState_));
+
+  const auto idBefore = publishedRedirectId(ForwardingClass::CLASS_1);
+  EXPECT_EQ(idBefore, normalizedId(kRedirectNhg));
+
+  // Members change: a new member set is a new normalized id.
+  addNamedNhg(kRedirectNhg, "fe80::31");
+
+  const auto idAfter = publishedRedirectId(ForwardingClass::CLASS_1);
+  EXPECT_NE(idAfter, idBefore);
+  EXPECT_EQ(idAfter, normalizedId(kRedirectNhg));
+  // The match qualifier is untouched.
+  EXPECT_EQ(publishedDefaultId(), normalizedId(kPolicyDefaultNhg));
 }
 
 TEST_F(PolicyRouteBindingTest, removePoliciesValidatesNames) {

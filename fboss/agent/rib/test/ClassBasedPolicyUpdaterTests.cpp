@@ -10,6 +10,7 @@
 
 #include <gtest/gtest.h>
 
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/rib/ClassBasedPolicyUpdater.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/state/ClassBasedPolicyMap.h"
@@ -24,6 +25,7 @@ namespace facebook::fboss {
 namespace {
 constexpr uint32_t kEcmpWidth = 64;
 const std::string kMatcher{"id=0"};
+const std::string kMatcher2{"id=1"};
 const std::string kDefaultNhgA{"defaultNhgA"};
 const std::string kDefaultNhgB{"defaultNhgB"};
 const std::string kSharedNhg{"sharedNhg"};
@@ -72,6 +74,18 @@ class ClassBasedPolicyUpdaterTest : public ::testing::Test {
     for (const auto& [_fc, nhgName] : class2Nhg) {
       assign(nhgName);
     }
+  }
+
+  void addRouteForNhg(const std::string& nhgName, const std::string& prefix) {
+    manager_.addRouteForNamedNhg(
+        nhgName, RouterID(0), folly::IPAddress::createNetwork(prefix));
+  }
+
+  void removeRouteForNhg(
+      const std::string& nhgName,
+      const std::string& prefix) {
+    manager_.removeRouteForNamedNhg(
+        nhgName, RouterID(0), folly::IPAddress::createNetwork(prefix));
   }
 
   // Publishing the state matches what the updater reads in SwSwitch.
@@ -282,6 +296,89 @@ TEST_F(ClassBasedPolicyUpdaterTest, unallocatedNextHopGroupThrows) {
   manager_.removePolicy(kPolicyA);
   addPolicy(kPolicyA, kDefaultNhgA, {{ForwardingClass::CLASS_1, "noSuchNhg"}});
   EXPECT_THROW(publish(), FbossError);
+}
+
+TEST_F(ClassBasedPolicyUpdaterTest, newMatcherPublishesAllPolicies) {
+  addOrUpdateNhg(kDefaultNhgA, "10.0.0.1");
+  addPolicy(kPolicyA, kDefaultNhgA);
+  publish();
+
+  state_ = state_->clone();
+  auto fibsInfoMap = state_->getFibsInfoMap()->clone();
+  fibsInfoMap->addNode(kMatcher2, std::make_shared<FibInfo>());
+  state_->resetFibsInfoMap(fibsInfoMap);
+  publish();
+
+  auto onMatcher2 =
+      state_->getClassBasedPolicies()->getMapNodeIf(HwSwitchMatcher(kMatcher2));
+  ASSERT_NE(onMatcher2, nullptr);
+  EXPECT_NE(onMatcher2->getPolicyIf(kPolicyA), nullptr);
+}
+
+TEST_F(ClassBasedPolicyUpdaterTest, failedPublishIsRetried) {
+  addPolicy(kPolicyA, kDefaultNhgA);
+  EXPECT_THROW(publish(), FbossError);
+  EXPECT_EQ(publishedPolicy(kPolicyA), nullptr);
+
+  addOrUpdateNhg(kDefaultNhgA, "10.0.0.1");
+  publish();
+
+  ASSERT_NE(publishedPolicy(kPolicyA), nullptr);
+  EXPECT_EQ(defaultId(kPolicyA), normalizedId(kDefaultNhgA));
+}
+
+TEST_F(ClassBasedPolicyUpdaterTest, policyIsUnreferencedUntilARouteBinds) {
+  addOrUpdateNhg(kDefaultNhgA, "10.0.0.1");
+  addPolicy(kPolicyA, kDefaultNhgA);
+  publish();
+  ASSERT_NE(publishedPolicy(kPolicyA), nullptr);
+  EXPECT_FALSE(publishedPolicy(kPolicyA)->isReferenced());
+
+  // 1. A route over the default NHG flips the flag.
+  addRouteForNhg(kDefaultNhgA, "2001::/64");
+  publish();
+  EXPECT_TRUE(publishedPolicy(kPolicyA)->isReferenced());
+
+  // 2. Withdrawing the last route flips it back.
+  removeRouteForNhg(kDefaultNhgA, "2001::/64");
+  publish();
+  EXPECT_FALSE(publishedPolicy(kPolicyA)->isReferenced());
+}
+
+TEST_F(ClassBasedPolicyUpdaterTest, onlyTheFirstAndLastRouteChangeThePolicy) {
+  addOrUpdateNhg(kDefaultNhgA, "10.0.0.1");
+  addPolicy(kPolicyA, kDefaultNhgA);
+  addRouteForNhg(kDefaultNhgA, "2001::/64");
+  publish();
+  auto before = publishedPolicy(kPolicyA);
+  ASSERT_TRUE(before->isReferenced());
+
+  // 1. A second route over the same group leaves the policy untouched.
+  addRouteForNhg(kDefaultNhgA, "2002::/64");
+  publish();
+  EXPECT_EQ(publishedPolicy(kPolicyA), before);
+
+  // 2. So does dropping one of the two.
+  removeRouteForNhg(kDefaultNhgA, "2002::/64");
+  publish();
+  EXPECT_EQ(publishedPolicy(kPolicyA), before);
+
+  // 3. Dropping the last one unreferences it.
+  removeRouteForNhg(kDefaultNhgA, "2001::/64");
+  publish();
+  EXPECT_FALSE(publishedPolicy(kPolicyA)->isReferenced());
+}
+
+TEST_F(ClassBasedPolicyUpdaterTest, redirectOnlyRouteDoesNotReferencePolicy) {
+  addOrUpdateNhg(kDefaultNhgA, "10.0.0.1");
+  addOrUpdateNhg(kSharedNhg, "10.0.0.2");
+  addPolicy(kPolicyA, kDefaultNhgA, {{ForwardingClass::CLASS_1, kSharedNhg}});
+  addRouteForNhg(kSharedNhg, "2001::/64");
+  publish();
+
+  // The ACL matches on the default group, so a route over a redirect target
+  // cannot carry traffic into this policy.
+  EXPECT_FALSE(publishedPolicy(kPolicyA)->isReferenced());
 }
 
 TEST_F(ClassBasedPolicyUpdaterTest, emptyStoreLeavesStateUnchanged) {
