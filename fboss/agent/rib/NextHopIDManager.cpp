@@ -343,8 +343,7 @@ NextHopIDManager::updateNamedNextHopGroup(
 NextHopSetID NextHopIDManager::updatePolicyNormalizedId(
     const std::string& policyName,
     const std::string& nhgName,
-    const RouteNextHopSet& normalized,
-    bool& moved) {
+    const RouteNextHopSet& normalized) {
   auto& ids = pbrPolicyToNamedNhg_.at(policyName).normalizedIds;
   auto it = ids.find(nhgName);
   const std::optional<NextHopSetID> oldId =
@@ -366,7 +365,6 @@ NextHopSetID NextHopIDManager::updatePolicyNormalizedId(
   if (oldId == newId) {
     return newId;
   }
-  moved = true;
   XLOG(DBG3) << "[NextHop ID Manager] normalized named NHG '" << nhgName
              << "' for policy '" << policyName << "' id "
              << (oldId ? folly::to<std::string>(*oldId) : "none") << " -> "
@@ -388,11 +386,9 @@ void NextHopIDManager::updateNormalizedNamedNhgId(
   const auto normalized =
       RouteNextHopEntry::normalizeNextHops(resolvedNextHopSet, ecmpWidth);
 
-  bool moved = false;
   std::optional<NextHopSetID> setId;
   for (const auto& policyName : owners) {
-    const auto newId =
-        updatePolicyNormalizedId(policyName, name, normalized, moved);
+    const auto newId = updatePolicyNormalizedId(policyName, name, normalized);
     CHECK(!setId.has_value() || newId == setId)
         << "named NHG '" << name
         << "' took different normalized ids across its policies";
