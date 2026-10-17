@@ -1920,7 +1920,9 @@ void ThriftConfigApplier::processInterfaceForPortForVoqSwitches(
       cfg_->switchSettings()->switchIdToSwitchInfo()->find(switchId);
   CHECK(switchInfoItr != cfg_->switchSettings()->switchIdToSwitchInfo()->end());
   const auto& switchInfo = switchInfoItr->second;
-  CHECK(switchInfo.portIdRange().has_value());
+  CHECK(
+      apache::thrift::is_non_optional_field_set_manually_or_by_serializer(
+          switchInfo.portIdRange()));
   CHECK(!switchInfo.systemPortRanges()->systemPortRanges()->empty());
   CHECK(switchInfo.localSystemPortOffset().has_value());
   CHECK(switchInfo.globalSystemPortOffset().has_value());

@@ -132,7 +132,9 @@ void AgentHwCbfcTest::verifyCbfcProgrammed() {
         EXPECT_NE(*vc.vcId(), 0);
         EXPECT_TRUE(*vc.senderEnable());
         EXPECT_TRUE(*vc.receiverEnable());
-        EXPECT_TRUE(vc.reservedCreditSize().has_value());
+        EXPECT_TRUE(
+            apache::thrift::is_non_optional_field_set_manually_or_by_serializer(
+                vc.reservedCreditSize()));
         EXPECT_NE(*vc.creditProfileId(), 0);
       }
       EXPECT_EQ(*byIndex[kRdmaVc].reservedCreditSize(), kRdmaReservedCredits);

@@ -10,7 +10,9 @@ void PhySnapshotManager::updatePhyInfoLocked(
     const phy::PhyInfo& phyInfo) {
   phy::LinkSnapshot snapshot;
   snapshot.phyInfo() = phyInfo;
-  CHECK(phyInfo.state().has_value());
+  CHECK(
+      apache::thrift::is_non_optional_field_set_manually_or_by_serializer(
+          phyInfo.state()));
 
   CHECK(!phyInfo.state()->name().value().empty());
   auto result = lockedSnapshotMap->try_emplace(

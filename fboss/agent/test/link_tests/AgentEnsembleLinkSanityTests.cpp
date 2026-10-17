@@ -493,7 +493,9 @@ TEST_F(AgentEnsembleLinkTest, opticsRxOutputDisableEnable) {
       continue;
     }
     const auto& diagCapability = tcvrState.diagCapability().as_const();
-    if (diagCapability.has_value() && *diagCapability->rxOutputControl()) {
+    if (apache::thrift::is_non_optional_field_set_manually_or_by_serializer(
+            diagCapability) &&
+        *diagCapability->rxOutputControl()) {
       rxCtrlPorts.push_back(port);
       rxCtrlPortNames.push_back(getPortName(port));
     }
@@ -599,11 +601,15 @@ TEST_F(AgentEnsembleLinkTest, testOpticsRemediation) {
             getSw()->getPlatformMapping()->getTransceiverIdFromSwPort(port);
         auto txInfoItr = transceiverInfos.find(tcvrId);
         if ((txInfoItr != transceiverInfos.end()) &&
-            (txInfoItr->second.tcvrState().has_value() &&
+            (apache::thrift::
+                 is_non_optional_field_set_manually_or_by_serializer(
+                     txInfoItr->second.tcvrState()) &&
              txInfoItr->second.tcvrState()->identifier().has_value() &&
              txInfoItr->second.tcvrState()->identifier().value() !=
                  TransceiverModuleIdentifier::MINIPHOTON_OBO) &&
-            (txInfoItr->second.tcvrStats().has_value() &&
+            (apache::thrift::
+                 is_non_optional_field_set_manually_or_by_serializer(
+                     txInfoItr->second.tcvrStats()) &&
              txInfoItr->second.tcvrStats()->remediationCounter().has_value())) {
           XLOG(DBG2)
               << "Tcvr Id " << tcvrId << " remediation counter "
