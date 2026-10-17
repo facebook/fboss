@@ -1074,6 +1074,9 @@ AgentStats SwSwitch::fillFsdbStats() {
     }
   }
   stats()->fillAgentStats(agentStats);
+  if (auto* manager = getFabricLinkMonitoringManager()) {
+    manager->fillAgentFabricLinkMonitoringStats(agentStats);
+  }
   getHwSwitchHandler()->fillHwAgentConnectionStatus(agentStats);
   // fill old fields using first switch values for backward compatibility
   if (!agentStats.hwResourceStatsMap()->empty()) {
