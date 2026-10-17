@@ -39,6 +39,12 @@ namespace facebook::fboss {
 namespace {
 constexpr uint8_t kDscp = 10;
 constexpr auto kSrv6TunnelId = "srv6Tunnel0";
+constexpr uint16_t kL4SrcPort = 10000;
+constexpr uint16_t kL4DstPort = 20000;
+constexpr int kNumPkts = 10;
+constexpr uint64_t kVariance = 2;
+constexpr auto kPbrDstIp = "2222::1";
+constexpr auto kPbrSrcIp = "2001::1";
 
 // Keyed off the physical port so a next hop keeps its SID across warm boot and
 // across the member-change sequence.
@@ -161,7 +167,10 @@ class AgentPbrTest : public AgentHwTest {
     return "pbrPolicy";
   }
 
-  void verifyRedirectAndCounter() {
+  void verifyRedirectAndCounter(
+      const std::vector<PortID>& classMembers,
+      const std::vector<PortID>& defaultMembers,
+      PortID injectPort) {
     auto state = getProgrammedState();
     auto aclMap = state->getAclsForTable(
         cfg::AclStage::INGRESS,
@@ -191,6 +200,52 @@ class AgentPbrTest : public AgentHwTest {
     }
     EXPECT_EQ(entriesWithCounter, pbrEntries);
     ASSERT_TRUE(counterName.has_value());
+
+    auto intfMac = getMacForFirstInterfaceWithPortsForTesting(state);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
+    auto sumOut = [&](const std::vector<PortID>& members) {
+      uint64_t sum = 0;
+      for (const auto& port : members) {
+        sum += *getNextUpdatedPortStats(port).outUnicastPkts_();
+      }
+      return sum;
+    };
+
+    // A counter whose entry was just programmed reports a garbage value on its
+    // first stats poll, so only trust a baseline two successive ticks agree on.
+    uint64_t pktsBefore = utility::getAclInOutPackets(getSw(), *counterName);
+    WITH_RETRIES({
+      getNextUpdatedPortStats(injectPort);
+      auto pkts = utility::getAclInOutPackets(getSw(), *counterName);
+      EXPECT_EVENTUALLY_EQ(pkts, pktsBefore);
+      pktsBefore = pkts;
+    });
+    auto classBefore = sumOut(classMembers);
+    auto defaultBefore = sumOut(defaultMembers);
+    for (int i = 0; i < kNumPkts; ++i) {
+      auto pkt = utility::makeUDPTxPacket(
+          getSw(),
+          getVlanIDForTx(),
+          srcMac,
+          intfMac,
+          folly::IPAddressV6(kPbrSrcIp),
+          folly::IPAddressV6(kPbrDstIp),
+          kL4SrcPort + i, // vary L4 src to spread across the class NHG members
+          kL4DstPort,
+          kDscp << 2 /*trafficClass byte*/,
+          255 /*hopLimit*/);
+      getAgentEnsemble()->ensureSendPacketOutOfPort(std::move(pkt), injectPort);
+    }
+
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_GE(sumOut(classMembers) - classBefore, kNumPkts);
+      // A redirect that only partly works leaks probe packets here in bulk,
+      // so the bound has to stay well under kNumPkts. It is not zero because
+      // control-plane traffic also egresses these ports.
+      EXPECT_EVENTUALLY_LE(sumOut(defaultMembers) - defaultBefore, kVariance);
+      auto pktsAfter = utility::getAclInOutPackets(getSw(), *counterName);
+      EXPECT_EVENTUALLY_GE(pktsAfter, pktsBefore + kNumPkts);
+    });
   }
 };
 
