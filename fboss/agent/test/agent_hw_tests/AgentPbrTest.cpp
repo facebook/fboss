@@ -38,6 +38,11 @@ namespace facebook::fboss {
 
 namespace {
 constexpr uint8_t kDscp = 10;
+constexpr uint8_t kDscp2 = 20;
+constexpr uint8_t kDscp3 = 30;
+// DSCP left unmapped -> internal traffic class 0, which the PBR ACL (TC 1) does
+// not match, so traffic follows the route to the default NHG.
+constexpr uint8_t kNoMatchDscp = 0;
 constexpr auto kSrv6TunnelId = "srv6Tunnel0";
 constexpr uint16_t kL4SrcPort = 10000;
 constexpr uint16_t kL4DstPort = 20000;
@@ -98,7 +103,9 @@ class AgentPbrTest : public AgentHwTest {
          cfg::AclTableQualifier::NEXT_HOP_GROUP_ID});
     utility::addQosMapsHelper(
         cfg,
-        {{1 /*TC==CLASS_1*/, {kDscp}}},
+        {{1 /*TC==CLASS_1*/, {kDscp}},
+         {2 /*TC==CLASS_2*/, {kDscp2}},
+         {3 /*TC==CLASS_3*/, {kDscp3}}},
         "pbrQos",
         ensemble.getSw()->getHwAsicTable()->getL3Asics());
     cfg.srv6Tunnels() = {utility::makeSrv6TunnelConfig(
@@ -121,6 +128,21 @@ class AgentPbrTest : public AgentHwTest {
               port.phyPortID(), folly::IPAddress(helper.nhop(port).ip)));
     }
     return nhops;
+  }
+
+  void programPbrRoute(
+      const std::string& nhgName,
+      const std::string& prefix = kPbrRoutePrefix) {
+    UnicastRoute route;
+    route.dest()->ip() =
+        facebook::network::toBinaryAddress(folly::IPAddress(prefix));
+    route.dest()->prefixLength() = 64;
+    NamedRouteDestination namedDest;
+    namedDest.nextHopGroup() = nhgName;
+    route.namedRouteDestination() = namedDest;
+    auto updater = getSw()->getRouteUpdater();
+    updater.addRoute(RouterID(0), ClientID::BGPD, route);
+    updater.program();
   }
 
   void addOrUpdateNamedNhgs(
@@ -164,8 +186,44 @@ class AgentPbrTest : public AgentHwTest {
   std::string kClassNhg() const {
     return "pbrClassNhg";
   }
+  std::string kClass2Nhg() const {
+    return "pbrClass2Nhg";
+  }
+  std::string kClass3Nhg() const {
+    return "pbrClass3Nhg";
+  }
   std::string kPolicy() const {
     return "pbrPolicy";
+  }
+
+  void addClassBasedPolicy(
+      const std::map<ForwardingClass, std::string>& class2Nhg) {
+    ThriftHandler handler(getSw());
+    ClassBasedPolicy cbfPolicy;
+    cbfPolicy.name() = kPolicy();
+    cbfPolicy.defaultNexthopGroup() = kDefaultNhg();
+    for (const auto& [forwardingClass, nhgName] : class2Nhg) {
+      NextHopGroup classGroup;
+      classGroup.name() = nhgName;
+      cbfPolicy.class2NextHopGroup()[forwardingClass] = classGroup;
+    }
+    Policy policy;
+    policy.cbfPolicy() = cbfPolicy;
+    auto policies = std::make_unique<std::vector<Policy>>();
+    policies->push_back(std::move(policy));
+    handler.addPolicies(std::move(policies));
+  }
+
+  void addClassBasedPolicy() {
+    addClassBasedPolicy({{ForwardingClass::CLASS_1, kClassNhg()}});
+  }
+
+  uint64_t sumOutPkts(const std::vector<PortID>& members) {
+    uint64_t sum = 0;
+    for (const auto& port : members) {
+      sum += *getNextUpdatedPortStats(port).outUnicastPkts_();
+    }
+    return sum;
   }
 
   void verifyRedirectAndCounter(
@@ -204,13 +262,6 @@ class AgentPbrTest : public AgentHwTest {
 
     auto intfMac = getMacForFirstInterfaceWithPortsForTesting(state);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
-    auto sumOut = [&](const std::vector<PortID>& members) {
-      uint64_t sum = 0;
-      for (const auto& port : members) {
-        sum += *getNextUpdatedPortStats(port).outUnicastPkts_();
-      }
-      return sum;
-    };
 
     // A counter whose entry was just programmed reports a garbage value on its
     // first stats poll, so only trust a baseline two successive ticks agree on.
@@ -221,8 +272,8 @@ class AgentPbrTest : public AgentHwTest {
       EXPECT_EVENTUALLY_EQ(pkts, pktsBefore);
       pktsBefore = pkts;
     });
-    auto classBefore = sumOut(classMembers);
-    auto defaultBefore = sumOut(defaultMembers);
+    auto classBefore = sumOutPkts(classMembers);
+    auto defaultBefore = sumOutPkts(defaultMembers);
     for (int i = 0; i < kNumPkts; ++i) {
       auto pkt = utility::makeUDPTxPacket(
           getSw(),
@@ -239,11 +290,12 @@ class AgentPbrTest : public AgentHwTest {
     }
 
     WITH_RETRIES({
-      EXPECT_EVENTUALLY_GE(sumOut(classMembers) - classBefore, kNumPkts);
+      EXPECT_EVENTUALLY_GE(sumOutPkts(classMembers) - classBefore, kNumPkts);
       // A redirect that only partly works leaks probe packets here in bulk,
       // so the bound has to stay well under kNumPkts. It is not zero because
       // control-plane traffic also egresses these ports.
-      EXPECT_EVENTUALLY_LE(sumOut(defaultMembers) - defaultBefore, kVariance);
+      EXPECT_EVENTUALLY_LE(
+          sumOutPkts(defaultMembers) - defaultBefore, kVariance);
       auto pktsAfter = utility::getAclInOutPackets(getSw(), *counterName);
       EXPECT_EVENTUALLY_GE(pktsAfter, pktsBefore + kNumPkts);
     });
@@ -269,18 +321,7 @@ TEST_F(AgentPbrTest, ProgramPolicyAcl) {
          {kClassNhg(), makeNamedNhgSet({ports[2], ports[3]})}});
 
     // 3. Add a class-based policy: default NHG + CLASS_1 -> class NHG.
-    ThriftHandler handler(getSw());
-    ClassBasedPolicy cbfPolicy;
-    cbfPolicy.name() = kPolicy();
-    cbfPolicy.defaultNexthopGroup() = kDefaultNhg();
-    NextHopGroup classGroup;
-    classGroup.name() = kClassNhg();
-    cbfPolicy.class2NextHopGroup()[ForwardingClass::CLASS_1] = classGroup;
-    Policy policy;
-    policy.cbfPolicy() = cbfPolicy;
-    auto policies = std::make_unique<std::vector<Policy>>();
-    policies->push_back(policy);
-    handler.addPolicies(std::move(policies));
+    addClassBasedPolicy();
 
     // 4. Bind a route to the default NHG by name. Nothing is synthesized until
     // a route references the policy.
@@ -328,17 +369,7 @@ TEST_F(AgentPbrTest, ProgramPolicyAclViaPolicyRoute) {
     handler.addOrUpdateNamedNextHopGroups(std::move(nhgs));
 
     // 3. Add a class-based policy: default NHG + CLASS_1 -> class NHG.
-    ClassBasedPolicy cbfPolicy;
-    cbfPolicy.name() = kPolicy();
-    cbfPolicy.defaultNexthopGroup() = kDefaultNhg();
-    NextHopGroup classGroup;
-    classGroup.name() = kClassNhg();
-    cbfPolicy.class2NextHopGroup()[ForwardingClass::CLASS_1] = classGroup;
-    Policy policy;
-    policy.cbfPolicy() = cbfPolicy;
-    auto policies = std::make_unique<std::vector<Policy>>();
-    policies->push_back(policy);
-    handler.addPolicies(std::move(policies));
+    addClassBasedPolicy();
 
     // 4. Bind a route to the policy via policyName; the RIB resolves it to the
     // policy's default NHG.
@@ -360,6 +391,115 @@ TEST_F(AgentPbrTest, ProgramPolicyAclViaPolicyRoute) {
         {ports[2].phyPortID(), ports[3].phyPortID()},
         {ports[0].phyPortID(), ports[1].phyPortID()},
         ports[4].phyPortID());
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentPbrTest, PbrRedirectNhgMemberChange) {
+  auto setup = [this]() {
+    auto helper = ecmpHelper();
+    auto ports = helper.ecmpPortDescs(8);
+
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return helper.resolveNextHops(
+          in,
+          {ports[0],
+           ports[1],
+           ports[2],
+           ports[3],
+           ports[4],
+           ports[5],
+           ports[6]});
+    });
+
+    // default NHG = ports[0..1]; CLASS_2 NHG initial members = ports[2..3];
+    // CLASS_3 NHG = ports[4..5].
+    addOrUpdateNamedNhgs(
+        {{kDefaultNhg(), makeNamedNhgSet({ports[0], ports[1]})},
+         {kClass2Nhg(), makeNamedNhgSet({ports[2], ports[3]})},
+         {kClass3Nhg(), makeNamedNhgSet({ports[4], ports[5]})}});
+
+    // CLASS_1 redirects to the default NHG, so its entry must be programmed
+    // even though the redirect is a no-op on the wire.
+    addClassBasedPolicy(
+        {{ForwardingClass::CLASS_1, kDefaultNhg()},
+         {ForwardingClass::CLASS_2, kClass2Nhg()},
+         {ForwardingClass::CLASS_3, kClass3Nhg()}});
+
+    programPbrRoute(kDefaultNhg());
+  };
+
+  auto verify = [this]() {
+    if (!isSupportedOnAllAsics(HwAsic::Feature::PBR_ACL)) {
+      return;
+    }
+    auto helper = ecmpHelper();
+    auto ports = helper.ecmpPortDescs(8);
+    const std::vector<PortID> defaultMembers = {
+        ports[0].phyPortID(), ports[1].phyPortID()};
+    const std::vector<PortID> class2InitialMembers = {
+        ports[2].phyPortID(), ports[3].phyPortID()};
+    const std::vector<PortID> class3Members = {
+        ports[4].phyPortID(), ports[5].phyPortID()};
+    const std::vector<PortID> class2NewMembers = {ports[6].phyPortID()};
+    const auto injectPort = ports[7].phyPortID();
+
+    auto intfMac =
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
+    auto sendBurst = [&](uint8_t dscp) {
+      for (int i = 0; i < kNumPkts; ++i) {
+        auto pkt = utility::makeUDPTxPacket(
+            getSw(),
+            getVlanIDForTx(),
+            srcMac,
+            intfMac,
+            folly::IPAddressV6(kPbrSrcIp),
+            folly::IPAddressV6(kPbrDstIp),
+            kL4SrcPort + i,
+            kL4DstPort,
+            dscp << 2 /*trafficClass byte*/,
+            255 /*hopLimit*/);
+        getAgentEnsemble()->ensureSendPacketOutOfPort(
+            std::move(pkt), injectPort);
+      }
+    };
+    auto verifyBurst = [&](uint8_t dscp,
+                           const std::vector<PortID>& expect,
+                           const std::vector<PortID>& notExpect) {
+      auto expectBefore = sumOutPkts(expect);
+      auto notExpectBefore = sumOutPkts(notExpect);
+      sendBurst(dscp);
+      WITH_RETRIES({
+        EXPECT_EVENTUALLY_GE(sumOutPkts(expect) - expectBefore, kNumPkts);
+        EXPECT_EVENTUALLY_LE(
+            sumOutPkts(notExpect) - notExpectBefore, kVariance);
+      });
+    };
+    auto setClass2NhgMembers = [&](const std::vector<PortDescriptor>& members) {
+      addOrUpdateNamedNhgs({{kClass2Nhg(), makeNamedNhgSet(members)}});
+    };
+
+    // Re-establish the initial CLASS_2 members so the sequence is idempotent
+    // across warm boots (a prior verify pass may have left the new members).
+    setClass2NhgMembers({ports[2], ports[3]});
+
+    // 1. Non-matching traffic follows the route to the default NHG.
+    verifyBurst(kNoMatchDscp, defaultMembers, class2InitialMembers);
+    // 2. CLASS_1 redirects to the default NHG, so matching traffic lands where
+    // the route would have sent it anyway.
+    verifyBurst(kDscp, defaultMembers, class2InitialMembers);
+    // 3. CLASS_2 and CLASS_3 each redirect to their own group.
+    verifyBurst(kDscp2, class2InitialMembers, class3Members);
+    verifyBurst(kDscp3, class3Members, class2InitialMembers);
+
+    // 4. Change only CLASS_2's members.
+    setClass2NhgMembers({ports[6]});
+
+    // 5. CLASS_2 egresses the new members, and CLASS_3 is undisturbed.
+    verifyBurst(kDscp2, class2NewMembers, class2InitialMembers);
+    verifyBurst(kDscp3, class3Members, class2NewMembers);
   };
 
   verifyAcrossWarmBoots(setup, verify);
