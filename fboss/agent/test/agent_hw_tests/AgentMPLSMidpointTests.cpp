@@ -42,7 +42,8 @@ const facebook::fboss::LabelForwardingAction::Label kSwapLabel{201};
 constexpr uint32_t kSinglePushedLabelBase = 101;
 constexpr uint32_t kMaxPushedLabelBase = 1001;
 constexpr uint32_t kPopAndForwardInnerLabelBase = 2202;
-constexpr uint8_t kDefaultPopAndForwardLabelTtl = 128;
+constexpr uint8_t kDefaultPopAndForwardLabelTtlForTtlExpiryTrap = 2;
+constexpr uint8_t kDefaultPopAndForwardLabelTtlForSrcPortAclTrap = 128;
 constexpr std::array<size_t, 5> kPopAndForwardLabelStackDepths{
     2,
     11,
@@ -96,6 +97,10 @@ class AgentMPLSMidpointTest : public AgentMPLSDataplaneTest<PortType> {
 
   MplsTrapPacketMechanism trapPacketMechanism() const {
     auto asic = checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
+    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_P200) {
+      // P200 NSIM: use MPLS TTL-expiry trap instead of ingress src-port ACL.
+      return MplsTrapPacketMechanism::TtlExpiry;
+    }
     return asic->isSupported(HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER)
         ? MplsTrapPacketMechanism::SrcPortAcl
         : MplsTrapPacketMechanism::TtlExpiry;
@@ -424,8 +429,23 @@ class AgentMPLSMidpointTest : public AgentMPLSDataplaneTest<PortType> {
     resolveNextHopForPortWithMac(egressPortDescriptor(), routerMac());
 
     configureStaticMplsPopAndForwardRoute(config);
-    auto asic = checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
-    utility::addTrapPacketAcl(asic, &config, egressPort());
+    auto mechanism = trapPacketMechanism();
+    if (mechanism == MplsTrapPacketMechanism::TtlExpiry) {
+      // TTL-expiry trap on the second pass after pop-and-forward loopback.
+      resolveNextHopForPort(
+          PortDescriptor(secondPassEgressPort()),
+          Label(kPopAndForwardInnerLabelBase),
+          LabelForwardingAction::LabelForwardingType::SWAP);
+      configureStaticMplsSwapRoute(
+          config,
+          Label(kPopAndForwardInnerLabelBase),
+          kSwapLabel,
+          PortDescriptor(secondPassEgressPort()));
+    } else {
+      auto asic =
+          checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
+      utility::addTrapPacketAcl(asic, &config, egressPort());
+    }
     applyConfigAndEnableTrunks(config);
   }
 
@@ -465,8 +485,10 @@ class AgentMPLSMidpointTest : public AgentMPLSDataplaneTest<PortType> {
     auto outPktsBefore =
         utility::getPortOutPkts(this->getLatestPortStats(egressPort()));
 
-    sendMplsLabelStackIngressPacket(
-        labelStackDepth, kDefaultPopAndForwardLabelTtl, ingressPort());
+    const auto ttl = trapPacketMechanism() == MplsTrapPacketMechanism::TtlExpiry
+        ? kDefaultPopAndForwardLabelTtlForTtlExpiryTrap
+        : kDefaultPopAndForwardLabelTtlForSrcPortAclTrap;
+    sendMplsLabelStackIngressPacket(labelStackDepth, ttl, ingressPort());
 
     WITH_RETRIES({
       auto outPktsAfter =

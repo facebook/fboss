@@ -199,13 +199,30 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdatePortRouterInterface(
       ? getSystemPortId(swInterface)
       : (swInterface->getAggregatePortIDf() ? getAggregatePortId(swInterface)
                                             : getPortId(swInterface));
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+  // Leaba disables MPLS on a router interface by default. Enable it on port
+  // RIFs the same way VLAN RIFs do, when the ASIC supports MPLS.
+  std::optional<SaiPortRouterInterfaceTraits::Attributes::AdminMplsState>
+      adminMplsStateAttribute = std::nullopt;
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::MPLS)) {
+    adminMplsStateAttribute =
+        SaiPortRouterInterfaceTraits::Attributes::AdminMplsState(true);
+  }
+#endif
+
   // create the router interface
   SaiPortRouterInterfaceTraits::CreateAttributes attributes{
       virtualRouterIdAttribute,
       typeAttribute,
       portIdAttribute,
       srcMacAttribute,
-      mtuAttribute};
+      mtuAttribute
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+      ,
+      adminMplsStateAttribute
+#endif
+  };
   SaiPortRouterInterfaceTraits::AdapterHostKey k{
       virtualRouterIdAttribute,
       portIdAttribute,

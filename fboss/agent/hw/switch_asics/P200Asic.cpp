@@ -284,9 +284,9 @@ bool P200Asic::isSupportedNonFabric(Feature feature) const {
       // Becomes saiSdkAtLeast("<version>") once it does.
       return false;
     case HwAsic::Feature::SAI_MPLS_NEXTHOP_OUTSEG_TYPE:
-      // Leaba does not implement the MPLS next hop outsegment type attribute
-      // yet. Becomes saiSdkAtLeast("<version>") once it does.
-      return false;
+      // P200 SAI accepts SAI_NEXT_HOP_ATTR_OUTSEG_TYPE, so a PUSH next hop
+      // is created as SAI_OUTSEG_TYPE_PUSH instead of keyed as SWAP.
+      return true;
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
     case HwAsic::Feature::SAI_PRBS:
       /*
