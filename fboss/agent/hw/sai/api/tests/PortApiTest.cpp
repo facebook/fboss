@@ -295,6 +295,22 @@ TEST_F(PortApiTest, setCbfcSenderCreditSize) {
           id, SaiPortTraits::Attributes::CbfcSenderCreditSize{}),
       56);
 }
+
+TEST_F(PortApiTest, setCbfcSenderPacketOverhead) {
+  auto id = createPort(100000, {42}, true);
+  EXPECT_EQ(
+      portApi->getAttribute(
+          id, SaiPortTraits::Attributes::CbfcSenderPacketOverhead{}),
+      0);
+
+  // Negative is legal (-16..127) and catches an unsigned model.
+  portApi->setAttribute(
+      id, SaiPortTraits::Attributes::CbfcSenderPacketOverhead{-16});
+  EXPECT_EQ(
+      portApi->getAttribute(
+          id, SaiPortTraits::Attributes::CbfcSenderPacketOverhead{}),
+      -16);
+}
 #endif
 
 TEST_F(PortApiTest, fourPorts) {
