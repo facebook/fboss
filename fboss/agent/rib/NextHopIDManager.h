@@ -382,7 +382,7 @@ class NextHopIDManager {
   // `normalized`, taking a reference for the policy and releasing the one it
   // held. Returns the new id. Sets `moved` when the id changed and never
   // clears it, so one flag accumulates across a group's policies.
-  std::optional<NextHopSetID> updatePolicyNormalizedId(
+  NextHopSetID updatePolicyNormalizedId(
       const std::string& policyName,
       const std::string& nhgName,
       const RouteNextHopSet& normalized,

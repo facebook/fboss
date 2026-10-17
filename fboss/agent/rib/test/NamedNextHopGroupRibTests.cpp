@@ -1171,6 +1171,21 @@ TEST_F(NormalizedNamedNhgIdTest, NormalizedIdDedupsWithRoute) {
   EXPECT_EQ(normalizedId("nhg1"), NextHopSetID(*routeNormalizedId));
 }
 
+// A group with no resolvable member still gets an id: the empty set interns
+// like any other, and every such group shares it.
+TEST_F(NormalizedNamedNhgIdTest, NormalizedIdEmptyWhenNothingResolves) {
+  addOrUpdateGroups(
+      {{"unresolvable", unresolvedNextHops({"9.9.9.9"})},
+       {"alsoUnresolvable", unresolvedNextHops({"8.8.8.8"})}});
+  addPolicyNaming("unresolvablePol", "unresolvable");
+  addPolicyNaming("alsoUnresolvablePol", "alsoUnresolvable");
+
+  auto id = normalizedId("unresolvable");
+  ASSERT_TRUE(id.has_value());
+  EXPECT_TRUE(rib_.getNextHopIDManagerCopy()->getNextHops(*id).empty());
+  EXPECT_EQ(normalizedId("alsoUnresolvable"), id);
+}
+
 // Resolution moves with the RIB, so the id has to be recomputed every pass,
 // not just when the group's own members change.
 TEST_F(NormalizedNamedNhgIdTest, NormalizedIdRepointsWhenMemberLosesItsRoute) {

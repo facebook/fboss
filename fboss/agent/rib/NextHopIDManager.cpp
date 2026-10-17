@@ -340,7 +340,7 @@ NextHopIDManager::updateNamedNextHopGroup(
   return result;
 }
 
-std::optional<NextHopSetID> NextHopIDManager::updatePolicyNormalizedId(
+NextHopSetID NextHopIDManager::updatePolicyNormalizedId(
     const std::string& policyName,
     const std::string& nhgName,
     const RouteNextHopSet& normalized,
@@ -350,23 +350,17 @@ std::optional<NextHopSetID> NextHopIDManager::updatePolicyNormalizedId(
   const std::optional<NextHopSetID> oldId =
       it != ids.end() ? std::optional<NextHopSetID>(it->second) : std::nullopt;
 
-  std::optional<NextHopSetID> newId;
-  if (!normalized.empty()) {
-    // Take this policy's reference before releasing the one it holds below:
-    // when both name the same set, releasing first would free it and the id
-    // would not survive the call.
-    newId = getOrAllocRouteNextHopSetID(normalized).nextHopIdSetIter->second.id;
-  }
+  // Take this policy's reference before releasing the one it holds below:
+  // when both name the same set, releasing first would free it and the id
+  // would not survive the call.
+  const auto newId =
+      getOrAllocRouteNextHopSetID(normalized).nextHopIdSetIter->second.id;
 
   if (it != ids.end()) {
     decrOrDeallocRouteNextHopSetID(it->second);
-    if (newId.has_value()) {
-      it->second = *newId;
-    } else {
-      ids.erase(it);
-    }
-  } else if (newId.has_value()) {
-    ids.emplace(nhgName, *newId);
+    it->second = newId;
+  } else {
+    ids.emplace(nhgName, newId);
   }
 
   if (oldId == newId) {
@@ -376,7 +370,7 @@ std::optional<NextHopSetID> NextHopIDManager::updatePolicyNormalizedId(
   XLOG(DBG3) << "[NextHop ID Manager] normalized named NHG '" << nhgName
              << "' for policy '" << policyName << "' id "
              << (oldId ? folly::to<std::string>(*oldId) : "none") << " -> "
-             << (newId ? folly::to<std::string>(*newId) : "none");
+             << newId;
   return newId;
 }
 
@@ -389,11 +383,10 @@ void NextHopIDManager::updateNormalizedNamedNhgId(
     return;
   }
 
-  RouteNextHopSet normalized;
-  if (!resolvedNextHopSet.empty()) {
-    normalized =
-        RouteNextHopEntry::normalizeNextHops(resolvedNextHopSet, ecmpWidth);
-  }
+  // A group resolving to nothing still gets an id: dropping the name instead
+  // leaves policies naming it unresolvable and fails the whole RIB update.
+  const auto normalized =
+      RouteNextHopEntry::normalizeNextHops(resolvedNextHopSet, ecmpWidth);
 
   bool moved = false;
   std::optional<NextHopSetID> setId;
