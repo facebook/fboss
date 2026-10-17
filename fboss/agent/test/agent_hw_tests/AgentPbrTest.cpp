@@ -8,6 +8,7 @@
  *
  */
 
+#include <fmt/core.h>
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
@@ -29,6 +30,7 @@
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
+#include "fboss/agent/test/utils/Srv6TestUtils.h"
 
 DECLARE_bool(enable_nexthop_id_manager);
 
@@ -36,13 +38,36 @@ namespace facebook::fboss {
 
 namespace {
 constexpr uint8_t kDscp = 10;
+constexpr auto kSrv6TunnelId = "srv6Tunnel0";
+
+// Keyed off the physical port so a next hop keeps its SID across warm boot and
+// across the member-change sequence.
+std::vector<folly::IPAddressV6> makeSidList(PortID port) {
+  auto index = static_cast<int>(port);
+  return {folly::IPAddressV6(
+      fmt::format("3001:db8:{:x}:{:x}::", (index >> 8) + 1, index & 0xFF))};
+}
+
+template <typename NextHopT, typename... Args>
+NextHopT makeSrv6NextHop(PortID port, Args&&... args) {
+  return NextHopT(
+      std::forward<Args>(args)...,
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      makeSidList(port),
+      TunnelType::SRV6_ENCAP,
+      std::string(kSrv6TunnelId));
+}
 } // namespace
 
 class AgentPbrTest : public AgentHwTest {
  public:
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
-    return {ProductionFeature::PBR_ACL};
+    return {ProductionFeature::PBR_ACL, ProductionFeature::SRV6_ENCAP};
   }
 
  protected:
@@ -69,6 +94,8 @@ class AgentPbrTest : public AgentHwTest {
         {{1 /*TC==CLASS_1*/, {kDscp}}},
         "pbrQos",
         ensemble.getSw()->getHwAsicTable()->getL3Asics());
+    cfg.srv6Tunnels() = {utility::makeSrv6TunnelConfig(
+        kSrv6TunnelId, InterfaceID(cfg.interfaces()[0].intfID().value()))};
     return cfg;
   }
 
@@ -82,8 +109,9 @@ class AgentPbrTest : public AgentHwTest {
     auto helper = ecmpHelper();
     RouteNextHopSet nhops;
     for (const auto& port : ports) {
-      nhops.insert(UnresolvedNextHop(
-          folly::IPAddress(helper.nhop(port).ip), ECMP_WEIGHT));
+      nhops.insert(
+          makeSrv6NextHop<UnresolvedNextHop>(
+              port.phyPortID(), folly::IPAddress(helper.nhop(port).ip)));
     }
     return nhops;
   }
@@ -114,10 +142,10 @@ class AgentPbrTest : public AgentHwTest {
     for (const auto& port : ports) {
       auto ecmpNhop = helper.nhop(port);
       CHECK(ecmpNhop.linkLocalNhopIp.has_value());
-      NextHop nh = ResolvedNextHop(
+      NextHop nh = makeSrv6NextHop<ResolvedNextHop>(
+          port.phyPortID(),
           folly::IPAddress(*ecmpNhop.linkLocalNhopIp),
-          ecmpNhop.intf,
-          ECMP_WEIGHT);
+          ecmpNhop.intf);
       group.nexthops()->push_back(nh.toThrift());
     }
     return group;
