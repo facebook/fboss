@@ -358,6 +358,14 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_CBFC_SENDER_CREDIT_LIMIT,
         sai_uint32_t,
         SaiIntDefault<sai_uint32_t>>;
+    // Bytes per credit the sender charges; must suit the peer's receiver.
+    // Kept out of CreateAttributes for the same reason as
+    // CbfcSenderCreditLimit.
+    using CbfcSenderCreditSize = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_CBFC_SENDER_CREDIT_SIZE,
+        sai_uint16_t,
+        SaiIntDefault<sai_uint16_t>>;
     // Egress classification: which virtual channel a queue drains into, and
     // so whose credit the sender must hold before transmitting from it.
     using QosQueueToVcMap = SaiAttribute<
@@ -1079,6 +1087,7 @@ SAI_ATTRIBUTE_NAME(Port, QosTcToPriorityGroupMap)
 #if defined(SAI_CBFC_SUPPORTED)
 SAI_ATTRIBUTE_NAME(Port, QosTcToVcMap)
 SAI_ATTRIBUTE_NAME(Port, CbfcSenderCreditLimit)
+SAI_ATTRIBUTE_NAME(Port, CbfcSenderCreditSize)
 SAI_ATTRIBUTE_NAME(Port, QosQueueToVcMap)
 SAI_ATTRIBUTE_NAME(Port, CbfcReceiverNativeCreditSize)
 SAI_ATTRIBUTE_NAME(Port, CbfcReceiverNativePacketOverhead)
