@@ -8362,14 +8362,6 @@
           "reason": "Transceiver type not supported."
         },
         {
-          "test_name_regex": "RefreshTransceiver_CWDM4_100G$",
-          "reason": "Transceiver type not supported."
-        },
-        {
-          "test_name_regex": "ReadRegister_CWDM4_100G$",
-          "reason": "Transceiver type not supported."
-        },
-        {
           "test_name_regex": "RefreshTransceiver_CR4_100G$",
           "reason": "Transceiver type not supported."
         },
@@ -8535,14 +8527,6 @@
         },
         {
           "test_name_regex": "ReadRegister_DR4_800G$",
-          "reason": "Transceiver type not supported."
-        },
-        {
-          "test_name_regex": "RefreshTransceiver_DR4_2x800G$",
-          "reason": "Transceiver type not supported."
-        },
-        {
-          "test_name_regex": "ReadRegister_DR4_2x800G$",
           "reason": "Transceiver type not supported."
         },
         {
