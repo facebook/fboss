@@ -226,6 +226,45 @@ class AgentPbrTest : public AgentHwTest {
     return sum;
   }
 
+  // Inject kNumPkts probes at the given DSCP, varying the L4 source port so
+  // they spread across the egress group's members.
+  void sendPbrBurst(uint8_t dscp, PortID injectPort) {
+    auto intfMac =
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
+    for (int i = 0; i < kNumPkts; ++i) {
+      auto pkt = utility::makeUDPTxPacket(
+          getSw(),
+          getVlanIDForTx(),
+          srcMac,
+          intfMac,
+          folly::IPAddressV6(kPbrSrcIp),
+          folly::IPAddressV6(kPbrDstIp),
+          kL4SrcPort + i,
+          kL4DstPort,
+          dscp << 2 /*trafficClass byte*/,
+          255 /*hopLimit*/);
+      getAgentEnsemble()->ensureSendPacketOutOfPort(std::move(pkt), injectPort);
+    }
+  }
+
+  void verifyBurst(
+      uint8_t dscp,
+      PortID injectPort,
+      const std::vector<PortID>& expect,
+      const std::vector<PortID>& notExpect) {
+    auto expectBefore = sumOutPkts(expect);
+    auto notExpectBefore = sumOutPkts(notExpect);
+    sendPbrBurst(dscp, injectPort);
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_GE(sumOutPkts(expect) - expectBefore, kNumPkts);
+      // A redirect that only partly works leaks probes here in bulk, so the
+      // bound has to stay well under kNumPkts. It is not zero because
+      // control-plane traffic also egresses these ports.
+      EXPECT_EVENTUALLY_LE(sumOutPkts(notExpect) - notExpectBefore, kVariance);
+    });
+  }
+
   void verifyRedirectAndCounter(
       const std::vector<PortID>& classMembers,
       const std::vector<PortID>& defaultMembers,
@@ -260,9 +299,6 @@ class AgentPbrTest : public AgentHwTest {
     EXPECT_EQ(entriesWithCounter, pbrEntries);
     ASSERT_TRUE(counterName.has_value());
 
-    auto intfMac = getMacForFirstInterfaceWithPortsForTesting(state);
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
-
     // A counter whose entry was just programmed reports a garbage value on its
     // first stats poll, so only trust a baseline two successive ticks agree on.
     uint64_t pktsBefore = utility::getAclInOutPackets(getSw(), *counterName);
@@ -272,32 +308,11 @@ class AgentPbrTest : public AgentHwTest {
       EXPECT_EVENTUALLY_EQ(pkts, pktsBefore);
       pktsBefore = pkts;
     });
-    auto classBefore = sumOutPkts(classMembers);
-    auto defaultBefore = sumOutPkts(defaultMembers);
-    for (int i = 0; i < kNumPkts; ++i) {
-      auto pkt = utility::makeUDPTxPacket(
-          getSw(),
-          getVlanIDForTx(),
-          srcMac,
-          intfMac,
-          folly::IPAddressV6(kPbrSrcIp),
-          folly::IPAddressV6(kPbrDstIp),
-          kL4SrcPort + i, // vary L4 src to spread across the class NHG members
-          kL4DstPort,
-          kDscp << 2 /*trafficClass byte*/,
-          255 /*hopLimit*/);
-      getAgentEnsemble()->ensureSendPacketOutOfPort(std::move(pkt), injectPort);
-    }
-
+    verifyBurst(kDscp, injectPort, classMembers, defaultMembers);
     WITH_RETRIES({
-      EXPECT_EVENTUALLY_GE(sumOutPkts(classMembers) - classBefore, kNumPkts);
-      // A redirect that only partly works leaks probe packets here in bulk,
-      // so the bound has to stay well under kNumPkts. It is not zero because
-      // control-plane traffic also egresses these ports.
-      EXPECT_EVENTUALLY_LE(
-          sumOutPkts(defaultMembers) - defaultBefore, kVariance);
-      auto pktsAfter = utility::getAclInOutPackets(getSw(), *counterName);
-      EXPECT_EVENTUALLY_GE(pktsAfter, pktsBefore + kNumPkts);
+      EXPECT_EVENTUALLY_GE(
+          utility::getAclInOutPackets(getSw(), *counterName),
+          pktsBefore + kNumPkts);
     });
   }
 };
@@ -445,38 +460,6 @@ TEST_F(AgentPbrTest, PbrRedirectNhgMemberChange) {
     const std::vector<PortID> class2NewMembers = {ports[6].phyPortID()};
     const auto injectPort = ports[7].phyPortID();
 
-    auto intfMac =
-        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
-    auto sendBurst = [&](uint8_t dscp) {
-      for (int i = 0; i < kNumPkts; ++i) {
-        auto pkt = utility::makeUDPTxPacket(
-            getSw(),
-            getVlanIDForTx(),
-            srcMac,
-            intfMac,
-            folly::IPAddressV6(kPbrSrcIp),
-            folly::IPAddressV6(kPbrDstIp),
-            kL4SrcPort + i,
-            kL4DstPort,
-            dscp << 2 /*trafficClass byte*/,
-            255 /*hopLimit*/);
-        getAgentEnsemble()->ensureSendPacketOutOfPort(
-            std::move(pkt), injectPort);
-      }
-    };
-    auto verifyBurst = [&](uint8_t dscp,
-                           const std::vector<PortID>& expect,
-                           const std::vector<PortID>& notExpect) {
-      auto expectBefore = sumOutPkts(expect);
-      auto notExpectBefore = sumOutPkts(notExpect);
-      sendBurst(dscp);
-      WITH_RETRIES({
-        EXPECT_EVENTUALLY_GE(sumOutPkts(expect) - expectBefore, kNumPkts);
-        EXPECT_EVENTUALLY_LE(
-            sumOutPkts(notExpect) - notExpectBefore, kVariance);
-      });
-    };
     auto setClass2NhgMembers = [&](const std::vector<PortDescriptor>& members) {
       addOrUpdateNamedNhgs({{kClass2Nhg(), makeNamedNhgSet(members)}});
     };
@@ -486,20 +469,20 @@ TEST_F(AgentPbrTest, PbrRedirectNhgMemberChange) {
     setClass2NhgMembers({ports[2], ports[3]});
 
     // 1. Non-matching traffic follows the route to the default NHG.
-    verifyBurst(kNoMatchDscp, defaultMembers, class2InitialMembers);
+    verifyBurst(kNoMatchDscp, injectPort, defaultMembers, class2InitialMembers);
     // 2. CLASS_1 redirects to the default NHG, so matching traffic lands where
     // the route would have sent it anyway.
-    verifyBurst(kDscp, defaultMembers, class2InitialMembers);
+    verifyBurst(kDscp, injectPort, defaultMembers, class2InitialMembers);
     // 3. CLASS_2 and CLASS_3 each redirect to their own group.
-    verifyBurst(kDscp2, class2InitialMembers, class3Members);
-    verifyBurst(kDscp3, class3Members, class2InitialMembers);
+    verifyBurst(kDscp2, injectPort, class2InitialMembers, class3Members);
+    verifyBurst(kDscp3, injectPort, class3Members, class2InitialMembers);
 
     // 4. Change only CLASS_2's members.
     setClass2NhgMembers({ports[6]});
 
     // 5. CLASS_2 egresses the new members, and CLASS_3 is undisturbed.
-    verifyBurst(kDscp2, class2NewMembers, class2InitialMembers);
-    verifyBurst(kDscp3, class3Members, class2NewMembers);
+    verifyBurst(kDscp2, injectPort, class2NewMembers, class2InitialMembers);
+    verifyBurst(kDscp3, injectPort, class3Members, class2NewMembers);
   };
 
   verifyAcrossWarmBoots(setup, verify);
