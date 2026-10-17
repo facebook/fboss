@@ -307,4 +307,62 @@ TEST_F(AgentPbrTest, ProgramPolicyAcl) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(AgentPbrTest, ProgramPolicyAclViaPolicyRoute) {
+  auto setup = [this]() {
+    auto helper = ecmpHelper();
+    auto ports = helper.ecmpPortDescs(5);
+
+    // 1. Resolve neighbors at link-local so the link-local named-NHG members
+    // resolve to programmable SAI next hops.
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return helper.resolveNextHops(
+          in, {ports[0], ports[1], ports[2], ports[3]}, true /*useLinkLocal*/);
+    });
+
+    // 2. Create the named next-hop groups via Thrift (link-local next hops pass
+    // validateLinkLocalNextHopInterfaces).
+    ThriftHandler handler(getSw());
+    auto nhgs = std::make_unique<std::vector<NextHopGroup>>();
+    nhgs->push_back(makeLinkLocalNhgGroup(kDefaultNhg(), {ports[0], ports[1]}));
+    nhgs->push_back(makeLinkLocalNhgGroup(kClassNhg(), {ports[2], ports[3]}));
+    handler.addOrUpdateNamedNextHopGroups(std::move(nhgs));
+
+    // 3. Add a class-based policy: default NHG + CLASS_1 -> class NHG.
+    ClassBasedPolicy cbfPolicy;
+    cbfPolicy.name() = kPolicy();
+    cbfPolicy.defaultNexthopGroup() = kDefaultNhg();
+    NextHopGroup classGroup;
+    classGroup.name() = kClassNhg();
+    cbfPolicy.class2NextHopGroup()[ForwardingClass::CLASS_1] = classGroup;
+    Policy policy;
+    policy.cbfPolicy() = cbfPolicy;
+    auto policies = std::make_unique<std::vector<Policy>>();
+    policies->push_back(policy);
+    handler.addPolicies(std::move(policies));
+
+    // 4. Bind a route to the policy via policyName; the RIB resolves it to the
+    // policy's default NHG.
+    UnicastRoute route;
+    route.dest()->ip() =
+        facebook::network::toBinaryAddress(folly::IPAddress(kPbrRoutePrefix));
+    route.dest()->prefixLength() = 64;
+    NamedRouteDestination namedDest;
+    namedDest.policyName() = kPolicy();
+    route.namedRouteDestination() = namedDest;
+    auto updater = getSw()->getRouteUpdater();
+    updater.addRoute(RouterID(0), ClientID::BGPD, route);
+    updater.program();
+  };
+
+  auto verify = [this]() {
+    auto ports = ecmpHelper().ecmpPortDescs(5);
+    verifyRedirectAndCounter(
+        {ports[2].phyPortID(), ports[3].phyPortID()},
+        {ports[0].phyPortID(), ports[1].phyPortID()},
+        ports[4].phyPortID());
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
