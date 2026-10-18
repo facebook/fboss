@@ -107,6 +107,7 @@ bool P200Asic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::CPU_QUEUE_WATERMARK_STATS:
     case HwAsic::Feature::BUFFER_POOL_HEADROOM_WATERMARK:
     case HwAsic::Feature::SAI_SET_TC_WITH_USER_DEFINED_TRAP_CPU_ACTION:
+    case HwAsic::Feature::SAI_MPLS_NEXTHOP_OUTSEG_TYPE:
       return true;
     case HwAsic::Feature::ACL_BYTE_COUNTER:
     case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
@@ -283,10 +284,6 @@ bool P200Asic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SAI_ACL_MPLS_LABEL0_TTL:
       // Leaba does not implement the MPLS label0 TTL ACL qualifier yet.
       // Becomes saiSdkAtLeast("<version>") once it does.
-      return false;
-    case HwAsic::Feature::SAI_MPLS_NEXTHOP_OUTSEG_TYPE:
-      // Leaba does not implement the MPLS next hop outsegment type attribute
-      // yet. Becomes saiSdkAtLeast("<version>") once it does.
       return false;
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
     case HwAsic::Feature::SAI_PRBS:
