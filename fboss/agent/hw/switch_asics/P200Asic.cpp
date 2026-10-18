@@ -286,12 +286,12 @@ bool P200Asic::isSupportedNonFabric(Feature feature) const {
       // Becomes saiSdkAtLeast("<version>") once it does.
       return false;
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
+      // A source port trap ACL is programmed but never delivers packets to
+      // the CPU on P200, for IP as well as MPLS traffic.
+      //
+      // TODO: Pending SDK support.
+      return false;
     case HwAsic::Feature::SAI_PRBS:
-      /*
-       * Source port ACL qualifier is used in certain HW tests to trap packets
-       * to CPU. P200 always runs a P4-warmboot-capable SDK, which uses the
-       * source port qualifier, so this feature is supported.
-       */
       return true;
   }
   return false;
