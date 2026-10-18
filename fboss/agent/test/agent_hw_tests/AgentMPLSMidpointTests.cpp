@@ -179,7 +179,7 @@ class AgentMPLSMidpointTest : public AgentMPLSDataplaneTest<PortType> {
   void configureTrapPacketMechanism(
       cfg::SwitchConfig& config,
       MplsTrapPacketMechanism mechanism,
-      const LabelForwardingAction::LabelStack& pushStack) const {
+      Label secondPassIngressLabel) {
     switch (mechanism) {
       case MplsTrapPacketMechanism::SrcPortAcl: {
         auto asic =
@@ -188,9 +188,13 @@ class AgentMPLSMidpointTest : public AgentMPLSDataplaneTest<PortType> {
         break;
       }
       case MplsTrapPacketMechanism::TtlExpiry:
+        resolveNextHopForPort(
+            PortDescriptor(secondPassEgressPort()),
+            secondPassIngressLabel,
+            LabelForwardingAction::LabelForwardingType::SWAP);
         configureStaticMplsSwapRoute(
             config,
-            pushedTopLabel(pushStack),
+            secondPassIngressLabel,
             kSwapLabel,
             PortDescriptor(secondPassEgressPort()));
         break;
@@ -405,15 +409,8 @@ class AgentMPLSMidpointTest : public AgentMPLSDataplaneTest<PortType> {
     // - The second pass matches the pushed-label SWAP route and expires TTL.
     // - The MPLS TTL trap sends the packet to CPU for packet snooper
     // inspection.
-    if (mechanism == MplsTrapPacketMechanism::TtlExpiry) {
-      resolveNextHopForPort(
-          PortDescriptor(secondPassEgressPort()),
-          pushedTopLabel(pushStack),
-          LabelForwardingAction::LabelForwardingType::SWAP);
-    }
-
     configureStaticMplsPushRoute(config, pushStack);
-    configureTrapPacketMechanism(config, mechanism, pushStack);
+    configureTrapPacketMechanism(config, mechanism, pushedTopLabel(pushStack));
     applyConfigAndEnableTrunks(config);
   }
 
