@@ -54,10 +54,10 @@ cpp_library(
         "agent/VlanConfigUtils.h",
     ],
     deps = [
+        "fbsource//xplat/folly:cpp_attributes",
         "//fboss/agent:fboss-error",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/platforms/common:platform_mapping",
-        "//folly:cpp_attributes",
         "//thrift/lib/cpp/util:enum_utils",
     ],
     exported_deps = [

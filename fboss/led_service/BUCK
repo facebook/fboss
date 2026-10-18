@@ -14,10 +14,10 @@ cpp_library(
         "LedServiceHandler.h",
     ],
     exported_deps = [
+        "fbsource//xplat/folly/futures:core",
         ":led_manager",
         "//common/fb303/cpp:fb303",
         "//fboss/led_service/if:led_service-cpp2-services",
-        "//folly/futures:core",
     ],
     exported_external_deps = [
         "gflags",
@@ -33,9 +33,9 @@ cpp_library(
         "LedUtils.h",
     ],
     deps = [
+        "fbsource//xplat/folly/logging:logging",
         ":led-config",
         "//fboss/agent:fboss-error",
-        "//folly/logging:logging",
     ],
     exported_deps = [
         "//fboss/led_service/if:led_structs-cpp2-types",
@@ -171,6 +171,10 @@ cpp_library(
         "//thrift/lib/cpp2/protocol:protocol",
     ],
     exported_deps = [
+        "fbsource//xplat/folly:format",
+        "fbsource//xplat/folly:synchronized",
+        "fbsource//xplat/folly/io/async:async_base",
+        "fbsource//xplat/folly/logging:logging",
         ":led-config",
         ":led_utils",
         "//fboss/agent:fboss-error",
@@ -182,10 +186,6 @@ cpp_library(
         "//fboss/lib/bsp:bsp_core",
         "//fboss/lib/led:led_lib",
         "//fboss/lib/led:led_mapping-cpp2-types",
-        "//folly:format",
-        "//folly:synchronized",
-        "//folly/io/async:async_base",
-        "//folly/logging:logging",
     ],
 )
 
@@ -196,12 +196,12 @@ cpp_binary(
     ],
     headers = [],
     deps = [
+        "fbsource//xplat/folly/logging:init",
+        "fbsource//xplat/folly/logging:logging",
         ":led_core",
         ":led_utils",
         "//fb303:logging",
         "//fboss/platform/helpers:init",
-        "//folly/logging:init",
-        "//folly/logging:logging",
     ],
     external_deps = [
         "gflags",
@@ -217,9 +217,9 @@ cpp_library(
         "LedConfig.h",
     ],
     deps = [
+        "fbsource//xplat/folly:file_util",
+        "fbsource//xplat/folly/logging:logging",
         "//fboss/agent:fboss-error",
-        "//folly:file_util",
-        "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
     exported_deps = [
