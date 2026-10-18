@@ -1262,6 +1262,21 @@ enum LinkScanMode {
   HARDWARE = 2,
 }
 
+/*
+ * What a port does with the CSIG (Congestion Signaling) tag on routed packets
+ * egressing it. Values match sai_port_csig_tag_action_t.
+ *
+ * PASSTHROUGH: keep the tag unchanged (SDK default).
+ * STRIP: remove the tag.
+ * UPDATE: keep the tag and rewrite its signal with this port's measured
+ *         available bandwidth, stamping the port's CSIG link locator.
+ */
+enum CsigTagAction {
+  PASSTHROUGH = 0,
+  STRIP = 1,
+  UPDATE = 2,
+}
+
 /**
  * Configuration for a single logical port
  */
@@ -1514,6 +1529,13 @@ struct Port {
   // Traffic ingressing this port is not forwarded to the members of this
   // isolation group. Names a key of SwitchConfig.isolationGroups.
   49: optional IsolationGroupName isolationGroup;
+  // CSIG tag action for routed packets egressing this port. The SDK enables
+  // CSIG parsing (TPID 0x9900) at init on supporting ASICs.
+  // Unset = leave SDK default (PASSTHROUGH) untouched.
+  50: optional CsigTagAction csigTagAction;
+  // CSIG link locator metadata (7 bits, 0-127) stamped into the tag by an
+  // UPDATE port. Unset = leave SDK default untouched.
+  51: optional i16 csigLinkLocator;
 }
 
 enum LacpPortRate {

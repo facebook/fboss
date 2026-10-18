@@ -6417,6 +6417,8 @@ class ChildThriftPath<::facebook::fboss::cfg::Port, ::facebook::fboss::fsdb::Fsd
     STRUCT_CHILD_GETTERS(userMetaData, 47);
     STRUCT_CHILD_GETTERS(cbfcConfigName, 48);
     STRUCT_CHILD_GETTERS(isolationGroup, 49);
+    STRUCT_CHILD_GETTERS(csigTagAction, 50);
+    STRUCT_CHILD_GETTERS(csigLinkLocator, 51);
 };
 
 
