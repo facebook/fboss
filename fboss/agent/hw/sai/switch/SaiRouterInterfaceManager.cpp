@@ -118,6 +118,8 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateVlanRouterInterface(
   std::optional<SaiVlanRouterInterfaceTraits::Attributes::AdminMplsState>
       adminMplsStateAttribute{std::nullopt};
   if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
+      platform_->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_TOMAHAWK6 ||
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_P200) {
     adminMplsStateAttribute =
         SaiVlanRouterInterfaceTraits::Attributes::AdminMplsState{true};
