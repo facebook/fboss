@@ -996,13 +996,14 @@ cfg::SwitchConfig genPortVlanCfg(
       config.vlanPorts()->push_back(
           createVlanPortConfig(vlanPortPair.first, vlanPortPair.second));
     }
-    if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
+    if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB ||
+        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_P200) {
       /*
        * TODO(pshaikh): Chenab-Hack pipeline lookup for traffic injected by cpu
        * requires vlan rif in default vlan.
        */
       auto intf1 = createVlanInterfaceConfig(
-          InterfaceID(*defaultVlan.intfID()), VlanID(kDefaultVlanId1));
+          InterfaceID(*defaultVlan.intfID()), VlanID(defaultVlanId));
       intf1.name() = "default_vlan_rif";
       intf1.mac() = getLocalCpuMacStr();
       intf1.isVirtual() = true;
