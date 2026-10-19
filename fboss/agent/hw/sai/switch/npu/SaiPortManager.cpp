@@ -1131,6 +1131,16 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     linkScanMode = linkScanModeAttribute(*mode);
   }
 
+  // cfg::CsigTagAction values match sai_port_csig_tag_action_t.
+  std::optional<SaiPortTraits::Attributes::CsigTagAction> csigTagAction;
+  if (const auto action = swPort->getCsigTagAction()) {
+    csigTagAction = static_cast<sai_int32_t>(*action);
+  }
+  std::optional<SaiPortTraits::Attributes::CsigLinkLocator> csigLinkLocator;
+  if (const auto linkLocator = swPort->getCsigLinkLocator()) {
+    csigLinkLocator = static_cast<sai_uint8_t>(*linkLocator);
+  }
+
   if (basicAttributeOnly) {
     return SaiPortTraits::CreateAttributes{
 #if defined(BRCM_SAI_SDK_DNX)
@@ -1392,8 +1402,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       ingressAcl,
       std::nullopt, // IsolationGroup
       metadata,
-      std::nullopt, // CsigTagAction
-      std::nullopt, // CsigLinkLocator
+      csigTagAction,
+      csigLinkLocator,
   };
 }
 
