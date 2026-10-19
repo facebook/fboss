@@ -285,7 +285,8 @@
 #define CHENAB_SAI_SDK_GTE_2605_37
 #endif
 
-#if defined(CHENAB_SAI_SDK_VERSION_2511_36_0_20) || \
+#if defined(CHENAB_SAI_SDK_VERSION_2511_36_0_20) ||   \
+    defined(CHENAB_SAI_SDK_VERSION_2511_36_251_10) || \
     defined(CHENAB_SAI_SDK_GTE_2605_37)
 #define CHENAB_SAI_SDK_GTE_2511_36
 #endif
