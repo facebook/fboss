@@ -3252,11 +3252,17 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
             folly::join(", ", supported));
       }
     };
-    if (auto size = it->second.senderCreditSize()) {
-      checkSupported(
-          "senderCreditSize", *size, asic->getCbfcSenderCreditSizes());
-      cbfcSenderCreditSize = *size;
+    auto size = it->second.senderCreditSize();
+    if (!size) {
+      throw FbossError(
+          "Port ",
+          orig->getID(),
+          " cbfc config ",
+          *cbfcConfigName,
+          ": senderCreditSize is required");
     }
+    checkSupported("senderCreditSize", *size, asic->getCbfcSenderCreditSizes());
+    cbfcSenderCreditSize = *size;
     if (auto overhead = it->second.senderPacketOverhead()) {
       checkSupported(
           "senderPacketOverhead",

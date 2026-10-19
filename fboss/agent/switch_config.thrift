@@ -2358,9 +2358,9 @@ struct CbfcConfig {
   2: optional i64 senderCreditLimit;
   // Bytes per credit the sender charges (SAI_PORT_ATTR_CBFC_SENDER_CREDIT_SIZE).
   // Must match the peer's receiver, or the two ends count different credits for
-  // the same packet and the link stalls. Unset: the local receiver's value. On
-  // TU1 the receiver's credit size is hardcoded in the SDK and is not SAI
-  // writable.
+  // the same packet and the link stalls. Required on a port that uses this
+  // config. Against another TU1, use 56: the TU1 receiver's credit size is
+  // hardcoded in the SDK and is not SAI writable.
   3: optional i16 senderCreditSize;
   // Per-packet overhead in bytes the sender charges
   // (SAI_PORT_ATTR_CBFC_SENDER_PACKET_OVERHEAD). Same rules as senderCreditSize.

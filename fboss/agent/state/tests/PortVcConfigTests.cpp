@@ -41,6 +41,7 @@ cfg::CbfcConfig makeCbfcConfig() {
   cfg::CbfcConfig cbfcConfig;
   cbfcConfig.virtualChannels() = {rdma, monitoring};
   cbfcConfig.senderCreditLimit() = 8192;
+  cbfcConfig.senderCreditSize() = 56;
   return cbfcConfig;
 }
 
@@ -68,7 +69,7 @@ TEST(PortVcConfig, ConfigApplied) {
 
   EXPECT_EQ(port->getCbfcConfigName(), "cbfc_foo");
   EXPECT_EQ(port->getCbfcSenderCreditLimit(), 8192);
-  EXPECT_FALSE(port->getCbfcSenderCreditSize().has_value());
+  EXPECT_EQ(port->getCbfcSenderCreditSize(), 56);
   EXPECT_FALSE(port->getCbfcSenderPacketOverhead().has_value());
 
   auto vcs = port->getVirtualChannels();
