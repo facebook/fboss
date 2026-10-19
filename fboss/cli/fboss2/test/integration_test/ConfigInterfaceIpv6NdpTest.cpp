@@ -327,6 +327,41 @@ TEST_F(ConfigInterfaceIpv6NdpTest, SetRaAddress) {
 }
 
 // ---------------------------------------------------------------------------
+// Test: set other-config-flag and verify routerAdvertisementOtherBit via
+// running config. The managed bit is a separate flag and must not change.
+// ---------------------------------------------------------------------------
+
+TEST_F(ConfigInterfaceIpv6NdpTest, SetOtherConfigFlag) {
+  XLOG(INFO) << "[Step 1] Finding an interface to test...";
+  std::string ifName = getRandomInterfacePortName();
+  int intfID = getInterfaceIdForPort(ifName);
+  XLOG(INFO) << "  Using interface: " << ifName;
+
+  // routerAdvertisementManagedBit defaults to false when the ndp block is
+  // absent.
+  auto ndpBefore = getNdpConfig(getRunningConfig(), intfID);
+  const bool managedBefore = ndpBefore.count("routerAdvertisementManagedBit")
+      ? ndpBefore["routerAdvertisementManagedBit"].asBool()
+      : false;
+
+  XLOG(INFO) << "[Step 2] Setting other-config-flag...";
+  setNdpAttr(ifName, "other-config-flag");
+
+  XLOG(INFO) << "[Step 3] Verifying running config via thrift...";
+  expectNdpField(
+      intfID,
+      "routerAdvertisementOtherBit",
+      [](const folly::dynamic& v) { return v.asBool(); },
+      "== true");
+  expectNdpField(
+      intfID,
+      "routerAdvertisementManagedBit",
+      [&](const folly::dynamic& v) { return v.asBool() == managedBefore; },
+      fmt::format("unchanged at {}", managedBefore));
+  XLOG(INFO) << "TEST PASSED";
+}
+
+// ---------------------------------------------------------------------------
 // Test: invalid hop-limit returns non-zero exit code
 // ---------------------------------------------------------------------------
 
