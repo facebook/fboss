@@ -6,13 +6,18 @@ fallback for early-exit binaries, warmboot loop, timeout handling, config
 backup, filter merging), plus the load_from_file helper consumed
 by _get_tests_to_run via args.filter_file."""
 
+import json
 import os
 import subprocess
 import tempfile
+from argparse import Namespace
 from unittest.mock import MagicMock, patch
 
+import pytest
+from fboss_test_runner.errors import TestRunnerUsageError
 from fboss_test_runner.result_types import GtestResult, GtestStatus, RunOutcome
 from fboss_test_runner.runners.utils import load_from_file
+from fboss_test_runner.tier_selection import TestCapability, TestTier
 
 
 class TestLoadFromFile:
@@ -92,6 +97,118 @@ class TestLoadFromFile:
             assert result == ["entry1"]
         finally:
             os.unlink(temp_file)
+
+
+class TestTierFilterComposition:
+    def test_prepare_tests_applies_tier_filter_after_runner_filter(self, runner):
+        args = Namespace(tier="0")
+        with (
+            patch("shutil.which", return_value="/opt/fboss/bin/test_binary"),
+            patch.object(runner, "_initialize_test_lists"),
+            patch.object(
+                runner, "_get_tests_to_run", return_value=["Suite.B", "Suite.A"]
+            ),
+            patch.object(
+                runner, "_filter_tests", return_value=["Suite.A"]
+            ) as runner_filter,
+            patch.object(
+                runner, "_filter_tests_for_tier", return_value=["Suite.A"]
+            ) as tier_filter,
+        ):
+            assert runner._prepare_tests(args) == ["Suite.A"]
+
+        runner_filter.assert_called_once_with(["Suite.B", "Suite.A"])
+        tier_filter.assert_called_once_with(["Suite.A"], TestTier.T0)
+
+    def test_base_runner_rejects_tier_selection(self, runner):
+        runner.args = Namespace(command="unsupported")
+        with pytest.raises(TestRunnerUsageError, match="not supported for unsupported"):
+            runner._filter_tests_for_tier([], TestTier.T0)
+
+    def test_metadata_filter_expands_patterns_and_intersects_candidates(
+        self, runner, tmp_path
+    ):
+        metadata = tmp_path / "test_metadata.json"
+        metadata.write_text(
+            json.dumps(
+                {
+                    "rules": [
+                        {
+                            "testNamePattern": "EmptyTest.*",
+                            "tier": "T0",
+                            "requiredCapabilities": [],
+                            "profiles": [],
+                        },
+                        {
+                            "testNamePattern": "CapableTest.*",
+                            "tier": "T0",
+                            "requiredCapabilities": [TestCapability.TRANSCEIVER.value],
+                            "profiles": [],
+                        },
+                        {
+                            "testNamePattern": "OtherTier.*",
+                            "tier": "T1",
+                            "requiredCapabilities": [],
+                            "profiles": [],
+                        },
+                    ]
+                }
+            )
+        )
+        candidates = [
+            "Unrelated.Test",
+            "CapableTest.Case",
+            "EmptyTest.CheckInit",
+        ]
+        with (
+            patch.object(runner, "_get_tier_metadata_file", return_value=str(metadata)),
+            patch.object(
+                runner,
+                "_get_available_test_capabilities",
+                return_value=(TestCapability.TRANSCEIVER,),
+            ),
+            patch.object(
+                runner,
+                "_list_tests_to_run",
+                return_value=["EmptyTest.CheckInit", "CapableTest.Case"],
+            ) as expand_patterns,
+        ):
+            selected = runner._filter_tests_for_tier(candidates, TestTier.T0)
+
+        expand_patterns.assert_called_once_with("EmptyTest.*:CapableTest.*")
+        assert selected == ["CapableTest.Case", "EmptyTest.CheckInit"]
+
+    def test_metadata_filter_reports_missing_file(self, runner, tmp_path):
+        missing = str(tmp_path / "missing.json")
+        with (
+            patch.object(runner, "_get_tier_metadata_file", return_value=missing),
+            pytest.raises(TestRunnerUsageError, match="Unable to load test metadata"),
+        ):
+            runner._filter_tests_for_tier([], TestTier.T0)
+
+    def test_metadata_filter_skips_gtest_when_no_patterns_match(self, runner, tmp_path):
+        metadata = tmp_path / "test_metadata.json"
+        metadata.write_text(
+            json.dumps(
+                {
+                    "rules": [
+                        {
+                            "testNamePattern": "OtherTier.*",
+                            "tier": "T1",
+                            "requiredCapabilities": [],
+                            "profiles": [],
+                        }
+                    ]
+                }
+            )
+        )
+        with (
+            patch.object(runner, "_get_tier_metadata_file", return_value=str(metadata)),
+            patch.object(runner, "_list_tests_to_run") as expand_patterns,
+        ):
+            assert runner._filter_tests_for_tier(["Suite.Test"], TestTier.T0) == []
+
+        expand_patterns.assert_not_called()
 
 
 class TestRunTestGtestFallback:

@@ -32,6 +32,7 @@ def _make_args(**overrides):
     args.mgmt_if = "eth0"
     args.known_bad_tests_file = None
     args.list_tests = False
+    args.tier = None
     args.list_tests_for_features = None
     args.sai_replayer_logging = None
     args.sai_replayer_sdk_log_level = None

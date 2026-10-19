@@ -4,9 +4,11 @@
 
 import pytest
 from fboss_test_runner.tier_selection import (
+    load_test_metadata_rules,
     parse_test_tier,
     select_test_patterns_for_tier,
     TestCapability,
+    TestMetadataError,
     TestMetadataRule,
     TestProfile,
     TestTier,
@@ -37,6 +39,46 @@ def test_test_tier_parses_cli_values() -> None:
 def test_test_tier_rejects_invalid_cli_value() -> None:
     with pytest.raises(ValueError, match="invalid test tier"):
         parse_test_tier("3")
+
+
+def test_load_test_metadata_rules_rejects_empty_pattern(tmp_path) -> None:
+    metadata = tmp_path / "metadata.json"
+    metadata.write_text('{"rules": [{"testNamePattern": "", "tier": "T0"}]}')
+
+    with pytest.raises(TestMetadataError, match="must be a non-empty string"):
+        load_test_metadata_rules(str(metadata))
+
+
+def test_load_test_metadata_rules(tmp_path) -> None:
+    metadata = tmp_path / "metadata.json"
+    # Configerator emits ordinary JSON with readable enum names.
+    metadata.write_text(
+        """{
+          "rules": [{
+            "testNamePattern": "Suite.*",
+            "tier": "T1",
+            "requiredCapabilities": ["TRANSCEIVER"],
+            "profiles": ["SCALE_UP"]
+          }]
+        }"""
+    )
+
+    assert load_test_metadata_rules(str(metadata)) == [
+        TestMetadataRule(
+            test_name_pattern="Suite.*",
+            tier=TestTier.T1,
+            required_capabilities=(TestCapability.TRANSCEIVER,),
+            profiles=(TestProfile.SCALE_UP,),
+        )
+    ]
+
+
+def test_load_test_metadata_rules_rejects_invalid_tier(tmp_path) -> None:
+    metadata = tmp_path / "metadata.json"
+    metadata.write_text('{"rules": [{"testNamePattern": "Suite.*", "tier": "T9"}]}')
+
+    with pytest.raises(TestMetadataError, match="field 'tier' has unknown value 'T9'"):
+        load_test_metadata_rules(str(metadata))
 
 
 def test_selects_only_requested_tier_and_preserves_rule_order() -> None:

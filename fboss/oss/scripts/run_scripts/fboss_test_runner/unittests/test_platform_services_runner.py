@@ -29,6 +29,7 @@ def _make_args(**overrides):
         "type": None,
         "config": None,
         "list_tests": False,
+        "tier": None,
         "skip_known_bad_tests": None,
         "sai_logging": "WARN",
         "fboss_logging": "WARN",
