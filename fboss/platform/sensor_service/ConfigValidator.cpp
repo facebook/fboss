@@ -63,7 +63,9 @@ bool ConfigValidator::isValidPlatformName(const SensorConfig& sensorConfig) {
 }
 
 bool ConfigValidator::isValidPmSensor(const sensor_config::PmSensor& pmSensor) {
-  if (!pmSensor.name().has_value() || pmSensor.name()->empty()) {
+  if (!apache::thrift::is_non_optional_field_set_manually_or_by_serializer(
+          pmSensor.name()) ||
+      pmSensor.name()->empty()) {
     XLOG(ERR) << "PmSensor name must be non-empty";
     return false;
   }
@@ -80,7 +82,9 @@ bool ConfigValidator::isValidPmSensor(const sensor_config::PmSensor& pmSensor) {
     }
   }
 
-  if (!pmSensor.sysfsPath().has_value() || pmSensor.sysfsPath()->empty()) {
+  if (!apache::thrift::is_non_optional_field_set_manually_or_by_serializer(
+          pmSensor.sysfsPath()) ||
+      pmSensor.sysfsPath()->empty()) {
     XLOG(ERR) << "PmSensor sysfsPath must be non-empty";
     return false;
   }
