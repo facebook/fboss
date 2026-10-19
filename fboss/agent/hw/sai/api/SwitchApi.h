@@ -895,6 +895,13 @@ struct SaiSwitchTraits {
         bool,
         AttributePortCl72RetryEnable,
         SaiBoolDefaultFalse>;
+    struct AttributeAclDropSnoopDisabled {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using AclDropSnoopDisabled = SaiExtensionAttribute<
+        bool,
+        AttributeAclDropSnoopDisabled,
+        SaiBoolDefaultFalse>;
     struct AttributePacketDropTypeIngressList {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -1043,6 +1050,7 @@ struct SaiSwitchTraits {
       std::optional<Attributes::PfcMonitorEnable>,
       std::optional<Attributes::CablePropagationDelayMeasurement>,
       std::optional<Attributes::PortCl72RetryEnable>,
+      std::optional<Attributes::AclDropSnoopDisabled>,
       std::optional<Attributes::SwitchingMode>
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
       ,
@@ -1254,6 +1262,7 @@ SAI_ATTRIBUTE_NAME(Switch, DefaultCpuEgressBufferPool)
 SAI_ATTRIBUTE_NAME(Switch, PfcMonitorEnable)
 SAI_ATTRIBUTE_NAME(Switch, CablePropagationDelayMeasurement)
 SAI_ATTRIBUTE_NAME(Switch, PortCl72RetryEnable)
+SAI_ATTRIBUTE_NAME(Switch, AclDropSnoopDisabled)
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
 SAI_ATTRIBUTE_NAME(Switch, LinkUpDebounceTimeout)
 #endif

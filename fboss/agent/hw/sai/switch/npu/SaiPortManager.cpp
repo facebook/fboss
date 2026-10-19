@@ -1131,6 +1131,22 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     linkScanMode = linkScanModeAttribute(*mode);
   }
 
+  if ((swPort->getCsigTagAction() || swPort->getCsigLinkLocator()) &&
+      !platform_->getAsic()->isSupported(HwAsic::Feature::CSIG)) {
+    throw FbossError(
+        "CSIG is not supported on this ASIC/SDK; cannot apply to port ",
+        swPort->getID());
+  }
+  // cfg::CsigTagAction values match sai_port_csig_tag_action_t.
+  std::optional<SaiPortTraits::Attributes::CsigTagAction> csigTagAction;
+  if (const auto action = swPort->getCsigTagAction()) {
+    csigTagAction = static_cast<sai_int32_t>(*action);
+  }
+  std::optional<SaiPortTraits::Attributes::CsigLinkLocator> csigLinkLocator;
+  if (const auto linkLocator = swPort->getCsigLinkLocator()) {
+    csigLinkLocator = static_cast<sai_uint8_t>(*linkLocator);
+  }
+
   if (basicAttributeOnly) {
     return SaiPortTraits::CreateAttributes{
 #if defined(BRCM_SAI_SDK_DNX)
@@ -1238,6 +1254,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // Ingress ACL
         std::nullopt, // IsolationGroup
         std::nullopt, // Metadata
+        std::nullopt, // CsigTagAction
+        std::nullopt, // CsigLinkLocator
     };
   }
   std::optional<SaiPortTraits::Attributes::PortVlanId> vlanIdAttr{vlanId};
@@ -1390,6 +1408,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       ingressAcl,
       std::nullopt, // IsolationGroup
       metadata,
+      csigTagAction,
+      csigLinkLocator,
   };
 }
 

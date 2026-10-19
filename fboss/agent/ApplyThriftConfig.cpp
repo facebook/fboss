@@ -1920,7 +1920,9 @@ void ThriftConfigApplier::processInterfaceForPortForVoqSwitches(
       cfg_->switchSettings()->switchIdToSwitchInfo()->find(switchId);
   CHECK(switchInfoItr != cfg_->switchSettings()->switchIdToSwitchInfo()->end());
   const auto& switchInfo = switchInfoItr->second;
-  CHECK(switchInfo.portIdRange().has_value());
+  CHECK(
+      apache::thrift::is_non_optional_field_set_manually_or_by_serializer(
+          switchInfo.portIdRange()));
   CHECK(!switchInfo.systemPortRanges()->systemPortRanges()->empty());
   CHECK(switchInfo.localSystemPortOffset().has_value());
   CHECK(switchInfo.globalSystemPortOffset().has_value());
@@ -3125,6 +3127,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   // disabled.
   std::optional<std::vector<state::PortVcFields>> virtualChannels;
   std::optional<int64_t> cbfcSenderCreditLimit;
+  std::optional<int16_t> cbfcSenderCreditSize;
+  std::optional<int16_t> cbfcSenderPacketOverhead;
   std::optional<std::string> newCbfcConfigName;
   if (auto cbfcConfigName = portConf->cbfcConfigName()) {
     newCbfcConfigName = *cbfcConfigName;
@@ -3227,6 +3231,38 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
             cfg::switch_config_constants::PORT_CBFC_SENDER_CREDIT_LIMIT_MAX());
       }
       cbfcSenderCreditLimit = *limit;
+    }
+    auto checkSupported = [&](const char* field,
+                              int16_t value,
+                              const std::vector<int16_t>& supported) {
+      if (std::find(supported.begin(), supported.end(), value) ==
+          supported.end()) {
+        throw FbossError(
+            "Port ",
+            orig->getID(),
+            " cbfc config ",
+            *cbfcConfigName,
+            ": ",
+            field,
+            " ",
+            value,
+            " is not supported by ",
+            asic->getAsicTypeStr(),
+            ", supported: ",
+            folly::join(", ", supported));
+      }
+    };
+    if (auto size = it->second.senderCreditSize()) {
+      checkSupported(
+          "senderCreditSize", *size, asic->getCbfcSenderCreditSizes());
+      cbfcSenderCreditSize = *size;
+    }
+    if (auto overhead = it->second.senderPacketOverhead()) {
+      checkSupported(
+          "senderPacketOverhead",
+          *overhead,
+          asic->getCbfcSenderPacketOverheads());
+      cbfcSenderPacketOverhead = *overhead;
     }
     virtualChannels = std::move(configuredVcs);
   }
@@ -3477,6 +3513,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       portConf->rxPrecoding().has_value() ==
           orig->getRxPrecoding().has_value() &&
       portConf->linkScanMode().to_optional() == orig->getLinkScanMode() &&
+      portConf->csigTagAction().to_optional() == orig->getCsigTagAction() &&
+      portConf->csigLinkLocator().to_optional() == orig->getCsigLinkLocator() &&
       portConf->ingressAclTableName().to_optional() ==
           orig->getIngressAclTableName() &&
       portConf->portDownHoldoffTimeMs().value_or(0) ==
@@ -3491,6 +3529,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       newFabricLinkMonSwitchId == orig->getPortSwitchId() &&
       newCbfcConfigName == orig->getCbfcConfigName() &&
       cbfcSenderCreditLimit == orig->getCbfcSenderCreditLimit() &&
+      cbfcSenderCreditSize == orig->getCbfcSenderCreditSize() &&
+      cbfcSenderPacketOverhead == orig->getCbfcSenderPacketOverhead() &&
       virtualChannelsUnchanged && interfaceIDsUnchanged) {
     return nullptr;
   }
@@ -3540,6 +3580,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->setVirtualChannels(virtualChannels);
   newPort->setCbfcConfigName(newCbfcConfigName);
   newPort->setCbfcSenderCreditLimit(cbfcSenderCreditLimit);
+  newPort->setCbfcSenderCreditSize(cbfcSenderCreditSize);
+  newPort->setCbfcSenderPacketOverhead(cbfcSenderPacketOverhead);
   newPort->setProfileConfig(*newProfileConfigRef);
   newPort->resetPinConfigs(newPinConfigs);
   newPort->setSerdesCustomCollection(newSerdesCustomCollection);
@@ -3604,6 +3646,13 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     newPort->setRxPrecoding(std::nullopt);
   }
   newPort->setLinkScanMode(portConf->linkScanMode().to_optional());
+  newPort->setCsigTagAction(portConf->csigTagAction().to_optional());
+  if (auto lm = portConf->csigLinkLocator().to_optional();
+      lm.has_value() && (*lm < 0 || *lm > 0x7f)) {
+    throw FbossError(
+        "csigLinkLocator must be 0-127, got ", *lm, " on port ", orig->getID());
+  }
+  newPort->setCsigLinkLocator(portConf->csigLinkLocator().to_optional());
   newPort->setUserMetaData(newUserMetaData);
   newPort->setIngressAclTableName(
       portConf->ingressAclTableName().to_optional());
@@ -4478,8 +4527,24 @@ std::shared_ptr<AclTable> ThriftConfigApplier::updateAclTable(
   auto tableName = *configTable.name();
   auto origTable = orig_->getAclTable(aclStage, tableName);
 
-  auto newTableEntries = updateAclsForTable(
-      aclStage, *configTable.aclEntries(), std::make_optional(tableName));
+  // PbrAclManager computes every entry of the PBR table from the
+  // class-based policies; none of them come from config. Rebuilding the
+  // entries here would read the computed ones as "removed from config" and
+  // wipe them, so only the table's attributes are taken from config and the
+  // programmed entries are carried over untouched.
+  const bool pbrTable =
+      tableName == cfg::switch_config_constants::DEFAULT_PBR_ACL_TABLE();
+  if (pbrTable && !configTable.aclEntries()->empty()) {
+    throw FbossError(
+        "ACL table ",
+        tableName,
+        " entries are computed from class-based policies and cannot be configured");
+  }
+  std::shared_ptr<AclMap> newTableEntries;
+  if (!pbrTable) {
+    newTableEntries = updateAclsForTable(
+        aclStage, *configTable.aclEntries(), std::make_optional(tableName));
+  }
   auto newTablePriority = *configTable.priority();
   std::vector<cfg::AclTableActionType> newActionTypes =
       *configTable.actionTypes();

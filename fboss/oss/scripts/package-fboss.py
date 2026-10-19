@@ -13,9 +13,15 @@ import tempfile
 from typing import ClassVar, TYPE_CHECKING
 
 if TYPE_CHECKING or __package__:
-    from .platform_descriptor_utils import copy_platform_descriptors
+    from .platform_configs_utils import (
+        copy_forwarding_stack_configs,
+        copy_platform_descriptors,
+    )
 else:
-    from platform_descriptor_utils import copy_platform_descriptors
+    from platform_configs_utils import (
+        copy_forwarding_stack_configs,
+        copy_platform_descriptors,
+    )
 
 OPT_ARG_SCRATCH_PATH = "--scratch-path"
 OPT_ARG_COPY_ROOT_LIBS = "--copy-root-libs"
@@ -365,6 +371,10 @@ class PackageFboss:
         self._copy_run_configs(tmp_dir_name)
         self._copy_configs(tmp_dir_name)
         copy_platform_descriptors(
+            pathlib.Path(self.get_fboss_subdirectory("fboss/configs/platforms")),
+            pathlib.Path(tmp_dir_name),
+        )
+        copy_forwarding_stack_configs(
             pathlib.Path(self.get_fboss_subdirectory("fboss/configs/platforms")),
             pathlib.Path(tmp_dir_name),
         )

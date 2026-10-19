@@ -112,6 +112,8 @@ class PortApiTest : public ::testing::Test {
         std::nullopt, // Ingress ACL
         std::nullopt, // IsolationGroup
         std::nullopt, // Metadata
+        std::nullopt, // CsigTagAction
+        std::nullopt, // CsigLinkLocator
     };
     return portApi->create<SaiPortTraits>(a, 0);
   }
@@ -278,6 +280,37 @@ TEST_F(PortApiTest, readNativeCbfcReceiverAttributes) {
   EXPECT_EQ(
       portApi->getAttribute(
           id, SaiPortTraits::Attributes::CbfcReceiverNativePacketOverhead{}),
+      -16);
+}
+
+TEST_F(PortApiTest, setCbfcSenderCreditSize) {
+  auto id = createPort(100000, {42}, true);
+  EXPECT_EQ(
+      portApi->getAttribute(
+          id, SaiPortTraits::Attributes::CbfcSenderCreditSize{}),
+      128);
+
+  portApi->setAttribute(
+      id, SaiPortTraits::Attributes::CbfcSenderCreditSize{56});
+  EXPECT_EQ(
+      portApi->getAttribute(
+          id, SaiPortTraits::Attributes::CbfcSenderCreditSize{}),
+      56);
+}
+
+TEST_F(PortApiTest, setCbfcSenderPacketOverhead) {
+  auto id = createPort(100000, {42}, true);
+  EXPECT_EQ(
+      portApi->getAttribute(
+          id, SaiPortTraits::Attributes::CbfcSenderPacketOverhead{}),
+      0);
+
+  // Negative is legal (-16..127) and catches an unsigned model.
+  portApi->setAttribute(
+      id, SaiPortTraits::Attributes::CbfcSenderPacketOverhead{-16});
+  EXPECT_EQ(
+      portApi->getAttribute(
+          id, SaiPortTraits::Attributes::CbfcSenderPacketOverhead{}),
       -16);
 }
 #endif

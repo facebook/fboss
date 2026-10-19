@@ -366,6 +366,16 @@ SaiPortTraits::Attributes::AttributeLinkScanMode::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeCsigTagActionWrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeCsigLinkLocatorWrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeAmIdles::operator()() {
   return std::nullopt;
 }
@@ -1113,6 +1123,11 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributePortCl72RetryEnable::operator()() {
   return SAI_SWITCH_ATTR_PORT_CL72_RETRY_ENABLE;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeAclDropSnoopDisabled::operator()() {
+  return SAI_SWITCH_ATTR_ACL_DROP_SNOOP_DISABLED;
 }
 
 std::optional<sai_attr_id_t>

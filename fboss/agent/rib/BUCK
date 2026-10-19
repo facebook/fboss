@@ -100,11 +100,13 @@ cpp_unittest(
 cpp_unittest(
     name = "rib_tests",
     srcs = [
+        "test/ClassBasedPolicyUpdaterTests.cpp",
         "test/FibInteractionTests.cpp",
         "test/MySidMapUpdaterTests.cpp",
         "test/NamedNextHopGroupRibTests.cpp",
         "test/NextHopIDManagerTests.cpp",
         "test/NextHopMapPopulationTests.cpp",
+        "test/PolicyRouteBindingTests.cpp",
         "test/ReconstructRibFromSwitchStateTests.cpp",
         "test/RibLpmTests.cpp",
         "test/RibMySidUpdateTests.cpp",

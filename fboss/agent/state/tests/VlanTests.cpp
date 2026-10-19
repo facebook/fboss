@@ -653,7 +653,9 @@ TEST(Vlan, warmbootMigration) {
         EXPECT_TRUE(*portsInfo.at(3).priorityTagged());
 
         // Verify old ports field was also populated by toThrift() for warmboot
-        ASSERT_TRUE(vlanThrift.ports_DEPRECATED().has_value());
+        ASSERT_TRUE(
+            apache::thrift::is_non_optional_field_set_manually_or_by_serializer(
+                vlanThrift.ports_DEPRECATED()));
         EXPECT_EQ(3, vlanThrift.ports_DEPRECATED()->size());
 
         auto& oldPorts = *vlanThrift.ports_DEPRECATED();
@@ -692,7 +694,9 @@ TEST(Vlan, warmbootMigration) {
       if (vlanId == 200) {
         foundVlan = true;
         EXPECT_EQ(3, vlanThrift.portsInfo()->size());
-        ASSERT_TRUE(vlanThrift.ports_DEPRECATED().has_value());
+        ASSERT_TRUE(
+            apache::thrift::is_non_optional_field_set_manually_or_by_serializer(
+                vlanThrift.ports_DEPRECATED()));
         EXPECT_EQ(3, vlanThrift.ports_DEPRECATED()->size());
       }
     }

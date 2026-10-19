@@ -5803,6 +5803,10 @@ class ChildThriftPath<::facebook::fboss::state::PortFields, ::facebook::fboss::f
     STRUCT_CHILD_GETTERS(virtualChannels, 77);
     STRUCT_CHILD_GETTERS(cbfcSenderCreditLimit, 78);
     STRUCT_CHILD_GETTERS(isolationGroup, 79);
+    STRUCT_CHILD_GETTERS(cbfcSenderCreditSize, 80);
+    STRUCT_CHILD_GETTERS(cbfcSenderPacketOverhead, 81);
+    STRUCT_CHILD_GETTERS(csigTagAction, 82);
+    STRUCT_CHILD_GETTERS(csigLinkLocator, 83);
 };
 
 
@@ -6415,6 +6419,8 @@ class ChildThriftPath<::facebook::fboss::cfg::Port, ::facebook::fboss::fsdb::Fsd
     STRUCT_CHILD_GETTERS(userMetaData, 47);
     STRUCT_CHILD_GETTERS(cbfcConfigName, 48);
     STRUCT_CHILD_GETTERS(isolationGroup, 49);
+    STRUCT_CHILD_GETTERS(csigTagAction, 50);
+    STRUCT_CHILD_GETTERS(csigLinkLocator, 51);
 };
 
 
@@ -12208,6 +12214,11 @@ class ChildThriftPath<::facebook::fboss::HwPortStats, ::facebook::fboss::fsdb::F
     STRUCT_CHILD_GETTERS(cbfcVcReceiverCreditsFreed_, 118);
     STRUCT_CHILD_GETTERS(hwProtectionSwitchoverEvents_, 119);
     STRUCT_CHILD_GETTERS(hwProtectionSwitchoverDropPkts_, 120);
+    STRUCT_CHILD_GETTERS(fabricLinkMonitoringTxPackets_, 121);
+    STRUCT_CHILD_GETTERS(fabricLinkMonitoringRxPackets_, 122);
+    STRUCT_CHILD_GETTERS(fabricLinkMonitoringDroppedPackets_, 123);
+    STRUCT_CHILD_GETTERS(fabricLinkMonitoringInvalidPayloadPackets_, 124);
+    STRUCT_CHILD_GETTERS(fabricLinkMonitoringNoPendingSeqNumPackets_, 125);
 };
 
 

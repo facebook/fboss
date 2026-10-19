@@ -120,7 +120,7 @@ thrift_library(
 thrift_library(
     name = "bgp_thrift",
     cpp2_deps = [
-        "//folly/container:f14_hash",
+        "fbsource//xplat/folly/container:f14_hash",
     ],
     go_thrift_namespaces = {
         "bgp_thrift.thrift": "neteng.fboss.bgp_thrift",

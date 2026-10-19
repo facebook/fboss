@@ -127,6 +127,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentDropTestBase.cpp
   fboss/agent/test/agent_hw_tests/AgentDscpMarkingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDeepPacketInspectionTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentCsigTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAsicDefaultProgrammingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDiagShellStressTests.cpp
   fboss/agent/test/agent_hw_tests/AgentEcmpTests.cpp

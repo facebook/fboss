@@ -639,6 +639,10 @@ class HwAsic {
     // SAI_PORT_STAT_IF_IN_HW_PROTECTION_SWITCHOVER_DROP_PKTS). Broadcom
     // Tomahawk 5/6 with XGS SDK 13.3+.
     HW_PROTECTION_SWITCHOVER_COUNTERS,
+    // PBR ACL table byte counters, for ASICs without ACL_BYTE_COUNTER.
+    PBR_ACL_BYTE_COUNTER,
+    // CSIG (Congestion Signaling) per-port egress tag action and link locator
+    CSIG,
   };
 
   enum class AsicMode {
@@ -826,6 +830,16 @@ class HwAsic {
   virtual std::optional<uint32_t> getArsBaseIndex() const = 0;
   virtual std::optional<uint32_t> getMaxArsWidth() const {
     return std::nullopt;
+  }
+  // CBFC sender credit sizes, in bytes, that the SAI implementation accepts.
+  // Empty on ASICs without CBFC.
+  virtual std::vector<int16_t> getCbfcSenderCreditSizes() const {
+    return {};
+  }
+  // CBFC sender per-packet overheads, in bytes, that the SAI implementation
+  // accepts. Empty on ASICs without CBFC.
+  virtual std::vector<int16_t> getCbfcSenderPacketOverheads() const {
+    return {};
   }
   // TODO(zecheng): Define more specific limits for v4/v6 routes with different
   // mask lengths

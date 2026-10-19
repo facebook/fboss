@@ -380,13 +380,11 @@ class NextHopIDManager {
 
   // Move one policy's normalized id for `nhgName` onto the set id for
   // `normalized`, taking a reference for the policy and releasing the one it
-  // held. Returns the new id. Sets `moved` when the id changed and never
-  // clears it, so one flag accumulates across a group's policies.
-  std::optional<NextHopSetID> updatePolicyNormalizedId(
+  // held. Returns the new id.
+  NextHopSetID updatePolicyNormalizedId(
       const std::string& policyName,
       const std::string& nhgName,
-      const RouteNextHopSet& normalized,
-      bool& moved);
+      const RouteNextHopSet& normalized);
 
   // Mutable state threaded through the reconstructFromSwitchStateMaps passes.
   // The member maps the passes update are reached directly; only these running

@@ -6047,7 +6047,10 @@ bool SaiSwitch::getArsExhaustionStatus() {
 bool SaiSwitch::processVlanUntaggedPackets() const {
   return FLAGS_rx_vlan_untagged_packets ||
       (getSwitchType() == cfg::SwitchType::VOQ ||
-       getSwitchType() == cfg::SwitchType::FABRIC);
+       getSwitchType() == cfg::SwitchType::FABRIC) ||
+      // P200 routes on port router interfaces and has no vlans, so the frames
+      // it traps arrive untagged.
+      asicType_ == cfg::AsicType::ASIC_TYPE_P200;
 }
 
 std::vector<FirmwareInfo> SaiSwitch::getAllFirmwareInfo() const {

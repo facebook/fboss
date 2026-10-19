@@ -121,4 +121,6 @@ struct RebootCauseRecord {
   5: string bootId;
   6: i64 bootTimeMs;
   7: list<RebootCauseProviderAttempt> providersAttempted;
+  // Release of the kernel this boot ran (`uname -r`). Empty if unreadable.
+  8: string kernelRelease;
 }

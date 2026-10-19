@@ -130,6 +130,45 @@ bool StateUpdateValidator::isLlrConfigUpdateValid(
       });
   return isValid;
 }
+
+bool StateUpdateValidator::isCbfcSenderUpdateValid(
+    const StateDelta& delta) const {
+  bool isValid = true;
+  // The CBFC sender credit size, packet overhead and credit limit are set once,
+  // when a port takes on CBFC: on a coldboot, or as the first bind on a running
+  // agent. On TU1 each size or overhead write makes the SDK recompute the port
+  // credit limit, so changing them on a live port briefly resets the sender.
+  // Changing them needs a coldboot, and so does removing CBFC from the port,
+  // as for LLR.
+  forEachChanged(
+      delta.getPortsDelta(),
+      [&isValid](
+          const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
+        if (!oldPort->getCbfcConfigName().has_value()) {
+          return;
+        }
+        if (!newPort->getCbfcConfigName().has_value()) {
+          XLOG(ERR) << "CBFC cannot be removed from port " << newPort->getID()
+                    << " on a running agent; a coldboot is required";
+          isValid = false;
+          return;
+        }
+        if (oldPort->getCbfcSenderCreditSize() ==
+                newPort->getCbfcSenderCreditSize() &&
+            oldPort->getCbfcSenderPacketOverhead() ==
+                newPort->getCbfcSenderPacketOverhead() &&
+            oldPort->getCbfcSenderCreditLimit() ==
+                newPort->getCbfcSenderCreditLimit()) {
+          return;
+        }
+        XLOG(ERR) << "CBFC sender credit size, packet overhead or credit limit"
+                  << " on port " << newPort->getID()
+                  << " cannot change on a running agent; a coldboot is"
+                  << " required to change them";
+        isValid = false;
+      });
+  return isValid;
+}
 namespace {
 std::string linkUpHoldoffStr(const shared_ptr<facebook::fboss::Port>& port) {
   auto holdoffTimeMs = port->getPortUpHoldoffTimeMs();
@@ -443,6 +482,11 @@ bool StateUpdateValidator::isValidUpdate(
   }
 
   if (!isLlrConfigUpdateValid(delta)) {
+    XLOG(ERR) << "State update is not valid.";
+    return false;
+  }
+
+  if (!isCbfcSenderUpdateValid(delta)) {
     XLOG(ERR) << "State update is not valid.";
     return false;
   }

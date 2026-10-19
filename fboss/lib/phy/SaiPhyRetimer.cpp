@@ -409,6 +409,7 @@ SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes(
       std::nullopt, // enable PFC monitoring for the switch
       std::nullopt, // enable cable propagation delay measurement
       std::nullopt, // enable CL72 link training retry
+      std::nullopt, // disable snoop on ingress ACL drop
       std::nullopt, // switching mode
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
       std::nullopt, // link up debounce timeout

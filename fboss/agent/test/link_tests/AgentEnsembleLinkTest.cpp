@@ -475,7 +475,7 @@ void AgentEnsembleLinkTest::createL3DataplaneFlood(
   utility::pumpTraffic(
       true,
       utility::getAllocatePktFn(getSw()),
-      utility::getSendPktFunc(getSw()),
+      utility::getSendPktFunc(getSw(), switchId),
       getSw()->getLocalMac(switchId),
       vlanID);
   // TODO: Assert that traffic reached a certain rate

@@ -887,7 +887,8 @@ state::SwitchState SwSwitch::updateOverrideEcmpSwitchingMode(
     auto& fibInfoFields = it->second;
     const auto& idToNextHopIdSet = *fibInfoFields.idToNextHopIdSet();
     auto fibs = fibInfoFields.fibsMap();
-    if (fibs.has_value()) {
+    if (apache::thrift::is_non_optional_field_set_manually_or_by_serializer(
+            fibs)) {
       for (auto& [_, fib] : *fibs) {
         auto fibV4 = fib.fibV4();
         for (auto& [name, thriftRoute] : *fibV4) {
@@ -1074,6 +1075,9 @@ AgentStats SwSwitch::fillFsdbStats() {
     }
   }
   stats()->fillAgentStats(agentStats);
+  if (auto* manager = getFabricLinkMonitoringManager()) {
+    manager->fillAgentFabricLinkMonitoringStats(agentStats);
+  }
   getHwSwitchHandler()->fillHwAgentConnectionStatus(agentStats);
   // fill old fields using first switch values for backward compatibility
   if (!agentStats.hwResourceStatsMap()->empty()) {

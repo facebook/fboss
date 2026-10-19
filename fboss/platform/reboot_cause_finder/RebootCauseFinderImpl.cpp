@@ -29,7 +29,7 @@
 
 DEFINE_int32(
     bmc_logfile_poll_timeout_s,
-    300,
+    180,
     "How long to keep retrying the BMC logfile endpoint before giving up.");
 
 DEFINE_bool(
@@ -66,6 +66,7 @@ namespace {
 constexpr auto kHistoryDir =
     reboot_cause_config::reboot_cause_config_constants::REBOOT_HISTORY_DIR();
 constexpr auto kProcBootIdPath = "/proc/sys/kernel/random/boot_id";
+constexpr auto kProcOsReleasePath = "/proc/sys/kernel/osrelease";
 
 // These three come from the kernel, systemd and the crash dump tooling,
 // and are the same on
@@ -152,6 +153,16 @@ constexpr auto kX86ResetPattern = R"(Power reset x86 \(userver\) .*\.\.\.)";
 std::string readBootId(const std::string& bootIdPath) {
   std::string contents;
   if (!folly::readFile(bootIdPath.c_str(), contents)) {
+    return {};
+  }
+  return folly::trimWhitespace(contents).str();
+}
+
+// The binary runs in the boot it records, so the running kernel is that
+// boot's kernel. Empty when unreadable; the record is still worth writing.
+std::string readKernelRelease(const std::string& osReleasePath) {
+  std::string contents;
+  if (!folly::readFile(osReleasePath.c_str(), contents)) {
     return {};
   }
   return folly::trimWhitespace(contents).str();
@@ -1034,6 +1045,7 @@ RebootCauseFinderImpl::Paths RebootCauseFinderImpl::defaultPaths() {
       kHistoryDir,
       kProcStatPath,
       kProcBootIdPath,
+      kProcOsReleasePath,
       detail::kernelPanicCrashDirs(),
       detail::x86RebootCommandLogPaths()};
 }
@@ -1226,6 +1238,7 @@ void RebootCauseFinderImpl::determineRebootCause() {
   }
   record.bootId() = bootId;
   record.bootTimeMs() = bootTimeMs;
+  record.kernelRelease() = readKernelRelease(paths_.osRelease);
   record.providersAttempted() = attempts;
 
   // Writing the record is what arms the guard, so it has to succeed before
@@ -1265,14 +1278,16 @@ bool RebootCauseFinderImpl::persistResult(
     return false;
   }
 
-  // The boot id suffix is what recordExistsForBoot() matches on; the stamp is
-  // only there to keep the directory readable.
+  // The boot id suffix is what recordExistsForBoot() matches on. The stamp is
+  // the boot time, so the directory lists boots in boot order; it falls back
+  // to now only when btime could not be read.
+  const auto stampTime = *record.bootTimeMs() > 0
+      ? static_cast<std::time_t>(*record.bootTimeMs() / 1000)
+      : std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
   auto filePath = fmt::format(
       "{}/reboot-cause-{}{}",
       paths_.historyDir,
-      filenameStamp(
-          std::chrono::system_clock::to_time_t(
-              std::chrono::system_clock::now())),
+      filenameStamp(stampTime),
       recordFilenameSuffix(*record.bootId()));
 
   auto json = folly::parseJson(

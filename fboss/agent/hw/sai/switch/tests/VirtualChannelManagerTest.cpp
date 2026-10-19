@@ -75,6 +75,14 @@ class VirtualChannelManagerTest : public ManagerTestBase {
     return fs->cbfcCreditProfileManager.map().size();
   }
 
+  template <typename AttrT>
+  auto getPortAttr(const std::shared_ptr<Port>& swPort, AttrT attr) {
+    auto* handle =
+        saiManagerTable->portManager().getPortHandle(swPort->getID());
+    return SaiApiTable::getInstance()->portApi().getAttribute(
+        handle->port->adapterKey(), attr);
+  }
+
   TestPort p0;
   TestPort p1;
 };
@@ -227,6 +235,78 @@ TEST_F(VirtualChannelManagerTest, removePortRemovesVirtualChannels) {
 
   EXPECT_EQ(vcCount(), 0);
   EXPECT_EQ(profileCount(), 0);
+}
+
+TEST_F(VirtualChannelManagerTest, programsConfiguredSenderCreditSize) {
+  auto swPort = makePortWithVcs(p0, {makeVc(2, 36)});
+  swPort->setCbfcSenderCreditSize(32);
+  saiManagerTable->portManager().addPort(swPort);
+
+  EXPECT_EQ(
+      getPortAttr(swPort, SaiPortTraits::Attributes::CbfcSenderCreditSize{}),
+      32);
+}
+
+TEST_F(VirtualChannelManagerTest, changedSenderCreditSizeIsProgrammed) {
+  auto swPort = makePortWithVcs(p0, {makeVc(2, 36)});
+  saiManagerTable->portManager().addPort(swPort);
+
+  auto changedPort = swPort->clone();
+  changedPort->setCbfcSenderCreditSize(32);
+  saiManagerTable->portManager().changePort(swPort, changedPort);
+
+  EXPECT_EQ(
+      getPortAttr(
+          changedPort, SaiPortTraits::Attributes::CbfcSenderCreditSize{}),
+      32);
+}
+
+TEST_F(VirtualChannelManagerTest, portWithoutCbfcLeavesSenderCreditSize) {
+  auto swPort = makePort(p0);
+  swPort->setCbfcSenderCreditSize(32);
+  saiManagerTable->portManager().addPort(swPort);
+
+  // Fake's default is the SAI header default; nothing was written.
+  EXPECT_EQ(
+      getPortAttr(swPort, SaiPortTraits::Attributes::CbfcSenderCreditSize{}),
+      128);
+}
+
+TEST_F(VirtualChannelManagerTest, programsConfiguredSenderPacketOverhead) {
+  auto swPort = makePortWithVcs(p0, {makeVc(2, 36)});
+  swPort->setCbfcSenderPacketOverhead(48);
+  saiManagerTable->portManager().addPort(swPort);
+
+  EXPECT_EQ(
+      getPortAttr(
+          swPort, SaiPortTraits::Attributes::CbfcSenderPacketOverhead{}),
+      48);
+}
+
+TEST_F(VirtualChannelManagerTest, changedSenderPacketOverheadIsProgrammed) {
+  auto swPort = makePortWithVcs(p0, {makeVc(2, 36)});
+  saiManagerTable->portManager().addPort(swPort);
+
+  auto changedPort = swPort->clone();
+  changedPort->setCbfcSenderPacketOverhead(0);
+  saiManagerTable->portManager().changePort(swPort, changedPort);
+
+  EXPECT_EQ(
+      getPortAttr(
+          changedPort, SaiPortTraits::Attributes::CbfcSenderPacketOverhead{}),
+      0);
+}
+
+TEST_F(VirtualChannelManagerTest, portWithoutCbfcLeavesSenderPacketOverhead) {
+  auto swPort = makePort(p0);
+  swPort->setCbfcSenderPacketOverhead(48);
+  saiManagerTable->portManager().addPort(swPort);
+
+  // Fake's default is the SAI header default; nothing was written.
+  EXPECT_EQ(
+      getPortAttr(
+          swPort, SaiPortTraits::Attributes::CbfcSenderPacketOverhead{}),
+      0);
 }
 
 #endif

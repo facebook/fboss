@@ -7,6 +7,7 @@ extern "C" {
 
 #if defined(TAJO_SDK_GTE_26_5)
 #include <saiextensions.h>
+#include <saiportcustom.h>
 #else
 #include <experimental/sai_attr_ext.h>
 #endif
@@ -537,6 +538,25 @@ const std::vector<sai_stat_id_t>& SaiPortTraits::llrExtensionStats() {
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeLinkScanMode::operator()() {
   return std::nullopt;
+}
+
+// CSIG is delivered in Leaba SDK 26.5.5210.4.
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeCsigTagActionWrapper::operator()() {
+#if defined(TAJO_SDK_GTE_26_5)
+  return SAI_PORT_ATTR_CSIG_TAG_ACTION;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeCsigLinkLocatorWrapper::operator()() {
+#if defined(TAJO_SDK_GTE_26_5)
+  return SAI_PORT_ATTR_CSIG_LINK_LOCATOR;
+#else
+  return std::nullopt;
+#endif
 }
 
 } // namespace facebook::fboss

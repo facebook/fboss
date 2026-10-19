@@ -1188,7 +1188,8 @@ const HwSwitchWatermarkStats SaiSwitchManager::getHwSwitchWatermarkStats()
   fillHwSwitchWatermarkStats(statsMap, switchWatermarkStats);
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::DEVICE_WATERMARK_SUPPORT)) {
-    if (!switchWatermarkStats.deviceWatermarkBytes().has_value()) {
+    if (!apache::thrift::is_non_optional_field_set_manually_or_by_serializer(
+            switchWatermarkStats.deviceWatermarkBytes())) {
       switchWatermarkStats.deviceWatermarkBytes() = 0;
     }
   } else {

@@ -873,21 +873,19 @@ SaiAclTableManager::resolvePbrNextHopGroup(
         nextHopGroupId,
         " but no SwitchState is available to resolve it");
   }
+  // getNextHops throws on an unknown id, so an empty result means the id is
+  // live but its named NHG currently resolves to no next hops - every member's
+  // covering route withdrawn, say. Report that as "no group" and let the caller
+  // drop rather than forward; throwing here would fail the whole state update.
   auto nexthops = getNextHops(state, nextHopGroupId);
   if (nexthops.empty()) {
-    throw FbossError(
-        "PBR ACL entry ",
-        aclEntryId,
-        " NextHopSetID ",
-        nextHopGroupId,
-        " not found in switch state or resolved to an empty next hop group");
+    XLOG(DBG2) << "PBR ACL entry " << aclEntryId << " NextHopSetID "
+               << nextHopGroupId << " resolves to an empty next hop group";
+    return nullptr;
   }
   RouteNextHopSet nhops(nexthops.begin(), nexthops.end());
-  // TODO(zecheng): Normalized NH should be used to create Sai NHG. See stacked
-  // diff for storing normalized SetID directly in FIB
-  auto normalizedNhops = RouteNextHopEntry::normalizeNextHops(nhops);
   auto handle = managerTable_->nextHopGroupManager().incRefOrAddNextHopGroup(
-      SaiNextHopGroupKey(normalizedNhops, std::nullopt /*switchingMode*/));
+      SaiNextHopGroupKey(nhops, std::nullopt /*switchingMode*/));
   if (!handle->nextHopGroup) {
     // on multi-NPU switches a NHG can
     // legitimately have no members on the local ASIC (all next hops filtered
@@ -1332,9 +1330,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclActionPacketAction{std::nullopt};
   /*
    * FBOSS ACL action -> SAI packet action:
-   *  - PERMIT: leave the pipeline's forwarding decision alone (FORWARD), except
-   *    on a PBR entry matching a next hop group id, where FORWARD conflicts
-   *    with the redirect action.
+   *  - PERMIT: leave the pipeline's forwarding decision alone (FORWARD),
+   *    except on a PBR entry whose redirect next-hop group resolved, where
+   *    FORWARD conflicts with the redirect action.
    *  - DENY: drop the packet (DROP). A copy to CPU that a lower priority ACL
    *    or a host interface trap asked for still happens.
    *  - DENY_DATA_AND_CONTROL_PLANE: drop the packet and cancel that copy to CPU
@@ -1350,11 +1348,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
           SAI_PACKET_ACTION_DENY};
       break;
     case cfg::AclActionType::PERMIT:
-      if (!addedAclEntry->getNextHopGroupId().has_value()) {
-        aclActionPacketAction =
-            SaiAclEntryTraits::Attributes::ActionPacketAction{
-                SAI_PACKET_ACTION_FORWARD};
-      }
+      aclActionPacketAction = SaiAclEntryTraits::Attributes::ActionPacketAction{
+          SAI_PACKET_ACTION_FORWARD};
       break;
   }
 
@@ -1410,14 +1405,23 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   std::optional<SaiAclEntryTraits::Attributes::FieldRouteDestination>
       aclFieldRouteDestination{std::nullopt};
   if (addedAclEntry->getNextHopGroupId()) {
+    if (!SaiAclEntryTraits::Attributes::FieldRouteDestination::
+             optionalExtensionAttributeId()
+                 .has_value()) {
+      throw FbossError(
+          "PBR ACL entry ",
+          addedAclEntry->getID(),
+          " matches on a next-hop-group but this SDK does not implement the "
+          "route-dst ACL extension");
+    }
     matchNhgHandle = resolvePbrNextHopGroup(
         state, *addedAclEntry->getNextHopGroupId(), addedAclEntry->getID());
     if (!matchNhgHandle) {
-      // Multi-NPU: the match NHG has no members on this ASIC, so there is no
-      // SAI next-hop-group to match on and routes resolving to it are already
-      // DROP. Skip programming this PBR entry here.
+      // No SAI next-hop-group to match on, either because the NHG resolved to
+      // no next hops or because none of them are on this ASIC. Routes resolving
+      // to it are already DROP, so skip programming this PBR entry here.
       XLOG(DBG2) << "skip PBR acl entry " << addedAclEntry->getID()
-                 << ": match next-hop-group has no members on this ASIC";
+                 << ": match next-hop-group is unresolved on this ASIC";
       return AclEntrySaiId{0};
     }
     aclFieldRouteDestination =
@@ -1688,6 +1692,13 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             AclEntryActionSaiObjectIdT(
                 NextHopGroupSaiId{
                     redirectNhgHandle->nextHopGroup->adapterKey()})};
+        // The redirect already forwards the packet, and the SDK rejects
+        // FORWARD alongside it as a conflicting action.
+        if (aclActionPacketAction.has_value() &&
+            aclActionPacketAction->value().getData() ==
+                SAI_PACKET_ACTION_FORWARD) {
+          aclActionPacketAction.reset();
+        }
       } else {
         // Redirect NHG has no resolved member. Setting action to drop as the
         // packets cannot be forwarded.
@@ -2072,8 +2083,15 @@ void SaiAclTableManager::removeUnclaimedAclEntries() {
 
 void SaiAclTableManager::updateStats() {
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+  const auto* asic = platform_->getAsic();
+  const bool aclBytes = asic->isSupported(HwAsic::Feature::ACL_BYTE_COUNTER);
+  const bool pbrBytes =
+      asic->isSupported(HwAsic::Feature::PBR_ACL_BYTE_COUNTER);
 
   for (const auto& handle : handles_) {
+    const bool readBytes = aclBytes ||
+        (pbrBytes &&
+         handle.first == cfg::switch_config_constants::DEFAULT_PBR_ACL_TABLE());
     for (const auto& aclMember : handle.second->aclTableMembers) {
       for (const auto& [counterType, counterName] :
            aclMember.second->aclCounterTypeAndName) {
@@ -2086,8 +2104,7 @@ void SaiAclTableManager::updateStats() {
             aclStats_.updateStat(now, counterName, counterPackets);
           } break;
           case cfg::CounterType::BYTES: {
-            if (!platform_->getAsic()->isSupported(
-                    HwAsic::Feature::ACL_BYTE_COUNTER)) {
+            if (!readBytes) {
               break;
             }
             auto counterBytes =

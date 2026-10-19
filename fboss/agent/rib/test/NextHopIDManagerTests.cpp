@@ -3341,6 +3341,78 @@ TEST_F(NextHopIDManagerTest, ClassBasedPolicyStore) {
   EXPECT_TRUE(manager_->getPbrPolicyToNamedNhg().empty());
 }
 
+TEST_F(NextHopIDManagerTest, policyUpdateRepointsNamedNhgIndex) {
+  ClassBasedPolicy policy;
+  policy.name() = "pol1";
+  policy.defaultNexthopGroup() = "defaultNhg";
+  NextHopGroup redirectNhg;
+  redirectNhg.name() = "redirectNhg";
+  policy.class2NextHopGroup()[ForwardingClass::CLASS_1] = redirectNhg;
+  manager_->addOrUpdatePolicy(policy);
+
+  EXPECT_EQ(manager_->getPoliciesForNamedNhg("defaultNhg").count("pol1"), 1);
+  EXPECT_EQ(manager_->getPoliciesForNamedNhg("redirectNhg").count("pol1"), 1);
+
+  // Repoint the default and drop the redirect entirely.
+  policy.defaultNexthopGroup() = "defaultNhg2";
+  policy.class2NextHopGroup()->clear();
+  manager_->addOrUpdatePolicy(policy);
+
+  EXPECT_FALSE(manager_->hasPoliciesForNamedNhg("defaultNhg"));
+  EXPECT_FALSE(manager_->hasPoliciesForNamedNhg("redirectNhg"));
+  EXPECT_TRUE(manager_->hasPoliciesForNamedNhg("defaultNhg2"));
+
+  // Two policies on one group: removing one must leave the other's reference.
+  ClassBasedPolicy other;
+  other.name() = "pol2";
+  other.defaultNexthopGroup() = "defaultNhg2";
+  manager_->addOrUpdatePolicy(other);
+  EXPECT_EQ(manager_->getPoliciesForNamedNhg("defaultNhg2").size(), 2);
+
+  manager_->removePolicy("pol1");
+  EXPECT_EQ(manager_->getPoliciesForNamedNhg("defaultNhg2").size(), 1);
+
+  manager_->removePolicy("pol2");
+  EXPECT_FALSE(manager_->hasPoliciesForNamedNhg("defaultNhg2"));
+  EXPECT_TRUE(manager_->getPoliciesForNamedNhg("defaultNhg2").empty());
+}
+
+// Each policy naming a group holds its own reference to the group's normalized
+// set, so repointing one of two must not free the id the other still matches
+// on.
+TEST_F(NextHopIDManagerTest, sharedNamedNhgIdSurvivesOnePolicyRepointing) {
+  RouteNextHopSet shared{
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT)};
+  RouteNextHopSet other{
+      makeResolvedNextHop(InterfaceID(2), "10.0.0.2", UCMP_DEFAULT_WEIGHT)};
+  manager_->allocateNamedNextHopGroup("shared", shared);
+  manager_->allocateNamedNextHopGroup("other", other);
+
+  auto bindPolicy = [&](const std::string& name, const std::string& nhgName) {
+    ClassBasedPolicy policy;
+    policy.name() = name;
+    policy.defaultNexthopGroup() = nhgName;
+    manager_->addOrUpdatePolicy(policy);
+  };
+  bindPolicy("polA", "shared");
+  bindPolicy("polB", "shared");
+  manager_->updateNormalizedNamedNhgId("shared", shared, kEcmpWidth);
+
+  auto sharedId = manager_->getNormalizedNextHopSetIDForPolicyNhg("shared");
+  ASSERT_TRUE(sharedId.has_value());
+
+  // 1. Repoint polB away. polA still names the group, so its id must hold.
+  bindPolicy("polB", "other");
+  EXPECT_EQ(
+      manager_->getNormalizedNextHopSetIDForPolicyNhg("shared"), sharedId);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().count(*sharedId), 1);
+
+  // 2. With the last policy and the group itself gone, nothing holds the set.
+  manager_->removePolicy("polA");
+  manager_->deallocateNamedNextHopGroup("shared");
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().count(*sharedId), 0);
+}
+
 // A policy's default NHG cannot be deleted out from under it. Without the
 // policy guard this is only caught when the policy has routes.
 TEST_F(NextHopIDManagerTest, deleteNamedNhgReferencedAsPolicyDefaultBlocked) {

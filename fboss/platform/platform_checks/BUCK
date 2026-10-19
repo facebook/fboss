@@ -26,8 +26,8 @@ cpp_library(
     ],
     deps = [
         "fbsource//third-party/fmt:fmt",
+        "fbsource//xplat/folly/logging:logging",
         "//fboss/platform/config_lib:config_lib",
-        "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
     exported_deps = [
@@ -48,11 +48,11 @@ cpp_library(
         "LocalHost.h",
     ],
     deps = [
-        "//folly:file_util",
-        "//folly:string",
-        "//folly:subprocess",
-        "//folly/logging:logging",
-        "//folly/system:shell",
+        "fbsource//xplat/folly:file_util",
+        "fbsource//xplat/folly:string",
+        "fbsource//xplat/folly:subprocess",
+        "fbsource//xplat/folly/logging:logging",
+        "fbsource//xplat/folly/system:shell",
     ],
 )
 
@@ -66,10 +66,10 @@ cpp_library(
     ],
     deps = [
         "fbsource//third-party/fmt:fmt",
+        "fbsource//xplat/folly:string",
+        "fbsource//xplat/folly/logging:logging",
+        "fbsource//xplat/folly/system:shell",
         "//fboss/platform/helpers:expect_session",
-        "//folly:string",
-        "//folly/logging:logging",
-        "//folly/system:shell",
     ],
     exported_deps = [
         ":host",
@@ -85,9 +85,9 @@ cpp_library(
         "PlatformName.h",
     ],
     deps = [
+        "fbsource//xplat/folly:string",
+        "fbsource//xplat/folly/logging:logging",
         "//fboss/platform/helpers:platform_name_lib",
-        "//folly:string",
-        "//folly/logging:logging",
     ],
     exported_deps = [
         ":host",
@@ -132,19 +132,19 @@ cpp_library(
     ],
     deps = [
         "fbsource//third-party/re2:re2",
+        "fbsource//xplat/folly:string",
+        "fbsource//xplat/folly/json:dynamic",
+        "fbsource//xplat/folly/logging:logging",
+        "fbsource//xplat/folly/system:shell",
         "//common/config:configerator",
         "//configerator/structs/fboss/fboss_platform:kernel_versions-cpp2-types",
         "//fboss/platform/weutil:config_utils_lib",
-        "//folly:string",
-        "//folly/json:dynamic",
-        "//folly/logging:logging",
-        "//folly/system:shell",
     ],
     exported_deps = [
+        "fbsource//xplat/folly:network_address",
         ":host",
         ":platform_check",
         "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
-        "//folly:network_address",
     ],
 )
 
@@ -219,9 +219,9 @@ cpp_unittest(
     ],
     network_access = network_access_utils.none(),
     deps = [
+        "fbsource//xplat/folly:file_util",
+        "fbsource//xplat/folly/testing:test_util",
         ":host",
-        "//folly:file_util",
-        "//folly/testing:test_util",
     ],
 )
 
@@ -233,8 +233,8 @@ cpp_unittest(
     network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/googletest:gmock",
+        "fbsource//xplat/folly/testing:test_util",
         ":remote_host",
-        "//folly/testing:test_util",
     ],
 )
 

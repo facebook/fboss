@@ -259,6 +259,59 @@ TEST_F(SwSwitchTest, VerifyLlrConfigChangeRejected) {
       StateDelta(disabledLlr, withLlr(disabledLlr, "llr_other", "a", kDown))));
 }
 
+TEST_F(SwSwitchTest, VerifyCbfcSenderChangeRejected) {
+  ON_CALL(*getMockHw(sw), isValidStateUpdate(_))
+      .WillByDefault(testing::Return(true));
+
+  const PortID kTestPort{1};
+  // description gives the port a field to change independently of CBFC, so the
+  // port lands in the delta even when its CBFC values are untouched.
+  auto withCbfc = [kTestPort](
+                      const std::shared_ptr<SwitchState>& base,
+                      const std::string& description,
+                      int16_t creditSize = 56,
+                      int16_t packetOverhead = 16,
+                      int64_t creditLimit = 8192) {
+    auto state = base->clone();
+    auto port = state->getPorts()->getNodeIf(kTestPort)->modify(&state);
+    port->setCbfcConfigName("cbfc");
+    port->setCbfcSenderCreditSize(creditSize);
+    port->setCbfcSenderPacketOverhead(packetOverhead);
+    port->setCbfcSenderCreditLimit(creditLimit);
+    port->setDescription(description);
+    state->publish();
+    return state;
+  };
+  auto withoutCbfc = [kTestPort](const std::shared_ptr<SwitchState>& base) {
+    auto state = base->clone();
+    auto port = state->getPorts()->getNodeIf(kTestPort)->modify(&state);
+    port->setCbfcConfigName(std::nullopt);
+    port->setCbfcSenderCreditSize(std::nullopt);
+    port->setCbfcSenderPacketOverhead(std::nullopt);
+    port->setCbfcSenderCreditLimit(std::nullopt);
+    state->publish();
+    return state;
+  };
+
+  auto noCbfc = withoutCbfc(sw->getState());
+  auto cbfc = withCbfc(noCbfc, "a");
+
+  // The first bind is how CBFC arrives, on a coldboot or a running agent.
+  EXPECT_TRUE(sw->isValidStateUpdate(StateDelta(noCbfc, cbfc)));
+  // Another port field changing leaves the sender values alone.
+  EXPECT_TRUE(sw->isValidStateUpdate(StateDelta(cbfc, withCbfc(cbfc, "b"))));
+  // Removing CBFC from the port needs a coldboot, as for LLR.
+  EXPECT_FALSE(sw->isValidStateUpdate(StateDelta(cbfc, withoutCbfc(cbfc))));
+
+  // Changing any sender value on a port that keeps CBFC needs a coldboot.
+  EXPECT_FALSE(
+      sw->isValidStateUpdate(StateDelta(cbfc, withCbfc(cbfc, "a", 32))));
+  EXPECT_FALSE(
+      sw->isValidStateUpdate(StateDelta(cbfc, withCbfc(cbfc, "a", 56, 0))));
+  EXPECT_FALSE(sw->isValidStateUpdate(
+      StateDelta(cbfc, withCbfc(cbfc, "a", 56, 16, 16384))));
+}
+
 TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
   ON_CALL(*getMockHw(sw), isValidStateUpdate(_))
       .WillByDefault(testing::Return(true));

@@ -10,6 +10,11 @@ bool YubaAsic::isSrv6Supported() const {
   return currentSdkVersion_.has_value() && currentSdkVersion_ >= srv6MinSdk;
 }
 
+bool YubaAsic::isCsigSupported() const {
+  auto csigMinSdk = getAsicSdkVersion(kCsigMinSdkRequired);
+  return currentSdkVersion_.has_value() && currentSdkVersion_ >= csigMinSdk;
+}
+
 bool YubaAsic::isSupportedNonFabric(Feature feature) const {
   switch (feature) {
     /*
@@ -105,10 +110,13 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::ACL_DST_IPV6_WORD_QUALIFIERS:
     case HwAsic::Feature::NEXT_HOP_GROUP_MEMBER_MONITORED_OBJECT:
     case HwAsic::Feature::PBR_ACL:
+    case HwAsic::Feature::PBR_ACL_BYTE_COUNTER:
       return true;
     case HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER:
     case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
       return isSrv6Supported();
+    case HwAsic::Feature::CSIG:
+      return isCsigSupported();
     case HwAsic::Feature::ACL_BYTE_COUNTER:
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
     case HwAsic::Feature::SAI_MPLS_TTL_1_TRAP:

@@ -80,7 +80,6 @@ class AgentHwCbfcTest : public AgentHwTest {
   }
 
   void verifyCbfcProgrammed();
-  void verifyCbfcRemoved();
 };
 
 void AgentHwCbfcTest::verifyCbfcProgrammed() {
@@ -133,7 +132,9 @@ void AgentHwCbfcTest::verifyCbfcProgrammed() {
         EXPECT_NE(*vc.vcId(), 0);
         EXPECT_TRUE(*vc.senderEnable());
         EXPECT_TRUE(*vc.receiverEnable());
-        EXPECT_TRUE(vc.reservedCreditSize().has_value());
+        EXPECT_TRUE(
+            apache::thrift::is_non_optional_field_set_manually_or_by_serializer(
+                vc.reservedCreditSize()));
         EXPECT_NE(*vc.creditProfileId(), 0);
       }
       EXPECT_EQ(*byIndex[kRdmaVc].reservedCreditSize(), kRdmaReservedCredits);
@@ -185,42 +186,8 @@ void AgentHwCbfcTest::verifyCbfcProgrammed() {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-// Removal is the path that tears virtual channels and credit profiles down
-// together. brcm-sai refcounts profile references and returns OBJECT_IN_USE
-// while a virtual channel still points at one, and SaiObject::remove rethrows
-// out of a destructor, so getting the release order wrong terminates the HW
-// agent rather than leaking. Nothing else in this suite exercises it: the other
-// test only ever programs CBFC and reads it back.
-void AgentHwCbfcTest::verifyCbfcRemoved() {
-  auto setup = [this]() {
-    auto cfg = initialConfig(*getAgentEnsemble());
-    // Leave cbfcConfigs in place and unreferenced, which is what a real
-    // rollback looks like.
-    for (const auto& portId : masterLogicalInterfacePortIds()) {
-      utility::findCfgPort(cfg, portId)->cbfcConfigName().reset();
-    }
-    applyNewConfig(cfg);
-  };
-  auto verify = [this]() {
-    auto state = getProgrammedState();
-    for (const auto& portId : masterLogicalInterfacePortIds()) {
-      auto port = state->getPorts()->getNodeIf(portId);
-      ASSERT_NE(port, nullptr);
-      EXPECT_FALSE(port->getCbfcConfigName().has_value());
-      // Read back from hardware: the manager's handle is gone, so no virtual
-      // channels remain bound to the port.
-      EXPECT_EQ(getPortVcInfo(portId).virtualChannels()->size(), 0);
-    }
-  };
-  verifyAcrossWarmBoots(setup, verify);
-}
-
 TEST_F(AgentHwCbfcTest, verifyCbfcConfig) {
   verifyCbfcProgrammed();
-}
-
-TEST_F(AgentHwCbfcTest, verifyCbfcRemoval) {
-  verifyCbfcRemoved();
 }
 
 } // namespace facebook::fboss

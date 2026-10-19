@@ -59,6 +59,21 @@ only the fake manifest wires it until proven, then other manifests plug in.
   line (tag `role-entry`), prints one banner line when stdin is not a TTY,
   and execs `bash`. Banner/record format (frozen for collectors):
   `login-context role=<role> identity=<user> user=<role> machine-id=<mid>`.
+- Session records: PAM runs `session-recorder` (optional hook) on session
+  open/close, logging `open/close user=<role> service=sshd
+  sshdpid=<sshd-pid> boot=<boot-id>` (tag `session-recorder`). The wrapper
+  mints attribution fresh after escalation (stage 2, still host context):
+  `SESSION_SSHD_PID` (nearest ancestor whose exe is an sshd binary),
+  the `SESSION_ANCESTORS` chain from `session-ancestors` (starting at
+  sudo), and host `FBOSS_BOOT_ID` — no caller environment is trusted and
+  nothing crosses sudo (no `env_keep`); `role-entry` inherits the values
+  through nsenter and adds a second journal line `login-session
+  role=<role> identity=<user> sshdpid=<pid|unset>
+  ancestors=<chain|unset> boot=<boot-id>`. The join rule is membership:
+  the PAM sshdpid (priv-monitor sshd) appears in the wrapper/container
+  ancestor chain — it is never the shell's immediate parent, and the
+  container virtualizes boot_id, so both are handed down from stage 2,
+  never re-observed below. The frozen banner line is unchanged.
 
 `agent.conf` is generated once from the in-repo sim seed and committed as
 plain JSON. Regenerate with:

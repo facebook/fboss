@@ -117,6 +117,7 @@ add_library(fsdb_state_sub_mgr_instantiations
 target_link_libraries(fsdb_state_sub_mgr_instantiations
   subscription_manager
   fsdb_cow_root
+  fsdb_cow_subscription_manager
   thrift_cow_nodes
 )
 

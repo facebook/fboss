@@ -1182,6 +1182,7 @@ class DetermineRebootCauseTest : public RebootCauseFinderImplTest {
     historyDir_ = (tmpDir_ / "history").string();
     procStat_ = (tmpDir_ / "stat").string();
     bootIdPath_ = (tmpDir_ / "boot_id").string();
+    osReleasePath_ = (tmpDir_ / "osrelease").string();
     crashDir_ = (tmpDir_ / "crash").string();
     logPath_ = (tmpDir_ / "messages").string();
     std::filesystem::create_directories(crashDir_);
@@ -1193,11 +1194,19 @@ class DetermineRebootCauseTest : public RebootCauseFinderImplTest {
         folly::writeFile(
             std::string("11111111-2222-3333-4444-555555555555\n"),
             bootIdPath_.c_str()));
+    ASSERT_TRUE(
+        folly::writeFile(
+            std::string("6.4.3-0_fbk15_test\n"), osReleasePath_.c_str()));
   }
 
   RebootCauseFinderImpl::Paths paths() const {
     return RebootCauseFinderImpl::Paths{
-        historyDir_, procStat_, bootIdPath_, {crashDir_}, {logPath_}};
+        historyDir_,
+        procStat_,
+        bootIdPath_,
+        osReleasePath_,
+        {crashDir_},
+        {logPath_}};
   }
 
   // Path of the single record determineRebootCause() persisted.
@@ -1234,7 +1243,8 @@ class DetermineRebootCauseTest : public RebootCauseFinderImplTest {
   }
 
   int64_t btime_{};
-  std::string historyDir_, procStat_, bootIdPath_, crashDir_, logPath_;
+  std::string historyDir_, procStat_, bootIdPath_, osReleasePath_, crashDir_,
+      logPath_;
 };
 
 // The headline rule: nothing found means nothing claimed.
@@ -1343,6 +1353,41 @@ TEST_F(DetermineRebootCauseTest, RedoCurrentBootReplacesTheRecord) {
   ASSERT_TRUE(folly::readFile(singleRecordPath().c_str(), contents));
   EXPECT_THAT(contents, testing::Not(testing::HasSubstr("SENTINEL")));
   EXPECT_THAT(contents, testing::HasSubstr("detectedAtMs"));
+}
+
+// The filename stamp is the boot time, not the time of the run, so a record
+// determined long after its boot still sorts with that boot.
+TEST_F(DetermineRebootCauseTest, RecordIsNamedByBootTime) {
+  const std::time_t btime = btime_ - 86400;
+  ASSERT_TRUE(
+      folly::writeFile(
+          fmt::format("cpu 1 2 3\nbtime {}\n", btime), procStat_.c_str()));
+
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+
+  std::tm tm{};
+  localtime_r(&btime, &tm);
+  char stamp[32];
+  std::strftime(stamp, sizeof(stamp), "%Y-%m-%d-%H-%M-%S", &tm);
+  EXPECT_EQ(
+      std::filesystem::path(singleRecordPath()).filename().string(),
+      fmt::format(
+          "reboot-cause-{}-11111111-2222-3333-4444-555555555555.json", stamp));
+}
+
+TEST_F(DetermineRebootCauseTest, RecordCarriesTheKernelRelease) {
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+  EXPECT_EQ(readRecord()["kernelRelease"].asString(), "6.4.3-0_fbk15_test");
+}
+
+// The kernel release is informational, so losing it must not cost the record.
+TEST_F(DetermineRebootCauseTest, UnreadableKernelReleaseStillWritesRecord) {
+  std::filesystem::remove(osReleasePath_);
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+  EXPECT_EQ(readRecord()["kernelRelease"].asString(), "");
 }
 
 // A redo that cannot clear the way for itself must stop. Writing a second

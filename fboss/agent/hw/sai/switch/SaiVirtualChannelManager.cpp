@@ -61,6 +61,23 @@ void SaiVirtualChannelManager::programVirtualChannels(
     return;
   }
 
+  // Written before the credit limit, and below the guard for the same reason.
+  // brcm-sai writes every sender field on each set, and a field it has not
+  // been given yet goes in as 0 (32 B / 0). A credit size or overhead set also
+  // makes the SDK recompute the port credit limit, so the limit must come
+  // after both.
+  if (auto creditSize = swPort->getCbfcSenderCreditSize()) {
+    SaiApiTable::getInstance()->portApi().setAttribute(
+        portSaiId,
+        SaiPortTraits::Attributes::CbfcSenderCreditSize{
+            static_cast<sai_uint16_t>(*creditSize)});
+  }
+  if (auto packetOverhead = swPort->getCbfcSenderPacketOverhead()) {
+    SaiApiTable::getInstance()->portApi().setAttribute(
+        portSaiId,
+        SaiPortTraits::Attributes::CbfcSenderPacketOverhead{*packetOverhead});
+  }
+
   // Below the guard because brcm-sai 16.0_ea_odp answers INVALID PARAMETER for
   // this set on a port with no CBFC, and the throw unwinds through
   // ~SaiPortHandle, whose own remove is NOT SUPPORTED for a port -- so it

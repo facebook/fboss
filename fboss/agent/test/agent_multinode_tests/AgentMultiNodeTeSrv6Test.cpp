@@ -25,6 +25,7 @@
 #include "nettools/ebb/platform/if/gen-cpp2/TeSrv6Agent_constants.h"
 
 DECLARE_bool(enable_lacp);
+DECLARE_bool(enable_route_counters_for_named_nhg);
 
 namespace facebook::fboss {
 namespace te = facebook::nettools::ebb::platform::fboss::thrift::srv6;
@@ -159,6 +160,7 @@ class AgentMultiNodeTeSrv6Test : public AgentHwTest {
     FLAGS_enable_lacp = true;
     FLAGS_enable_lldp = true;
     FLAGS_enable_nexthop_id_manager = true;
+    FLAGS_enable_route_counters_for_named_nhg = true;
     FLAGS_publish_stats_to_fsdb = true;
     FLAGS_resolve_nexthops_from_id = true;
     FLAGS_tun_intf = true;
@@ -467,6 +469,25 @@ TEST_F(AgentMultiNodeTeSrv6Test, VerifySetupAndBasicForwarding) {
 
   ASSERT_TRUE(checkWithRetryErrorReturn(
       [&]() {
+        te::GetNexthopGroupsRequest request;
+        request.programmedOnly() = true;
+        te::GetNexthopGroupsResponse response;
+        teSrv6Client->sync_getNexthopGroups(response, request);
+        return std::any_of(
+            response.nexthopGroups()->begin(),
+            response.nexthopGroups()->end(),
+            [&](const auto& group) {
+              return *group.nhgName() == kNexthopGroupName &&
+                  group.primary()->size() == remoteLinkAddresses.size();
+            });
+      },
+      30,
+      std::chrono::seconds(1),
+      true))
+      << "SRv6 NHG was not programmed to hardware";
+
+  ASSERT_TRUE(checkWithRetryErrorReturn(
+      [&]() {
         return serviceRouteUsesSid(*localClient, serviceAddress, decapSid);
       },
       30,
@@ -490,25 +511,25 @@ TEST_F(AgentMultiNodeTeSrv6Test, VerifySetupAndBasicForwarding) {
   });
   const auto localEncapBytesBefore = *localEncapCounterBefore->bytes();
   const auto localEncapPacketsBefore = *localEncapCounterBefore->packets();
-  const auto decapBefore =
-      getCounter(remoteSwCountersBefore, "srv6.decap_mysid_to_me.sum");
+  const auto remoteHostRxBefore =
+      getCounter(remoteSwCountersBefore, "host.rx.sum");
 
   const auto vlanId = getVlanIDForTx().value();
   const auto mac = getMacForFirstInterfaceWithPorts(getProgrammedState());
-  for (uint16_t sourcePort = 10000; sourcePort < 10100; ++sourcePort) {
-    sendPacketSwitchedAsync(
-        utility::makeUDPTxPacket(
-            getSw(),
-            vlanId,
-            mac,
-            mac,
-            folly::IPAddressV6{"1001::1"},
-            serviceAddress,
-            sourcePort,
-            20000));
-  }
-
   WITH_RETRIES({
+    for (uint16_t sourcePort = 10000; sourcePort < 10100; ++sourcePort) {
+      sendPacketSwitchedAsync(
+          utility::makeUDPTxPacket(
+              getSw(),
+              vlanId,
+              mac,
+              mac,
+              folly::IPAddressV6{"1001::1"},
+              serviceAddress,
+              sourcePort,
+              20000));
+    }
+
     const auto localCounters = utility::getCounterNameToCount(localHostname);
     const auto remoteCounters = utility::getCounterNameToCount(remoteHostname);
     const auto localEncapCounter = getEncapNexthopGroupCounter(*teSrv6Client);
@@ -529,8 +550,7 @@ TEST_F(AgentMultiNodeTeSrv6Test, VerifySetupAndBasicForwarding) {
           *localEncapCounter->packets(), localEncapPacketsBefore);
     }
     EXPECT_EVENTUALLY_GT(
-        getCounter(remoteSwCounters, "srv6.decap_mysid_to_me.sum"),
-        decapBefore);
+        getCounter(remoteSwCounters, "host.rx.sum"), remoteHostRxBefore);
   });
 }
 
