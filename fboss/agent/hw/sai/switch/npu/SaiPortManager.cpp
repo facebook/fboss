@@ -1131,6 +1131,12 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     linkScanMode = linkScanModeAttribute(*mode);
   }
 
+  if ((swPort->getCsigTagAction() || swPort->getCsigLinkLocator()) &&
+      !platform_->getAsic()->isSupported(HwAsic::Feature::CSIG)) {
+    throw FbossError(
+        "CSIG is not supported on this ASIC/SDK; cannot apply to port ",
+        swPort->getID());
+  }
   // cfg::CsigTagAction values match sai_port_csig_tag_action_t.
   std::optional<SaiPortTraits::Attributes::CsigTagAction> csigTagAction;
   if (const auto action = swPort->getCsigTagAction()) {

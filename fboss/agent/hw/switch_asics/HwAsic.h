@@ -641,6 +641,8 @@ class HwAsic {
     HW_PROTECTION_SWITCHOVER_COUNTERS,
     // PBR ACL table byte counters, for ASICs without ACL_BYTE_COUNTER.
     PBR_ACL_BYTE_COUNTER,
+    // CSIG (Congestion Signaling) per-port egress tag action and link locator
+    CSIG,
   };
 
   enum class AsicMode {

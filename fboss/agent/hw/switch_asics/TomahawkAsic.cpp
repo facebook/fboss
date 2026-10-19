@@ -257,6 +257,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::RX_PACKET_TYPE:
     case HwAsic::Feature::ISOLATION_GROUP:
     case HwAsic::Feature::XPHY_SERDES_TX_FIR_POST3:
+    case HwAsic::Feature::CSIG:
       return false;
   }
   return false;

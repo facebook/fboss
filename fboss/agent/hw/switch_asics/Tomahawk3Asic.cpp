@@ -110,6 +110,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MY_MAC:
       return true;
     case HwAsic::Feature::ISOLATION_GROUP:
+    case HwAsic::Feature::CSIG:
     case HwAsic::Feature::QCM:
     case HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED:
     case HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE:
