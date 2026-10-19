@@ -987,7 +987,9 @@ cfg::SwitchConfig genPortVlanCfg(
         ? kDefaultVlanId4094
         : kDefaultVlanId1;
     auto defaultVlan = createVlanConfig(VlanID(defaultVlanId));
-    defaultVlan.intfID() = 10;
+    if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
+      defaultVlan.intfID() = 10;
+    }
     config.vlans()->push_back(defaultVlan);
     config.defaultVlan() = defaultVlanId;
 
