@@ -74,6 +74,13 @@ only the fake manifest wires it until proven, then other manifests plug in.
   ancestor chain — it is never the shell's immediate parent, and the
   container virtualizes boot_id, so both are handed down from stage 2,
   never re-observed below. The frozen banner line is unchanged.
+- Netadmin escalation: the netadmin machine binds `/etc/coop`,
+  `/var/facebook`, `/dev/shm` writable (permissions stay root-owned) and
+  ships a container-local sudoers file granting `netadmin` a root shell
+  with `LOGIN_IDENTITY` + session vars preserved. Unprivileged reads
+  work; writes require the escape. Container root is host root
+  (`PrivateUsers=no`), so the escape is documented as host-root access,
+  not containment. Netops gets neither binds nor sudoers.
 
 `agent.conf` is generated once from the in-repo sim seed and committed as
 plain JSON. Regenerate with:

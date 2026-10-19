@@ -51,6 +51,9 @@ for f in /var/lib/machines/netops/etc/passwd \
     /var/lib/machines/netadmin/etc/machine-id \
     /var/lib/machines/netadmin/etc/os-release \
     /var/lib/machines/netadmin/etc/systemd/system/login-shell.target \
+    /var/lib/machines/netadmin/etc/sudoers \
+    /var/lib/machines/netadmin/etc/sysusers.d/netadmin.conf \
+    /var/lib/machines/netadmin/etc/pam.d/sudo \
     /etc/systemd/nspawn/netops.nspawn \
     /etc/systemd/nspawn/netadmin.nspawn \
     /usr/lib/systemd/system/netops-machine.service \
@@ -65,6 +68,8 @@ for f in /var/lib/machines/netops/etc/passwd \
 done
 [ "$(stat -c %a /etc/sudoers.d/login-containers)" = "440" ] || { echo "login-containers: bad sudoers mode" >&2; exit 1; }
 visudo -c -f /etc/sudoers.d/login-containers || { echo "login-containers: bad sudoers syntax" >&2; exit 1; }
+[ "$(stat -c %a /var/lib/machines/netadmin/etc/sudoers)" = "440" ] || { echo "login-containers: bad machine sudoers mode" >&2; exit 1; }
+visudo -c -f /var/lib/machines/netadmin/etc/sudoers || { echo "login-containers: bad machine sudoers syntax" >&2; exit 1; }
 for d in /var/lib/machines/netops/home/netops \
     /var/lib/machines/netadmin/home/netadmin; do
   [ -d "$d" ] || { echo "login-containers: missing $d" >&2; exit 1; }
@@ -108,6 +113,9 @@ done
 /var/lib/machines/netadmin/etc/hostname
 /var/lib/machines/netadmin/etc/machine-id
 /var/lib/machines/netadmin/etc/os-release
+%attr(0440,root,root) /var/lib/machines/netadmin/etc/sudoers
+/var/lib/machines/netadmin/etc/sysusers.d/netadmin.conf
+/var/lib/machines/netadmin/etc/pam.d/sudo
 /var/lib/machines/netadmin/etc/systemd/system/login-shell.target
 /var/lib/machines/netadmin/etc/systemd/system/dbus.service
 /var/lib/machines/netadmin/etc/systemd/system/default.target
