@@ -226,6 +226,8 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(PortSerdes, RxEnableScanSelection)
   SAI_EXT_ATTR_MAP(PortSerdes, RxInstgScanUseSrSettings)
   SAI_EXT_ATTR_MAP(Port, LinkScanMode)
+  SAI_EXT_ATTR_MAP(Port, CsigTagAction)
+  SAI_EXT_ATTR_MAP(Port, CsigLinkLocator)
   SAI_EXT_ATTR_MAP(PortSerdes, RxCdrCfgOvEn)
   SAI_EXT_ATTR_MAP(PortSerdes, RxCdrTdet1stOrdStepOvVal)
   SAI_EXT_ATTR_MAP(PortSerdes, RxCdrTdet2ndOrdStepOvVal)

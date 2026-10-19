@@ -706,6 +706,22 @@ struct SaiPortTraits {
         sai_int32_t,
         AttributeLinkScanMode,
         SaiIntDefault<sai_int32_t>>;
+    // Cisco CSIG tag action (sai_port_csig_tag_action_t). The SDK default is
+    // PASSTHROUGH (0), not the STRIP the SAI header documents.
+    struct AttributeCsigTagActionWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using CsigTagAction = SaiExtensionAttribute<
+        sai_int32_t,
+        AttributeCsigTagActionWrapper,
+        SaiIntDefault<sai_int32_t>>;
+    struct AttributeCsigLinkLocatorWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using CsigLinkLocator = SaiExtensionAttribute<
+        sai_uint8_t,
+        AttributeCsigLinkLocatorWrapper,
+        SaiIntDefault<sai_uint8_t>>;
     // Read-only counts of how many times a link up/down debounce was
     // retriggered by an additional flap while a debounce timeout was already
     // active.
@@ -912,7 +928,9 @@ struct SaiPortTraits {
       std::optional<Attributes::PfcPauseDurationOverride>,
       std::optional<Attributes::IngressAcl>,
       std::optional<Attributes::IsolationGroup>,
-      std::optional<Attributes::Metadata>>;
+      std::optional<Attributes::Metadata>,
+      std::optional<Attributes::CsigTagAction>,
+      std::optional<Attributes::CsigLinkLocator>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
@@ -1131,6 +1149,8 @@ SAI_ATTRIBUTE_NAME(Port, FabricAttachedSwitchType);
 SAI_ATTRIBUTE_NAME(Port, FabricReachability);
 SAI_ATTRIBUTE_NAME(Port, RxLaneSquelchEnable);
 SAI_ATTRIBUTE_NAME(Port, LinkScanMode);
+SAI_ATTRIBUTE_NAME(Port, CsigTagAction);
+SAI_ATTRIBUTE_NAME(Port, CsigLinkLocator);
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
 SAI_ATTRIBUTE_NAME(Port, PfcTcDldInterval);
 SAI_ATTRIBUTE_NAME(Port, PfcTcDlrInterval);

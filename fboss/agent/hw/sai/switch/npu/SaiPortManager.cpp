@@ -1238,6 +1238,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // Ingress ACL
         std::nullopt, // IsolationGroup
         std::nullopt, // Metadata
+        std::nullopt, // CsigTagAction
+        std::nullopt, // CsigLinkLocator
     };
   }
   std::optional<SaiPortTraits::Attributes::PortVlanId> vlanIdAttr{vlanId};
@@ -1390,6 +1392,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       ingressAcl,
       std::nullopt, // IsolationGroup
       metadata,
+      std::nullopt, // CsigTagAction
+      std::nullopt, // CsigLinkLocator
   };
 }
 

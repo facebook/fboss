@@ -206,6 +206,8 @@ class PortManagerTest : public ManagerTestBase {
         std::nullopt, // Ingress ACL
         std::nullopt, // IsolationGroup
         std::nullopt, // Metadata
+        std::nullopt, // CsigTagAction
+        std::nullopt, // CsigLinkLocator
     };
     return portApi.create<SaiPortTraits>(a, 0);
   }
