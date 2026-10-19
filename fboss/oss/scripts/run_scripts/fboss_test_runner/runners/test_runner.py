@@ -379,10 +379,18 @@ class TestRunner(abc.ABC):
     def _get_tier_metadata_file(self) -> str | None:
         return None
 
+    def _get_uniform_test_tier(self) -> TestTier | None:
+        """Return the tier shared by every test exposed by this runner."""
+        return None
+
     def _get_available_test_capabilities(self) -> Collection[TestCapability]:
         return ()
 
     def _filter_tests_for_tier(self, tests: list[str], tier: TestTier) -> list[str]:
+        uniform_tier = self._get_uniform_test_tier()
+        if uniform_tier is not None:
+            return tests if tier is uniform_tier else []
+
         metadata_file = self._get_tier_metadata_file()
         if metadata_file is None:
             command = self.args.command

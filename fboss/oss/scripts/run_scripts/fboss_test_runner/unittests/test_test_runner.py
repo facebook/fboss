@@ -125,6 +125,25 @@ class TestTierFilterComposition:
         with pytest.raises(TestRunnerUsageError, match="not supported for unsupported"):
             runner._filter_tests_for_tier([], TestTier.T0)
 
+    @pytest.mark.parametrize(
+        "requested_tier,expected",
+        [
+            (TestTier.T0, ["Suite.B", "Suite.A"]),
+            (TestTier.T1, []),
+        ],
+    )
+    def test_uniform_tier_filters_without_metadata(
+        self, runner, requested_tier, expected
+    ):
+        tests = ["Suite.B", "Suite.A"]
+        with (
+            patch.object(runner, "_get_uniform_test_tier", return_value=TestTier.T0),
+            patch.object(runner, "_get_tier_metadata_file") as metadata_file,
+        ):
+            assert runner._filter_tests_for_tier(tests, requested_tier) == expected
+
+        metadata_file.assert_not_called()
+
     def test_metadata_filter_expands_patterns_and_intersects_candidates(
         self, runner, tmp_path
     ):
