@@ -386,11 +386,7 @@ class TestRunner(abc.ABC):
     def _get_available_test_capabilities(self) -> Collection[TestCapability]:
         return ()
 
-    def _filter_tests_for_tier(self, tests: list[str], tier: TestTier) -> list[str]:
-        uniform_tier = self._get_uniform_test_tier()
-        if uniform_tier is not None:
-            return tests if tier is uniform_tier else []
-
+    def _get_test_patterns_for_tier(self, tier: TestTier) -> list[str]:
         metadata_file = self._get_tier_metadata_file()
         if metadata_file is None:
             command = self.args.command
@@ -401,11 +397,18 @@ class TestRunner(abc.ABC):
         except TestMetadataError as error:
             raise TestRunnerUsageError(str(error)) from error
 
-        patterns = select_test_patterns_for_tier(
+        return select_test_patterns_for_tier(
             rules,
             tier,
             available_capabilities=self._get_available_test_capabilities(),
         )
+
+    def _filter_tests_for_tier(self, tests: list[str], tier: TestTier) -> list[str]:
+        uniform_tier = self._get_uniform_test_tier()
+        if uniform_tier is not None:
+            return tests if tier is uniform_tier else []
+
+        patterns = self._get_test_patterns_for_tier(tier)
         if not patterns:
             return []
 
