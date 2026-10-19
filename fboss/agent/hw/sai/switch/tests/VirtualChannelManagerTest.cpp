@@ -341,4 +341,24 @@ TEST_F(VirtualChannelManagerTest, senderValueChangeOnCbfcPortWritesNothing) {
       56);
 }
 
+TEST_F(VirtualChannelManagerTest, firstBindWritesZeroPacketOverhead) {
+  auto swPort = makePort(p0);
+  saiManagerTable->portManager().addPort(swPort);
+  // Fake's default is 0, so mark the attribute to make a missing write show.
+  auto* handle = saiManagerTable->portManager().getPortHandle(swPort->getID());
+  SaiApiTable::getInstance()->portApi().setAttribute(
+      handle->port->adapterKey(),
+      SaiPortTraits::Attributes::CbfcSenderPacketOverhead{48});
+
+  auto cbfcPort = swPort->clone();
+  cbfcPort->setVirtualChannels(std::vector<state::PortVcFields>{makeVc(2, 36)});
+  cbfcPort->setCbfcSenderPacketOverhead(0);
+  saiManagerTable->portManager().changePort(swPort, cbfcPort);
+
+  EXPECT_EQ(
+      getPortAttr(
+          cbfcPort, SaiPortTraits::Attributes::CbfcSenderPacketOverhead{}),
+      0);
+}
+
 #endif
