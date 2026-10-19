@@ -937,7 +937,7 @@
   "chassisEepromDevicePath": "/[CHASSIS_EEPROM]",
   "numXcvrs": 65,
   "bspKmodsRpmName": "cisco_bsp_kmods",
-  "bspKmodsRpmVersion": "2026.10.2-1",
+  "bspKmodsRpmVersion": "2026.10.3-1",
   "requiredKmodsToLoad": [
     "spidev",
     "i2c_piix4",
