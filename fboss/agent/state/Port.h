@@ -1031,6 +1031,36 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     }
   }
 
+  std::optional<cfg::CsigTagAction> getCsigTagAction() const {
+    if (auto csigTagAction = cref<switch_state_tags::csigTagAction>()) {
+      return csigTagAction->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setCsigTagAction(std::optional<cfg::CsigTagAction> csigTagAction) {
+    if (!csigTagAction.has_value()) {
+      ref<switch_state_tags::csigTagAction>().reset();
+    } else {
+      set<switch_state_tags::csigTagAction>(csigTagAction.value());
+    }
+  }
+
+  std::optional<int16_t> getCsigLinkLocator() const {
+    if (auto csigLinkLocator = cref<switch_state_tags::csigLinkLocator>()) {
+      return csigLinkLocator->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setCsigLinkLocator(std::optional<int16_t> csigLinkLocator) {
+    if (!csigLinkLocator.has_value()) {
+      ref<switch_state_tags::csigLinkLocator>().reset();
+    } else {
+      set<switch_state_tags::csigLinkLocator>(csigLinkLocator.value());
+    }
+  }
+
   std::optional<cfg::AclLookupClassPort> getUserMetaData() const {
     if (auto userMetaData = cref<switch_state_tags::userMetaData>()) {
       return userMetaData->cref();

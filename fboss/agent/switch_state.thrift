@@ -214,6 +214,8 @@ struct PortFields {
   79: optional string isolationGroup;
   80: optional i16 cbfcSenderCreditSize;
   81: optional i16 cbfcSenderPacketOverhead;
+  82: optional switch_config.CsigTagAction csigTagAction;
+  83: optional i16 csigLinkLocator;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields

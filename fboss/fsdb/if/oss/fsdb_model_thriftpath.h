@@ -5805,6 +5805,8 @@ class ChildThriftPath<::facebook::fboss::state::PortFields, ::facebook::fboss::f
     STRUCT_CHILD_GETTERS(isolationGroup, 79);
     STRUCT_CHILD_GETTERS(cbfcSenderCreditSize, 80);
     STRUCT_CHILD_GETTERS(cbfcSenderPacketOverhead, 81);
+    STRUCT_CHILD_GETTERS(csigTagAction, 82);
+    STRUCT_CHILD_GETTERS(csigLinkLocator, 83);
 };
 
 

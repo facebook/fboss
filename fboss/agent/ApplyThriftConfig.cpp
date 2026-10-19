@@ -3513,6 +3513,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       portConf->rxPrecoding().has_value() ==
           orig->getRxPrecoding().has_value() &&
       portConf->linkScanMode().to_optional() == orig->getLinkScanMode() &&
+      portConf->csigTagAction().to_optional() == orig->getCsigTagAction() &&
+      portConf->csigLinkLocator().to_optional() == orig->getCsigLinkLocator() &&
       portConf->ingressAclTableName().to_optional() ==
           orig->getIngressAclTableName() &&
       portConf->portDownHoldoffTimeMs().value_or(0) ==
@@ -3644,6 +3646,13 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     newPort->setRxPrecoding(std::nullopt);
   }
   newPort->setLinkScanMode(portConf->linkScanMode().to_optional());
+  newPort->setCsigTagAction(portConf->csigTagAction().to_optional());
+  if (auto lm = portConf->csigLinkLocator().to_optional();
+      lm.has_value() && (*lm < 0 || *lm > 0x7f)) {
+    throw FbossError(
+        "csigLinkLocator must be 0-127, got ", *lm, " on port ", orig->getID());
+  }
+  newPort->setCsigLinkLocator(portConf->csigLinkLocator().to_optional());
   newPort->setUserMetaData(newUserMetaData);
   newPort->setIngressAclTableName(
       portConf->ingressAclTableName().to_optional());
