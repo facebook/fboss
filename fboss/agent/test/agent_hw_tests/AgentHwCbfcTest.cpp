@@ -32,6 +32,9 @@ class AgentHwCbfcTest : public AgentHwTest {
   static constexpr int64_t kRdmaReservedCredits = 36;
   static constexpr int64_t kMonitoringReservedCredits = 12;
   static constexpr int64_t kSenderCreditLimit = 8192;
+  // The TU1 receiver's values, so a TU1-to-TU1 link counts credits alike.
+  static constexpr int16_t kSenderCreditSize = 56;
+  static constexpr int16_t kSenderPacketOverhead = 16;
 
   utility::PortVcInfo getPortVcInfo(PortID portId) {
     auto switchId =
@@ -71,6 +74,8 @@ class AgentHwCbfcTest : public AgentHwTest {
     cfg::CbfcConfig cbfc;
     cbfc.virtualChannels() = {rdma, monitoring};
     cbfc.senderCreditLimit() = kSenderCreditLimit;
+    cbfc.senderCreditSize() = kSenderCreditSize;
+    cbfc.senderPacketOverhead() = kSenderPacketOverhead;
     cfg.cbfcConfigs() = {{kCbfcConfigName, cbfc}};
 
     for (const auto& portId : ensemble.masterLogicalInterfacePortIds()) {
@@ -113,11 +118,19 @@ void AgentHwCbfcTest::verifyCbfcProgrammed() {
                  << show(vcInfo.receiverNativePacketOverhead())
                  << " totalCredits="
                  << show(vcInfo.receiverNativeTotalCredits());
+      XLOG(DBG2) << "Port " << portId << " CBFC sender: creditSize="
+                 << show(vcInfo.senderCreditSize())
+                 << " pktOverhead=" << show(vcInfo.senderPacketOverhead());
       for (const auto& vc : *vcInfo.virtualChannels()) {
         XLOG(DBG2) << "Port " << portId << " VC "
                    << static_cast<int>(*vc.index()) << " nativeCreditLimit="
                    << show(vc.receiverNativeCreditLimit());
       }
+
+      // From the SDK sender table. 32 / 0 means the sender was left at the
+      // values brcm-sai writes for fields it was never given.
+      EXPECT_EQ(vcInfo.senderCreditSize(), kSenderCreditSize);
+      EXPECT_EQ(vcInfo.senderPacketOverhead(), kSenderPacketOverhead);
 
       ASSERT_EQ(vcInfo.virtualChannels()->size(), 2);
 
