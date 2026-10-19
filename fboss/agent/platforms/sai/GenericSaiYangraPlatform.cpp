@@ -78,6 +78,13 @@ GenericSaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
   // the egress back to the same ingress port.
   kv_map.insert(std::make_pair("SAI_KEY_NOT_DROP_SIP_DIP_EQUAL", "1"));
 
+  // Skip the SX SDK vs kmod version check at SDK init. When unset, the SDK
+  // fails create_switch on any SDK/kmod version mismatch (e.g. during a
+  // rolling upgrade or when testing against a different kmod). FBOSS manages
+  // the kmod lifecycle externally, so a mismatch should warn, not abort.
+  // Replaces the former Meta SDK patch 0002 (skip_version_check = TRUE).
+  kv_map.insert(std::make_pair("SAI_KEY_SDK_SKIP_VERSION_CHECK", "1"));
+
   // PG0 is the default priority group — traffic is mapped to it when no
   // specific priority group is configured. It is lossy/best-effort. The
   // SDK has an internal optimization that reclaims PG0 buffer space. Some
