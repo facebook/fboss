@@ -191,6 +191,46 @@ TEST_F(ConfigInterfaceIpv6NdpTest, SetAndVerifyHopLimit) {
 }
 
 // ---------------------------------------------------------------------------
+// Test: set prefix-valid-lifetime and verify prefixValidLifetimeSeconds via
+// running config. The preferred lifetime is a separate field and must not
+// change.
+// ---------------------------------------------------------------------------
+
+TEST_F(ConfigInterfaceIpv6NdpTest, SetAndVerifyPrefixValidLifetime) {
+  XLOG(INFO) << "[Step 1] Finding an interface to test...";
+  std::string ifName = getRandomInterfacePortName();
+  int intfID = getInterfaceIdForPort(ifName);
+  XLOG(INFO) << "  Using interface: " << ifName;
+
+  // prefixPreferredLifetimeSeconds takes its schema default when the ndp block
+  // is absent.
+  auto ndpBefore = getNdpConfig(getRunningConfig(), intfID);
+  const int64_t preferredBefore =
+      ndpBefore.count("prefixPreferredLifetimeSeconds")
+      ? ndpBefore["prefixPreferredLifetimeSeconds"].asInt()
+      : int64_t{*cfg::NdpConfig{}.prefixPreferredLifetimeSeconds()};
+
+  // Not the schema default (2592000).
+  constexpr int64_t kLifetime = 1209600;
+  XLOG(INFO) << "[Step 2] Setting prefix-valid-lifetime to " << kLifetime
+             << "...";
+  setNdpAttr(ifName, "prefix-valid-lifetime", std::to_string(kLifetime));
+
+  XLOG(INFO) << "[Step 3] Verifying running config via thrift...";
+  expectNdpField(
+      intfID,
+      "prefixValidLifetimeSeconds",
+      [&](const folly::dynamic& v) { return v.asInt() == kLifetime; },
+      fmt::format("== {}", kLifetime));
+  expectNdpField(
+      intfID,
+      "prefixPreferredLifetimeSeconds",
+      [&](const folly::dynamic& v) { return v.asInt() == preferredBefore; },
+      fmt::format("unchanged at {}", preferredBefore));
+  XLOG(INFO) << "TEST PASSED";
+}
+
+// ---------------------------------------------------------------------------
 // Test: set managed-config-flag and verify via running config
 // ---------------------------------------------------------------------------
 
