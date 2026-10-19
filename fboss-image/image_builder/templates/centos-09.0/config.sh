@@ -120,7 +120,10 @@ restorecon -Rv /var/facebook/logs/fboss
 # default ACL forces group rwx on every new file/dir regardless of umask, and
 # is itself inherited by new subdirectories, so it cascades indefinitely.
 echo "Creating coop user/group and /etc/coop directory..."
-groupadd -f -r switching
+# Pin gid 1001: without -g the gid floats with creation order (kiwi
+# pre-created it at 1001 when netops listed it; alone, -r yields a
+# system gid instead), and the netadmin container matches it by number.
+groupadd -f -r -g 1001 switching
 useradd -r -g switching -s /sbin/nologin -M -d /nonexistent coop
 mkdir -p /etc/coop
 chown -R coop:switching /etc/coop

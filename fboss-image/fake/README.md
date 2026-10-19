@@ -78,7 +78,10 @@ only the fake manifest wires it until proven, then other manifests plug in.
   `/var/facebook`, `/dev/shm` writable (permissions stay root-owned) and
   ships a container-local sudoers file granting `netadmin` a root shell
   with `LOGIN_IDENTITY` + session vars preserved. Unprivileged reads
-  work; writes require the escape. Container root is host root
+  work; group-writable `/etc/coop` is also writable unprivileged
+  (container `netadmin` belongs to `switching`, applied via setpriv
+  since nsenter sets no supplementary groups), while root-only paths
+  require the escape. Container root is host root
   (`PrivateUsers=no`), so the escape is documented as host-root access,
   not containment. Netops gets neither binds nor sudoers.
 

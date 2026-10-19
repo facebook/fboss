@@ -42,5 +42,12 @@ PID=$(/usr/bin/machinectl show netadmin -p Leader --value) || exit 1
 export HOME=/home/netadmin
 /usr/bin/logger -t netadmin-shell "attach netadmin -> netadmin machine (leader $PID) session=$SESSION_SSHD_PID ancestors=$SESSION_ANCESTORS boot=$FBOSS_BOOT_ID"
 # ${HOME} must expand in the inner shell, after nsenter (SC2016 is a false positive here).
+# Credentials are set by setpriv, not nsenter -S/-G: nsenter sets only
+# uid+primary gid, which would drop the switching membership (1001) that
+# grants unprivileged write on group-writable /etc/coop. Numeric ids match
+# the skeleton passwd/group; the host pins switching to 1001 in
+# config.sh (unpinned, the gid floats with creation order and the
+# container match breaks). --inh-caps=-all sheds root's capabilities
+# across the transition. Primary gid stays netadmin (1002).
 # shellcheck disable=SC2016
-exec /usr/bin/nsenter -t "$PID" -m -u -i -n -p -S1001 -G1002 /bin/bash -c 'cd "${HOME:-/}" 2>/dev/null || cd /; exec /bin/bash "$@"' bash "$@"
+exec /usr/bin/nsenter -t "$PID" -m -u -i -n -p /usr/bin/setpriv --reuid=1001 --regid=1002 --groups=1002,1001 --inh-caps=-all -- /bin/bash -c 'cd "${HOME:-/}" 2>/dev/null || cd /; exec /bin/bash "$@"' bash "$@"
