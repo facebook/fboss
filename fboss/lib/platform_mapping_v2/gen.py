@@ -114,6 +114,7 @@ OSS_MULTI_NPU_SUPPORTED_PLATFORMS: dict[bool, list[str]] = {
 }
 
 _RAW_PLATFORM_MAPPING_FAMILIES: dict[str, tuple[str, ...]] = {
+    "icecube800banw": ("icecube800banw",),
     "icecube800bc": ("icecube800bc",),
     "montblanc": ("montblanc", "montblanc_odd_ports_8x100G", "montblanc_gtsw_yolo"),
     "tahansb800bc": ("tahansb800bc", "tahansb800bc_test_fixture"),
