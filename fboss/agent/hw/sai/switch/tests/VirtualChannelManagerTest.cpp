@@ -237,27 +237,17 @@ TEST_F(VirtualChannelManagerTest, removePortRemovesVirtualChannels) {
   EXPECT_EQ(profileCount(), 0);
 }
 
-TEST_F(VirtualChannelManagerTest, programsConfiguredSenderCreditSize) {
-  auto swPort = makePortWithVcs(p0, {makeVc(2, 36)});
-  swPort->setCbfcSenderCreditSize(32);
+TEST_F(VirtualChannelManagerTest, firstBindProgramsSenderCreditSize) {
+  // CBFC arrives as a port change, as config does on a coldboot.
+  auto swPort = makePort(p0);
   saiManagerTable->portManager().addPort(swPort);
+  auto cbfcPort = swPort->clone();
+  cbfcPort->setVirtualChannels(std::vector<state::PortVcFields>{makeVc(2, 36)});
+  cbfcPort->setCbfcSenderCreditSize(32);
+  saiManagerTable->portManager().changePort(swPort, cbfcPort);
 
   EXPECT_EQ(
-      getPortAttr(swPort, SaiPortTraits::Attributes::CbfcSenderCreditSize{}),
-      32);
-}
-
-TEST_F(VirtualChannelManagerTest, changedSenderCreditSizeIsProgrammed) {
-  auto swPort = makePortWithVcs(p0, {makeVc(2, 36)});
-  saiManagerTable->portManager().addPort(swPort);
-
-  auto changedPort = swPort->clone();
-  changedPort->setCbfcSenderCreditSize(32);
-  saiManagerTable->portManager().changePort(swPort, changedPort);
-
-  EXPECT_EQ(
-      getPortAttr(
-          changedPort, SaiPortTraits::Attributes::CbfcSenderCreditSize{}),
+      getPortAttr(cbfcPort, SaiPortTraits::Attributes::CbfcSenderCreditSize{}),
       32);
 }
 
@@ -272,29 +262,18 @@ TEST_F(VirtualChannelManagerTest, portWithoutCbfcLeavesSenderCreditSize) {
       128);
 }
 
-TEST_F(VirtualChannelManagerTest, programsConfiguredSenderPacketOverhead) {
-  auto swPort = makePortWithVcs(p0, {makeVc(2, 36)});
-  swPort->setCbfcSenderPacketOverhead(48);
+TEST_F(VirtualChannelManagerTest, firstBindProgramsSenderPacketOverhead) {
+  auto swPort = makePort(p0);
   saiManagerTable->portManager().addPort(swPort);
+  auto cbfcPort = swPort->clone();
+  cbfcPort->setVirtualChannels(std::vector<state::PortVcFields>{makeVc(2, 36)});
+  cbfcPort->setCbfcSenderPacketOverhead(48);
+  saiManagerTable->portManager().changePort(swPort, cbfcPort);
 
   EXPECT_EQ(
       getPortAttr(
-          swPort, SaiPortTraits::Attributes::CbfcSenderPacketOverhead{}),
+          cbfcPort, SaiPortTraits::Attributes::CbfcSenderPacketOverhead{}),
       48);
-}
-
-TEST_F(VirtualChannelManagerTest, changedSenderPacketOverheadIsProgrammed) {
-  auto swPort = makePortWithVcs(p0, {makeVc(2, 36)});
-  saiManagerTable->portManager().addPort(swPort);
-
-  auto changedPort = swPort->clone();
-  changedPort->setCbfcSenderPacketOverhead(0);
-  saiManagerTable->portManager().changePort(swPort, changedPort);
-
-  EXPECT_EQ(
-      getPortAttr(
-          changedPort, SaiPortTraits::Attributes::CbfcSenderPacketOverhead{}),
-      0);
 }
 
 TEST_F(VirtualChannelManagerTest, portWithoutCbfcLeavesSenderPacketOverhead) {

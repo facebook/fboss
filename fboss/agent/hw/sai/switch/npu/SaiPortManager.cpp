@@ -399,7 +399,7 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   programSerdes(saiPort, swPort, handle.get());
   programLlr(swPort, handle.get());
   managerTable_->virtualChannelManager().programVirtualChannels(
-      swPort, saiPort->adapterKey());
+      nullptr, swPort, saiPort->adapterKey());
   if (deferAdminEnable) {
     // Through the store, so its cached admin state tracks hardware.
     saiPort->setOptionalAttribute(SaiPortTraits::Attributes::AdminState{true});
@@ -607,7 +607,7 @@ void SaiPortManager::changePortImpl(
   }
   changePortFlowletConfig(oldPort, newPort);
   managerTable_->virtualChannelManager().programVirtualChannels(
-      newPort, saiPort->adapterKey());
+      oldPort, newPort, saiPort->adapterKey());
   if (programLlrForPort) {
     programLlr(newPort, existingPort);
     if (deferAdminEnable) {
