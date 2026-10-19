@@ -288,4 +288,57 @@ TEST_F(VirtualChannelManagerTest, portWithoutCbfcLeavesSenderPacketOverhead) {
       0);
 }
 
+TEST_F(VirtualChannelManagerTest, unrelatedPortChangeLeavesSenderFields) {
+  auto swPort = makePortWithVcs(p0, {makeVc(2, 36)});
+  swPort->setCbfcSenderCreditSize(56);
+  saiManagerTable->portManager().addPort(swPort);
+
+  // Mark the attribute so a rewrite would show.
+  auto* handle = saiManagerTable->portManager().getPortHandle(swPort->getID());
+  SaiApiTable::getInstance()->portApi().setAttribute(
+      handle->port->adapterKey(),
+      SaiPortTraits::Attributes::CbfcSenderCreditSize{32});
+
+  auto changedPort = swPort->clone();
+  changedPort->setVirtualChannels(
+      std::vector<state::PortVcFields>{makeVc(2, 36), makeVc(6, 12)});
+  saiManagerTable->portManager().changePort(swPort, changedPort);
+
+  EXPECT_EQ(
+      getPortAttr(
+          changedPort, SaiPortTraits::Attributes::CbfcSenderCreditSize{}),
+      32);
+}
+
+TEST_F(VirtualChannelManagerTest, portCreateWithCbfcWritesNothing) {
+  // A port created with CBFC is a warm boot; hardware keeps the sender values.
+  auto swPort = makePortWithVcs(p0, {makeVc(2, 36)});
+  swPort->setCbfcSenderCreditSize(56);
+  saiManagerTable->portManager().addPort(swPort);
+
+  // Fake's default is the SAI header default; nothing was written.
+  EXPECT_EQ(
+      getPortAttr(swPort, SaiPortTraits::Attributes::CbfcSenderCreditSize{}),
+      128);
+}
+
+TEST_F(VirtualChannelManagerTest, senderValueChangeOnCbfcPortWritesNothing) {
+  auto swPort = makePort(p0);
+  saiManagerTable->portManager().addPort(swPort);
+  auto cbfcPort = swPort->clone();
+  cbfcPort->setVirtualChannels(std::vector<state::PortVcFields>{makeVc(2, 36)});
+  cbfcPort->setCbfcSenderCreditSize(56);
+  saiManagerTable->portManager().changePort(swPort, cbfcPort);
+
+  // StateUpdateValidator rejects this change; the manager must not write it.
+  auto changedPort = cbfcPort->clone();
+  changedPort->setCbfcSenderCreditSize(32);
+  saiManagerTable->portManager().changePort(cbfcPort, changedPort);
+
+  EXPECT_EQ(
+      getPortAttr(
+          changedPort, SaiPortTraits::Attributes::CbfcSenderCreditSize{}),
+      56);
+}
+
 #endif
