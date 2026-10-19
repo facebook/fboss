@@ -385,6 +385,15 @@ AgentEnsembleLinkTest::getSingleVlanOrRoutedCabledPorts(
   auto singleVlanOrRoutedPorts =
       utility::getSingleVlanOrRoutedCabledPorts(getSw());
   for (auto port : getCabledPorts()) {
+    // Only L3 interface ports can carry the ECMP group. The VLAN-interface
+    // branch of utility::getSingleVlanOrRoutedCabledPorts() does not filter on
+    // port type, so a management port that is the sole member of its VLAN
+    // otherwise lands here with no interface to resolve a nexthop against.
+    auto portType = getSw()->getState()->getPort(port)->getPortType();
+    if (portType != cfg::PortType::INTERFACE_PORT &&
+        portType != cfg::PortType::HYPER_PORT) {
+      continue;
+    }
     auto matcher = getSw()->getScopeResolver()->scope(
         getSw()->getState(), PortDescriptor(port));
     SwitchID portSwitchId = matcher.switchId();
@@ -427,9 +436,7 @@ void AgentEnsembleLinkTest::programDefaultRoute(
       dstMac,
       RouterID(0),
       false,
-      {cfg::PortType::INTERFACE_PORT,
-       cfg::PortType::MANAGEMENT_PORT,
-       cfg::PortType::HYPER_PORT});
+      {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT});
   programDefaultRoute(ecmpPorts, ecmp6);
 }
 
@@ -461,9 +468,7 @@ void AgentEnsembleLinkTest::createL3DataplaneFlood(
       getSw()->getLocalMac(switchId),
       RouterID(0),
       false,
-      {cfg::PortType::INTERFACE_PORT,
-       cfg::PortType::MANAGEMENT_PORT,
-       cfg::PortType::HYPER_PORT});
+      {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT});
   if (getSw()->getHwAsicTable()->isFeatureSupported(
           switchId, HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE)) {
     programDefaultRouteWithDisableTTLDecrement(ecmpPorts, ecmp6);
