@@ -3263,13 +3263,20 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     }
     checkSupported("senderCreditSize", *size, asic->getCbfcSenderCreditSizes());
     cbfcSenderCreditSize = *size;
-    if (auto overhead = it->second.senderPacketOverhead()) {
-      checkSupported(
-          "senderPacketOverhead",
-          *overhead,
-          asic->getCbfcSenderPacketOverheads());
-      cbfcSenderPacketOverhead = *overhead;
+    auto overhead = it->second.senderPacketOverhead();
+    if (!overhead) {
+      throw FbossError(
+          "Port ",
+          orig->getID(),
+          " cbfc config ",
+          *cbfcConfigName,
+          ": senderPacketOverhead is required");
     }
+    checkSupported(
+        "senderPacketOverhead",
+        *overhead,
+        asic->getCbfcSenderPacketOverheads());
+    cbfcSenderPacketOverhead = *overhead;
     virtualChannels = std::move(configuredVcs);
   }
 

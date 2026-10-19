@@ -2363,7 +2363,8 @@ struct CbfcConfig {
   // hardcoded in the SDK and is not SAI writable.
   3: optional i16 senderCreditSize;
   // Per-packet overhead in bytes the sender charges
-  // (SAI_PORT_ATTR_CBFC_SENDER_PACKET_OVERHEAD). Same rules as senderCreditSize.
+  // (SAI_PORT_ATTR_CBFC_SENDER_PACKET_OVERHEAD). Same rules as
+  // senderCreditSize; against another TU1, use 16.
   4: optional i16 senderPacketOverhead;
 }
 
