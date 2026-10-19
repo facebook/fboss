@@ -81,6 +81,9 @@ struct PortVcInfo {
   2: optional i64 receiverNativeCreditSize;
   3: optional i64 receiverNativePacketOverhead;
   4: optional i64 receiverNativeTotalCredits;
+  // Read from the SDK sender table, so they show what hardware holds.
+  5: optional i64 senderCreditSize;
+  6: optional i64 senderPacketOverhead;
 }
 
 struct AggPortInfo {

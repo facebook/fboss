@@ -141,6 +141,14 @@ void HwTestThriftHandler::getPortVcInfo(
     return portApi.getAttribute(
         portKey, SaiPortTraits::Attributes::CbfcReceiverNativeTotalCredits{});
   });
+  tryRead(portVcInfo.senderCreditSize(), [&] {
+    return portApi.getAttribute(
+        portKey, SaiPortTraits::Attributes::CbfcSenderCreditSize{});
+  });
+  tryRead(portVcInfo.senderPacketOverhead(), [&] {
+    return portApi.getAttribute(
+        portKey, SaiPortTraits::Attributes::CbfcSenderPacketOverhead{});
+  });
 
   if (!handle) {
     return;
