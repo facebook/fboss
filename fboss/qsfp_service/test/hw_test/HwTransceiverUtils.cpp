@@ -311,6 +311,8 @@ void HwTransceiverUtils::verifyOpticsSettings(
     EXPECT_TRUE(
         *settings.powerControl() == PowerControlState::POWER_OVERRIDE ||
         *settings.powerControl() == PowerControlState::HIGH_POWER_OVERRIDE);
+    bool isCpoModule =
+        (tcvrState.identifier().value() == TransceiverModuleIdentifier::CPO);
 
     // No need to Check CDR for AEC cables T234995630
     bool isAec =
@@ -318,7 +320,9 @@ void HwTransceiverUtils::verifyOpticsSettings(
     // LPO Modules dont have a DSP, so we dont need to check for CDR.
     bool isLpoModule =
         (tcvrState.moduleTechnology().value() == ModuleTechnology::LPO);
-    if (!(isAec || isLpoModule)) {
+    if (isCpoModule) {
+      EXPECT_EQ(*settings.cdrTx(), FeatureState::ENABLED);
+    } else if (!(isAec || isLpoModule)) {
       EXPECT_EQ(*settings.cdrTx(), FeatureState::ENABLED);
       EXPECT_EQ(*settings.cdrRx(), FeatureState::ENABLED);
     }
