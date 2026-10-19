@@ -108,8 +108,6 @@ option(CHENAB_SAI_SDK "Build SAI api with CHENAB-SAI extensions" OFF)
 if ($ENV{CHENAB_SAI_SDK})
   message(STATUS "ENV CHENAB_SAI_SDK is set")
   set (CHENAB_SAI_SDK ON)
-  link_directories(/var/FBOSS/sai_impl/lib)
-  link_directories(/var/FBOSS/sdk/usr/lib64)
   add_definitions (-DCHENAB_SAI_SDK)
 endif()
 
@@ -167,14 +165,14 @@ if (BUILD_SAI_FAKE_LINK_TEST)
   message(STATUS "Configured to build SAI Fake Link Test binaries")
 endif()
 
-if (SAI_BRCM_IMPL OR SAI_TAJO_IMPL)
-    # Enforce SAI_SDK_VERSION environment variable when building with SAI_BRCM_IMPL or SAI_TAJO_IMPL
+if (SAI_BRCM_IMPL OR SAI_TAJO_IMPL OR CHENAB_SAI_SDK)
+  # Every NPU SDK needs its selector: SaiVersion.h derives the SDK feature
+  # flags from it, and without it version-gated code compiles out silently.
   if ("$ENV{SAI_SDK_VERSION}" STREQUAL "")
     message(FATAL_ERROR
-      "SAI_SDK_VERSION environment variable is required when SAI_BRCM_IMPL is enabled.\n"
-      "Please set SAI_SDK_VERSION to the appropriate SDK version, for example:\n"
-      "  export SAI_SDK_VERSION=SAI_VERSION_13_3_0_0_ODP  # For BCM XGS\n"
-      "  export SAI_SDK_VERSION=SAI_VERSION_14_0_EA_DNX_ODP  # For BCM DNX")
+      "SAI_SDK_VERSION environment variable is required when building with an NPU SDK.\n"
+      "Pass the SDK version with run-getdeps.py --npu-sai-sdk-version; "
+      "run-getdeps.py -h lists the supported values.")
   endif()
 
   set(SAI_SDK_VERSION "$ENV{SAI_SDK_VERSION}")
@@ -339,10 +337,16 @@ elseif(SAI_TAJO_IMPL)
   include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental)
   message(STATUS "Found SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental")
 elseif(CHENAB_SAI_SDK)
-  # Chenab-TODO: set experimental directories appropriately
-  set(SAI_EXPERIMENTAL_INCLUDE_DIR "/var/FBOSS/sai_impl_output/include")
+  find_path(SAI_EXPERIMENTAL_INCLUDE_DIR NAMES experimental/saiportcustom.h)
+  if (NOT SAI_EXPERIMENTAL_INCLUDE_DIR)
+    message(FATAL_ERROR
+      "The NPU SDK has no experimental/saiportcustom.h. Pass the SDK with "
+      "run-getdeps.py --npu-libsai-impl-path and --npu-experiments-path, or "
+      "--npu-libsai-impl-tarball.")
+  endif()
   include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
-  message(STATUS "Found SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
+  include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental)
+  message(STATUS "Found SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental")
 elseif(SAI_BRCM_PAI_IMPL)
   set(
     SAI_EXPERIMENTAL_INCLUDE_DIR
