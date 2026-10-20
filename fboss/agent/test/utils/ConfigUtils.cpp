@@ -13,6 +13,7 @@
 #include <array>
 #include <filesystem>
 #include <memory>
+#include <set>
 
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/AgentFeatures.h"
@@ -179,6 +180,62 @@ void populateHyperPortAggregates(
   }
 }
 } // namespace
+
+void applyTomahawk6PciAddrs(
+    const std::vector<std::string>& pciAddrs,
+    std::map<SwitchID, cfg::SwitchInfo>& switchIdToSwitchInfo) {
+  if (pciAddrs.empty()) {
+    // /sys/bus/pci/devices is populated by the kernel and does not depend on
+    // the SAI kmod, so on a Ladakh/Leh box an empty result means the ASICs are
+    // not on the bus at all. Proceeding would keep handles we cannot vouch for
+    // and fail later in switch create with an opaque abort.
+    throw FbossError(
+        "No Tomahawk6 PCI devices found; cannot derive connection handles");
+  }
+  if (pciAddrs.size() != switchIdToSwitchInfo.size()) {
+    // Tomahawk6 is on the bus but the count disagrees with the config, so we
+    // cannot say which address belongs to which switch.
+    throw FbossError(
+        "Found ",
+        pciAddrs.size(),
+        " Tomahawk6 PCI devices but the config has ",
+        switchIdToSwitchInfo.size(),
+        " switches; cannot map discovered PCI addresses to switch ids");
+  }
+  std::set<std::string> discoveredHandles;
+  for (const auto& pciAddr : pciAddrs) {
+    discoveredHandles.insert(pciAddr + "=0");
+  }
+  std::set<std::string> configuredHandles;
+  for (const auto& [_, switchInfo] : switchIdToSwitchInfo) {
+    if (auto handle = switchInfo.connectionHandle()) {
+      configuredHandles.insert(*handle);
+    }
+  }
+  if (configuredHandles == discoveredHandles) {
+    // Every configured handle is on the bus, so this is the COM-E variant the
+    // config was written for. Keep the existing assignment instead of
+    // re-deriving it: a config that pairs switch ids with addresses in some
+    // other order than ascending BDF is then left alone rather than silently
+    // reordered.
+    return;
+  }
+  // The configured handles name addresses that are not on this box. Both maps
+  // are ordered by switch id and the addresses are sorted by BDF, so pair them
+  // positionally.
+  auto pciAddrItr = pciAddrs.begin();
+  for (auto& [switchId, switchInfo] : switchIdToSwitchInfo) {
+    auto handle = *pciAddrItr++ + "=0";
+    if (switchInfo.connectionHandle() == handle) {
+      continue;
+    }
+    XLOG(INFO) << "Switch " << switchId << " connection handle "
+               << switchInfo.connectionHandle().value_or("<unset>")
+               << " -> discovered " << handle;
+    switchInfo.connectionHandle() = handle;
+  }
+}
+
 folly::MacAddress kLocalCpuMac() {
   static const folly::MacAddress kLocalMac(
       FLAGS_nodeZ ? "02:00:00:00:00:02" : "02:00:00:00:00:01");
@@ -812,11 +869,16 @@ cfg::SwitchConfig genPortVlanCfg(
     const std::optional<PlatformType> platformType) {
   cfg::SwitchConfig config;
   if (switchIdToSwitchInfo.has_value() && hwAsicTable.has_value()) {
-    populateSwitchInfo(
-        config,
-        switchIdToSwitchInfo.value(),
-        hwAsicTable.value(),
-        platformType);
+    std::map<SwitchID, cfg::SwitchInfo> overriddenSwitchInfo;
+    const auto* switchInfo = &switchIdToSwitchInfo.value();
+    if (platformType.has_value() &&
+        (platformType.value() == PlatformType::PLATFORM_LADAKH800BCLS ||
+         platformType.value() == PlatformType::PLATFORM_LEH800BCLS)) {
+      overriddenSwitchInfo = switchIdToSwitchInfo.value();
+      applyTomahawk6PciAddrs(discoverTomahawk6PciAddrs(), overriddenSwitchInfo);
+      switchInfo = &overriddenSwitchInfo;
+    }
+    populateSwitchInfo(config, *switchInfo, hwAsicTable.value(), platformType);
   } else {
     std::map<SwitchID, cfg::SwitchInfo> defaultSwitchIdToSwitchInfo;
     std::map<SwitchID, const HwAsic*> defaultHwAsicTable;
@@ -837,17 +899,16 @@ cfg::SwitchConfig genPortVlanCfg(
          platformType.value() == PlatformType::PLATFORM_LEH800BCLS)) {
       portIdRange.maximum() =
           cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX();
-      std::array<std::string, 2> pciAddrs{"0000:15:00", "0000:18:00"};
-      auto discoveredPciAddrs = discoverTomahawk6PciAddrs();
-      if (discoveredPciAddrs.size() == pciAddrs.size()) {
-        std::copy(
-            discoveredPciAddrs.begin(),
-            discoveredPciAddrs.end(),
-            pciAddrs.begin());
-      } else if (!discoveredPciAddrs.empty()) {
-        XLOG(WARN) << "Found " << discoveredPciAddrs.size()
-                   << " Tomahawk6 PCI devices, expected " << pciAddrs.size()
-                   << "; falling back to default connection handles";
+      auto pciAddrs = discoverTomahawk6PciAddrs();
+      if (pciAddrs.size() != 2) {
+        // Same reasoning as applyTomahawk6PciAddrs(): falling back to a
+        // hardcoded pair here would hand SAI an address that may name an empty
+        // slot on this COM-E variant.
+        throw FbossError(
+            "Found ",
+            pciAddrs.size(),
+            " Tomahawk6 PCI devices, expected 2; cannot derive default "
+            "Ladakh/Leh connection handles");
       }
       defaultSwitchIdToSwitchInfo.insert(
           {SwitchID(0),
