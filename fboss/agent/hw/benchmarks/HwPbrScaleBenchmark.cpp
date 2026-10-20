@@ -29,11 +29,36 @@ namespace facebook::fboss {
 namespace {
 
 constexpr int kPbrPolicyScale = 100;
+constexpr int kMembersPerNhg = 2;
 constexpr int kMaxNexthops = 64;
 constexpr int kStatsCollectionIterations = 100;
 
 std::string makeNhgName(int index) {
   return fmt::format("pbrNhg{:05d}", index);
+}
+
+std::vector<RouteNextHopSet> makeDistinctNhgSets(
+    const utility::EcmpSetupAnyNPorts6& ecmpHelper,
+    int numNhops,
+    int count) {
+  std::vector<RouteNextHopSet> sets;
+  sets.reserve(count);
+  auto done = [&]() { return static_cast<int>(sets.size()) == count; };
+  for (int first = 0; first < numNhops && !done(); ++first) {
+    for (int second = first + 1; second < numNhops && !done(); ++second) {
+      std::vector<ResolvedNextHop> members;
+      members.reserve(kMembersPerNhg);
+      for (auto index : {first, second}) {
+        const auto& nhop = ecmpHelper.nhop(index);
+        members.emplace_back(folly::IPAddress(nhop.ip), nhop.intf, ECMP_WEIGHT);
+      }
+      sets.emplace_back(members.begin(), members.end());
+    }
+  }
+  CHECK_EQ(static_cast<int>(sets.size()), count)
+      << "only " << numNhops << " next hops: cannot build " << count
+      << " distinct " << kMembersPerNhg << "-member groups";
+  return sets;
 }
 
 AgentEnsembleSwitchConfigFn makePbrConfigFn() {
@@ -74,18 +99,11 @@ void pbrAclStatsCollectionBenchmark(int numPolicies) {
   });
 
   if (numPolicies > 0) {
+    auto nhgSets = makeDistinctNhgSets(ecmpHelper, numNhops, numPolicies);
     std::vector<std::pair<std::string, RouteNextHopSet>> groups;
     groups.reserve(numPolicies);
     for (int i = 0; i < numPolicies; ++i) {
-      const auto& first = ecmpHelper.nhop(i % numNhops);
-      const auto& second = ecmpHelper.nhop((i + 1) % numNhops);
-      groups.emplace_back(
-          makeNhgName(i),
-          RouteNextHopSet{
-              ResolvedNextHop(
-                  folly::IPAddress(first.ip), first.intf, ECMP_WEIGHT),
-              ResolvedNextHop(
-                  folly::IPAddress(second.ip), second.intf, ECMP_WEIGHT)});
+      groups.emplace_back(makeNhgName(i), std::move(nhgSets[i]));
     }
     ensemble->getSw()->getRib()->addOrUpdateNamedNextHopGroups(
         ensemble->getSw()->getScopeResolver(),
