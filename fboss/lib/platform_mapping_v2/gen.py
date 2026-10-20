@@ -117,6 +117,7 @@ _RAW_PLATFORM_MAPPING_FAMILIES: dict[str, tuple[str, ...]] = {
     "icecube800banw": ("icecube800banw",),
     "icecube800bc": ("icecube800bc",),
     "m4062nhp": ("m4062nhp",),
+    "m5120csc": ("m5120csc",),
     "montblanc": ("montblanc", "montblanc_odd_ports_8x100G", "montblanc_gtsw_yolo"),
     "minipack3n": ("minipack3n", "minipack3n_fpf_gtsw"),
     "tahansb800bc": ("tahansb800bc", "tahansb800bc_test_fixture"),
