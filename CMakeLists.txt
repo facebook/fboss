@@ -1602,6 +1602,7 @@ add_dependencies(fboss_platform_services
   platform_helpers_expect_session_test
   platform_checks_management_plane_checks_test
   platform_checks_bmc_checks_test
+  platform_checks_sol_console_check_test
   platform_manager_data_store_test
   platform_manager_config_validator_test
   platform_manager_presence_checker_test

@@ -71,6 +71,8 @@ class RemoteHost : public Host {
       const std::filesystem::path& hostPath,
       std::chrono::seconds timeout) const override;
 
+  std::unique_ptr<ExpectSession> spawnInteractive() const override;
+
   // Local argv that runs `cmd` on the host. Virtual for tests.
   virtual std::vector<std::string> execArgv(const std::string& cmd) const;
 

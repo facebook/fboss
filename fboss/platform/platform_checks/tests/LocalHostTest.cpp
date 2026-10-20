@@ -10,6 +10,8 @@
 
 #include "fboss/platform/platform_checks/LocalHost.h"
 
+#include "fboss/platform/helpers/ExpectSession.h"
+
 #include <algorithm>
 
 #include <folly/FileUtil.h>
@@ -37,6 +39,10 @@ class ShellOnlyHost : public Host {
       const std::filesystem::path&,
       const std::filesystem::path&,
       std::chrono::seconds) const override {}
+  std::unique_ptr<facebook::fboss::platform::ExpectSession> spawnInteractive()
+      const override {
+    return nullptr;
+  }
 };
 
 } // namespace

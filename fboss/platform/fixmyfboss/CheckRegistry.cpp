@@ -16,6 +16,7 @@
 #include "fboss/platform/platform_checks/checks/ManagementPlaneChecks.h"
 #include "fboss/platform/platform_checks/checks/PciDeviceCheck.h"
 #include "fboss/platform/platform_checks/checks/PowerResetCheck.h"
+#include "fboss/platform/platform_checks/checks/SolConsoleCheck.h"
 #include "fboss/platform/platform_checks/checks/i801SmbusTimeoutCheck.h"
 
 namespace facebook::fboss::platform::fixmyfboss {
@@ -55,6 +56,7 @@ std::vector<std::unique_ptr<PlatformCheck>> createAllChecks(
   checks.push_back(makeBmcRestApiCheck(bmc));
   checks.push_back(std::make_unique<BmcMacAddressCheck>(bmc));
   checks.push_back(std::make_unique<BmcEepromCheck>(bmc));
+  checks.push_back(std::make_unique<SolConsoleCheck>(bmc));
   checks.push_back(std::make_unique<X86MacConsistencyCheck>(x86, bmc));
   return checks;
 }

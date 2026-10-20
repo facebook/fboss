@@ -54,6 +54,7 @@ add_library(platform_checks
   fboss/platform/platform_checks/checks/ManagementPlaneChecks.cpp
   fboss/platform/platform_checks/checks/PciDeviceCheck.cpp
   fboss/platform/platform_checks/checks/PowerResetCheck.cpp
+  fboss/platform/platform_checks/checks/SolConsoleCheck.cpp
   # Not including KernelVersionCheck since it relies on internal tools
   fboss/platform/platform_checks/checks/i801SmbusTimeoutCheck.cpp
 )
@@ -164,3 +165,16 @@ target_link_libraries(platform_checks_bmc_checks_test
 )
 
 gtest_discover_tests(platform_checks_bmc_checks_test)
+
+add_executable(platform_checks_sol_console_check_test
+  fboss/platform/platform_checks/tests/SolConsoleCheckTest.cpp
+)
+
+target_link_libraries(platform_checks_sol_console_check_test
+  platform_checks
+  Folly::folly
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(platform_checks_sol_console_check_test)

@@ -223,14 +223,8 @@ void RemoteHost::copyTo(
   }
 }
 
-std::vector<std::string> RemoteHost::execArgv(const std::string& cmd) const {
-  switch (transport_) {
-    case Transport::SSH:
-      return concat(concat({"ssh"}, kSshOptions), {destination(), cmd});
-    case Transport::SUSH2:
-      return {"sush2", "-q", "--reason", kSushReason, destination(), "--", cmd};
-  }
-  throw std::logic_error("Unknown transport");
+std::unique_ptr<ExpectSession> RemoteHost::spawnInteractive() const {
+  return std::make_unique<ExpectSession>(shellJoin(interactiveArgv()));
 }
 
 std::vector<std::string> RemoteHost::interactiveArgv() const {
@@ -239,6 +233,16 @@ std::vector<std::string> RemoteHost::interactiveArgv() const {
       return concat(concat({"ssh", "-tt"}, kSshOptions), {destination()});
     case Transport::SUSH2:
       return {"sush2", "--reason", kSushReason, destination()};
+  }
+  throw std::logic_error("Unknown transport");
+}
+
+std::vector<std::string> RemoteHost::execArgv(const std::string& cmd) const {
+  switch (transport_) {
+    case Transport::SSH:
+      return concat(concat({"ssh"}, kSshOptions), {destination(), cmd});
+    case Transport::SUSH2:
+      return {"sush2", "-q", "--reason", kSushReason, destination(), "--", cmd};
   }
   throw std::logic_error("Unknown transport");
 }

@@ -12,9 +12,14 @@
 
 #include <chrono>
 #include <filesystem>
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
+
+namespace facebook::fboss::platform {
+class ExpectSession;
+} // namespace facebook::fboss::platform
 
 namespace facebook::fboss::platform::platform_checks {
 
@@ -54,6 +59,10 @@ class Host {
       const std::filesystem::path& localPath,
       const std::filesystem::path& hostPath,
       std::chrono::seconds timeout) const = 0;
+
+  // Starts an interactive login shell in a PTY, for flows that need a
+  // terminal (e.g. serial consoles).
+  virtual std::unique_ptr<ExpectSession> spawnInteractive() const = 0;
 
   // The defaults below are implemented with run(), which works on any host.
 

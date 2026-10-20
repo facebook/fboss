@@ -12,6 +12,7 @@
 
 #include <gmock/gmock.h>
 
+#include "fboss/platform/helpers/ExpectSession.h"
 #include "fboss/platform/platform_checks/Host.h"
 
 namespace facebook::fboss::platform::platform_checks {
@@ -40,6 +41,11 @@ class MockHost : public Host {
       (const std::filesystem::path&,
        const std::filesystem::path&,
        std::chrono::seconds),
+      (const, override));
+  MOCK_METHOD(
+      std::unique_ptr<ExpectSession>,
+      spawnInteractive,
+      (),
       (const, override));
   MOCK_METHOD(
       std::optional<std::string>,

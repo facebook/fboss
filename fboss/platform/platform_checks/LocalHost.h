@@ -43,6 +43,8 @@ class LocalHost : public Host {
       const std::filesystem::path& hostPath,
       std::chrono::seconds timeout) const override;
 
+  std::unique_ptr<ExpectSession> spawnInteractive() const override;
+
   std::optional<std::string> readFile(
       const std::filesystem::path& path) const override;
 

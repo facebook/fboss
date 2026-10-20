@@ -15,6 +15,8 @@
 #include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
 
+#include "fboss/platform/helpers/ExpectSession.h"
+
 namespace facebook::fboss::platform::platform_checks {
 
 LocalHost::LocalHost(std::optional<std::filesystem::path> rootDir)
@@ -37,6 +39,10 @@ void LocalHost::copyTo(
         "cp " + localPath.string() + " " + hostPath.string() +
         " failed: " + result.standardErr);
   }
+}
+
+std::unique_ptr<ExpectSession> LocalHost::spawnInteractive() const {
+  return std::make_unique<ExpectSession>("/bin/sh -i");
 }
 
 std::optional<std::string> LocalHost::readFile(
