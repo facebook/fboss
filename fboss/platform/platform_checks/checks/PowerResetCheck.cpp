@@ -111,8 +111,18 @@ CheckResult RecentManualRebootCheck::run() {
   const std::string pattern = "System is rebooting";
   const std::string reason = "System was rebooted with `reboot` command";
 
-  auto rebootLogs = power_reset_utils::grepLines(
-      host().readFile(VAR_SECURE_LOGFILE).value_or(""), pattern);
+  auto secureLog = host().readFile(VAR_SECURE_LOGFILE);
+  if (!secureLog) {
+    // Not every system logs to /var/log/secure; failing to read it is
+    // different, e.g. a dropped connection to a remote host.
+    if (host().exists(VAR_SECURE_LOGFILE)) {
+      return makeError(
+          std::string("Failed to read ") + VAR_SECURE_LOGFILE + " on " +
+          host().name());
+    }
+    return makeOK();
+  }
+  auto rebootLogs = power_reset_utils::grepLines(*secureLog, pattern);
   auto filteredLogs = power_reset_utils::filterLogsByDate(
       rebootLogs, VAR_SECURE_DATE_FORMAT, std::chrono::hours(24)); // 1 day
 

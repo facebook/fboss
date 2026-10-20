@@ -239,10 +239,25 @@ TEST_F(WatchdogDidNotStopCheckTest, OldWatchdogLogsIgnored) {
 // RecentManualRebootCheck Tests
 // ============================================================================
 
+TEST(RecentManualRebootCheckTest, UnreadableLogFileIsError) {
+  auto host = std::make_shared<MockHost>();
+  EXPECT_CALL(*host, readFile(std::filesystem::path("/var/log/secure")))
+      .WillOnce(Return(std::nullopt));
+  EXPECT_CALL(*host, exists(std::filesystem::path("/var/log/secure")))
+      .WillOnce(Return(true));
+  RecentManualRebootCheck check(CheckTarget{.host = host});
+
+  auto result = check.run();
+
+  EXPECT_EQ(*result.status(), CheckStatus::ERROR);
+}
+
 TEST(RecentManualRebootCheckTest, MissingLogFileIsOk) {
   auto host = std::make_shared<MockHost>();
   EXPECT_CALL(*host, readFile(std::filesystem::path("/var/log/secure")))
       .WillOnce(Return(std::nullopt));
+  EXPECT_CALL(*host, exists(std::filesystem::path("/var/log/secure")))
+      .WillOnce(Return(false));
   RecentManualRebootCheck check(CheckTarget{.host = host});
 
   auto result = check.run();
