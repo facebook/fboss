@@ -56,4 +56,8 @@ struct PortHwStatsEntry {
   14: i64 ingressBytes;
   15: i64 egressBytes;
   16: i64 inCongestionDiscards;
+  17: map<i16, i64> queueOutPackets;
+  18: map<i16, i64> queueOutDiscardPackets;
+  19: i64 ingressPkts;
+  20: i64 egressPkts;
 }
