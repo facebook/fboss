@@ -288,8 +288,10 @@ cfg::Port createDefaultPortConfig(
     const HwAsic* asic,
     PortID id,
     cfg::PortProfileID defaultProfileID) {
-  const int32_t ingressVlan = (asic->getSwitchType() == cfg::SwitchType::VOQ ||
-                               asic->getSwitchType() == cfg::SwitchType::FABRIC)
+  const int32_t ingressVlan =
+      (asic->getSwitchType() == cfg::SwitchType::VOQ ||
+       asic->getSwitchType() == cfg::SwitchType::FABRIC ||
+       asic->getAsicType() == cfg::AsicType::ASIC_TYPE_P200)
       ? 0
       : kDefaultVlanId4094;
   return createDefaultPortConfig(
@@ -980,12 +982,11 @@ cfg::SwitchConfig genPortVlanCfg(
       config.vlans()->push_back(createVlanConfig(vlanID));
     }
 
-    // TODO(daiweix): Determine whether and how P200 should configure a
-    // default VLAN interface.
     auto defaultVlanId =
-        (asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB)
-        ? kDefaultVlanId4094
-        : kDefaultVlanId1;
+        (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB ||
+         asic->getAsicType() == cfg::AsicType::ASIC_TYPE_P200)
+        ? kDefaultVlanId1
+        : kDefaultVlanId4094;
     auto defaultVlan = createVlanConfig(VlanID(defaultVlanId));
     defaultVlan.intfID() = 10;
     config.vlans()->push_back(defaultVlan);
