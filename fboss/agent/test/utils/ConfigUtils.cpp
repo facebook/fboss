@@ -45,19 +45,30 @@ namespace {
 // Discover them by vendor/device ID rather than assuming either layout.
 std::vector<std::string> discoverTomahawk6PciAddrs() {
   constexpr folly::StringPiece kBroadcomVendorId{"0x14e4"};
-  constexpr folly::StringPiece kTomahawk6DeviceId{"0xf914"};
+  // BCM78914 (Tomahawk6C) and BCM78910 (Tomahawk6P), per the SDK's
+  // include/soc/devids.h. Matching only one part discovers nothing on the
+  // other and silently leaves the configured handle in place.
+  constexpr std::array<folly::StringPiece, 2> kTomahawk6DeviceIds{
+      "0xf914", "0xf910"};
 
   std::vector<std::string> pciAddrs;
   std::error_code ec;
-  for (const auto& entry :
-       std::filesystem::directory_iterator("/sys/bus/pci/devices", ec)) {
+  std::filesystem::directory_iterator pciDevices("/sys/bus/pci/devices", ec);
+  if (ec) {
+    XLOG(WARN) << "Cannot enumerate /sys/bus/pci/devices: " << ec.message();
+    return pciAddrs;
+  }
+  for (const auto& entry : pciDevices) {
     std::string vendor, device;
     if (!folly::readFile((entry.path() / "vendor").c_str(), vendor) ||
         !folly::readFile((entry.path() / "device").c_str(), device)) {
       continue;
     }
     if (folly::trimWhitespace(vendor) != kBroadcomVendorId ||
-        folly::trimWhitespace(device) != kTomahawk6DeviceId) {
+        std::find(
+            kTomahawk6DeviceIds.begin(),
+            kTomahawk6DeviceIds.end(),
+            folly::trimWhitespace(device)) == kTomahawk6DeviceIds.end()) {
       continue;
     }
     // Drop the function suffix: 0000:03:00.0 -> 0000:03:00
@@ -65,6 +76,9 @@ std::vector<std::string> discoverTomahawk6PciAddrs() {
     pciAddrs.push_back(bdf.substr(0, bdf.find_last_of('.')));
   }
   std::sort(pciAddrs.begin(), pciAddrs.end());
+  // /sys/bus/pci/devices has one entry per PCI function, so a multi-function
+  // ASIC repeats an address; callers match addresses to switches by count.
+  pciAddrs.erase(std::unique(pciAddrs.begin(), pciAddrs.end()), pciAddrs.end());
   return pciAddrs;
 }
 
