@@ -128,6 +128,7 @@ cpp_unittest(
     network_access = network_access_utils.none(),
     deps = [
         "fbsource//xplat/folly/testing:test_util",
+        ":mock_transceivers",
         ":transceiver_manager_test_helper",
         "//fboss/qsfp_service:transceiver-manager",
         "//fboss/qsfp_service/module:qsfp-module",
@@ -283,6 +284,7 @@ cpp_unittest(
         "fbsource//xplat/folly/testing:test_util",
         ":mock_phy_manager",
         ":mock_port_manager",
+        ":mock_transceivers",
         ":transceiver_manager_test_helper",
         "//fboss/agent/platforms/common/fake_test:fake_test_platform_mapping",
         "//fboss/qsfp_service:qsfp-service-threads",
