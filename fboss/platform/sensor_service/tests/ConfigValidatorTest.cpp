@@ -24,6 +24,18 @@ PmSensor createPmSensor(
   return pmSensor;
 }
 
+PmSensor createLoadLineSensor(
+    const std::string& name,
+    const std::string& sysfsPath,
+    const std::string& loadLineCurrentSensor,
+    int32_t loadLineuOhms,
+    SensorType type = SensorType::VOLTAGE) {
+  auto pmSensor = createPmSensor(name, sysfsPath, type);
+  pmSensor.loadLineCurrentSensor() = loadLineCurrentSensor;
+  pmSensor.loadLineuOhms() = loadLineuOhms;
+  return pmSensor;
+}
+
 PerSlotPowerConfig createPerSlotPowerConfig(
     const std::string& name,
     const std::optional<std::string>& powerSensorName = std::nullopt,
@@ -1218,6 +1230,81 @@ TEST(ConfigValidatorTest, isValidPmSensor) {
       createPmSensor("VERSIONED_SENSOR", "/run/devmap/sensors/VERSIONED")};
   pmUnitSensors.versionedSensors() = {versionedSensor};
   EXPECT_TRUE(ConfigValidator().isValidPmUnitSensorsList({pmUnitSensors}));
+}
+
+TEST(ConfigValidatorTest, LoadLineSensorFields) {
+  // Valid: both fields set, positive uOhms, VOLTAGE type - should pass.
+  auto sensor = createLoadLineSensor(
+      "VDD_CORE_VOUT", "/run/devmap/sensors/VOUT", "VDD_CORE_IOUT", 59);
+  EXPECT_TRUE(ConfigValidator().isValidPmSensor(sensor));
+
+  // No load-line fields at all - should pass.
+  auto plain = createPmSensor(
+      "PLAIN_VOUT", "/run/devmap/sensors/VOUT", SensorType::VOLTAGE);
+  EXPECT_TRUE(ConfigValidator().isValidPmSensor(plain));
+
+  // Only loadLineCurrentSensor set - should fail.
+  sensor = createPmSensor(
+      "VDD_CORE_VOUT", "/run/devmap/sensors/VOUT", SensorType::VOLTAGE);
+  sensor.loadLineCurrentSensor() = "VDD_CORE_IOUT";
+  EXPECT_FALSE(ConfigValidator().isValidPmSensor(sensor));
+
+  // Only loadLineuOhms set - should fail.
+  sensor = createPmSensor(
+      "VDD_CORE_VOUT", "/run/devmap/sensors/VOUT", SensorType::VOLTAGE);
+  sensor.loadLineuOhms() = 59;
+  EXPECT_FALSE(ConfigValidator().isValidPmSensor(sensor));
+
+  // Zero uOhms - should fail.
+  sensor = createLoadLineSensor(
+      "VDD_CORE_VOUT", "/run/devmap/sensors/VOUT", "VDD_CORE_IOUT", 0);
+  EXPECT_FALSE(ConfigValidator().isValidPmSensor(sensor));
+
+  // Negative uOhms - should fail.
+  sensor = createLoadLineSensor(
+      "VDD_CORE_VOUT", "/run/devmap/sensors/VOUT", "VDD_CORE_IOUT", -1);
+  EXPECT_FALSE(ConfigValidator().isValidPmSensor(sensor));
+
+  // Empty current sensor name - should fail.
+  sensor =
+      createLoadLineSensor("VDD_CORE_VOUT", "/run/devmap/sensors/VOUT", "", 59);
+  EXPECT_FALSE(ConfigValidator().isValidPmSensor(sensor));
+
+  // Load-line fields on a non-VOLTAGE sensor - should fail.
+  sensor = createLoadLineSensor(
+      "VDD_CORE_CUR",
+      "/run/devmap/sensors/CUR",
+      "VDD_CORE_IOUT",
+      59,
+      SensorType::CURRENT);
+  EXPECT_FALSE(ConfigValidator().isValidPmSensor(sensor));
+}
+
+TEST(ConfigValidatorTest, LoadLineConfig) {
+  SensorConfig config;
+  PmUnitSensors pmUnitSensors;
+  pmUnitSensors.slotPath() = "/";
+  pmUnitSensors.pmUnitName() = "MOCK";
+  pmUnitSensors.sensors() = {
+      createLoadLineSensor(
+          "VDD_CORE_VOUT", "/run/devmap/sensors/VOUT", "VDD_CORE_IOUT", 59),
+      createPmSensor(
+          "VDD_CORE_IOUT", "/run/devmap/sensors/IOUT", SensorType::CURRENT)};
+  config.pmUnitSensorsList() = {pmUnitSensors};
+
+  // Companion current sensor exists and is CURRENT - should pass.
+  EXPECT_TRUE(ConfigValidator().isValidLoadLineConfig(config));
+
+  // Reference a non-existent current sensor - should fail.
+  config.pmUnitSensorsList()[0].sensors()[0].loadLineCurrentSensor() =
+      "MISSING_IOUT";
+  EXPECT_FALSE(ConfigValidator().isValidLoadLineConfig(config));
+
+  // Reference a sensor that exists but is not CURRENT - should fail.
+  config.pmUnitSensorsList()[0].sensors()[0].loadLineCurrentSensor() =
+      "VDD_CORE_IOUT";
+  config.pmUnitSensorsList()[0].sensors()[1].type() = SensorType::VOLTAGE;
+  EXPECT_FALSE(ConfigValidator().isValidLoadLineConfig(config));
 }
 
 TEST(ConfigValidatorTest, PlatformNameValidation) {
