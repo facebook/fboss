@@ -46,22 +46,42 @@ bool CheckRunner::appliesToPlatform(const PlatformCheck& check) const {
       supportedPlatforms.contains(platformName_);
 }
 
-std::vector<CheckResult> CheckRunner::run(
+std::vector<PlannedCheck> CheckRunner::plan(
     const std::vector<std::unique_ptr<PlatformCheck>>& checks) const {
-  std::vector<PlatformCheck*> ordered;
+  std::vector<PlannedCheck> planned;
   for (const auto& check : checks) {
-    if (isSelected(*check) && appliesToPlatform(*check)) {
-      ordered.push_back(check.get());
+    if (!isSelected(*check)) {
+      continue;
+    }
+    PlannedCheck& p = planned.emplace_back(
+        PlannedCheck{
+            .check = check.get(),
+            .appliesToPlatform = appliesToPlatform(*check)});
+    if (!p.appliesToPlatform) {
+      p.skipReason = "Not supported on " + platformName_;
+      continue;
+    }
+    // A check's skip reason may query the hosts and throw.
+    try {
+      p.skipReason = getSkipReason(*check);
+    } catch (const std::exception& ex) {
+      p.skipReasonError = ex.what();
     }
   }
-  std::stable_partition(ordered.begin(), ordered.end(), [](const auto* check) {
-    return !check->isDisruptive();
+  std::stable_partition(planned.begin(), planned.end(), [](const auto& p) {
+    return !p.check->isDisruptive();
   });
+  return planned;
+}
 
+std::vector<CheckResult> CheckRunner::run(
+    const std::vector<PlannedCheck>& plan) const {
   std::vector<CheckResult> results;
-  results.reserve(ordered.size());
-  for (auto* check : ordered) {
-    results.push_back(runOne(*check));
+  results.reserve(plan.size());
+  for (const auto& planned : plan) {
+    if (planned.appliesToPlatform) {
+      results.push_back(runOne(planned));
+    }
   }
   return results;
 }
@@ -75,18 +95,21 @@ std::optional<std::string> CheckRunner::getSkipReason(
   return check.getSkipReason();
 }
 
-CheckResult CheckRunner::runOne(PlatformCheck& check) const {
+CheckResult CheckRunner::runOne(const PlannedCheck& planned) const {
+  auto& check = *planned.check;
+  if (planned.skipReason) {
+    CheckResult skipped;
+    skipped.checkType() = check.getType();
+    skipped.checkName() = check.getName();
+    skipped.status() = CheckStatus::SKIPPED;
+    skipped.errorMessage() = *planned.skipReason;
+    return skipped;
+  }
+  XLOG(DBG2) << "Running check: " << check.getDescription();
   try {
-    // Inside the try: a check's skip reason may query the hosts.
-    if (auto skipReason = getSkipReason(check)) {
-      CheckResult skipped;
-      skipped.checkType() = check.getType();
-      skipped.checkName() = check.getName();
-      skipped.status() = CheckStatus::SKIPPED;
-      skipped.errorMessage() = *skipReason;
-      return skipped;
+    if (planned.skipReasonError) {
+      throw std::runtime_error(*planned.skipReasonError);
     }
-    XLOG(DBG2) << "Running check: " << check.getDescription();
     auto result = check.run();
     XLOG(DBG2) << "Check " << check.getDescription()
                << " completed with status: "

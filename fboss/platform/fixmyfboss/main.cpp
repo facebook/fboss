@@ -27,19 +27,18 @@ using namespace facebook::fboss::platform;
 
 namespace {
 
-void listChecks(
-    const std::vector<std::unique_ptr<platform_checks::PlatformCheck>>& checks,
-    const fixmyfboss::CheckRunner& runner) {
+void listChecks(const std::vector<fixmyfboss::PlannedCheck>& plan) {
   std::cout << "List of checks:\n";
   int index = 1;
-  for (const auto& check : checks) {
-    if (!runner.isSelected(*check)) {
-      continue;
+  for (const auto& planned : plan) {
+    std::string runIndicator;
+    if (planned.skipReason) {
+      runIndicator = " (skipped: " + *planned.skipReason + ")";
+    } else if (planned.skipReasonError) {
+      runIndicator = " (error: " + *planned.skipReasonError + ")";
     }
-    std::string runIndicator =
-        runner.appliesToPlatform(*check) ? "" : " (skipped)";
-    std::cout << index++ << ". " << check->getName() << ": "
-              << check->getDescription() << runIndicator << "\n";
+    std::cout << index++ << ". " << planned.check->getName() << ": "
+              << planned.check->getDescription() << runIndicator << "\n";
   }
 }
 
@@ -67,17 +66,22 @@ void configureLogging(bool debugFlag, bool verboseFlag) {
 }
 
 std::vector<platform_checks::CheckResult> runChecks(
-    const std::vector<std::unique_ptr<platform_checks::PlatformCheck>>& checks,
+    const std::vector<fixmyfboss::PlannedCheck>& plan,
     const fixmyfboss::CheckRunner& runner,
     const std::string& platformName) {
   XLOG(INFO) << "Starting fixmyfboss checks for platform: " << platformName;
 
+  // Checks whose skip reason threw are not counted on purpose: they never run,
+  // only report an ERROR.
+  auto toRun = std::count_if(plan.begin(), plan.end(), [](const auto& p) {
+    return p.appliesToPlatform && !p.skipReason && !p.skipReasonError;
+  });
   fixmyfboss::ResultPrinter printer;
   printer.printProgress(
-      "Platform: " + platformName + " - Running " +
-      std::to_string(checks.size()) + " checks");
+      "Platform: " + platformName + " - Running " + std::to_string(toRun) +
+      " checks");
 
-  auto results = runner.run(checks);
+  auto results = runner.run(plan);
   printer.clearLine();
   return results;
 }
@@ -212,12 +216,12 @@ int main(int argc, char* argv[]) {
 
   // Handle --list-checks mode
   if (listChecksFlag) {
-    listChecks(checks, *runner);
+    listChecks(runner->plan(checks));
     return EXIT_SUCCESS;
   }
 
   // Run checks and print results
-  auto results = runChecks(checks, *runner, env.platformName);
+  auto results = runChecks(runner->plan(checks), *runner, env.platformName);
   fixmyfboss::ResultPrinter printer(std::cout, verboseFlag || debugFlag);
   printer.printSummary(results);
   printer.printDetails(results);

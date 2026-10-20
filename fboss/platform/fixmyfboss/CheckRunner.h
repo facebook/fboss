@@ -30,6 +30,16 @@ struct RunOptions {
   std::optional<std::string> nameFilter;
 };
 
+struct PlannedCheck {
+  platform_checks::PlatformCheck* check{nullptr};
+  // False for checks of other platforms; they are listed but not reported.
+  bool appliesToPlatform{false};
+  // Set if the check will be reported as SKIPPED.
+  std::optional<std::string> skipReason;
+  // Set if computing skipReason threw; the check is reported as ERROR.
+  std::optional<std::string> skipReasonError;
+};
+
 /**
  * Runs checks applicable to a platform and turns exceptions into ERROR
  * results, so one broken check cannot abort the whole run. Disruptive checks
@@ -40,17 +50,25 @@ class CheckRunner {
   // Throws std::invalid_argument for an invalid RunOptions::nameFilter.
   explicit CheckRunner(std::string platformName, RunOptions options = {});
 
-  bool appliesToPlatform(const platform_checks::PlatformCheck& check) const;
-
-  bool isSelected(const platform_checks::PlatformCheck& check) const;
-
-  std::vector<platform_checks::CheckResult> run(
+  // The checks selected by the name filter, in run order, with what will
+  // happen to each. Used both to run and to list checks.
+  std::vector<PlannedCheck> plan(
       const std::vector<std::unique_ptr<platform_checks::PlatformCheck>>&
           checks) const;
 
+  std::vector<platform_checks::CheckResult> run(
+      const std::vector<PlannedCheck>& plan) const;
+
+  std::vector<platform_checks::CheckResult> run(
+      const std::vector<std::unique_ptr<platform_checks::PlatformCheck>>&
+          checks) const {
+    return run(plan(checks));
+  }
+
  private:
-  platform_checks::CheckResult runOne(
-      platform_checks::PlatformCheck& check) const;
+  bool appliesToPlatform(const platform_checks::PlatformCheck& check) const;
+  bool isSelected(const platform_checks::PlatformCheck& check) const;
+  platform_checks::CheckResult runOne(const PlannedCheck& planned) const;
   std::optional<std::string> getSkipReason(
       const platform_checks::PlatformCheck& check) const;
 

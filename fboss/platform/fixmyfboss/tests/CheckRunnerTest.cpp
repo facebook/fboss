@@ -185,3 +185,40 @@ TEST(CheckRunnerTest, NameFilterSelectsChecks) {
 
   EXPECT_EQ(names(results), (std::vector<std::string>{"BMC MAC Address"}));
 }
+
+TEST(CheckRunnerTest, PlanExplainsWhatWillHappen) {
+  std::vector<std::unique_ptr<PlatformCheck>> checks;
+  checks.push_back(std::make_unique<DisruptiveCheck>("reboot"));
+  checks.push_back(
+      std::make_unique<FakeCheck>("other", std::set<std::string>{"OTHER"}));
+  checks.push_back(std::make_unique<FakeCheck>("read"));
+
+  auto plan = fixmyfboss::CheckRunner("MONTBLANC").plan(checks);
+
+  ASSERT_EQ(plan.size(), 3);
+  EXPECT_EQ(plan[0].check->getName(), "other");
+  EXPECT_FALSE(plan[0].appliesToPlatform);
+  EXPECT_EQ(plan[0].skipReason, "Not supported on MONTBLANC");
+  EXPECT_EQ(plan[1].check->getName(), "read");
+  EXPECT_EQ(plan[1].skipReason, std::nullopt);
+  EXPECT_EQ(plan[2].check->getName(), "reboot");
+  EXPECT_TRUE(plan[2].skipReason.has_value());
+}
+
+TEST(CheckRunnerTest, PlanKeepsTheSkipReasonError) {
+  class SkipReasonThrows : public FakeCheck {
+   public:
+    SkipReasonThrows() : FakeCheck("skip throws") {}
+    [[noreturn]] std::optional<std::string> getSkipReason() const override {
+      throw std::runtime_error("forkpty failed");
+    }
+  };
+  std::vector<std::unique_ptr<PlatformCheck>> checks;
+  checks.push_back(std::make_unique<SkipReasonThrows>());
+
+  auto plan = fixmyfboss::CheckRunner("MONTBLANC").plan(checks);
+
+  ASSERT_EQ(plan.size(), 1);
+  EXPECT_EQ(plan[0].skipReason, std::nullopt);
+  EXPECT_EQ(plan[0].skipReasonError, "forkpty failed");
+}
