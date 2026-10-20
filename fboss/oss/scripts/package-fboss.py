@@ -456,7 +456,21 @@ class PackageFboss:
         """
 
         dependencies = set()
-        exclude_patterns = ["libc.so", "libgcc_s.so", "libsystemd.so"]
+        # All of glibc comes from the host: its libraries share GLIBC_PRIVATE
+        # symbols, so bundling some beside the host's libc mixes versions.
+        exclude_patterns = [
+            "libc.so",
+            "libm.so",
+            "libresolv.so",
+            "libdl.so",
+            "libpthread.so",
+            "librt.so",
+            "libutil.so",
+            "libnss_",
+            "ld-linux",
+            "libgcc_s.so",
+            "libsystemd.so",
+        ]
 
         try:
             output = subprocess.check_output(["file", path_to_binary])
