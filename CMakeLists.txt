@@ -1651,7 +1651,7 @@ add_dependencies(led_targets
 
 add_custom_target(fboss2_targets)
 add_dependencies(fboss2_targets
-  config_generation_manifest_utils_test
+  config_generation_spec_utils_test
   fboss2
   fboss2_cmd_test
   fboss2_cmd_config_test

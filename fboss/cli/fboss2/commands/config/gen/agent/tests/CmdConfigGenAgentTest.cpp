@@ -1304,7 +1304,7 @@ TEST(AgentConfigGenTest, GeneratesAndRefreshesManifestOutputs) {
       createTestPlatform(fbossRoot, "test_vendor", kManifestPlatform);
   writeConfigGenerationTarget(
       platformDirectory,
-      R"({"platform":"PLATFORM_WEDGE800BACT","serviceToOptions":{"AGENT":[{"profile":"DEFAULT"},{"profile":"HW_TEST"},{"profile":"BENCHMARK","asicConfigVariant":"default"}]}})");
+      R"({"serviceToOptions":{"AGENT":[{"profile":"DEFAULT"},{"profile":"HW_TEST"},{"profile":"BENCHMARK","asicConfigVariant":"default"}]}})");
 
   const std::vector<fs::path> expectedPaths{
       platformDirectory / "forwarding_stack" / "generated" / "agent" /
@@ -1343,12 +1343,12 @@ TEST(AgentConfigGenTest, GeneratesOnlySelectedPlatformDeclaration) {
       createTestPlatform(fbossRoot, "a_vendor", "wedge800bact");
   writeConfigGenerationTarget(
       selectedPlatformDirectory,
-      R"({"platform":"PLATFORM_WEDGE800BACT","serviceToOptions":{"AGENT":[{"profile":"DEFAULT"},{"profile":"HW_TEST"}]}})");
+      R"({"serviceToOptions":{"AGENT":[{"profile":"DEFAULT"},{"profile":"HW_TEST"}]}})");
   const auto otherPlatformDirectory =
       createTestPlatform(fbossRoot, "z_vendor", "montblanc");
   writeConfigGenerationTarget(
       otherPlatformDirectory,
-      R"({"platform":"PLATFORM_MONTBLANC","serviceToOptions":{"AGENT":[{"profile":"DEFAULT"}]}})");
+      R"({"serviceToOptions":{"AGENT":[{"profile":"DEFAULT"}]}})");
 
   const auto selectedObsoletePath = selectedPlatformDirectory /
       "forwarding_stack" / "generated" / "agent" / "removed.conf";
@@ -1377,24 +1377,6 @@ TEST(AgentConfigGenTest, GeneratesOnlySelectedPlatformDeclaration) {
           "default.conf"));
 }
 
-TEST(AgentConfigGenTest, RejectsDeclarationOwnedByAnotherPlatform) {
-  folly::test::TemporaryDirectory sourceDirectory;
-  const auto fbossRoot = fs::path(sourceDirectory.path().string()) / "fboss";
-  const auto platformDirectory =
-      createTestPlatform(fbossRoot, "test_vendor", "wedge800bact");
-  writeConfigGenerationTarget(
-      platformDirectory,
-      R"({"platform":"PLATFORM_MONTBLANC","serviceToOptions":{"AGENT":[{"profile":"DEFAULT"}]}})");
-
-  EXPECT_THROW(
-      generateConfigsFromManifest(
-          fbossRoot,
-          ServiceType::AGENT,
-          generateAgentConfigForManifest,
-          "wedge800bact"),
-      FbossError);
-}
-
 TEST(AgentConfigGenTest, VerifiesMissingStaleAndObsoleteManifestOutputs) {
   folly::test::TemporaryDirectory sourceDirectory;
   const auto fbossRoot = fs::path(sourceDirectory.path().string()) / "fboss";
@@ -1403,7 +1385,7 @@ TEST(AgentConfigGenTest, VerifiesMissingStaleAndObsoleteManifestOutputs) {
       createTestPlatform(fbossRoot, "test_vendor", kManifestPlatform);
   writeConfigGenerationTarget(
       platformDirectory,
-      R"({"platform":"PLATFORM_WEDGE800BACT","serviceToOptions":{"AGENT":[{"profile":"DEFAULT"},{"profile":"HW_TEST"}]}})");
+      R"({"serviceToOptions":{"AGENT":[{"profile":"DEFAULT"},{"profile":"HW_TEST"}]}})");
 
   const auto generatedPaths = generateConfigsFromManifest(
       fbossRoot, ServiceType::AGENT, generateAgentConfigForManifest);
@@ -1437,12 +1419,12 @@ TEST(AgentConfigGenTest, DoesNotPartiallyWriteManifestOutputs) {
       createTestPlatform(fbossRoot, "a_vendor", kManifestPlatform);
   writeConfigGenerationTarget(
       platformDirectory,
-      R"({"platform":"PLATFORM_WEDGE800BACT","serviceToOptions":{"AGENT":[{"profile":"HW_TEST"}]}})");
+      R"({"serviceToOptions":{"AGENT":[{"profile":"HW_TEST"}]}})");
   const auto failingPlatformDirectory =
       createTestPlatform(fbossRoot, "z_vendor", "montblanc");
   writeConfigGenerationTarget(
       failingPlatformDirectory,
-      R"({"platform":"PLATFORM_MONTBLANC","serviceToOptions":{"AGENT":[{"profile":"DEFAULT"}]}})");
+      R"({"serviceToOptions":{"AGENT":[{"profile":"DEFAULT"}]}})");
   fs::remove(
       failingPlatformDirectory / "asic_config" / "generated" / "default.yml");
 
@@ -1572,7 +1554,7 @@ TEST(CmdConfigGenAgentTest, VerifiesDeclaredOutputsGloballyAndForPlatform) {
       findPlatformConfigDirectory(fbossRoot, kManifestPlatform);
   writeConfigGenerationTarget(
       platformDirectory.path,
-      R"({"platform":"PLATFORM_WEDGE800BACT","serviceToOptions":{"AGENT":[{"profile":"DEFAULT"}]}})");
+      R"({"serviceToOptions":{"AGENT":[{"profile":"DEFAULT"}]}})");
   const auto generatedPaths = generateConfigsFromManifest(
       fbossRoot, ServiceType::AGENT, generateAgentConfigForManifest);
   writeTestFile(generatedPaths.front(), "stale\n");

@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/configs/platforms/generic/forwarding_stack/utils/ConfigGenerationManifestUtils.h"
+#include "fboss/configs/platforms/generic/forwarding_stack/utils/ConfigGenerationSpecUtils.h"
 
 #include <algorithm>
 #include <optional>
@@ -42,19 +42,14 @@ int64_t parseEnumName(const folly::dynamic& value, std::string_view field) {
 // SimpleJSON encodes enums as integers. Keep checked-in declarations readable
 // by accepting only enum names at their boundary, then convert those names
 // before deserializing into the strongly typed Thrift model.
-std::string normalizeTargetEnumNames(std::string_view contents) {
-  auto target = folly::parseJson(contents);
-  if (!target.isObject()) {
-    return folly::toJson(target);
+std::string normalizeConfigEnumNames(std::string_view contents) {
+  auto config = folly::parseJson(contents);
+  if (!config.isObject()) {
+    return folly::toJson(config);
   }
-  if (const auto platformIt = target.find("platform");
-      platformIt != target.items().end()) {
-    platformIt->second =
-        parseEnumName<PlatformType>(platformIt->second, "platform");
-  }
-  const auto servicesIt = target.find("serviceToOptions");
-  if (servicesIt == target.items().end() || !servicesIt->second.isObject()) {
-    return folly::toJson(target);
+  const auto servicesIt = config.find("serviceToOptions");
+  if (servicesIt == config.items().end() || !servicesIt->second.isObject()) {
+    return folly::toJson(config);
   }
 
   folly::dynamic normalizedServices = folly::dynamic::object();
@@ -76,26 +71,19 @@ std::string normalizeTargetEnumNames(std::string_view contents) {
     normalizedServices[std::to_string(service)] = std::move(options);
   }
   servicesIt->second = std::move(normalizedServices);
-  return folly::toJson(target);
+  return folly::toJson(config);
 }
 
-void validateTarget(const ConfigGenerationTarget& target) {
-  const auto platform = *target.platform();
-  validateThriftEnum(platform, "Target platform");
-  if (target.serviceToOptions()->empty()) {
-    throw FbossError(
-        "Config generation target ",
-        apache::thrift::util::enumNameSafe(platform),
-        " has no service options");
+void validateSpec(const ConfigGenerationSpec& spec) {
+  if (spec.serviceToOptions()->empty()) {
+    throw FbossError("Config generation declaration has no service options");
   }
 
-  for (const auto& [service, options] : *target.serviceToOptions()) {
+  for (const auto& [service, options] : *spec.serviceToOptions()) {
     validateThriftEnum(service, "Target service");
     if (options.empty()) {
       throw FbossError(
-          "Config generation target ",
-          apache::thrift::util::enumNameSafe(platform),
-          " has no options for service ",
+          "Config generation declaration has no options for service ",
           apache::thrift::util::enumNameSafe(service));
     }
 
@@ -115,8 +103,6 @@ void validateTarget(const ConfigGenerationTarget& target) {
       if (!uniqueOptions.emplace(profile, variant).second) {
         throw FbossError(
             "Duplicate config option for ",
-            apache::thrift::util::enumNameSafe(platform),
-            ", ",
             apache::thrift::util::enumNameSafe(service),
             ", and ",
             apache::thrift::util::enumNameSafe(profile));
@@ -125,17 +111,16 @@ void validateTarget(const ConfigGenerationTarget& target) {
   }
 }
 
-void validateTargetOwner(
-    const ConfigGenerationTarget& target,
-    const fs::path& platformDirectory) {
-  const auto platformName = getPlatformName(*target.platform());
-  if (platformDirectory.filename() != platformName) {
+PlatformType getPlatformType(std::string_view platformName) {
+  auto enumName = "PLATFORM_" + std::string(platformName);
+  folly::toUpperAscii(enumName);
+  const auto platform =
+      parseThriftEnumName<PlatformType>(enumName, "platform directory");
+  if (getPlatformName(platform) != platformName) {
     throw FbossError(
-        "Config generation target ",
-        apache::thrift::util::enumNameSafe(*target.platform()),
-        " does not match platform directory ",
-        platformDirectory.string());
+        "Platform directory name is not canonical: ", platformName);
   }
+  return platform;
 }
 
 } // namespace
@@ -151,11 +136,11 @@ std::string getPlatformName(PlatformType platform) {
   return name;
 }
 
-ConfigGenerationTarget parseConfigGenerationTarget(std::string_view contents) {
-  auto target = parseStrictSimpleJson<ConfigGenerationTarget>(
-      normalizeTargetEnumNames(contents));
-  validateTarget(target);
-  return target;
+ConfigGenerationSpec parseConfigGenerationSpec(std::string_view contents) {
+  auto spec = parseStrictSimpleJson<ConfigGenerationSpec>(
+      normalizeConfigEnumNames(contents));
+  validateSpec(spec);
+  return spec;
 }
 
 ConfigGenerationTarget loadConfigGenerationTarget(
@@ -169,9 +154,11 @@ ConfigGenerationTarget loadConfigGenerationTarget(
   }
 
   try {
-    auto target = parseConfigGenerationTarget(contents);
-    validateTargetOwner(target, platformDirectory);
-    return target;
+    return {
+        .platform = getPlatformType(platformDirectory.filename().string()),
+        .platformDirectory = platformDirectory,
+        .spec = parseConfigGenerationSpec(contents),
+    };
   } catch (const std::exception& error) {
     throw FbossError(
         "Unable to parse config generation declaration from ",
@@ -181,7 +168,7 @@ ConfigGenerationTarget loadConfigGenerationTarget(
   }
 }
 
-ConfigGenerationManifest loadConfigGenerationManifest(
+std::vector<ConfigGenerationTarget> loadConfigGenerationTargets(
     const fs::path& fbossRoot) {
   const auto platformsDirectory = fbossRoot / "configs" / "platforms";
   if (!fs::is_directory(platformsDirectory)) {
@@ -208,21 +195,21 @@ ConfigGenerationManifest loadConfigGenerationManifest(
   }
   std::sort(platformDirectories.begin(), platformDirectories.end());
 
-  ConfigGenerationManifest manifest;
+  std::vector<ConfigGenerationTarget> targets;
   std::set<PlatformType> platforms;
   for (const auto& platformDirectory : platformDirectories) {
     auto target = loadConfigGenerationTarget(platformDirectory);
-    if (!platforms.insert(*target.platform()).second) {
+    if (!platforms.insert(target.platform).second) {
       throw FbossError(
           "Duplicate config generation target for ",
-          apache::thrift::util::enumNameSafe(*target.platform()));
+          apache::thrift::util::enumNameSafe(target.platform));
     }
-    manifest.targets()->push_back(std::move(target));
+    targets.push_back(std::move(target));
   }
-  if (manifest.targets()->empty()) {
+  if (targets.empty()) {
     throw FbossError("No platform config generation declarations found");
   }
-  return manifest;
+  return targets;
 }
 
 } // namespace facebook::fboss::configgen

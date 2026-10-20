@@ -5,12 +5,12 @@ oncall("fboss_oss")
 cpp_library(
     name = "config_generation_utils",
     srcs = [
-        "ConfigGenerationManifestUtils.cpp",
+        "ConfigGenerationSpecUtils.cpp",
         "FeatureDefaultCommandArgsUtils.cpp",
         "ThriftConfigUtils.cpp",
     ],
     headers = [
-        "ConfigGenerationManifestUtils.h",
+        "ConfigGenerationSpecUtils.h",
         "FeatureDefaultCommandArgsUtils.h",
         "ThriftConfigUtils.h",
     ],

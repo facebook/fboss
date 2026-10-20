@@ -19,7 +19,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.h"
-#include "fboss/configs/platforms/generic/forwarding_stack/utils/ConfigGenerationManifestUtils.h"
+#include "fboss/configs/platforms/generic/forwarding_stack/utils/ConfigGenerationSpecUtils.h"
 
 namespace facebook::fboss::configgen {
 namespace fs = std::filesystem;
@@ -91,33 +91,32 @@ ConfigGenerationPlan createConfigGenerationPlan(
     ServiceType service,
     const ConfigContentsGenerator& generateContents,
     std::optional<std::string_view> selectedPlatform) {
-  ConfigGenerationManifest manifest;
+  std::vector<ConfigGenerationTarget> targets;
   std::optional<PlatformType> platformTypeScope;
   std::optional<fs::path> platformDirectoryScope;
   if (selectedPlatform) {
     platformDirectoryScope =
         findPlatformConfigDirectory(fbossRoot, *selectedPlatform).path;
     auto target = loadConfigGenerationTarget(*platformDirectoryScope);
-    platformTypeScope = *target.platform();
-    manifest.targets()->push_back(std::move(target));
+    platformTypeScope = target.platform;
+    targets.push_back(std::move(target));
   } else {
-    manifest = loadConfigGenerationManifest(fbossRoot);
+    targets = loadConfigGenerationTargets(fbossRoot);
   }
   ConfigGenerationPlan plan{
       .serviceName = getServiceName(service),
       .platformTypeScope = platformTypeScope,
       .platformDirectoryScope = platformDirectoryScope};
 
-  for (const auto& target : *manifest.targets()) {
-    const auto optionsIt = target.serviceToOptions()->find(service);
-    if (optionsIt == target.serviceToOptions()->end()) {
+  for (const auto& target : targets) {
+    const auto optionsIt = target.spec.serviceToOptions()->find(service);
+    if (optionsIt == target.spec.serviceToOptions()->end()) {
       continue;
     }
 
-    const auto platformType = *target.platform();
+    const auto platformType = target.platform;
     const auto platform = getPlatformName(platformType);
-    const auto platformDirectory =
-        findPlatformConfigDirectory(fbossRoot, platform).path;
+    const auto& platformDirectory = target.platformDirectory;
     for (const auto& option : optionsIt->second) {
       const auto profileType = *option.profile();
       const auto profile = getProfileName(profileType);

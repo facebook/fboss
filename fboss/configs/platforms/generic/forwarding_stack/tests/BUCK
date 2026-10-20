@@ -4,12 +4,14 @@ load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_
 oncall("fboss_oss")
 
 cpp_unittest(
-    name = "config_generation_manifest_utils_test",
-    srcs = ["ConfigGenerationManifestUtilsTest.cpp"],
+    name = "config_generation_spec_utils_test",
+    srcs = ["ConfigGenerationSpecUtilsTest.cpp"],
     network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/googletest:gtest",
         "//fboss/configs/platforms/generic/forwarding_stack/utils:config_generation_utils",
+        "//folly:file_util",
+        "//folly/testing:test_util",
     ],
 )
 
