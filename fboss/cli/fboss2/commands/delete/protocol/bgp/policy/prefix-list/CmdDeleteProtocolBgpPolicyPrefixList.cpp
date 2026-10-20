@@ -18,7 +18,11 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <string_view>
+#include <utility>
 #include <vector>
+#include "fboss/cli/fboss2/commands/config/protocol/bgp/BgpCliValueParsers.h"
+#include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/prefix-list/BgpPrefixListCliUtils.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
@@ -33,6 +37,11 @@
 namespace facebook::fboss {
 
 namespace {
+// CLI keyword selecting the nested entry by its base prefix, matching the
+// config command's grammar.
+constexpr std::string_view kObjectName = "prefix-list";
+constexpr std::string_view kPrefixKeyword = "prefix";
+
 // Every routing-policy term whose PREFIX_LIST match names `listName` in
 // prefix_filters.prefix_list_names (the field bgpd resolves at config load),
 // labelled the way the CLI addresses the term.
@@ -75,23 +84,43 @@ std::vector<std::string> findTermsReferencingPrefixList(
 // Parse + validate at construction so queryClient stays a thin dispatch.
 BgpPrefixListRef::BgpPrefixListRef(std::vector<std::string> v)
     : utils::BaseObjectArgType<std::string>(v) {
-  if (v.empty()) {
+  // Pre-empt the generic member-selector message for a missing prefix: the
+  // shared parser would call the member a <name>, but here it is a prefix.
+  if (v.size() >= 2 && v[1] == kPrefixKeyword &&
+      (v.size() < 3 || v[2].empty())) {
+    throw std::invalid_argument("Error: `prefix` requires a <prefix/len>");
+  }
+  auto selector = bgpcli::parseListMemberSelector(
+      v,
+      kObjectName,
+      kPrefixKeyword,
+      "Error: delete protocol bgp policy prefix-list requires <name>, "
+      "optionally followed by `prefix <prefix/len>`");
+  // Unlike the config grammar, nothing may follow the parsed prefix: there
+  // are no attributes to delete through this command.
+  if (selector.restStart < v.size()) {
     throw std::invalid_argument(
-        "Error: delete protocol bgp policy prefix-list requires <name>");
+        selector.memberName
+            ? fmt::format(
+                  "Error: unexpected token '{}' after prefix <prefix/len>",
+                  v.at(selector.restStart))
+            : fmt::format(
+                  "Error: unexpected token '{}'. Usage: delete protocol bgp "
+                  "policy prefix-list <name> [prefix <prefix/len>]",
+                  v.at(selector.restStart)));
   }
-  if (v[0].empty()) {
-    throw std::invalid_argument("Error: prefix-list name must not be empty");
+  listName_ = std::move(selector.listName);
+  if (selector.memberName) {
+    const auto normalizedPrefix =
+        bgpcli::normalizePrefixWithLength(*selector.memberName);
+    if (!normalizedPrefix) {
+      throw std::invalid_argument(
+          fmt::format(
+              "Error: Invalid prefix '{}'; expected <prefix/len>",
+              *selector.memberName));
+    }
+    basePrefix_ = *normalizedPrefix;
   }
-  // Nothing may follow the name: there are no attributes to delete through
-  // this command, and entries are deleted through the entry subcommand.
-  if (v.size() > 1) {
-    throw std::invalid_argument(
-        fmt::format(
-            "Error: unexpected token '{}'. Usage: delete protocol bgp policy "
-            "prefix-list <name>",
-            v[1]));
-  }
-  listName_ = v[0];
 }
 
 CmdDeleteProtocolBgpPolicyPrefixListTraits::RetType
@@ -118,9 +147,32 @@ CmdDeleteProtocolBgpPolicyPrefixList::queryClient(
   if (it == lists.end()) {
     return absent();
   }
+  if (args.hasPrefix()) {
+    // Delete a single entry; the list itself stays.
+    auto& entries = *it->prefixes();
+    auto entryIt =
+        std::find_if(entries.begin(), entries.end(), [&](const auto& entry) {
+          return bgpcli::prefixListEntryMatches(entry, args.basePrefix());
+        });
+    if (entryIt == entries.end()) {
+      return fmt::format(
+          "Warning: BGP prefix-list {} has no prefix {}; nothing to delete",
+          args.listName(),
+          args.basePrefix());
+    }
+    entries.erase(entryIt);
+    session.saveBgpConfig();
+    return fmt::format(
+        "Successfully deleted BGP prefix-list {} prefix {}\n"
+        "Config saved to: {}",
+        args.listName(),
+        args.basePrefix(),
+        session.getBgpSessionConfigPath());
+  }
   // A term's prefix_list_names resolves against this list by name at daemon
   // load; erasing the list while a term still names it would commit a
   // dangling reference and fail the load. Refuse and name the terms instead.
+  // Deleting a single entry above is safe: the name stays defined.
   auto referrers = findTermsReferencingPrefixList(cfg, args.listName());
   if (!referrers.empty()) {
     return fmt::format(
