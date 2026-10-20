@@ -11,6 +11,7 @@
 #include "fboss/platform/fixmyfboss/CheckRunner.h"
 
 #include <algorithm>
+#include <chrono>
 
 #include <stdexcept>
 
@@ -105,11 +106,18 @@ CheckResult CheckRunner::runOne(const PlannedCheck& planned) const {
     return skipped;
   }
   XLOG(DBG2) << "Running check: " << check.getDescription();
+  auto start = std::chrono::steady_clock::now();
+  auto elapsedMs = [&] {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::steady_clock::now() - start)
+        .count();
+  };
   try {
     if (planned.skipReasonError) {
       throw std::runtime_error(*planned.skipReasonError);
     }
     auto result = check.run();
+    result.durationMs() = elapsedMs();
     XLOG(DBG2) << "Check " << check.getDescription()
                << " completed with status: "
                << static_cast<int>(*result.status());
@@ -123,6 +131,7 @@ CheckResult CheckRunner::runOne(const PlannedCheck& planned) const {
     errorResult.status() = CheckStatus::ERROR;
     errorResult.errorMessage() =
         std::string("Exception during check execution: ") + e.what();
+    errorResult.durationMs() = elapsedMs();
     return errorResult;
   }
 }

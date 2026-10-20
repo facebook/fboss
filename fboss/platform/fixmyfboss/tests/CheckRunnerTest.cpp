@@ -96,6 +96,7 @@ TEST(CheckRunnerTest, ExceptionBecomesError) {
 
   ASSERT_EQ(results.size(), 1);
   EXPECT_EQ(*results[0].status(), CheckStatus::ERROR);
+  EXPECT_TRUE(results[0].durationMs().has_value());
   EXPECT_EQ(
       *results[0].errorMessage(), "Exception during check execution: boom");
 }
@@ -138,6 +139,7 @@ TEST(CheckRunnerTest, UnavailableHostIsSkippedWithReason) {
   ASSERT_EQ(results.size(), 1);
   EXPECT_EQ(*results[0].status(), CheckStatus::SKIPPED);
   EXPECT_EQ(*results[0].errorMessage(), "no BMC");
+  EXPECT_FALSE(results[0].durationMs().has_value());
 }
 
 TEST(CheckRunnerTest, DisruptiveChecksAreOptInAndRunLast) {

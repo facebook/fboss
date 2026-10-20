@@ -94,6 +94,11 @@ void ResultPrinter::printDetails(
       }
     }
 
+    if (showDetails_ && result.durationMs()) {
+      out_ << indent("Took " + std::to_string(*result.durationMs()) + " ms")
+           << "\n";
+    }
+
     if (showDetails_ && result.details()) {
       out_ << indent("Details:") << "\n"
            << indent(*result.details(), 2) << "\n";

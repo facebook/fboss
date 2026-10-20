@@ -67,6 +67,8 @@ struct CheckResult {
   6: optional string checkName;
   // Verbose evidence for debugging, e.g. commands run and their output.
   7: optional string details;
+  // Wall time the check took; unset for skipped checks.
+  8: optional i64 durationMs;
 }
 
 struct CheckInfo {
