@@ -30,11 +30,15 @@
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 
+DEFINE_int32(
+    pbr_policy_scale,
+    100,
+    "Number of PBR class-based policies to program before collecting stats");
+
 namespace facebook::fboss {
 
 namespace {
 
-constexpr int kPbrPolicyScale = 100;
 constexpr int kClassesPerPolicy = 4;
 constexpr int kMembersPerNhg = 2;
 constexpr int kMaxNexthops = 64;
@@ -193,7 +197,7 @@ void pbrAclStatsCollectionBenchmark(int numPolicies) {
 } // namespace
 
 BENCHMARK(HwPbrAclStatsCollectionBenchmark) {
-  pbrAclStatsCollectionBenchmark(kPbrPolicyScale);
+  pbrAclStatsCollectionBenchmark(FLAGS_pbr_policy_scale);
 }
 
 } // namespace facebook::fboss
