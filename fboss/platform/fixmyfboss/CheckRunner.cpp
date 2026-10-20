@@ -75,13 +75,26 @@ std::vector<PlannedCheck> CheckRunner::plan(
 }
 
 std::vector<CheckResult> CheckRunner::run(
-    const std::vector<PlannedCheck>& plan) const {
+    const std::vector<PlannedCheck>& plan,
+    const ProgressCallback& onProgress) const {
+  // Checks whose skip reason threw are not counted on purpose: they never run,
+  // only report an ERROR.
+  auto willRun = [](const PlannedCheck& p) {
+    return p.appliesToPlatform && !p.skipReason && !p.skipReasonError;
+  };
+  const int total =
+      static_cast<int>(std::count_if(plan.begin(), plan.end(), willRun));
+  int index = 0;
   std::vector<CheckResult> results;
   results.reserve(plan.size());
   for (const auto& planned : plan) {
-    if (planned.appliesToPlatform) {
-      results.push_back(runOne(planned));
+    if (!planned.appliesToPlatform) {
+      continue;
     }
+    if (onProgress && willRun(planned)) {
+      onProgress(++index, total, planned.check.get());
+    }
+    results.push_back(runOne(planned));
   }
   return results;
 }

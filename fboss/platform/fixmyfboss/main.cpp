@@ -90,21 +90,15 @@ std::vector<platform_checks::CheckResult> runChecks(
     const std::string& platformName,
     bool showProgress) {
   XLOG(INFO) << "Starting fixmyfboss checks for platform: " << platformName;
-
-  // Checks whose skip reason threw are not counted on purpose: they never run,
-  // only report an ERROR.
-  auto toRun = std::count_if(plan.begin(), plan.end(), [](const auto& p) {
-    return p.appliesToPlatform && !p.skipReason && !p.skipReasonError;
-  });
   if (!showProgress) {
     return runner.run(plan);
   }
   fixmyfboss::ResultPrinter printer;
-  printer.printProgress(
-      "Platform: " + platformName + " - Running " + std::to_string(toRun) +
-      " checks");
-
-  auto results = runner.run(plan);
+  auto results = runner.run(plan, [&](int index, int total, const auto& check) {
+    printer.printProgress(
+        "Platform: " + platformName + " - Running " + std::to_string(index) +
+        "/" + std::to_string(total) + ": " + check.getName());
+  });
   printer.clearLine();
   return results;
 }

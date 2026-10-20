@@ -225,3 +225,46 @@ TEST(CheckRunnerTest, PlanKeepsTheSkipReasonError) {
   EXPECT_EQ(plan[0].skipReason, std::nullopt);
   EXPECT_EQ(plan[0].skipReasonError, "forkpty failed");
 }
+
+TEST(CheckRunnerTest, ProgressSkipsChecksWhoseSkipReasonThrew) {
+  class SkipReasonThrows : public FakeCheck {
+   public:
+    SkipReasonThrows() : FakeCheck("skip throws") {}
+    [[noreturn]] std::optional<std::string> getSkipReason() const override {
+      throw std::runtime_error("forkpty failed");
+    }
+  };
+  std::vector<std::unique_ptr<PlatformCheck>> checks;
+  checks.push_back(std::make_unique<SkipReasonThrows>());
+  checks.push_back(std::make_unique<FakeCheck>("runs"));
+  const fixmyfboss::CheckRunner runner("MONTBLANC");
+  std::vector<std::string> progress;
+
+  auto results = runner.run(
+      runner.plan(checks), [&](int index, int total, const auto& check) {
+        progress.push_back(
+            std::to_string(index) + "/" + std::to_string(total) + " " +
+            check.getName());
+      });
+
+  EXPECT_EQ(progress, (std::vector<std::string>{"1/1 runs"}));
+  ASSERT_EQ(results.size(), 2);
+  EXPECT_EQ(*results[0].status(), CheckStatus::ERROR);
+}
+
+TEST(CheckRunnerTest, ProgressCountsOnlyChecksThatRun) {
+  std::vector<std::unique_ptr<PlatformCheck>> checks;
+  checks.push_back(std::make_unique<FakeCheck>("first"));
+  checks.push_back(std::make_unique<DisruptiveCheck>("skipped"));
+  checks.push_back(std::make_unique<FakeCheck>("second"));
+  const fixmyfboss::CheckRunner runner("MONTBLANC");
+  std::vector<std::string> progress;
+
+  runner.run(runner.plan(checks), [&](int index, int total, const auto& check) {
+    progress.push_back(
+        std::to_string(index) + "/" + std::to_string(total) + " " +
+        check.getName());
+  });
+
+  EXPECT_EQ(progress, (std::vector<std::string>{"1/2 first", "2/2 second"}));
+}

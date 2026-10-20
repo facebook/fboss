@@ -57,8 +57,14 @@ class CheckRunner {
       const std::vector<std::unique_ptr<platform_checks::PlatformCheck>>&
           checks) const;
 
+  // Called before each check that will actually run, with its 1-based
+  // position among them.
+  using ProgressCallback = std::function<
+      void(int index, int total, const platform_checks::PlatformCheck& check)>;
+
   std::vector<platform_checks::CheckResult> run(
-      const std::vector<PlannedCheck>& plan) const;
+      const std::vector<PlannedCheck>& plan,
+      const ProgressCallback& onProgress = nullptr) const;
 
   std::vector<platform_checks::CheckResult> run(
       const std::vector<std::unique_ptr<platform_checks::PlatformCheck>>&
