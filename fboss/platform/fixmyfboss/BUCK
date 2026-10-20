@@ -55,6 +55,20 @@ cpp_library(
 )
 
 cpp_library(
+    name = "password_prompt",
+    srcs = [
+        "PasswordPrompt.cpp",
+    ],
+    headers = [
+        "PasswordPrompt.h",
+    ],
+    deps = [
+        "fbsource//xplat/folly:file_util",
+        "fbsource//xplat/folly:scope_guard",
+    ],
+)
+
+cpp_library(
     name = "check_registry",
     srcs = [
         "CheckRegistry.cpp",
@@ -83,6 +97,7 @@ cpp_binary(
         ":check_environment",
         ":check_registry",
         ":check_runner",
+        ":password_prompt",
         ":result_printer",
     ],
     external_deps = [

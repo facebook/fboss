@@ -11,6 +11,7 @@
 #pragma once
 
 #include <filesystem>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -49,6 +50,11 @@ struct ConnectOptions {
   // when diagnosing the local machine.
   std::optional<std::string> bmcHostname;
   bool noBmc{false};
+  // Called with a prompt when a host rejects key login but accepts a
+  // password; returns the password, or nullopt if none can be entered. Unset
+  // means key login only.
+  std::function<std::optional<std::string>(const std::string& prompt)>
+      askPassword;
   platform_checks::RemoteHost::Transport transport{
       platform_checks::RemoteHost::Transport::SSH};
 };

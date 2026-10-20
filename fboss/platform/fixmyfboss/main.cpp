@@ -19,6 +19,7 @@
 
 #include "fboss/platform/fixmyfboss/CheckRegistry.h"
 #include "fboss/platform/fixmyfboss/CheckRunner.h"
+#include "fboss/platform/fixmyfboss/PasswordPrompt.h"
 #include "fboss/platform/fixmyfboss/ResultPrinter.h"
 
 using namespace facebook::fboss::platform;
@@ -167,6 +168,8 @@ int main(int argc, char* argv[]) {
   if (!bmcHostname.empty()) {
     connectOptions.bmcHostname = bmcHostname;
   }
+  // Never taken from the command line, which is logged.
+  connectOptions.askPassword = fixmyfboss::readPasswordFromTerminal;
   fixmyfboss::CheckEnvironment env;
   try {
     env = fixmyfboss::createEnvironment(connectOptions);
