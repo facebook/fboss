@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <memory>
+#include <optional>
 
 #include <CLI/CLI.hpp>
 #include <folly/String.h>
@@ -32,6 +33,9 @@ void listChecks(
   std::cout << "List of checks:\n";
   int index = 1;
   for (const auto& check : checks) {
+    if (!runner.isSelected(*check)) {
+      continue;
+    }
     std::string runIndicator =
         runner.appliesToPlatform(*check) ? "" : " (skipped)";
     std::cout << index++ << ". " << check->getName() << ": "
@@ -119,6 +123,13 @@ int main(int argc, char* argv[]) {
       ->group("Remote")
       ->excludes("--bmc-hostname");
 
+  std::string checkFilter;
+  app.add_option(
+         "--checks",
+         checkFilter,
+         "Only run checks whose name matches this regex (case-insensitive)")
+      ->group("Checks");
+
   bool includeDisruptive = false;
   app.add_flag(
          "--include-disruptive",
@@ -186,18 +197,27 @@ int main(int argc, char* argv[]) {
     folly::toLowerAscii(env.bmcPlatform);
   }
   auto checks = fixmyfboss::createAllChecks(env);
-  const fixmyfboss::CheckRunner runner(
-      env.platformName,
-      fixmyfboss::RunOptions{.includeDisruptive = includeDisruptive});
+  fixmyfboss::RunOptions runOptions{.includeDisruptive = includeDisruptive};
+  if (!checkFilter.empty()) {
+    runOptions.nameFilter = checkFilter;
+  }
+  std::optional<fixmyfboss::CheckRunner> runner;
+  try {
+    runner.emplace(env.platformName, runOptions);
+  } catch (const std::invalid_argument& ex) {
+    XLOG(ERR) << "Invalid --checks regex '" << checkFilter
+              << "': " << ex.what();
+    return EXIT_FAILURE;
+  }
 
   // Handle --list-checks mode
   if (listChecksFlag) {
-    listChecks(checks, runner);
+    listChecks(checks, *runner);
     return EXIT_SUCCESS;
   }
 
   // Run checks and print results
-  auto results = runChecks(checks, runner, env.platformName);
+  auto results = runChecks(checks, *runner, env.platformName);
   fixmyfboss::ResultPrinter printer(std::cout, verboseFlag || debugFlag);
   printer.printSummary(results);
   printer.printDetails(results);

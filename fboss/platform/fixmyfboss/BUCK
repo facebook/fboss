@@ -28,6 +28,7 @@ cpp_library(
         "CheckRunner.h",
     ],
     deps = [
+        "fbsource//third-party/re2:re2",
         "fbsource//xplat/folly/logging:logging",
     ],
     exported_deps = [

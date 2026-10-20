@@ -17,11 +17,17 @@
 
 #include "fboss/platform/platform_checks/PlatformCheck.h"
 
+namespace re2 {
+class RE2;
+} // namespace re2
+
 namespace facebook::fboss::platform::fixmyfboss {
 
 struct RunOptions {
   // Run checks that reboot or power cycle parts of the switch.
   bool includeDisruptive{false};
+  // Only run checks whose name matches this regex (case-insensitive).
+  std::optional<std::string> nameFilter;
 };
 
 /**
@@ -31,10 +37,12 @@ struct RunOptions {
  */
 class CheckRunner {
  public:
-  explicit CheckRunner(std::string platformName, RunOptions options = {})
-      : platformName_(std::move(platformName)), options_(options) {}
+  // Throws std::invalid_argument for an invalid RunOptions::nameFilter.
+  explicit CheckRunner(std::string platformName, RunOptions options = {});
 
   bool appliesToPlatform(const platform_checks::PlatformCheck& check) const;
+
+  bool isSelected(const platform_checks::PlatformCheck& check) const;
 
   std::vector<platform_checks::CheckResult> run(
       const std::vector<std::unique_ptr<platform_checks::PlatformCheck>>&
@@ -48,6 +56,7 @@ class CheckRunner {
 
   std::string platformName_;
   RunOptions options_;
+  std::shared_ptr<const re2::RE2> nameFilter_;
 };
 
 } // namespace facebook::fboss::platform::fixmyfboss

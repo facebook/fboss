@@ -173,3 +173,15 @@ TEST(CheckRunnerTest, OptInIsCheckedBeforeTheChecksOwnSkipReason) {
       *results[0].errorMessage(),
       "Disruptive; pass --include-disruptive to run");
 }
+
+TEST(CheckRunnerTest, NameFilterSelectsChecks) {
+  std::vector<std::unique_ptr<PlatformCheck>> checks;
+  checks.push_back(std::make_unique<FakeCheck>("BMC MAC Address"));
+  checks.push_back(std::make_unique<FakeCheck>("PCI Devices Exist"));
+
+  auto results = fixmyfboss::CheckRunner(
+                     "MONTBLANC", fixmyfboss::RunOptions{.nameFilter = "bmc"})
+                     .run(checks);
+
+  EXPECT_EQ(names(results), (std::vector<std::string>{"BMC MAC Address"}));
+}

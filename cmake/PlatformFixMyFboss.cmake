@@ -19,6 +19,7 @@ add_library(fixmyfboss_lib
 )
 
 target_link_libraries(fixmyfboss_lib
+  ${RE2}
   platform_checks
   platform_checks_host
   platform_checks_platform_name
