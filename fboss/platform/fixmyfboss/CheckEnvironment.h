@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <filesystem>
 #include <memory>
 #include <optional>
 #include <string>
@@ -35,6 +36,10 @@ struct CheckEnvironment {
   // Set if the switch is treated as having no BMC, so checks of the x86 side
   // of the management plane are skipped too.
   std::optional<std::string> noBmcReason;
+  // Local directory with prebuilt hw test binaries and OpenBMC tests2/.
+  std::optional<std::filesystem::path> hwTestsDir;
+  // Platform name for the OpenBMC CIT runner, e.g. "montblanc".
+  std::string bmcPlatform;
 };
 
 struct ConnectOptions {

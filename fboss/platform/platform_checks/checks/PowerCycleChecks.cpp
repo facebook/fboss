@@ -28,6 +28,25 @@ constexpr auto kLocalX86Reason =
     "machine with --hostname";
 constexpr auto kMachineIdPath = "/etc/machine-id";
 
+std::optional<double> uptimeSeconds(const Host& host, CommandLog& log) {
+  auto result = log.run(host, "cat /proc/uptime");
+  if (!result.ok()) {
+    return std::nullopt;
+  }
+  std::vector<folly::StringPiece> fields;
+  folly::split(' ', folly::trimWhitespace(result.standardOut), fields);
+  if (fields.empty()) {
+    return std::nullopt;
+  }
+  auto uptime = folly::tryTo<double>(fields.front());
+  if (!uptime) {
+    return std::nullopt;
+  }
+  return *uptime;
+}
+
+} // namespace
+
 bool waitForHost(
     const Host& host,
     const RebootTiming& timing,
@@ -47,25 +66,6 @@ bool waitForHost(
   log.note(host.name() + " did not come back");
   return false;
 }
-
-std::optional<double> uptimeSeconds(const Host& host, CommandLog& log) {
-  auto result = log.run(host, "cat /proc/uptime");
-  if (!result.ok()) {
-    return std::nullopt;
-  }
-  std::vector<folly::StringPiece> fields;
-  folly::split(' ', folly::trimWhitespace(result.standardOut), fields);
-  if (fields.empty()) {
-    return std::nullopt;
-  }
-  auto uptime = folly::tryTo<double>(fields.front());
-  if (!uptime) {
-    return std::nullopt;
-  }
-  return *uptime;
-}
-
-} // namespace
 
 std::optional<CheckResult> SecondaryBmcBootCheck::expectBootSource(
     CommandLog& log,

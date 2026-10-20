@@ -29,6 +29,9 @@ struct RebootTiming {
   std::chrono::seconds timeout{300};
 };
 
+// Waits `timing.settle`, then polls until `host` answers or `timing.timeout`.
+bool waitForHost(const Host& host, const RebootTiming& timing, CommandLog& log);
+
 /**
  * Validates that the BMC boots from both its master and slave flash, ending on
  * master.

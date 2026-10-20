@@ -1604,6 +1604,7 @@ add_dependencies(fboss_platform_services
   platform_checks_bmc_checks_test
   platform_checks_sol_console_check_test
   platform_checks_power_cycle_checks_test
+  platform_checks_hw_test_checks_test
   platform_manager_data_store_test
   platform_manager_config_validator_test
   platform_manager_presence_checker_test

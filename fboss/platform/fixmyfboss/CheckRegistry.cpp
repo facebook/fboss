@@ -13,6 +13,7 @@
 #include "fboss/platform/platform_checks/LocalHost.h"
 #include "fboss/platform/platform_checks/checks/BmcChecks.h"
 #include "fboss/platform/platform_checks/checks/BmcReachableCheck.h"
+#include "fboss/platform/platform_checks/checks/HwTestChecks.h"
 #include "fboss/platform/platform_checks/checks/MacAddressCheck.h"
 #include "fboss/platform/platform_checks/checks/ManagementPlaneChecks.h"
 #include "fboss/platform/platform_checks/checks/PciDeviceCheck.h"
@@ -65,6 +66,13 @@ std::vector<std::unique_ptr<PlatformCheck>> createAllChecks(
   checks.push_back(
       std::make_unique<WedgePowerCheck>(
           x86, bmc, std::make_shared<LocalHost>()));
+  for (auto& spec : platformHwTestSpecs()) {
+    checks.push_back(
+        std::make_unique<HwTestCheck>(x86, std::move(spec), env.hwTestsDir));
+  }
+  checks.push_back(
+      std::make_unique<BmcCitTestCheck>(
+          bmc, x86, env.hwTestsDir, env.bmcPlatform));
   return checks;
 }
 

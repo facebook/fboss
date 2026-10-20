@@ -113,6 +113,7 @@ cpp_library(
         "HostEeprom.cpp",
         "checks/BmcChecks.cpp",
         "checks/CommandCheck.cpp",
+        "checks/HwTestChecks.cpp",
         "checks/KernelVersionCheck.cpp",
         "checks/MacAddressCheck.cpp",
         "checks/ManagementPlaneChecks.cpp",
@@ -127,6 +128,7 @@ cpp_library(
         "checks/BmcChecks.h",
         "checks/BmcReachableCheck.h",
         "checks/CommandCheck.h",
+        "checks/HwTestChecks.h",
         "checks/KernelVersionCheck.h",
         "checks/MacAddressCheck.h",
         "checks/ManagementPlaneChecks.h",
@@ -137,6 +139,7 @@ cpp_library(
         "checks/i801SmbusTimeoutCheck.h",
     ],
     deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/re2:re2",
         "fbsource//xplat/folly:conv",
         "fbsource//xplat/folly:scope_guard",
@@ -321,6 +324,21 @@ cpp_unittest(
     network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/googletest:gmock",
+        ":mock_host",
+        ":platform_checks",
+    ],
+)
+
+cpp_unittest(
+    name = "hw_test_checks_test",
+    srcs = [
+        "tests/HwTestChecksTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "fbsource//xplat/folly:file_util",
+        "fbsource//xplat/folly/testing:test_util",
         ":mock_host",
         ":platform_checks",
     ],

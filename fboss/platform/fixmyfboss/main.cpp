@@ -13,6 +13,7 @@
 #include <memory>
 
 #include <CLI/CLI.hpp>
+#include <folly/String.h>
 #include <folly/logging/LoggerDB.h>
 #include <folly/logging/xlog.h>
 
@@ -124,6 +125,22 @@ int main(int argc, char* argv[]) {
          "Also run checks that reboot or power cycle the switch")
       ->group("Checks");
 
+  std::string hwTestsDir;
+  app.add_option(
+         "--hw-tests-dir",
+         hwTestsDir,
+         "Directory with prebuilt platform hw tests and OpenBMC tests2/, "
+         "copied to the switch to run (disruptive)")
+      ->check(CLI::ExistingDirectory)
+      ->group("Checks");
+
+  std::string bmcPlatform;
+  app.add_option(
+         "--bmc-platform",
+         bmcPlatform,
+         "Platform for the BMC CIT runner (default: lowercase platform name)")
+      ->group("Checks");
+
   bool verboseFlag = false;
   app.add_flag(
          "-v,--verbose", verboseFlag, "Enable verbose logging (INFO level)")
@@ -156,6 +173,14 @@ int main(int argc, char* argv[]) {
   } catch (const std::exception& ex) {
     XLOG(ERR) << ex.what();
     return EXIT_FAILURE;
+  }
+  if (!hwTestsDir.empty()) {
+    env.hwTestsDir = hwTestsDir;
+  }
+  env.bmcPlatform = bmcPlatform;
+  if (env.bmcPlatform.empty()) {
+    env.bmcPlatform = env.platformName;
+    folly::toLowerAscii(env.bmcPlatform);
   }
   auto checks = fixmyfboss::createAllChecks(env);
   const fixmyfboss::CheckRunner runner(

@@ -50,6 +50,7 @@ add_library(platform_checks
   fboss/platform/platform_checks/HostEeprom.cpp
   fboss/platform/platform_checks/checks/BmcChecks.cpp
   fboss/platform/platform_checks/checks/CommandCheck.cpp
+  fboss/platform/platform_checks/checks/HwTestChecks.cpp
   fboss/platform/platform_checks/checks/MacAddressCheck.cpp
   fboss/platform/platform_checks/checks/ManagementPlaneChecks.cpp
   fboss/platform/platform_checks/checks/PciDeviceCheck.cpp
@@ -191,3 +192,16 @@ target_link_libraries(platform_checks_power_cycle_checks_test
 )
 
 gtest_discover_tests(platform_checks_power_cycle_checks_test)
+
+add_executable(platform_checks_hw_test_checks_test
+  fboss/platform/platform_checks/tests/HwTestChecksTest.cpp
+)
+
+target_link_libraries(platform_checks_hw_test_checks_test
+  platform_checks
+  Folly::folly
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(platform_checks_hw_test_checks_test)
