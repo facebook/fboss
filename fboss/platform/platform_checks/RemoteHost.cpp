@@ -38,6 +38,11 @@ const std::vector<std::string> kSshOptions{
     "UserKnownHostsFile=/dev/null",
     "-o",
     "LogLevel=ERROR",
+    // Notice a dead connection (e.g. a reset switch) within ~15s.
+    "-o",
+    "ServerAliveInterval=5",
+    "-o",
+    "ServerAliveCountMax=3",
 };
 
 // Without a password, fail fast instead of prompting for one.
