@@ -9,15 +9,21 @@
  */
 
 #include <folly/Benchmark.h>
+#include <algorithm>
+#include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/benchmarks/AgentBenchmarks.h"
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/test/AgentEnsemble.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 
 namespace facebook::fboss {
 
 namespace {
+constexpr int kMaxNexthops = 64;
+constexpr int kStatsCollectionIterations = 100;
 
 AgentEnsembleSwitchConfigFn makePbrConfigFn() {
   return [](const AgentEnsemble& ensemble) {
@@ -37,9 +43,30 @@ AgentEnsembleSwitchConfigFn makePbrConfigFn() {
 }
 
 void pbrAclStatsCollectionBenchmark() {
+  folly::BenchmarkSuspender suspender;
+
+  FLAGS_enable_nexthop_id_manager = true;
+  FLAGS_enable_stats_update_thread = false;
+
   auto ensemble =
       createAgentEnsemble(makePbrConfigFn(), false /*disableLinkStateToggler*/);
   ensemble->stopStatsThread();
+
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(
+      ensemble->getSw()->getState(),
+      ensemble->getSw()->needL2EntryForNeighbor());
+  auto numNhops =
+      std::min(static_cast<int>(ecmpHelper.getNextHops().size()), kMaxNexthops);
+  CHECK_GT(numNhops, 0);
+  ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+    return ecmpHelper.resolveNextHops(in, numNhops);
+  });
+
+  suspender.dismiss();
+  for (int i = 0; i < kStatsCollectionIterations; ++i) {
+    ensemble->getSw()->updateStats();
+  }
+  suspender.rehire();
 }
 
 } // namespace
