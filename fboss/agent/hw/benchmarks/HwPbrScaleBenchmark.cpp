@@ -11,11 +11,14 @@
 #include <fmt/core.h>
 #include <folly/Benchmark.h>
 #include <algorithm>
+#include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/benchmarks/AgentBenchmarks.h"
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
+#include "fboss/agent/if/gen-cpp2/common_types.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
@@ -29,12 +32,17 @@ namespace facebook::fboss {
 namespace {
 
 constexpr int kPbrPolicyScale = 100;
+constexpr int kClassesPerPolicy = 4;
 constexpr int kMembersPerNhg = 2;
 constexpr int kMaxNexthops = 64;
 constexpr int kStatsCollectionIterations = 100;
 
 std::string makeNhgName(int index) {
   return fmt::format("pbrNhg{:05d}", index);
+}
+
+std::string makePolicyName(int index) {
+  return fmt::format("pbrPolicy{:05d}", index);
 }
 
 std::vector<RouteNextHopSet> makeDistinctNhgSets(
@@ -59,6 +67,46 @@ std::vector<RouteNextHopSet> makeDistinctNhgSets(
       << "only " << numNhops << " next hops: cannot build " << count
       << " distinct " << kMembersPerNhg << "-member groups";
   return sets;
+}
+
+folly::IPAddressV6 makeRoutePrefix(int index) {
+  return folly::IPAddressV6(
+      fmt::format("2222:db8:{:x}:{:x}::", (index >> 8) + 1, index & 0xFF));
+}
+
+// A policy only synthesizes ACL entries once a route references it, so the
+// benchmark has to bind one route per policy to have anything to collect.
+void bindRoutesToPolicies(AgentEnsemble& ensemble, int numPolicies) {
+  auto updater = ensemble.getSw()->getRouteUpdater();
+  for (int i = 0; i < numPolicies; ++i) {
+    UnicastRoute route;
+    route.dest()->ip() = facebook::network::toBinaryAddress(
+        folly::IPAddress(makeRoutePrefix(i)));
+    route.dest()->prefixLength() = 64;
+    NamedRouteDestination namedDest;
+    namedDest.policyName() = makePolicyName(i);
+    route.namedRouteDestination() = namedDest;
+    updater.addRoute(RouterID(0), ClientID::BGPD, route);
+  }
+  updater.program();
+}
+
+std::vector<ClassBasedPolicy> makePbrPolicy(int numPolicies) {
+  std::vector<ClassBasedPolicy> policies;
+  policies.reserve(numPolicies);
+  for (int i = 0; i < numPolicies; ++i) {
+    ClassBasedPolicy policy;
+    policy.name() = makePolicyName(i);
+    policy.defaultNexthopGroup() = makeNhgName(i);
+    NextHopGroup redirectGroup;
+    redirectGroup.name() = makeNhgName((i + 1) % numPolicies);
+    for (int tc = 1; tc <= kClassesPerPolicy; ++tc) {
+      policy.class2NextHopGroup()[static_cast<ForwardingClass>(tc)] =
+          redirectGroup;
+    }
+    policies.push_back(std::move(policy));
+  }
+  return policies;
 }
 
 AgentEnsembleSwitchConfigFn makePbrConfigFn() {
@@ -110,6 +158,12 @@ void pbrAclStatsCollectionBenchmark(int numPolicies) {
         groups,
         createRibToSwitchStateFunction(),
         ensemble->getSw());
+
+    ensemble->getSw()->getRib()->addOrUpdatePolicies(
+        makePbrPolicy(numPolicies),
+        createNextHopIdStateUpdate(ensemble->getSw(), "addOrUpdatePolicies"));
+
+    bindRoutesToPolicies(*ensemble, numPolicies);
   }
   suspender.dismiss();
   for (int i = 0; i < kStatsCollectionIterations; ++i) {

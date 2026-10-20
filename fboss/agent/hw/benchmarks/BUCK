@@ -745,10 +745,12 @@ agent_benchmark_lib(
     srcs = ["HwPbrScaleBenchmark.cpp"],
     deps = [
         "fbsource//third-party/fmt:fmt",
+        "//fboss/agent:address_utils",
         "//fboss/agent:agent_features",
         "//fboss/agent:core",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/if:common-cpp2-types",
+        "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/rib:standalone_rib",
         "//fboss/agent/state:state",
         "//fboss/agent/test:agent_ensemble",
