@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -31,7 +32,7 @@ struct RunOptions {
 };
 
 struct PlannedCheck {
-  platform_checks::PlatformCheck* check{nullptr};
+  std::reference_wrapper<platform_checks::PlatformCheck> check;
   // False for checks of other platforms; they are listed but not reported.
   bool appliesToPlatform{false};
   // Set if the check will be reported as SKIPPED.

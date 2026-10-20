@@ -50,13 +50,12 @@ std::vector<PlannedCheck> CheckRunner::plan(
     const std::vector<std::unique_ptr<PlatformCheck>>& checks) const {
   std::vector<PlannedCheck> planned;
   for (const auto& check : checks) {
-    if (!isSelected(*check)) {
+    if (!check || !isSelected(*check)) {
       continue;
     }
     PlannedCheck& p = planned.emplace_back(
         PlannedCheck{
-            .check = check.get(),
-            .appliesToPlatform = appliesToPlatform(*check)});
+            .check = *check, .appliesToPlatform = appliesToPlatform(*check)});
     if (!p.appliesToPlatform) {
       p.skipReason = "Not supported on " + platformName_;
       continue;
@@ -69,7 +68,7 @@ std::vector<PlannedCheck> CheckRunner::plan(
     }
   }
   std::stable_partition(planned.begin(), planned.end(), [](const auto& p) {
-    return !p.check->isDisruptive();
+    return !p.check.get().isDisruptive();
   });
   return planned;
 }
@@ -96,7 +95,7 @@ std::optional<std::string> CheckRunner::getSkipReason(
 }
 
 CheckResult CheckRunner::runOne(const PlannedCheck& planned) const {
-  auto& check = *planned.check;
+  auto& check = planned.check.get();
   if (planned.skipReason) {
     CheckResult skipped;
     skipped.checkType() = check.getType();

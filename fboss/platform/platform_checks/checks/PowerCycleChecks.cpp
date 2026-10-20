@@ -10,6 +10,7 @@
 
 #include "fboss/platform/platform_checks/checks/PowerCycleChecks.h"
 
+#include <functional>
 #include <thread>
 
 #include <folly/Conv.h>
@@ -220,8 +221,8 @@ CheckResult WedgePowerCheck::run() {
   // Resets the BMC and x86 together; the BMC connection drops.
   poweredAt = std::chrono::steady_clock::now();
   log.run(*bmc_.host, "wedge_power.sh reset -s", kResetCommandTimeout);
-  for (const Host* host : {bmc_.host.get(), &host()}) {
-    if (auto failure = expectFreshBoot(log, *host, poweredAt)) {
+  for (const Host& rebooted : {std::cref(*bmc_.host), std::cref(host())}) {
+    if (auto failure = expectFreshBoot(log, rebooted, poweredAt)) {
       return *failure;
     }
   }

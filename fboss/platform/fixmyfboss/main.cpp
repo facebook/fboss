@@ -39,8 +39,9 @@ void listChecks(const std::vector<fixmyfboss::PlannedCheck>& plan) {
     } else if (planned.skipReasonError) {
       runIndicator = " (error: " + *planned.skipReasonError + ")";
     }
-    std::cout << index++ << ". " << planned.check->getName() << ": "
-              << planned.check->getDescription() << runIndicator << "\n";
+    const auto& check = planned.check.get();
+    std::cout << index++ << ". " << check.getName() << ": "
+              << check.getDescription() << runIndicator << "\n";
   }
 }
 

@@ -21,7 +21,7 @@ namespace {
 
 class FakeCheck : public PlatformCheck {
  public:
-  FakeCheck(
+  explicit FakeCheck(
       std::string name,
       std::set<std::string> platforms = {},
       bool throws = false)
@@ -64,6 +64,7 @@ class DisruptiveCheck : public FakeCheck {
 
 std::vector<std::string> names(const std::vector<CheckResult>& results) {
   std::vector<std::string> out;
+  out.reserve(results.size());
   for (const auto& result : results) {
     out.push_back(*result.checkName());
   }
@@ -196,12 +197,12 @@ TEST(CheckRunnerTest, PlanExplainsWhatWillHappen) {
   auto plan = fixmyfboss::CheckRunner("MONTBLANC").plan(checks);
 
   ASSERT_EQ(plan.size(), 3);
-  EXPECT_EQ(plan[0].check->getName(), "other");
+  EXPECT_EQ(plan[0].check.get().getName(), "other");
   EXPECT_FALSE(plan[0].appliesToPlatform);
   EXPECT_EQ(plan[0].skipReason, "Not supported on MONTBLANC");
-  EXPECT_EQ(plan[1].check->getName(), "read");
+  EXPECT_EQ(plan[1].check.get().getName(), "read");
   EXPECT_EQ(plan[1].skipReason, std::nullopt);
-  EXPECT_EQ(plan[2].check->getName(), "reboot");
+  EXPECT_EQ(plan[2].check.get().getName(), "reboot");
   EXPECT_TRUE(plan[2].skipReason.has_value());
 }
 

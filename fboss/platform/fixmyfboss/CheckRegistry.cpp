@@ -32,9 +32,10 @@ std::vector<std::unique_ptr<PlatformCheck>> createAllChecks(
   const CheckTarget bmc{
       .host = env.bmc, .unavailableReason = env.bmcUnavailableReason};
   // The x86 side of the management plane only exists on switches with a BMC.
-  const CheckTarget x86WithBmc = env.noBmcReason
-      ? CheckTarget{.host = nullptr, .unavailableReason = *env.noBmcReason}
-      : x86;
+  CheckTarget x86WithBmc = x86;
+  if (env.noBmcReason) {
+    x86WithBmc = {.host = nullptr, .unavailableReason = *env.noBmcReason};
+  }
 
   std::vector<std::unique_ptr<PlatformCheck>> checks;
   checks.push_back(
