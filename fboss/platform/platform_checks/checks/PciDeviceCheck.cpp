@@ -24,6 +24,7 @@ std::vector<std::filesystem::path> PciDeviceCheck::getPciDevicePaths() const {
 CheckResult PciDeviceCheck::run() {
   try {
     auto platformConfig = getPlatformConfig();
+    const auto presentDevices = readPresentDevices();
     std::vector<PciDevice> missingDevices;
 
     // Get expected devices from config
@@ -35,7 +36,7 @@ CheckResult PciDeviceCheck::run() {
         expectedDevice.subsystemVendor = *pciDeviceConfig.subSystemVendorId();
         expectedDevice.subsystemDevice = *pciDeviceConfig.subSystemDeviceId();
 
-        if (!pciDeviceExists(expectedDevice)) {
+        if (!presentDevices.contains(expectedDevice.toString())) {
           missingDevices.push_back(expectedDevice);
           XLOG(WARNING) << "Expected PCI device " << expectedDevice.toString()
                         << " not found";
@@ -62,36 +63,25 @@ CheckResult PciDeviceCheck::run() {
   }
 }
 
-bool PciDeviceCheck::pciDeviceExists(const PciDevice& expectedDevice) {
-  try {
-    for (const auto& devicePath : getPciDevicePaths()) {
-      auto vendor = host().readTrimmedFile(devicePath / "vendor");
-      auto device = host().readTrimmedFile(devicePath / "device");
-      auto subsystemVendor =
-          host().readTrimmedFile(devicePath / "subsystem_vendor");
-      auto subsystemDevice =
-          host().readTrimmedFile(devicePath / "subsystem_device");
+std::set<std::string> PciDeviceCheck::readPresentDevices() const {
+  std::set<std::string> present;
+  for (const auto& devicePath : getPciDevicePaths()) {
+    auto vendor = host().readTrimmedFile(devicePath / "vendor");
+    auto device = host().readTrimmedFile(devicePath / "device");
+    auto subsystemVendor =
+        host().readTrimmedFile(devicePath / "subsystem_vendor");
+    auto subsystemDevice =
+        host().readTrimmedFile(devicePath / "subsystem_device");
 
-      if (!(vendor && device && subsystemVendor && subsystemDevice)) {
-        XLOG(WARNING) << "Failed to read PCI device info from " << devicePath;
-        continue;
-      }
-
-      if (std::tie(*vendor, *device, *subsystemVendor, *subsystemDevice) ==
-          std::tie(
-              expectedDevice.vendor,
-              expectedDevice.device,
-              expectedDevice.subsystemVendor,
-              expectedDevice.subsystemDevice)) {
-        return true;
-      }
+    if (!(vendor && device && subsystemVendor && subsystemDevice)) {
+      XLOG(WARNING) << "Failed to read PCI device info from " << devicePath;
+      continue;
     }
-  } catch (const std::exception& ex) {
-    XLOG(ERR) << "Error checking PCI devices: " << ex.what();
-    throw;
+    present.insert(
+        PciDevice{*vendor, *device, *subsystemVendor, *subsystemDevice}
+            .toString());
   }
-
-  return false;
+  return present;
 }
 
 } // namespace facebook::fboss::platform::platform_checks
