@@ -877,7 +877,8 @@ void PortManager::setOverrideAgentPortStatusForTesting(
 void PortManager::setOverrideAllAgentPortStatusForTesting(
     bool up,
     bool enabled,
-    bool clearOnly) {
+    bool clearOnly,
+    bool asicPrbsEnabled) {
   overrideAgentPortStatusForTesting_.clear();
   if (clearOnly) {
     return;
@@ -887,6 +888,7 @@ void PortManager::setOverrideAllAgentPortStatusForTesting(
     NpuPortStatus status;
     status.portEnabled = enabled;
     status.operState = up;
+    status.asicPrbsEnabled = asicPrbsEnabled;
     status.profileID = apache::thrift::util::enumNameSafe(profileID);
     overrideAgentPortStatusForTesting_.emplace(portId, status);
   };
@@ -1488,6 +1490,14 @@ void PortManager::updateTransceiverPortStatus() noexcept {
     return;
   }
 
+  std::unordered_set<PortID> asicPrbsEnabledPorts;
+  for (const auto& [portId, status] : newPortToPortStatus) {
+    if (status.asicPrbsEnabled) {
+      asicPrbsEnabledPorts.insert(PortID(portId));
+    }
+  }
+  *asicPrbsEnabledPorts_.wlock() = std::move(asicPrbsEnabledPorts);
+
   // Build a snapshot of previous port active states per transceiver
   // before processing any updates
   std::map<TransceiverID, bool> previousTcvrHadActivePort =
@@ -1602,6 +1612,7 @@ void PortManager::updatePortActiveStatusInTransceiverManager() {
       *multiTcvrControllingToNonControllingTcvr_.rlock();
 
   auto multiTcvrQsfpToAgentPort = *multiTcvrQsfpPortToAgentPort_.rlock();
+  const auto asicPrbsEnabledPorts = *asicPrbsEnabledPorts_.rlock();
   for (auto& [tcvrId, lockedInitializedPorts] : tcvrToInitializedPorts_) {
     std::unordered_set<PortID> inactivePorts;
     // Create a copy to avoid holding two locks at once.
@@ -1644,6 +1655,8 @@ void PortManager::updatePortActiveStatusInTransceiverManager() {
         // remediate or upgrade transceiver.
         portInfo.status->operState =
             inactivePorts.find(portId) == inactivePorts.end();
+        portInfo.status->asicPrbsEnabled =
+            asicPrbsEnabledPorts.find(portId) != asicPrbsEnabledPorts.end();
       }
     }
   }
