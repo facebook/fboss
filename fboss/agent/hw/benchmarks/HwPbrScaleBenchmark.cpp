@@ -8,12 +8,17 @@
  *
  */
 
+#include <fmt/core.h>
 #include <folly/Benchmark.h>
 #include <algorithm>
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/benchmarks/AgentBenchmarks.h"
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/state/RouteNextHop.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
@@ -22,8 +27,14 @@
 namespace facebook::fboss {
 
 namespace {
+
+constexpr int kPbrPolicyScale = 100;
 constexpr int kMaxNexthops = 64;
 constexpr int kStatsCollectionIterations = 100;
+
+std::string makeNhgName(int index) {
+  return fmt::format("pbrNhg{:05d}", index);
+}
 
 AgentEnsembleSwitchConfigFn makePbrConfigFn() {
   return [](const AgentEnsemble& ensemble) {
@@ -42,7 +53,7 @@ AgentEnsembleSwitchConfigFn makePbrConfigFn() {
   };
 }
 
-void pbrAclStatsCollectionBenchmark() {
+void pbrAclStatsCollectionBenchmark(int numPolicies) {
   folly::BenchmarkSuspender suspender;
 
   FLAGS_enable_nexthop_id_manager = true;
@@ -62,6 +73,26 @@ void pbrAclStatsCollectionBenchmark() {
     return ecmpHelper.resolveNextHops(in, numNhops);
   });
 
+  if (numPolicies > 0) {
+    std::vector<std::pair<std::string, RouteNextHopSet>> groups;
+    groups.reserve(numPolicies);
+    for (int i = 0; i < numPolicies; ++i) {
+      const auto& first = ecmpHelper.nhop(i % numNhops);
+      const auto& second = ecmpHelper.nhop((i + 1) % numNhops);
+      groups.emplace_back(
+          makeNhgName(i),
+          RouteNextHopSet{
+              ResolvedNextHop(
+                  folly::IPAddress(first.ip), first.intf, ECMP_WEIGHT),
+              ResolvedNextHop(
+                  folly::IPAddress(second.ip), second.intf, ECMP_WEIGHT)});
+    }
+    ensemble->getSw()->getRib()->addOrUpdateNamedNextHopGroups(
+        ensemble->getSw()->getScopeResolver(),
+        groups,
+        createRibToSwitchStateFunction(),
+        ensemble->getSw());
+  }
   suspender.dismiss();
   for (int i = 0; i < kStatsCollectionIterations; ++i) {
     ensemble->getSw()->updateStats();
@@ -72,7 +103,7 @@ void pbrAclStatsCollectionBenchmark() {
 } // namespace
 
 BENCHMARK(HwPbrAclStatsCollectionBenchmark) {
-  pbrAclStatsCollectionBenchmark();
+  pbrAclStatsCollectionBenchmark(kPbrPolicyScale);
 }
 
 } // namespace facebook::fboss
