@@ -122,6 +122,7 @@ _RAW_PLATFORM_MAPPING_FAMILIES: dict[str, tuple[str, ...]] = {
     "leh800bcls_rack": ("leh800bcls_rack",),
     "leh800bcls_test_fixture": ("leh800bcls_test_fixture",),
     "m4052actm": ("m4052actm",),
+    "m4061clsc": ("m4061clsc",),
     "m4062nhp": ("m4062nhp",),
     "m5120csc": ("m5120csc",),
     "morgan800cc": ("morgan800cc",),
