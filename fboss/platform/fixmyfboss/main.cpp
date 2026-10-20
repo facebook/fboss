@@ -12,11 +12,13 @@
 #include <iostream>
 #include <memory>
 #include <optional>
+#include <stdexcept>
 
 #include <CLI/CLI.hpp>
 #include <folly/String.h>
 #include <folly/logging/LoggerDB.h>
 #include <folly/logging/xlog.h>
+#include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/platform/fixmyfboss/CheckRegistry.h"
 #include "fboss/platform/fixmyfboss/CheckRunner.h"
@@ -65,10 +67,27 @@ void configureLogging(bool debugFlag, bool verboseFlag) {
   }
 }
 
+void printJson(
+    std::vector<platform_checks::CheckResult> results,
+    const fixmyfboss::CheckEnvironment& env) {
+  // Cannot happen: createEnvironment() always sets x86.
+  if (!env.x86) {
+    throw std::logic_error("CheckEnvironment has no x86 host");
+  }
+  platform_checks::CheckReport report;
+  report.results() = std::move(results);
+  report.platformName() = env.platformName;
+  report.target() = env.x86->name();
+  std::cout << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+                   report)
+            << "\n";
+}
+
 std::vector<platform_checks::CheckResult> runChecks(
     const std::vector<fixmyfboss::PlannedCheck>& plan,
     const fixmyfboss::CheckRunner& runner,
-    const std::string& platformName) {
+    const std::string& platformName,
+    bool showProgress) {
   XLOG(INFO) << "Starting fixmyfboss checks for platform: " << platformName;
 
   // Checks whose skip reason threw are not counted on purpose: they never run,
@@ -76,6 +95,9 @@ std::vector<platform_checks::CheckResult> runChecks(
   auto toRun = std::count_if(plan.begin(), plan.end(), [](const auto& p) {
     return p.appliesToPlatform && !p.skipReason && !p.skipReasonError;
   });
+  if (!showProgress) {
+    return runner.run(plan);
+  }
   fixmyfboss::ResultPrinter printer;
   printer.printProgress(
       "Platform: " + platformName + " - Running " + std::to_string(toRun) +
@@ -157,6 +179,13 @@ int main(int argc, char* argv[]) {
          "Platform for the BMC CIT runner (default: lowercase platform name)")
       ->group("Checks");
 
+  bool jsonFlag = false;
+  app.add_flag(
+         "--json",
+         jsonFlag,
+         "Print results as a JSON CheckReport instead of a summary")
+      ->group("Output");
+
   bool verboseFlag = false;
   app.add_flag(
          "-v,--verbose", verboseFlag, "Enable verbose logging (INFO level)")
@@ -221,10 +250,15 @@ int main(int argc, char* argv[]) {
   }
 
   // Run checks and print results
-  auto results = runChecks(runner->plan(checks), *runner, env.platformName);
-  fixmyfboss::ResultPrinter printer(std::cout, verboseFlag || debugFlag);
-  printer.printSummary(results);
-  printer.printDetails(results);
+  auto results =
+      runChecks(runner->plan(checks), *runner, env.platformName, !jsonFlag);
+  if (jsonFlag) {
+    printJson(results, env);
+  } else {
+    fixmyfboss::ResultPrinter printer(std::cout, verboseFlag || debugFlag);
+    printer.printSummary(results);
+    printer.printDetails(results);
+  }
 
   bool allPassed =
       std::all_of(results.begin(), results.end(), [](const auto& result) {

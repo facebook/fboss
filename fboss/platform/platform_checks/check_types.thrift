@@ -77,4 +77,7 @@ struct CheckInfo {
 
 struct CheckReport {
   1: list<CheckResult> results;
+  2: optional string platformName;
+  // Host the checks ran against, e.g. "localhost" or a switch hostname.
+  3: optional string target;
 }
