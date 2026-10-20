@@ -117,6 +117,13 @@ int main(int argc, char* argv[]) {
       ->group("Remote")
       ->excludes("--bmc-hostname");
 
+  bool includeDisruptive = false;
+  app.add_flag(
+         "--include-disruptive",
+         includeDisruptive,
+         "Also run checks that reboot or power cycle the switch")
+      ->group("Checks");
+
   bool verboseFlag = false;
   app.add_flag(
          "-v,--verbose", verboseFlag, "Enable verbose logging (INFO level)")
@@ -151,7 +158,9 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
   auto checks = fixmyfboss::createAllChecks(env);
-  const fixmyfboss::CheckRunner runner(env.platformName);
+  const fixmyfboss::CheckRunner runner(
+      env.platformName,
+      fixmyfboss::RunOptions{.includeDisruptive = includeDisruptive});
 
   // Handle --list-checks mode
   if (listChecksFlag) {

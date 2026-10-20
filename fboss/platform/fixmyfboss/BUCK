@@ -63,6 +63,7 @@ cpp_library(
         "CheckRegistry.h",
     ],
     deps = [
+        "//fboss/platform/platform_checks:host",
         "//fboss/platform/platform_checks:platform_checks",
     ],
     exported_deps = [

@@ -11,6 +11,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -18,14 +19,20 @@
 
 namespace facebook::fboss::platform::fixmyfboss {
 
+struct RunOptions {
+  // Run checks that reboot or power cycle parts of the switch.
+  bool includeDisruptive{false};
+};
+
 /**
  * Runs checks applicable to a platform and turns exceptions into ERROR
- * results, so one broken check cannot abort the whole run.
+ * results, so one broken check cannot abort the whole run. Disruptive checks
+ * run last, so that they cannot affect the other checks.
  */
 class CheckRunner {
  public:
-  explicit CheckRunner(std::string platformName)
-      : platformName_(std::move(platformName)) {}
+  explicit CheckRunner(std::string platformName, RunOptions options = {})
+      : platformName_(std::move(platformName)), options_(options) {}
 
   bool appliesToPlatform(const platform_checks::PlatformCheck& check) const;
 
@@ -36,8 +43,11 @@ class CheckRunner {
  private:
   platform_checks::CheckResult runOne(
       platform_checks::PlatformCheck& check) const;
+  std::optional<std::string> getSkipReason(
+      const platform_checks::PlatformCheck& check) const;
 
   std::string platformName_;
+  RunOptions options_;
 };
 
 } // namespace facebook::fboss::platform::fixmyfboss

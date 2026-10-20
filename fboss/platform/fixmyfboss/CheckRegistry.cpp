@@ -10,11 +10,13 @@
 
 #include "fboss/platform/fixmyfboss/CheckRegistry.h"
 
+#include "fboss/platform/platform_checks/LocalHost.h"
 #include "fboss/platform/platform_checks/checks/BmcChecks.h"
 #include "fboss/platform/platform_checks/checks/BmcReachableCheck.h"
 #include "fboss/platform/platform_checks/checks/MacAddressCheck.h"
 #include "fboss/platform/platform_checks/checks/ManagementPlaneChecks.h"
 #include "fboss/platform/platform_checks/checks/PciDeviceCheck.h"
+#include "fboss/platform/platform_checks/checks/PowerCycleChecks.h"
 #include "fboss/platform/platform_checks/checks/PowerResetCheck.h"
 #include "fboss/platform/platform_checks/checks/SolConsoleCheck.h"
 #include "fboss/platform/platform_checks/checks/i801SmbusTimeoutCheck.h"
@@ -58,6 +60,11 @@ std::vector<std::unique_ptr<PlatformCheck>> createAllChecks(
   checks.push_back(std::make_unique<BmcEepromCheck>(bmc));
   checks.push_back(std::make_unique<SolConsoleCheck>(bmc));
   checks.push_back(std::make_unique<X86MacConsistencyCheck>(x86, bmc));
+
+  checks.push_back(std::make_unique<SecondaryBmcBootCheck>(bmc));
+  checks.push_back(
+      std::make_unique<WedgePowerCheck>(
+          x86, bmc, std::make_shared<LocalHost>()));
   return checks;
 }
 

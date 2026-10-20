@@ -10,6 +10,8 @@
 
 #include "fboss/platform/fixmyfboss/CheckRunner.h"
 
+#include <algorithm>
+
 #include <folly/logging/xlog.h>
 
 namespace facebook::fboss::platform::fixmyfboss {
@@ -25,26 +27,45 @@ bool CheckRunner::appliesToPlatform(const PlatformCheck& check) const {
 
 std::vector<CheckResult> CheckRunner::run(
     const std::vector<std::unique_ptr<PlatformCheck>>& checks) const {
-  std::vector<CheckResult> results;
+  std::vector<PlatformCheck*> ordered;
   for (const auto& check : checks) {
     if (appliesToPlatform(*check)) {
-      results.push_back(runOne(*check));
+      ordered.push_back(check.get());
     }
+  }
+  std::stable_partition(ordered.begin(), ordered.end(), [](const auto* check) {
+    return !check->isDisruptive();
+  });
+
+  std::vector<CheckResult> results;
+  results.reserve(ordered.size());
+  for (auto* check : ordered) {
+    results.push_back(runOne(*check));
   }
   return results;
 }
 
-CheckResult CheckRunner::runOne(PlatformCheck& check) const {
-  if (auto skipReason = check.getSkipReason()) {
-    CheckResult skipped;
-    skipped.checkType() = check.getType();
-    skipped.checkName() = check.getName();
-    skipped.status() = CheckStatus::SKIPPED;
-    skipped.errorMessage() = *skipReason;
-    return skipped;
+std::optional<std::string> CheckRunner::getSkipReason(
+    const PlatformCheck& check) const {
+  // Before the check's own reason, which may query the hosts.
+  if (check.isDisruptive() && !options_.includeDisruptive) {
+    return "Disruptive; pass --include-disruptive to run";
   }
-  XLOG(DBG2) << "Running check: " << check.getDescription();
+  return check.getSkipReason();
+}
+
+CheckResult CheckRunner::runOne(PlatformCheck& check) const {
   try {
+    // Inside the try: a check's skip reason may query the hosts.
+    if (auto skipReason = getSkipReason(check)) {
+      CheckResult skipped;
+      skipped.checkType() = check.getType();
+      skipped.checkName() = check.getName();
+      skipped.status() = CheckStatus::SKIPPED;
+      skipped.errorMessage() = *skipReason;
+      return skipped;
+    }
+    XLOG(DBG2) << "Running check: " << check.getDescription();
     auto result = check.run();
     XLOG(DBG2) << "Check " << check.getDescription()
                << " completed with status: "

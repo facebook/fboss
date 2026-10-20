@@ -54,6 +54,14 @@ class FakeCheck : public PlatformCheck {
   bool throws_;
 };
 
+class DisruptiveCheck : public FakeCheck {
+ public:
+  explicit DisruptiveCheck(std::string name) : FakeCheck(std::move(name)) {}
+  bool isDisruptive() const override {
+    return true;
+  }
+};
+
 std::vector<std::string> names(const std::vector<CheckResult>& results) {
   std::vector<std::string> out;
   for (const auto& result : results) {
@@ -91,6 +99,28 @@ TEST(CheckRunnerTest, ExceptionBecomesError) {
       *results[0].errorMessage(), "Exception during check execution: boom");
 }
 
+TEST(CheckRunnerTest, ExceptionFromSkipReasonBecomesError) {
+  class SkipReasonThrows : public FakeCheck {
+   public:
+    SkipReasonThrows() : FakeCheck("skip throws") {}
+    [[noreturn]] std::optional<std::string> getSkipReason() const override {
+      throw std::runtime_error("forkpty failed");
+    }
+  };
+  std::vector<std::unique_ptr<PlatformCheck>> checks;
+  checks.push_back(std::make_unique<SkipReasonThrows>());
+  checks.push_back(std::make_unique<FakeCheck>("after"));
+
+  auto results = fixmyfboss::CheckRunner("MONTBLANC").run(checks);
+
+  ASSERT_EQ(results.size(), 2);
+  EXPECT_EQ(*results[0].status(), CheckStatus::ERROR);
+  EXPECT_EQ(
+      *results[0].errorMessage(),
+      "Exception during check execution: forkpty failed");
+  EXPECT_EQ(*results[1].status(), CheckStatus::OK);
+}
+
 TEST(CheckRunnerTest, UnavailableHostIsSkippedWithReason) {
   class NeedsHostCheck : public FakeCheck {
    public:
@@ -107,4 +137,39 @@ TEST(CheckRunnerTest, UnavailableHostIsSkippedWithReason) {
   ASSERT_EQ(results.size(), 1);
   EXPECT_EQ(*results[0].status(), CheckStatus::SKIPPED);
   EXPECT_EQ(*results[0].errorMessage(), "no BMC");
+}
+
+TEST(CheckRunnerTest, DisruptiveChecksAreOptInAndRunLast) {
+  std::vector<std::unique_ptr<PlatformCheck>> checks;
+  checks.push_back(std::make_unique<DisruptiveCheck>("reboot"));
+  checks.push_back(std::make_unique<FakeCheck>("read"));
+
+  auto skipped = fixmyfboss::CheckRunner("MONTBLANC").run(checks);
+  auto included =
+      fixmyfboss::CheckRunner(
+          "MONTBLANC", fixmyfboss::RunOptions{.includeDisruptive = true})
+          .run(checks);
+
+  EXPECT_EQ(names(skipped), (std::vector<std::string>{"read", "reboot"}));
+  EXPECT_EQ(*skipped[1].status(), CheckStatus::SKIPPED);
+  EXPECT_EQ(*included[1].status(), CheckStatus::OK);
+}
+
+TEST(CheckRunnerTest, OptInIsCheckedBeforeTheChecksOwnSkipReason) {
+  class QueriesHostToSkip : public DisruptiveCheck {
+   public:
+    QueriesHostToSkip() : DisruptiveCheck("reboot") {}
+    std::optional<std::string> getSkipReason() const override {
+      ADD_FAILURE() << "queried without --include-disruptive";
+      return "cannot confirm";
+    }
+  };
+  std::vector<std::unique_ptr<PlatformCheck>> checks;
+  checks.push_back(std::make_unique<QueriesHostToSkip>());
+
+  auto results = fixmyfboss::CheckRunner("MONTBLANC").run(checks);
+
+  EXPECT_EQ(
+      *results[0].errorMessage(),
+      "Disruptive; pass --include-disruptive to run");
 }

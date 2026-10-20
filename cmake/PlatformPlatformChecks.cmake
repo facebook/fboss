@@ -53,6 +53,7 @@ add_library(platform_checks
   fboss/platform/platform_checks/checks/MacAddressCheck.cpp
   fboss/platform/platform_checks/checks/ManagementPlaneChecks.cpp
   fboss/platform/platform_checks/checks/PciDeviceCheck.cpp
+  fboss/platform/platform_checks/checks/PowerCycleChecks.cpp
   fboss/platform/platform_checks/checks/PowerResetCheck.cpp
   fboss/platform/platform_checks/checks/SolConsoleCheck.cpp
   # Not including KernelVersionCheck since it relies on internal tools
@@ -178,3 +179,15 @@ target_link_libraries(platform_checks_sol_console_check_test
 )
 
 gtest_discover_tests(platform_checks_sol_console_check_test)
+
+add_executable(platform_checks_power_cycle_checks_test
+  fboss/platform/platform_checks/tests/PowerCycleChecksTest.cpp
+)
+
+target_link_libraries(platform_checks_power_cycle_checks_test
+  platform_checks
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(platform_checks_power_cycle_checks_test)
