@@ -1050,6 +1050,9 @@ cfg::SwitchConfig genPortVlanCfg(
   }
 
   if (switchType == cfg::SwitchType::NPU) {
+    // RIF id for the Chenab default-VLAN interface created below.
+    constexpr int32_t kDefaultVlanIntfID = 10;
+
     // Vlan config
     for (const auto& vlanID : vlans) {
       config.vlans()->push_back(createVlanConfig(vlanID));
@@ -1062,7 +1065,13 @@ cfg::SwitchConfig genPortVlanCfg(
         ? kDefaultVlanId4094
         : kDefaultVlanId1;
     auto defaultVlan = createVlanConfig(VlanID(defaultVlanId));
-    defaultVlan.intfID() = 10;
+    if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
+      // Only Chenab adds a RIF on the default VLAN (below). Setting intfID
+      // without that interface leaves the portless default VLAN claiming a
+      // RIF that does not exist, and SwitchIdScopeResolver then has no way to
+      // pick an owning ASIC on a multi-NPU platform.
+      defaultVlan.intfID() = kDefaultVlanIntfID;
+    }
     config.vlans()->push_back(defaultVlan);
     config.defaultVlan() = defaultVlanId;
 
@@ -1078,7 +1087,7 @@ cfg::SwitchConfig genPortVlanCfg(
        * requires vlan rif in default vlan.
        */
       auto intf1 = createVlanInterfaceConfig(
-          InterfaceID(*defaultVlan.intfID()), VlanID(defaultVlanId));
+          InterfaceID(kDefaultVlanIntfID), VlanID(defaultVlanId));
       intf1.name() = "default_vlan_rif";
       intf1.mac() = getLocalCpuMacStr();
       intf1.isVirtual() = true;
