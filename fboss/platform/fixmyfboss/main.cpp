@@ -84,6 +84,24 @@ void printJson(
             << "\n";
 }
 
+// Makes it obvious, before anything happens, that the switch will be power
+// cycled or rebooted.
+void warnAboutDisruptiveChecks(
+    const std::vector<fixmyfboss::PlannedCheck>& plan,
+    const fixmyfboss::CheckEnvironment& env) {
+  std::vector<std::string> names;
+  for (const auto& planned : plan) {
+    if (planned.check.get().isDisruptive() && planned.appliesToPlatform &&
+        !planned.skipReason && !planned.skipReasonError) {
+      names.push_back(planned.check.get().getName());
+    }
+  }
+  if (!names.empty()) {
+    XLOG(WARN) << "Running disruptive checks on " << env.x86->name() << ": "
+               << folly::join(", ", names);
+  }
+}
+
 std::vector<platform_checks::CheckResult> runChecks(
     const std::vector<fixmyfboss::PlannedCheck>& plan,
     const fixmyfboss::CheckRunner& runner,
@@ -245,8 +263,9 @@ int main(int argc, char* argv[]) {
   }
 
   // Run checks and print results
-  auto results =
-      runChecks(runner->plan(checks), *runner, env.platformName, !jsonFlag);
+  const auto plan = runner->plan(checks);
+  warnAboutDisruptiveChecks(plan, env);
+  auto results = runChecks(plan, *runner, env.platformName, !jsonFlag);
   if (jsonFlag) {
     printJson(results, env);
   } else {
