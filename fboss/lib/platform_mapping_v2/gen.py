@@ -116,6 +116,9 @@ OSS_MULTI_NPU_SUPPORTED_PLATFORMS: dict[bool, list[str]] = {
 _RAW_PLATFORM_MAPPING_FAMILIES: dict[str, tuple[str, ...]] = {
     "icecube800banw": ("icecube800banw",),
     "icecube800bc": ("icecube800bc",),
+    "ladakh800bcls_osfp_tray": ("ladakh800bcls_osfp_tray",),
+    "ladakh800bcls_rack": ("ladakh800bcls_rack",),
+    "ladakh800bcls_test_fixture": ("ladakh800bcls_test_fixture",),
     "m4052actm": ("m4052actm",),
     "m4062nhp": ("m4062nhp",),
     "m5120csc": ("m5120csc",),
