@@ -13,6 +13,7 @@
 #include <algorithm>
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/benchmarks/AgentBenchmarks.h"
@@ -20,8 +21,10 @@
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
@@ -109,6 +112,13 @@ std::vector<ClassBasedPolicy> makePbrPolicy(int numPolicies) {
   return policies;
 }
 
+size_t programmedPbrEntries(const AgentEnsemble& ensemble) {
+  auto acls = ensemble.getSw()->getState()->getAclsForTable(
+      cfg::AclStage::INGRESS,
+      cfg::switch_config_constants::DEFAULT_PBR_ACL_TABLE());
+  return acls ? acls->size() : 0;
+}
+
 AgentEnsembleSwitchConfigFn makePbrConfigFn() {
   return [](const AgentEnsemble& ensemble) {
     auto cfg = utility::onePortPerInterfaceConfig(
@@ -135,6 +145,11 @@ void pbrAclStatsCollectionBenchmark(int numPolicies) {
   auto ensemble =
       createAgentEnsemble(makePbrConfigFn(), false /*disableLinkStateToggler*/);
   ensemble->stopStatsThread();
+
+  if (!ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
+          HwAsic::Feature::PBR_ACL)) {
+    return;
+  }
 
   utility::EcmpSetupAnyNPorts6 ecmpHelper(
       ensemble->getSw()->getState(),
@@ -165,6 +180,9 @@ void pbrAclStatsCollectionBenchmark(int numPolicies) {
 
     bindRoutesToPolicies(*ensemble, numPolicies);
   }
+  CHECK_EQ(
+      programmedPbrEntries(*ensemble),
+      static_cast<size_t>(kClassesPerPolicy * numPolicies));
   suspender.dismiss();
   for (int i = 0; i < kStatsCollectionIterations; ++i) {
     ensemble->getSw()->updateStats();
