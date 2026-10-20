@@ -48,6 +48,9 @@ class LocalHost : public Host {
   std::optional<std::string> readFile(
       const std::filesystem::path& path) const override;
 
+  std::vector<std::optional<std::string>> readFiles(
+      const std::vector<std::filesystem::path>& paths) const override;
+
   bool exists(const std::filesystem::path& path) const override;
 
   std::vector<std::filesystem::path> listDirectory(

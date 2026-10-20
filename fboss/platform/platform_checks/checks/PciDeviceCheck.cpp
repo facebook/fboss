@@ -10,8 +10,11 @@
 
 #include "fboss/platform/platform_checks/checks/PciDeviceCheck.h"
 
+#include <array>
 #include <filesystem>
 #include <sstream>
+
+#include <folly/String.h>
 
 #include <folly/logging/xlog.h>
 
@@ -64,22 +67,34 @@ CheckResult PciDeviceCheck::run() {
 }
 
 std::set<std::string> PciDeviceCheck::readPresentDevices() const {
-  std::set<std::string> present;
-  for (const auto& devicePath : getPciDevicePaths()) {
-    auto vendor = host().readTrimmedFile(devicePath / "vendor");
-    auto device = host().readTrimmedFile(devicePath / "device");
-    auto subsystemVendor =
-        host().readTrimmedFile(devicePath / "subsystem_vendor");
-    auto subsystemDevice =
-        host().readTrimmedFile(devicePath / "subsystem_device");
+  constexpr std::array<const char*, 4> kAttributes{
+      "vendor", "device", "subsystem_vendor", "subsystem_device"};
+  const auto devicePaths = getPciDevicePaths();
+  std::vector<std::filesystem::path> attributePaths;
+  for (const auto& devicePath : devicePaths) {
+    for (const auto* attribute : kAttributes) {
+      attributePaths.push_back(devicePath / attribute);
+    }
+  }
+  const auto values = host().readFiles(attributePaths);
 
-    if (!(vendor && device && subsystemVendor && subsystemDevice)) {
-      XLOG(WARNING) << "Failed to read PCI device info from " << devicePath;
+  std::set<std::string> present;
+  for (size_t i = 0; i < devicePaths.size(); ++i) {
+    std::vector<std::string> fields;
+    for (size_t j = 0; j < kAttributes.size(); ++j) {
+      const auto& value = values[i * kAttributes.size() + j];
+      auto field = value ? folly::trimWhitespace(*value).str() : "";
+      if (field.empty()) {
+        break;
+      }
+      fields.push_back(std::move(field));
+    }
+    if (fields.size() != kAttributes.size()) {
+      XLOG(WARNING) << "Failed to read PCI device info from " << devicePaths[i];
       continue;
     }
     present.insert(
-        PciDevice{*vendor, *device, *subsystemVendor, *subsystemDevice}
-            .toString());
+        PciDevice{fields[0], fields[1], fields[2], fields[3]}.toString());
   }
   return present;
 }

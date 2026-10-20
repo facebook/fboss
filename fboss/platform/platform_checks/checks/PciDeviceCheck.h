@@ -55,8 +55,8 @@ class PciDeviceCheck : public PlatformCheck {
     }
   };
 
-  // Devices present on the host, as PciDevice::toString(). Each device is
-  // read once: over SSH every read is a round trip.
+  // Devices present on the host, as PciDevice::toString(). All attributes
+  // are read in one batch: over SSH every read is a round trip.
   std::set<std::string> readPresentDevices() const;
 };
 

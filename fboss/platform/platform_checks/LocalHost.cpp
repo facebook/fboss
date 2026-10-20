@@ -54,6 +54,16 @@ std::optional<std::string> LocalHost::readFile(
   return content;
 }
 
+std::vector<std::optional<std::string>> LocalHost::readFiles(
+    const std::vector<std::filesystem::path>& paths) const {
+  std::vector<std::optional<std::string>> contents;
+  contents.reserve(paths.size());
+  for (const auto& path : paths) {
+    contents.push_back(readFile(path));
+  }
+  return contents;
+}
+
 bool LocalHost::exists(const std::filesystem::path& path) const {
   std::error_code ec;
   return std::filesystem::exists(resolve(path), ec);

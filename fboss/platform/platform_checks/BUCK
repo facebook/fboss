@@ -48,6 +48,7 @@ cpp_library(
         "LocalHost.h",
     ],
     deps = [
+        "fbsource//xplat/folly:conv",
         "fbsource//xplat/folly:file_util",
         "fbsource//xplat/folly:string",
         "fbsource//xplat/folly:subprocess",

@@ -59,6 +59,17 @@ class MockHost : public Host {
       (const std::filesystem::path&),
       (const, override));
 
+  // Reads through the readFile() mock, so tests set up files one by one.
+  std::vector<std::optional<std::string>> readFiles(
+      const std::vector<std::filesystem::path>& paths) const override {
+    std::vector<std::optional<std::string>> contents;
+    contents.reserve(paths.size());
+    for (const auto& path : paths) {
+      contents.push_back(readFile(path));
+    }
+    return contents;
+  }
+
  private:
   std::string name_;
   bool isLocal_;

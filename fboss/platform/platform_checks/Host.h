@@ -75,6 +75,11 @@ class Host {
   virtual std::vector<std::filesystem::path> listDirectory(
       const std::filesystem::path& path) const;
 
+  // readFile() for many files in one round trip, which matters on remote
+  // hosts. Unreadable files are nullopt.
+  virtual std::vector<std::optional<std::string>> readFiles(
+      const std::vector<std::filesystem::path>& paths) const;
+
   // readFile() without surrounding whitespace, e.g. for sysfs attributes.
   std::optional<std::string> readTrimmedFile(
       const std::filesystem::path& path) const;
