@@ -741,6 +741,23 @@ agent_benchmark_lib(
 )
 
 agent_benchmark_lib(
+    name = "hw_pbr_scale_benchmark",
+    srcs = ["HwPbrScaleBenchmark.cpp"],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//fboss/agent:agent_features",
+        "//fboss/agent:core",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/if:common-cpp2-types",
+        "//fboss/agent/rib:standalone_rib",
+        "//fboss/agent/state:state",
+        "//fboss/agent/test:agent_ensemble",
+        "//fboss/agent/test/utils:acl_test_utils",
+        "//fboss/agent/test/utils:config_utils",
+    ],
+)
+
+agent_benchmark_lib(
     name = "hw_srv6_mysid_scale_benchmark",
     srcs = ["HwSrv6MySidScaleBenchmark.cpp"],
     deps = [
