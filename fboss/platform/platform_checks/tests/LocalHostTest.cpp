@@ -25,6 +25,10 @@ namespace {
 // Exercises the run()-based defaults of Host by not overriding file access.
 class ShellOnlyHost : public Host {
  public:
+  explicit ShellOnlyHost(
+      std::optional<CommandResult> fixedResult = std::nullopt)
+      : fixedResult_(std::move(fixedResult)) {}
+
   std::string name() const override {
     return "shell";
   }
@@ -33,7 +37,7 @@ class ShellOnlyHost : public Host {
   }
   CommandResult run(const std::string& cmd, std::chrono::seconds timeout)
       const override {
-    return LocalHost().run(cmd, timeout);
+    return fixedResult_ ? *fixedResult_ : LocalHost().run(cmd, timeout);
   }
   void copyTo(
       const std::filesystem::path&,
@@ -43,18 +47,9 @@ class ShellOnlyHost : public Host {
       const override {
     return nullptr;
   }
-};
-
-// run() prints canned output, for parsing tests.
-class CannedOutputHost : public ShellOnlyHost {
- public:
-  explicit CannedOutputHost(std::string out) : out_(std::move(out)) {}
-  CommandResult run(const std::string&, std::chrono::seconds) const override {
-    return CommandResult{.exitCode = 0, .standardOut = out_};
-  }
 
  private:
-  std::string out_;
+  std::optional<CommandResult> fixedResult_;
 };
 
 } // namespace
@@ -147,10 +142,21 @@ TEST(HostTest, ReadFilesInOneCommand) {
 
 TEST(HostTest, ReadFilesStopsAtCorruptOutput) {
   // "-1" marks an unreadable file; "99" is more than the rest of the output.
-  CannedOutputHost host("3\nabc-1\n2\nxy99\nzz");
+  ShellOnlyHost host(
+      CommandResult{.exitCode = 0, .standardOut = "3\nabc-1\n2\nxy99\nzz"});
   const std::vector<std::filesystem::path> paths{"a", "b", "c", "d", "e"};
   const std::vector<std::optional<std::string>> expected{
       "abc", std::nullopt, "xy", std::nullopt, std::nullopt};
 
   EXPECT_EQ(host.readFiles(paths), expected);
+}
+
+TEST(HostTest, UnreachableHostIsNotAMissingFile) {
+  // What RemoteHost returns when the connection drops.
+  ShellOnlyHost host(CommandResult{.exitCode = 255, .standardErr = "gone"});
+
+  EXPECT_THROW(host.exists("/etc"), HostCommandError);
+  EXPECT_THROW(host.readFile("/etc/hostname"), HostCommandError);
+  EXPECT_THROW(host.listDirectory("/etc"), HostCommandError);
+  EXPECT_THROW(host.readFiles({"/etc/hostname"}), HostCommandError);
 }

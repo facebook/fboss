@@ -46,9 +46,29 @@ CommandResult runLocalCommand(
   return result;
 }
 
+namespace {
+
+// Exit codes of a command that never ran: timeout(1)'s 124-127 and ssh's 255.
+bool notExecuted(const CommandResult& result) {
+  return result.exitCode < 0 || result.exitCode >= 124;
+}
+
+} // namespace
+
+CommandResult Host::runQuery(const std::string& cmd) const {
+  auto result = run(cmd);
+  if (notExecuted(result)) {
+    throw HostCommandError(
+        "Could not run `" + cmd + "` on " + name() + " (exit " +
+        std::to_string(result.exitCode) +
+        "): " + folly::trimWhitespace(result.standardErr).str());
+  }
+  return result;
+}
+
 std::optional<std::string> Host::readFile(
     const std::filesystem::path& path) const {
-  auto result = run("cat -- " + folly::shellQuote(path.string()));
+  auto result = runQuery("cat -- " + folly::shellQuote(path.string()));
   if (!result.ok()) {
     return std::nullopt;
   }
@@ -56,7 +76,7 @@ std::optional<std::string> Host::readFile(
 }
 
 bool Host::exists(const std::filesystem::path& path) const {
-  return run("test -e " + folly::shellQuote(path.string())).ok();
+  return runQuery("test -e " + folly::shellQuote(path.string())).ok();
 }
 
 std::vector<std::optional<std::string>> Host::readFiles(
@@ -74,7 +94,7 @@ std::vector<std::optional<std::string>> Host::readFiles(
       "; do if cat -- \"$f\" >\"$t\" 2>/dev/null; then "
       "printf '%d\\n' $(wc -c <\"$t\"); cat \"$t\"; "
       "else echo -1; fi; done; rm -f \"$t\"";
-  auto result = run(script);
+  auto result = runQuery(script);
   if (!result.ok()) {
     return contents;
   }
@@ -114,11 +134,11 @@ std::vector<std::filesystem::path> Host::listDirectory(
   std::vector<std::filesystem::path> entries;
   // NUL-separated, since file names may contain newlines. A plain glob loop
   // rather than `find -print0`, which BusyBox (BMCs) may not support.
-  auto result =
-      run("cd -- " + folly::shellQuote(path.string()) +
-          " || exit 1; for f in * .[!.]* ..?*; do "
-          "if [ -e \"$f\" ] || [ -L \"$f\" ]; then printf '%s\\0' \"$f\"; fi; "
-          "done");
+  auto result = runQuery(
+      "cd -- " + folly::shellQuote(path.string()) +
+      " || exit 1; for f in * .[!.]* ..?*; do "
+      "if [ -e \"$f\" ] || [ -L \"$f\" ]; then printf '%s\\0' \"$f\"; fi; "
+      "done");
   if (!result.ok()) {
     return entries;
   }
