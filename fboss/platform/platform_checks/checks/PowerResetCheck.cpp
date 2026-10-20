@@ -24,6 +24,22 @@ std::optional<std::chrono::system_clock::time_point> parseDateTime(
     return std::nullopt;
   }
 
+  // syslog-style timestamps (e.g. /var/log/secure) have no year. Assume the
+  // most recent one that does not put the timestamp in the future.
+  bool hasYear = format.find("%Y") != std::string::npos ||
+      format.find("%y") != std::string::npos;
+  if (!hasYear) {
+    auto now =
+        std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    struct tm nowTm{};
+    gmtime_r(&now, &nowTm);
+    tm.tm_year = nowTm.tm_year;
+    struct tm candidate = tm;
+    if (timegm(&candidate) > now + 24 * 60 * 60) {
+      tm.tm_year -= 1;
+    }
+  }
+
   auto time = timegm(&tm);
   if (time == -1) {
     return std::nullopt;
