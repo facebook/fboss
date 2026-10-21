@@ -1793,7 +1793,7 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     const std::vector<phy::PinConfig>& pinConfigs,
     const std::shared_ptr<SaiPortSerdes>& serdes,
     bool zeroPreemphasis,
-    const std::optional<std::string>& customCollection,
+    [[maybe_unused]] const std::optional<std::string>& customCollection,
     bool skipSerdesProgramming,
     [[maybe_unused]] bool txPrecodingEnabled,
     [[maybe_unused]] bool rxPrecodingEnabled) {
