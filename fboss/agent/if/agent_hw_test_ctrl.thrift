@@ -87,6 +87,8 @@ struct PortVcInfo {
   // The port's TC_TO_VC map read back from hardware; empty when no map is
   // bound, unset when the SDK refuses the read.
   7: optional map<i16, i16> trafficClassToVcId;
+  // The port's QUEUE_TO_VC map read back from hardware; same conventions.
+  8: optional map<i16, i16> queueToVcId;
 }
 
 struct AggPortInfo {
