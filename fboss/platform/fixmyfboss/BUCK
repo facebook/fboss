@@ -87,6 +87,26 @@ cpp_library(
     ],
 )
 
+cpp_library(
+    name = "cli_options",
+    srcs = [
+        "CliOptions.cpp",
+    ],
+    headers = [
+        "CliOptions.h",
+    ],
+    deps = [
+        "fbsource//xplat/folly:string",
+    ],
+    exported_deps = [
+        ":check_environment",
+        ":check_runner",
+    ],
+    exported_external_deps = [
+        "CLI11",
+    ],
+)
+
 cpp_binary(
     name = "fixmyfboss",
     srcs = [
@@ -98,6 +118,7 @@ cpp_binary(
         ":check_environment",
         ":check_registry",
         ":check_runner",
+        ":cli_options",
         ":password_prompt",
         ":result_printer",
         "//thrift/lib/cpp2/protocol:protocol",
@@ -146,5 +167,16 @@ cpp_unittest(
     network_access = network_access_utils.none(),
     deps = [
         ":check_environment",
+    ],
+)
+
+cpp_unittest(
+    name = "cli_options_test",
+    srcs = [
+        "tests/CliOptionsTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        ":cli_options",
     ],
 )

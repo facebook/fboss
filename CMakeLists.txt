@@ -1630,6 +1630,7 @@ add_dependencies(fboss_platform_services
   fixmyfboss_result_printer_test
   fixmyfboss_check_runner_test
   fixmyfboss_check_environment_test
+  fixmyfboss_cli_options_test
 )
 
 add_custom_target(qsfp_targets)
