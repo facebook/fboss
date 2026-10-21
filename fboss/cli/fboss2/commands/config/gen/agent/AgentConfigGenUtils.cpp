@@ -366,6 +366,8 @@ std::pair<fs::path, PlatformDescriptor> resolvePlatformDescriptor(
   return findPlatformDescriptorByVariantScan(paths, platform);
 }
 
+} // namespace
+
 std::unique_ptr<HwAsic> generateHwAsic(
     const cfg::SwitchSettings& switchSettings) {
   if (switchSettings.switchIdToSwitchInfo()->empty()) {
@@ -383,6 +385,8 @@ std::unique_ptr<HwAsic> generateHwAsic(
   asicSwitchInfo.switchMac() = kMockAsicMac;
   return HwAsic::makeAsic(switchId, asicSwitchInfo, std::nullopt, std::nullopt);
 }
+
+namespace {
 
 cfg::AsicType getAsicType(const cfg::SwitchConfig& switchConfig) {
   if (switchConfig.switchSettings()->switchIdToSwitchInfo()->empty()) {
