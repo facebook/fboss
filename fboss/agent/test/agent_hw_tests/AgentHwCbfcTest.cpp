@@ -12,7 +12,9 @@
 #include "fboss/agent/if/gen-cpp2/AgentHwTestCtrl.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/OlympicTestUtils.h"
 
+#include <fmt/core.h>
 #include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
@@ -35,6 +37,9 @@ class AgentHwCbfcTest : public AgentHwTest {
   // The TU1 receiver's values, so a TU1-to-TU1 link counts credits alike.
   static constexpr int16_t kSenderCreditSize = 56;
   static constexpr int16_t kSenderPacketOverhead = 16;
+  inline static const std::map<int16_t, int16_t> kVcMap{
+      {kRdmaVc, kRdmaVc},
+      {kMonitoringVc, kMonitoringVc}};
 
   utility::PortVcInfo getPortVcInfo(PortID portId) {
     auto switchId =
@@ -77,6 +82,12 @@ class AgentHwCbfcTest : public AgentHwTest {
     cbfc.senderCreditSize() = kSenderCreditSize;
     cbfc.senderPacketOverhead() = kSenderPacketOverhead;
     cfg.cbfcConfigs() = {{kCbfcConfigName, cbfc}};
+
+    // Traffic class N maps to VC N, as on SUSWs.
+    utility::addOlympicQosMaps(cfg, ensemble.getL3Asics());
+    for (auto& policy : *cfg.qosPolicies()) {
+      policy.qosMap().ensure().trafficClassToVcId() = kVcMap;
+    }
 
     for (const auto& portId : ensemble.masterLogicalInterfacePortIds()) {
       auto portCfg = utility::findCfgPort(cfg, portId);
@@ -121,6 +132,18 @@ void AgentHwCbfcTest::verifyCbfcProgrammed() {
       XLOG(DBG2) << "Port " << portId << " CBFC sender: creditSize="
                  << show(vcInfo.senderCreditSize())
                  << " pktOverhead=" << show(vcInfo.senderPacketOverhead());
+      auto showMap = [](const auto& opt) {
+        if (!opt.has_value()) {
+          return std::string("<not readable>");
+        }
+        std::string out;
+        for (const auto& [from, to] : *opt) {
+          out += fmt::format("{}->{} ", from, to);
+        }
+        return out.empty() ? std::string("<none>") : out;
+      };
+      XLOG(DBG2) << "Port " << portId << " CBFC qos maps: tcToVc="
+                 << showMap(vcInfo.trafficClassToVcId());
       for (const auto& vc : *vcInfo.virtualChannels()) {
         XLOG(DBG2) << "Port " << portId << " VC "
                    << static_cast<int>(*vc.index()) << " nativeCreditLimit="
@@ -131,6 +154,7 @@ void AgentHwCbfcTest::verifyCbfcProgrammed() {
       // values brcm-sai writes for fields it was never given.
       EXPECT_EQ(vcInfo.senderCreditSize(), kSenderCreditSize);
       EXPECT_EQ(vcInfo.senderPacketOverhead(), kSenderPacketOverhead);
+      EXPECT_EQ(vcInfo.trafficClassToVcId(), kVcMap);
 
       ASSERT_EQ(vcInfo.virtualChannels()->size(), 2);
 
