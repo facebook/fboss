@@ -3447,13 +3447,19 @@ void SaiPortManager::setQosMapsOnPort(
             SaiPortTraits::Attributes::QosTcAndColorToDot1pMap{mapping});
         break;
 #if defined(SAI_CBFC_SUPPORTED)
+      // On every port: brcm-sai folds TC_TO_VC into the port's DSCP_TO_TC
+      // map, and every port sharing that map must carry the same TC_TO_VC.
       case SAI_QOS_MAP_TYPE_TC_TO_VC:
         port->setOptionalAttribute(
             SaiPortTraits::Attributes::QosTcToVcMap{mapping});
         break;
+      // Same ports as the PFC maps: the TU1 management port rejects it with
+      // INVALID PORT NUMBER.
       case SAI_QOS_MAP_TYPE_QUEUE_TO_VC:
-        port->setOptionalAttribute(
-            SaiPortTraits::Attributes::QosQueueToVcMap{mapping});
+        if (isPfcSupported) {
+          port->setOptionalAttribute(
+              SaiPortTraits::Attributes::QosQueueToVcMap{mapping});
+        }
         break;
 #endif
       case SAI_QOS_MAP_TYPE_TC_TO_QUEUE:
