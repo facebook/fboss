@@ -170,6 +170,11 @@ void HwTestThriftHandler::getPortVcInfo(
         SaiPortTraits::Attributes::QosTcToVcMap{},
         [](const sai_qos_map_params_t& key) { return key.tc; });
   });
+  tryRead(portVcInfo.queueToVcId(), [&] {
+    return readVcMap(
+        SaiPortTraits::Attributes::QosQueueToVcMap{},
+        [](const sai_qos_map_params_t& key) { return key.queue_index; });
+  });
 
   if (!handle) {
     return;
