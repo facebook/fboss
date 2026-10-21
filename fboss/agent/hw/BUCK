@@ -1,7 +1,10 @@
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:export_files.bzl", "export_file")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
 
 oncall("fboss_agent_push")
+
+export_file(name = "hardware_stats.thrift")
 
 thrift_library(
     name = "hardware_stats",

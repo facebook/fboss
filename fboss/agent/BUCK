@@ -2636,6 +2636,14 @@ cpp_library(
     ],
 )
 
+export_file(name = "ApplyThriftConfig.cpp")
+
 export_file(name = "Main.cpp")
+
+export_file(name = "agent_stats.thrift")
+
+export_file(name = "switch_config.thrift")
+
+export_file(name = "switch_state.thrift")
 
 sai_main_all()
