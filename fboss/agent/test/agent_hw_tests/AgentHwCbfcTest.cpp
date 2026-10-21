@@ -83,10 +83,12 @@ class AgentHwCbfcTest : public AgentHwTest {
     cbfc.senderPacketOverhead() = kSenderPacketOverhead;
     cfg.cbfcConfigs() = {{kCbfcConfigName, cbfc}};
 
-    // Traffic class N maps to VC N, as on SUSWs.
+    // Traffic class and queue N map to VC N, as on SUSWs.
     utility::addOlympicQosMaps(cfg, ensemble.getL3Asics());
     for (auto& policy : *cfg.qosPolicies()) {
-      policy.qosMap().ensure().trafficClassToVcId() = kVcMap;
+      auto& qosMap = policy.qosMap().ensure();
+      qosMap.trafficClassToVcId() = kVcMap;
+      qosMap.queueToVcId() = kVcMap;
     }
 
     for (const auto& portId : ensemble.masterLogicalInterfacePortIds()) {
@@ -143,7 +145,8 @@ void AgentHwCbfcTest::verifyCbfcProgrammed() {
         return out.empty() ? std::string("<none>") : out;
       };
       XLOG(DBG2) << "Port " << portId << " CBFC qos maps: tcToVc="
-                 << showMap(vcInfo.trafficClassToVcId());
+                 << showMap(vcInfo.trafficClassToVcId())
+                 << " queueToVc=" << showMap(vcInfo.queueToVcId());
       for (const auto& vc : *vcInfo.virtualChannels()) {
         XLOG(DBG2) << "Port " << portId << " VC "
                    << static_cast<int>(*vc.index()) << " nativeCreditLimit="
@@ -155,6 +158,7 @@ void AgentHwCbfcTest::verifyCbfcProgrammed() {
       EXPECT_EQ(vcInfo.senderCreditSize(), kSenderCreditSize);
       EXPECT_EQ(vcInfo.senderPacketOverhead(), kSenderPacketOverhead);
       EXPECT_EQ(vcInfo.trafficClassToVcId(), kVcMap);
+      EXPECT_EQ(vcInfo.queueToVcId(), kVcMap);
 
       ASSERT_EQ(vcInfo.virtualChannels()->size(), 2);
 
