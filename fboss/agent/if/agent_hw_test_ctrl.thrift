@@ -84,6 +84,9 @@ struct PortVcInfo {
   // Read from the SDK sender table, so they show what hardware holds.
   5: optional i64 senderCreditSize;
   6: optional i64 senderPacketOverhead;
+  // The port's TC_TO_VC map read back from hardware; empty when no map is
+  // bound, unset when the SDK refuses the read.
+  7: optional map<i16, i16> trafficClassToVcId;
 }
 
 struct AggPortInfo {
