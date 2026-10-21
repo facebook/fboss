@@ -6218,6 +6218,7 @@ class ChildThriftPath<::facebook::fboss::cfg::MySidConfig, ::facebook::fboss::fs
   
     STRUCT_CHILD_GETTERS(locatorPrefix, 1);
     STRUCT_CHILD_GETTERS(entries, 2);
+    STRUCT_CHILD_GETTERS(locatorPrefixes, 3);
 };
 
 

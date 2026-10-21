@@ -2485,10 +2485,12 @@ union MySidEntryConfig {
 }
 
 struct MySidConfig {
-  // Shared locator prefix for all MySID entries (e.g., "3001:db8::/32")
+  // Deprecated: use locatorPrefixes.
   1: string locatorPrefix;
   // Map from function ID (i16) to MySID entry config
   2: map<i16, MySidEntryConfig> entries;
+  // Every entry is programmed under each prefix; empty uses locatorPrefix.
+  3: list<string> locatorPrefixes;
 }
 
 enum DsfNodeType {
