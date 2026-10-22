@@ -243,15 +243,16 @@ void PbrAclManager::updateFailed(const std::shared_ptr<SwitchState>& curState) {
   reconstructFromSwitchState(curState);
 }
 
-std::shared_ptr<SwitchState> PbrAclManager::processDelta(
-    const StateDelta& delta) {
+void PbrAclManager::processDelta(
+    const StateDelta& delta,
+    InputOutputState* inOutState) {
   auto newState = delta.newState();
 
   // TODO(zecheng): also react to namedNextHopGroup member changes (FibInfo
   // normalized-id deltas), which shift a policy's match/redirect ids without a
   // policy delta.
   if (DeltaFunctions::isEmpty(delta.getClassBasedPoliciesDelta())) {
-    return newState;
+    return;
   }
   auto policies = newState->getClassBasedPolicies();
   size_t numPolicies = policies ? policies->numNodes() : 0;
@@ -263,7 +264,7 @@ std::shared_ptr<SwitchState> PbrAclManager::processDelta(
     if (numPolicies > 0) {
       throwPbrTableMissing(kPbrTableId, numPolicies);
     }
-    return newState;
+    return;
   }
 
   bool foundTable = false;
@@ -292,13 +293,14 @@ std::shared_ptr<SwitchState> PbrAclManager::processDelta(
     if (numPolicies > 0) {
       throwPbrTableMissing(kPbrTableId, numPolicies);
     }
-    return newState;
+    return;
   }
   if (!changed) {
-    return newState;
+    return;
   }
   newState->publish();
-  return newState;
+  inOutState->replaceLastDelta(StateDelta(delta.oldState(), newState));
+  inOutState->updated = true;
 }
 
 std::vector<StateDelta> PbrAclManager::modifyStateImpl(
@@ -310,9 +312,14 @@ std::vector<StateDelta> PbrAclManager::modifyStateImpl(
   retDeltas.reserve(deltas.size());
   auto oldState = deltas.begin()->oldState();
   for (const auto& delta : deltas) {
-    auto modifiedState = processDelta(StateDelta(oldState, delta.newState()));
-    retDeltas.emplace_back(oldState, modifiedState);
-    oldState = modifiedState;
+    StateDelta curDelta(oldState, delta.newState());
+    InputOutputState inOutState{curDelta};
+    processDelta(curDelta, &inOutState);
+    inOutState.publishLastDelta();
+    for (auto& out : inOutState.moveDeltas()) {
+      oldState = out.newState();
+      retDeltas.emplace_back(out.oldState(), out.newState());
+    }
   }
   return retDeltas;
 }

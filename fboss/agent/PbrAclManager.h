@@ -71,7 +71,7 @@ class PbrAclManager {
     std::vector<StateDelta> out_;
   };
 
-  std::shared_ptr<SwitchState> processDelta(const StateDelta& delta);
+  void processDelta(const StateDelta& delta, InputOutputState* inOutState);
   std::vector<StateDelta> modifyStateImpl(
       const std::vector<StateDelta>& deltas);
 };
