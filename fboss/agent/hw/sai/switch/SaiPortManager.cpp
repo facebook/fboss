@@ -3427,7 +3427,8 @@ void SaiPortManager::setQosMapsOnPort(
   auto portHandle = getPortHandle(portID);
   auto portType = getPortType(portID);
   auto& port = portHandle->port;
-  auto isPfcSupported =
+  // Ports that carry flow-control maps: the PFC maps and CBFC's QUEUE_TO_VC.
+  auto isFlowControlPort =
       (portType != cfg::PortType::RECYCLE_PORT &&
        portType != cfg::PortType::EVENTOR_PORT &&
        portType != cfg::PortType::MANAGEMENT_PORT);
@@ -3453,10 +3454,9 @@ void SaiPortManager::setQosMapsOnPort(
         port->setOptionalAttribute(
             SaiPortTraits::Attributes::QosTcToVcMap{mapping});
         break;
-      // Same ports as the PFC maps: the TU1 management port rejects it with
-      // INVALID PORT NUMBER.
+      // The TU1 management port rejects it with INVALID PORT NUMBER.
       case SAI_QOS_MAP_TYPE_QUEUE_TO_VC:
-        if (isPfcSupported) {
+        if (isFlowControlPort) {
           port->setOptionalAttribute(
               SaiPortTraits::Attributes::QosQueueToVcMap{mapping});
         }
@@ -3478,19 +3478,19 @@ void SaiPortManager::setQosMapsOnPort(
         }
         break;
       case SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP:
-        if (isPfcSupported) {
+        if (isFlowControlPort) {
           port->setOptionalAttribute(
               SaiPortTraits::Attributes::QosTcToPriorityGroupMap{mapping});
         }
         break;
       case SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_QUEUE:
-        if (isPfcSupported) {
+        if (isFlowControlPort) {
           port->setOptionalAttribute(
               SaiPortTraits::Attributes::QosPfcPriorityToQueueMap{mapping});
         }
         break;
       case SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_PRIORITY_GROUP:
-        if (isPfcSupported && FLAGS_enable_pfc_priority_to_pg_map) {
+        if (isFlowControlPort && FLAGS_enable_pfc_priority_to_pg_map) {
           port->setOptionalAttribute(
               SaiPortTraits::Attributes::QosPfcPriorityToPriorityGroupMap{
                   mapping});
