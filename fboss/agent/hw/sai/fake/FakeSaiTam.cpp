@@ -754,11 +754,17 @@ sai_status_t get_tam_transport_attribute(
         break;
 
       case SAI_TAM_TRANSPORT_ATTR_FAKE_SRC_MAC_ADDRESS:
+        if (!transport.srcMac_) {
+          return SAI_STATUS_ATTR_NOT_IMPLEMENTED_0 + i;
+        }
         facebook::fboss::toSaiMacAddress(
             transport.srcMac_.value(), attr_list[i].value.mac);
         break;
 
       case SAI_TAM_TRANSPORT_ATTR_FAKE_DST_MAC_ADDRESS:
+        if (!transport.dstMac_) {
+          return SAI_STATUS_ATTR_NOT_IMPLEMENTED_0 + i;
+        }
         facebook::fboss::toSaiMacAddress(
             transport.dstMac_.value(), attr_list[i].value.mac);
         break;
@@ -878,6 +884,9 @@ sai_status_t get_tam_collector_attribute(
         break;
 
       case SAI_TAM_COLLECTOR_ATTR_TRUNCATE_SIZE:
+        if (!collector.truncateSize_) {
+          return SAI_STATUS_ATTR_NOT_IMPLEMENTED_0 + i;
+        }
         attr_list[i].value.u16 = collector.truncateSize_.value();
         break;
 
@@ -886,6 +895,9 @@ sai_status_t get_tam_collector_attribute(
         break;
 
       case SAI_TAM_COLLECTOR_ATTR_DSCP_VALUE:
+        if (!collector.dscp_) {
+          return SAI_STATUS_ATTR_NOT_IMPLEMENTED_0 + i;
+        }
         attr_list[i].value.u8 = collector.dscp_.value();
         break;
 

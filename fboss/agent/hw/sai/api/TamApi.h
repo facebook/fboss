@@ -37,8 +37,11 @@ struct SaiTamCollectorTraits {
         EnumType,
         SAI_TAM_COLLECTOR_ATTR_TRANSPORT,
         sai_object_id_t>;
-    using DscpValue =
-        SaiAttribute<EnumType, SAI_TAM_COLLECTOR_ATTR_DSCP_VALUE, sai_uint8_t>;
+    using DscpValue = SaiAttribute<
+        EnumType,
+        SAI_TAM_COLLECTOR_ATTR_DSCP_VALUE,
+        sai_uint8_t,
+        StdNullOptDefault<sai_uint8_t>>;
   };
   using AdapterKey = TamCollectorSaiId;
   using AdapterHostKey = std::tuple<
@@ -75,13 +78,17 @@ struct SaiTamTransportTraits {
     struct AttributeSrcMacAddress {
       std::optional<sai_attr_id_t> operator()();
     };
-    using SrcMacAddress =
-        SaiExtensionAttribute<folly::MacAddress, AttributeSrcMacAddress>;
+    using SrcMacAddress = SaiExtensionAttribute<
+        folly::MacAddress,
+        AttributeSrcMacAddress,
+        StdNullOptDefault<folly::MacAddress>>;
     struct AttributeDstMacAddress {
       std::optional<sai_attr_id_t> operator()();
     };
-    using DstMacAddress =
-        SaiExtensionAttribute<folly::MacAddress, AttributeDstMacAddress>;
+    using DstMacAddress = SaiExtensionAttribute<
+        folly::MacAddress,
+        AttributeDstMacAddress,
+        StdNullOptDefault<folly::MacAddress>>;
   };
   using AdapterKey = TamTransportSaiId;
   using AdapterHostKey = std::tuple<

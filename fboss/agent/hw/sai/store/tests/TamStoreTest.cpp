@@ -203,6 +203,53 @@ TEST_F(TamStoreTest, loadTam) {
   EXPECT_EQ(tamStore.get(tamTraits(event))->adapterKey(), tam);
 }
 
+TEST_F(TamStoreTest, loadTamTransportAndCollectorWithUnsetOptionals) {
+  auto transportAttrs = tamTransportTraits();
+  std::get<std::optional<SaiTamTransportTraits::Attributes::SrcMacAddress>>(
+      transportAttrs) = std::nullopt;
+  std::get<std::optional<SaiTamTransportTraits::Attributes::DstMacAddress>>(
+      transportAttrs) = std::nullopt;
+  const auto transport =
+      saiApiTable->tamApi().create<SaiTamTransportTraits>(transportAttrs, 0);
+
+  auto collectorAttrs = tamCollectorTraits(transport, true /* ipV4 */);
+  std::get<std::optional<SaiTamCollectorTraits::Attributes::TruncateSize>>(
+      collectorAttrs) = std::nullopt;
+  std::get<std::optional<SaiTamCollectorTraits::Attributes::DscpValue>>(
+      collectorAttrs) = std::nullopt;
+  const auto collector =
+      saiApiTable->tamApi().create<SaiTamCollectorTraits>(collectorAttrs, 0);
+
+  SaiStore store{0};
+  store.reload();
+
+  const auto loadedTransport =
+      store.get<SaiTamTransportTraits>().get(transportAttrs);
+  ASSERT_NE(loadedTransport, nullptr);
+  EXPECT_EQ(loadedTransport->adapterKey(), transport);
+  EXPECT_FALSE(
+      std::get<std::optional<SaiTamTransportTraits::Attributes::SrcMacAddress>>(
+          loadedTransport->attributes())
+          .has_value());
+  EXPECT_FALSE(
+      std::get<std::optional<SaiTamTransportTraits::Attributes::DstMacAddress>>(
+          loadedTransport->attributes())
+          .has_value());
+
+  const auto loadedCollector =
+      store.get<SaiTamCollectorTraits>().get(collectorAttrs);
+  ASSERT_NE(loadedCollector, nullptr);
+  EXPECT_EQ(loadedCollector->adapterKey(), collector);
+  EXPECT_FALSE(
+      std::get<std::optional<SaiTamCollectorTraits::Attributes::TruncateSize>>(
+          loadedCollector->attributes())
+          .has_value());
+  EXPECT_FALSE(
+      std::get<std::optional<SaiTamCollectorTraits::Attributes::DscpValue>>(
+          loadedCollector->attributes())
+          .has_value());
+}
+
 TEST_F(TamStoreTest, tamCtors) {
   auto transport = createTransport();
   auto collectorV4 = createCollector(transport, true /* ipV4 */);
