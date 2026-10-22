@@ -18,6 +18,7 @@
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/ndp/IPv6RouteAdvertiser.h"
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/ICMPHdr.h"
@@ -1332,6 +1333,32 @@ TEST_F(NdpTest, RouterAdvConfigWithRouterAddress) {
 
 TEST_F(NdpTest, RouterAdvConfigWithRouterAddressPortRif) {
   this->validateRouterAdvForPortRif("fe80::face:b00c");
+}
+
+TEST_F(NdpTest, RouterAdvertiserMoveAssignStopsReplacedAdvertiser) {
+  // A long RA interval keeps periodic advertisements from firing, so the only
+  // RAs counted are the final ones sent when an advertiser is stopped.
+  auto config = createSwitchConfig(seconds(3600), seconds(0));
+  auto handle = createTestHandle(&config);
+  auto sw = handle->getSw();
+  sw->initialConfigApplied(std::chrono::steady_clock::now());
+  EXPECT_MANY_SWITCHED_PKTS(sw, "router advertisement", [](const TxPacket*) {});
+
+  auto state = sw->getState();
+  auto intf = state->getInterfaces()->getNode(InterfaceID(5));
+  const std::string kRaCounter = "PrimaryInterface.router_advertisements.sum";
+
+  IPv6RouteAdvertiser replaced(sw, state.get(), intf.get());
+  IPv6RouteAdvertiser replacement(sw, state.get(), intf.get());
+  waitForBackgroundThread(sw);
+  CounterCache counters(sw);
+
+  // flat_map::erase() shifts entries with move assignment, so the advertiser
+  // being overwritten must be stopped rather than left running.
+  replaced = std::move(replacement);
+  waitForBackgroundThread(sw);
+  counters.update();
+  counters.checkDelta(kRaCounter, 1);
 }
 
 TEST_F(NdpTest, receiveNeighborAdvertisementUnsolicited) {
