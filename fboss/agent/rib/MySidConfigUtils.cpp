@@ -10,6 +10,65 @@
 
 namespace facebook::fboss {
 
+namespace {
+
+MySidWithNextHops convertMySidEntry(
+    const folly::IPAddressV6& locatorAddr,
+    uint8_t locatorPrefixLen,
+    int16_t functionId,
+    const cfg::MySidEntryConfig& entryConfig,
+    const std::unordered_map<std::string, InterfaceID>& portNameToInterfaceId) {
+  auto funcIdStr = fmt::format("{:x}", functionId);
+  auto sidAddr = buildSidAddress(locatorAddr, locatorPrefixLen, funcIdStr);
+
+  state::MySidFields fields;
+  facebook::network::thrift::IPPrefix prefix;
+  prefix.prefixAddress() =
+      facebook::network::toBinaryAddress(folly::IPAddress(sidAddr));
+  prefix.prefixLength() = locatorPrefixLen + 16;
+  fields.mySid() = prefix;
+  fields.clientId() = ClientID::STATIC_ROUTE;
+
+  RouteNextHopSet nhops;
+
+  auto entryType = entryConfig.getType();
+  switch (entryType) {
+    case cfg::MySidEntryConfig::Type::adjacency: {
+      fields.type() = MySidType::ADJACENCY_MICRO_SID;
+      const auto& adjConfig = entryConfig.get_adjacency();
+      auto it = portNameToInterfaceId.find(*adjConfig.portName());
+      if (it == portNameToInterfaceId.end()) {
+        throw FbossError(
+            "Port '", *adjConfig.portName(), "' not found in switch config");
+      }
+      fields.adjacencyInterfaceId() = static_cast<int32_t>(it->second);
+      fields.isV6() = *adjConfig.isV6();
+      break;
+    }
+    case cfg::MySidEntryConfig::Type::node: {
+      fields.type() = MySidType::NODE_MICRO_SID;
+      const auto& nodeConfig = entryConfig.get_node();
+      nhops.insert(UnresolvedNextHop(
+          folly::IPAddress(*nodeConfig.nodeAddress()), ECMP_WEIGHT));
+      break;
+    }
+    case cfg::MySidEntryConfig::Type::decap: {
+      fields.type() = MySidType::DECAPSULATE_AND_LOOKUP;
+      break;
+    }
+    default:
+      throw FbossError(
+          "Unknown MySidEntryConfig type for function ID ", functionId);
+  }
+
+  auto mySid = std::make_shared<MySid>(fields);
+  mySid->setUnresolveNextHopsId(std::nullopt);
+  mySid->setResolvedNextHopsId(std::nullopt);
+  return MySidWithNextHops{std::move(mySid), std::move(nhops), std::nullopt};
+}
+
+} // namespace
+
 folly::IPAddressV6 buildSidAddress(
     const folly::IPAddressV6& locatorAddr,
     uint8_t locatorPrefixLen,
@@ -118,64 +177,16 @@ std::vector<MySidWithNextHops> convertMySidConfig(
     const cfg::MySidConfig& config,
     const std::unordered_map<std::string, InterfaceID>& portNameToInterfaceId) {
   std::vector<MySidWithNextHops> result;
-
-  auto locatorNetwork =
+  const auto [locatorIp, locatorPrefixLen] =
       folly::IPAddress::createNetwork(*config.locatorPrefix());
-  auto locatorAddr = locatorNetwork.first.asV6();
-  auto locatorPrefixLen = static_cast<uint8_t>(locatorNetwork.second);
-  uint8_t sidPrefixLen = locatorPrefixLen + 16;
-
   for (const auto& [functionId, entryConfig] : *config.entries()) {
-    auto funcIdStr = fmt::format("{:x}", functionId);
-    auto sidAddr = buildSidAddress(locatorAddr, locatorPrefixLen, funcIdStr);
-
-    state::MySidFields fields;
-    facebook::network::thrift::IPPrefix prefix;
-    prefix.prefixAddress() =
-        facebook::network::toBinaryAddress(folly::IPAddress(sidAddr));
-    prefix.prefixLength() = sidPrefixLen;
-    fields.mySid() = prefix;
-    fields.clientId() = ClientID::STATIC_ROUTE;
-
-    RouteNextHopSet nhops;
-
-    auto entryType = entryConfig.getType();
-    switch (entryType) {
-      case cfg::MySidEntryConfig::Type::adjacency: {
-        fields.type() = MySidType::ADJACENCY_MICRO_SID;
-        const auto& adjConfig = entryConfig.get_adjacency();
-        auto it = portNameToInterfaceId.find(*adjConfig.portName());
-        if (it == portNameToInterfaceId.end()) {
-          throw FbossError(
-              "Port '", *adjConfig.portName(), "' not found in switch config");
-        }
-        fields.adjacencyInterfaceId() = static_cast<int32_t>(it->second);
-        fields.isV6() = *adjConfig.isV6();
-        break;
-      }
-      case cfg::MySidEntryConfig::Type::node: {
-        fields.type() = MySidType::NODE_MICRO_SID;
-        const auto& nodeConfig = entryConfig.get_node();
-        nhops.insert(UnresolvedNextHop(
-            folly::IPAddress(*nodeConfig.nodeAddress()), ECMP_WEIGHT));
-        break;
-      }
-      case cfg::MySidEntryConfig::Type::decap: {
-        fields.type() = MySidType::DECAPSULATE_AND_LOOKUP;
-        break;
-      }
-      default:
-        throw FbossError(
-            "Unknown MySidEntryConfig type for function ID ", functionId);
-    }
-
-    auto mySid = std::make_shared<MySid>(fields);
-    mySid->setUnresolveNextHopsId(std::nullopt);
-    mySid->setResolvedNextHopsId(std::nullopt);
-    result.emplace_back(
-        MySidWithNextHops{std::move(mySid), std::move(nhops), std::nullopt});
+    result.push_back(convertMySidEntry(
+        locatorIp.asV6(),
+        locatorPrefixLen,
+        functionId,
+        entryConfig,
+        portNameToInterfaceId));
   }
-
   return result;
 }
 
