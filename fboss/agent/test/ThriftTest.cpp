@@ -3791,6 +3791,57 @@ TEST_F(ThriftTest, getMySidEntriesReflectsDelete) {
       "2001:db8::2/64");
 }
 
+TEST_F(ThriftTestWithNhopIdMgr, getMySidEntriesReportsBackupNextHops) {
+  // Add an ADJACENCY MySid directly via the RIB (bypassing ThriftHandler
+  // validation), then protect it via addAdjacencyFrr. The backup resolves
+  // against connected routes configured in testConfigA().
+  auto ribMySidToSwitchStateFunc =
+      createRibMySidToSwitchStateFunction(std::nullopt);
+  state::MySidFields fields;
+  fields.type() = MySidType::ADJACENCY_MICRO_SID;
+  fields.mySid() = toFrrMySidIpPrefix("2001:db8::1", 64);
+  fields.adjacencyInterfaceId() = static_cast<int32_t>(kInterfaceA);
+  fields.isV6() = true;
+  fields.clientId() = ClientID::STATIC_ROUTE;
+  auto mySid = std::make_shared<MySid>(fields);
+  const RouteNextHopSet nextHops{
+      ResolvedNextHop(folly::IPAddress(kNhopAddrA), kInterfaceA, ECMP_WEIGHT)};
+  sw_->getRib()->update(
+      sw_->getScopeResolver(),
+      std::vector<MySidWithNextHops>{{mySid, nextHops, std::nullopt}},
+      {},
+      {},
+      "add adjacency mysid via rib",
+      ribMySidToSwitchStateFunc,
+      sw_);
+
+  ThriftHandler handler(sw_);
+  auto protectedObject = std::make_unique<FrrProtectedObject>();
+  protectedObject->mySid() = toFrrMySidIpPrefix("2001:db8::1", 64);
+  NextHopThrift backupNextHop;
+  backupNextHop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6(kNhopAddrB));
+  auto backupNextHops = std::make_unique<std::vector<NextHopThrift>>();
+  backupNextHops->push_back(std::move(backupNextHop));
+  handler.addAdjacencyFrr(
+      std::move(protectedObject), std::move(backupNextHops));
+
+  std::vector<MySidEntry> result;
+  handler.getMySidEntries(result);
+  ASSERT_EQ(result.size(), 1);
+  const auto& entry = result[0];
+  ASSERT_EQ(entry.backupUnresolvedNextHops()->size(), 1);
+  EXPECT_EQ(
+      facebook::network::toIPAddress(
+          *entry.backupUnresolvedNextHops()[0].address()),
+      folly::IPAddress(kNhopAddrB));
+  ASSERT_EQ(entry.backupResolvedNextHops()->size(), 1);
+  EXPECT_EQ(
+      facebook::network::toIPAddress(
+          *entry.backupResolvedNextHops()[0].address()),
+      folly::IPAddress(kNhopAddrB));
+}
+
 TEST_F(ThriftTestWithNhopIdMgr, getMySidEntriesNodeAndAdjacencyTypesViaRib) {
   // Add NODE and ADJACENCY MySid entries directly via the RIB (bypassing
   // ThriftHandler validation). Their nexthops resolve against connected routes

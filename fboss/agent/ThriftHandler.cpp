@@ -1210,6 +1210,28 @@ void ThriftHandler::getMySidEntries(std::vector<MySidEntry>& entries) {
         entry.resolvedNextHops() = util::fromRouteNextHopSet(nhopSet);
       }
 
+      // Populate backup unresolved next hops (FRR backups as requested via
+      // addAdjacencyFrr).
+      if (auto backupUnresolvedId = mySid->getBackupUnresolveNextHopsId()) {
+        auto nhops = getNextHops(
+            state,
+            static_cast<NextHopSetId>(
+                static_cast<int64_t>(*backupUnresolvedId)));
+        RouteNextHopSet nhopSet;
+        nhopSet.insert(nhops.begin(), nhops.end());
+        entry.backupUnresolvedNextHops() = util::fromRouteNextHopSet(nhopSet);
+      }
+
+      // Populate backup resolved next hops (FRR backups post resolution).
+      if (auto backupResolvedId = mySid->getBackupResolvedNextHopsId()) {
+        auto nhops = getNextHops(
+            state,
+            static_cast<NextHopSetId>(static_cast<int64_t>(*backupResolvedId)));
+        RouteNextHopSet nhopSet;
+        nhopSet.insert(nhops.begin(), nhops.end());
+        entry.backupResolvedNextHops() = util::fromRouteNextHopSet(nhopSet);
+      }
+
       entries.emplace_back(std::move(entry));
     }
   }
