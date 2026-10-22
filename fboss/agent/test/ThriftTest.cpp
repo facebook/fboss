@@ -220,6 +220,52 @@ TEST_F(ThriftTest, getPortInfoUserMetaData) {
       cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED);
 }
 
+TEST_F(ThriftTest, getPortInfoCbfc) {
+  ThriftHandler handler(sw_);
+  constexpr int32_t kTestPortId = 1;
+
+  PortInfoThrift before;
+  handler.getPortInfo(before, kTestPortId);
+  EXPECT_FALSE(before.cbfc().has_value());
+
+  cfg::PortVcConfig rdma;
+  rdma.id() = 2;
+  rdma.senderEnable() = true;
+  rdma.receiverEnable() = true;
+  cfg::PortVcConfig monitoring;
+  monitoring.id() = 6;
+  monitoring.senderEnable() = true;
+  monitoring.receiverEnable() = true;
+  cfg::CbfcConfig cbfcConfig;
+  cbfcConfig.virtualChannels() = {rdma, monitoring};
+  cbfcConfig.senderCreditLimit() = 8192;
+  cbfcConfig.senderCreditSize() = 56;
+  cbfcConfig.senderPacketOverhead() = 16;
+
+  auto config = testConfigA();
+  config.cbfcConfigs() = {{"cbfc", cbfcConfig}};
+  for (auto& port : *config.ports()) {
+    if (*port.logicalID() == kTestPortId) {
+      port.cbfcConfigName() = "cbfc";
+    }
+  }
+  sw_->applyConfig("bind cbfc profile to port", config);
+
+  PortInfoThrift after;
+  handler.getPortInfo(after, kTestPortId);
+  ASSERT_TRUE(after.cbfc().has_value());
+  EXPECT_EQ(*after.cbfc()->configName(), "cbfc");
+  EXPECT_EQ(*after.cbfc()->virtualChannels(), (std::vector<int16_t>{2, 6}));
+  EXPECT_EQ(after.cbfc()->senderCreditSize(), 56);
+  EXPECT_EQ(after.cbfc()->senderPacketOverhead(), 16);
+  EXPECT_EQ(after.cbfc()->senderCreditLimit(), 8192);
+
+  std::map<int32_t, PortInfoThrift> allPortInfo;
+  handler.getAllPortInfo(allPortInfo);
+  ASSERT_TRUE(allPortInfo.contains(kTestPortId));
+  EXPECT_EQ(allPortInfo[kTestPortId].cbfc(), after.cbfc());
+}
+
 TEST_F(ThriftTest, getPortInfoIngressAclTableName) {
   SCOPE_EXIT {
     FLAGS_enable_acl_table_group = false;
