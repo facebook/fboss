@@ -99,7 +99,7 @@ elseif (CHENAB_SAI_SDK)
     fboss/agent/hw/sai/switch/npu/chenab/SaiSwitchManager.cpp
     fboss/agent/hw/sai/switch/npu/chenab/oss/SaiSwitchManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiSwitch.cpp
-    fboss/agent/hw/sai/switch/oss/SaiTamManager.cpp
+    fboss/agent/hw/sai/switch/npu/chenab/SaiTamManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiAclTableManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiQueueManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiVendorSwitchManager.cpp
