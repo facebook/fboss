@@ -17579,6 +17579,9 @@
           "test_name_regex": "AgentPortProfileTest_PROFILE_800G_.*$"
         },
         {
+          "test_name_regex": "AgentQueuePerHostTest.VerifyHostToQueueMappingClassIDsAfterResolve$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentQueuePerHostTest.VerifyHostToQueueMappingClassIDsWithResolve$"
         },
         {
@@ -20813,6 +20816,9 @@
           "test_name_regex": "AgentPortProfileTest_PROFILE_800G_.*$"
         },
         {
+          "test_name_regex": "AgentQueuePerHostTest.VerifyHostToQueueMappingClassIDsAfterResolve$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentQueuePerHostTest.VerifyHostToQueueMappingClassIDsWithResolve$"
         },
         {
@@ -21314,6 +21320,9 @@
         },
         {
           "test_name_regex": "AgentPortProfileTest_PROFILE_800G_.*$"
+        },
+        {
+          "test_name_regex": "AgentQueuePerHostTest.VerifyHostToQueueMappingClassIDsAfterResolve$"
         },
         {
           "test_name_regex": "warm_boot.AgentQueuePerHostTest.VerifyHostToQueueMappingClassIDsWithResolve$"
@@ -26167,6 +26176,9 @@
           "test_name_regex": "warm_boot.AgentHwLinkDebounceTest.Link(Up|Down)DebounceRetriggerCount$"
         },
         {
+          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
+        },
+        {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
         }
     ],
@@ -26641,6 +26653,9 @@
         },
         {
           "test_name_regex": "warm_boot.AgentHwLinkDebounceTest.Link(Up|Down)DebounceRetriggerCount$"
+        },
+        {
+          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
         },
         {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
