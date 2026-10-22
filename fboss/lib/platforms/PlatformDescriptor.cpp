@@ -288,7 +288,8 @@ cfg::PlatformMapping PlatformDescriptorRegistry::loadPlatformMappingFromRaw(
   }
 
   return reconstructPlatformMapping(
-      readRawPlatformMapping(entry->rawPlatformMappingPath),
+      readRawPlatformMapping(
+          resolveRawPlatformMappingPath(entry->rawPlatformMappingPath)),
       *portIdToPortAssignment);
 }
 
@@ -347,7 +348,7 @@ PlatformDescriptorRegistry::loadPlatformDescriptorEntriesFromDirectory(
         PlatformDescriptorEntry{
             loadPlatformDescriptorFromFile(descriptorFile.string()),
             mappingFile.string(),
-            fs::exists(rawMappingFile) ? rawMappingFile.string() : ""});
+            rawMappingFile.string()});
   }
   return descriptorEntries;
 }

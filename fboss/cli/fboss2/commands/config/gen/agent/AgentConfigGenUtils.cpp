@@ -559,12 +559,13 @@ ResolvedAgentConfigInputs resolveAgentConfigInputs(
   auto [descriptorPath, descriptor] =
       resolvePlatformDescriptor(fbossRoot, platformDirectory, platform);
   const auto mappingDirectory = descriptorPath.parent_path();
-  const auto rawMappingPath = mappingDirectory / kRawPlatformMappingFileName;
+  const auto rawMappingPath = resolveRawPlatformMappingPath(
+      (mappingDirectory / kRawPlatformMappingFileName).string());
   const auto assignmentPath = mappingDirectory / kPortAssignmentFileName;
   auto portAssignments = readPortIdToPortAssignment(assignmentPath.string());
   auto platformMapping =
       std::make_unique<PlatformMapping>(reconstructPlatformMapping(
-          readRawPlatformMapping(rawMappingPath.string()), portAssignments));
+          readRawPlatformMapping(rawMappingPath), portAssignments));
 
   return {
       .profile = normalizedProfile,
