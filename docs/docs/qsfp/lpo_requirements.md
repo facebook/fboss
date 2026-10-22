@@ -168,12 +168,10 @@ It also sets the `enable_explicit_control` flag, which is off by default.
 Without it `qsfp_service` does not write driver peaking to the module, even when
 an LPO row matches.
 
-```json {2-4,7-24}
+```json
 {
   "defaultCommandLineArgs": {
     "enable_explicit_control": "true"
-  },
-  "thriftApiToRateLimitInQps": {
   },
   "transceiverVendorOverrides": [
     {
