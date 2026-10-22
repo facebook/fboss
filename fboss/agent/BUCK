@@ -987,8 +987,10 @@ cpp_library(
         ":hwswitch_matcher",
         ":switch_config-cpp2-types",
         "//fboss/agent/state:nodebase",
-        "//fboss/agent/state:state",
         "//folly/logging:logging",
+    ],
+    exported_deps = [
+        "//fboss/agent/state:state",
     ],
 )
 

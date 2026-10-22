@@ -150,6 +150,12 @@ bool applyPolicyDelta(AclMap& newAclMap, const StateDelta& delta) {
 
 } // namespace
 
+PbrAclManager::InputOutputState::InputOutputState(const StateDelta& in) {
+  in.oldState()->publish();
+  in.newState()->publish();
+  out_.emplace_back(in.oldState(), in.newState());
+}
+
 std::vector<StateDelta> PbrAclManager::modifyState(
     const std::vector<StateDelta>& deltas) {
   return modifyStateImpl(deltas);
