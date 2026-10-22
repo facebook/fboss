@@ -420,17 +420,20 @@ class AgentSrv6MidpointTest : public AgentHwTest {
   // a *configured* local SID, and MySidConfigUtils programs just the
   // per-function /48s with nothing covering the block. Such a packet misses
   // the route table instead, so it lands in inDstNullDiscards.
-  void
-  verifyUnconfiguredSidDrop(PortID injectPort, PortID egressPort, bool isV4) {
+  void verifyUnconfiguredSidDrop(
+      PortID injectPort,
+      PortID egressPort,
+      bool isV4,
+      std::optional<folly::IPAddressV6> outerDst = std::nullopt) {
+    const auto dstAddr = outerDst.value_or(kUnconfiguredSidOuterDst);
     XLOG(DBG2) << "verifyUnconfiguredSidDrop: inner=" << (isV4 ? "v4" : "v6")
-               << " outerDst=" << kUnconfiguredSidOuterDst.str();
+               << " outerDst=" << dstAddr.str();
     auto portStatsBefore = this->getLatestPortStats(injectPort);
     auto egressStatsBefore = this->getLatestPortStats(egressPort);
     auto srv6DiscardsBefore =
         portStatsBefore.inSrv6MySidDiscards_().value_or(0);
 
-    sendMidpointPacket(
-        false /* ecnMarked */, isV4, injectPort, kUnconfiguredSidOuterDst);
+    sendMidpointPacket(false /* ecnMarked */, isV4, injectPort, dstAddr);
 
     WITH_RETRIES({
       auto portStatsAfter = this->getLatestPortStats(injectPort);
@@ -454,10 +457,12 @@ class AgentSrv6MidpointTest : public AgentHwTest {
         srv6DiscardsBefore);
   }
 
-  void verifyUnconfiguredSidDropFrontPanel(PortID egressPort) {
+  void verifyUnconfiguredSidDropFrontPanel(
+      PortID egressPort,
+      std::optional<folly::IPAddressV6> outerDst = std::nullopt) {
     auto injectPort = findInjectPort(egressPort);
     for (bool isV4 : {false, true}) {
-      verifyUnconfiguredSidDrop(injectPort, egressPort, isV4);
+      verifyUnconfiguredSidDrop(injectPort, egressPort, isV4, outerDst);
     }
   }
 };
@@ -642,10 +647,27 @@ class AgentSrv6MidpointDualLocatorTest
             {kPlaneShift.expectedOuterDst, 128}});
   }
 
+  void applyLocatorPrefixes(const std::vector<std::string>& locatorPrefixes) {
+    auto cfg = this->initialConfig(*this->getAgentEnsemble());
+    cfg.mySidConfig()->locatorPrefixes() = locatorPrefixes;
+    if constexpr (PortType::isTrunk) {
+      this->applyConfigAndEnableTrunks(cfg);
+    } else {
+      this->applyNewConfig(cfg);
+    }
+  }
+
   void verifyBothLocatorsForward() {
     auto egressPort = this->getEgressPort(this->mySidPortDesc());
     this->verifyMidpointCpuAndFrontPanel(egressPort);
     this->verifyMidpointCpuAndFrontPanel(egressPort, kPlaneShift);
+  }
+
+  void verifyOnlyLegacyLocatorForwards() {
+    auto egressPort = this->getEgressPort(this->mySidPortDesc());
+    this->verifyMidpointCpuAndFrontPanel(egressPort);
+    this->verifyUnconfiguredSidDropFrontPanel(
+        egressPort, kPlaneShift.pktOuterDst);
   }
 };
 
@@ -659,6 +681,40 @@ TYPED_TEST(AgentSrv6MidpointDualLocatorTest, sendPacketForUASidBothLocators) {
   };
 
   auto verify = [this]() { this->verifyBothLocatorsForward(); };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentSrv6MidpointDualLocatorTest, planeLocatorAddedPostWarmboot) {
+  auto setup = [this]() {
+    this->setupHelper();
+    this->applyLocatorPrefixes({utility::kSrv6LegacyLocatorPrefix});
+  };
+
+  auto verify = [this]() { this->verifyOnlyLegacyLocatorForwards(); };
+
+  auto setupPostWarmboot = [this]() {
+    this->applyLocatorPrefixes(
+        {utility::kSrv6LegacyLocatorPrefix, utility::kSrv6PlaneLocatorPrefix});
+    this->waitForMySidResolveOrUnresolve(
+        true /* resolved */, this->kPlaneMySidPrefix);
+  };
+
+  auto verifyPostWarmboot = [this]() { this->verifyBothLocatorsForward(); };
+
+  this->verifyAcrossWarmBoots(
+      setup, verify, setupPostWarmboot, verifyPostWarmboot);
+}
+
+TYPED_TEST(AgentSrv6MidpointDualLocatorTest, planeLocatorRemoved) {
+  auto setup = [this]() {
+    this->setupHelper();
+    this->waitForMySidResolveOrUnresolve(
+        true /* resolved */, this->kPlaneMySidPrefix);
+    this->applyLocatorPrefixes({utility::kSrv6LegacyLocatorPrefix});
+  };
+
+  auto verify = [this]() { this->verifyOnlyLegacyLocatorForwards(); };
 
   this->verifyAcrossWarmBoots(setup, verify);
 }
