@@ -274,4 +274,52 @@ TEST_F(MirrorOnDropReportTest, CreateReportOnGlobalScopedRecyclePort) {
       FbossError);
 }
 
+TEST_F(MirrorOnDropReportTest, PreserveResolutionOnIdenticalConfig) {
+  config_.mirrorOnDropReports()->push_back(
+      makeReportCfg(kRecyclePortId, "2401::1"));
+  state_ = publishAndApplyConfig(
+      state_, &config_, platform_.get(), nullptr, &mockPlatformMapping_);
+
+  const folly::MacAddress collectorMac{"00:00:00:00:00:01"};
+  cfg::PortDescriptor egressPort;
+  egressPort.portId() = kRecyclePortId;
+  egressPort.portType() = cfg::PortDescriptorType::Physical;
+  auto report = state_->getMirrorOnDropReports()->getNodeIf("mod-1");
+  report->setIsResolved(true);
+  report->setResolvedCollectorMac(collectorMac);
+  report->setResolvedEgressPort(egressPort);
+
+  state_ = publishAndApplyConfig(
+      state_, &config_, platform_.get(), nullptr, &mockPlatformMapping_);
+
+  report = state_->getMirrorOnDropReports()->getNodeIf("mod-1");
+  EXPECT_TRUE(report->isResolved());
+  EXPECT_EQ(report->getResolvedCollectorMac(), collectorMac);
+  EXPECT_EQ(report->getResolvedEgressPort(), egressPort);
+}
+
+TEST_F(MirrorOnDropReportTest, ClearResolutionWhenCollectorChanges) {
+  config_.mirrorOnDropReports()->push_back(
+      makeReportCfg(kRecyclePortId, "2401::1"));
+  state_ = publishAndApplyConfig(
+      state_, &config_, platform_.get(), nullptr, &mockPlatformMapping_);
+
+  cfg::PortDescriptor egressPort;
+  egressPort.portId() = kRecyclePortId;
+  egressPort.portType() = cfg::PortDescriptorType::Physical;
+  auto report = state_->getMirrorOnDropReports()->getNodeIf("mod-1");
+  report->setIsResolved(true);
+  report->setResolvedCollectorMac(folly::MacAddress{"00:00:00:00:00:01"});
+  report->setResolvedEgressPort(egressPort);
+  config_.mirrorOnDropReports()->at(0).collectorIp() = "2401::2";
+
+  state_ = publishAndApplyConfig(
+      state_, &config_, platform_.get(), nullptr, &mockPlatformMapping_);
+
+  report = state_->getMirrorOnDropReports()->getNodeIf("mod-1");
+  EXPECT_FALSE(report->isResolved());
+  EXPECT_FALSE(report->getResolvedCollectorMac().has_value());
+  EXPECT_FALSE(report->getResolvedEgressPort().has_value());
+}
+
 } // namespace facebook::fboss

@@ -7370,6 +7370,16 @@ ThriftConfigApplier::updateMirrorOnDropReport(
     const std::shared_ptr<MirrorOnDropReport>& orig,
     const cfg::MirrorOnDropReport* config) {
   auto newReport = createMirrorOnDropReport(config);
+  if (newReport->getCollectorIp() == orig->getCollectorIp() &&
+      newReport->getMirrorPortId() == orig->getMirrorPortId()) {
+    newReport->setIsResolved(orig->isResolved());
+    if (auto mac = orig->getResolvedCollectorMac()) {
+      newReport->setResolvedCollectorMac(*mac);
+    }
+    if (auto port = orig->getResolvedEgressPort()) {
+      newReport->setResolvedEgressPort(*port);
+    }
+  }
   if (*newReport == *orig) {
     return nullptr;
   }
