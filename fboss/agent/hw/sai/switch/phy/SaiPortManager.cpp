@@ -317,6 +317,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #if defined(SAI_CBFC_SUPPORTED)
       std::nullopt, // TC to VC map
       std::nullopt, // Queue to VC map
+      std::nullopt, // CBFC sender credit size
+      std::nullopt, // CBFC sender packet overhead
+      std::nullopt, // CBFC sender credit limit
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
       std::nullopt,

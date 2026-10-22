@@ -399,7 +399,7 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   programSerdes(saiPort, swPort, handle.get());
   programLlr(swPort, handle.get());
   managerTable_->virtualChannelManager().programVirtualChannels(
-      nullptr, swPort, saiPort->adapterKey());
+      swPort, saiPort->adapterKey());
   if (deferAdminEnable) {
     // Through the store, so its cached admin state tracks hardware.
     saiPort->setOptionalAttribute(SaiPortTraits::Attributes::AdminState{true});
@@ -581,7 +581,7 @@ void SaiPortManager::changePortImpl(
   // Before the qos policy: on TU1, VC create on a second port of an input
   // buffer fails with INVALID PARAMETER once QUEUE_TO_VC is bound to it.
   managerTable_->virtualChannelManager().programVirtualChannels(
-      oldPort, newPort, saiPort->adapterKey());
+      newPort, saiPort->adapterKey());
   changeQueue(
       newPort,
       oldPort->getPortQueues()->impl(),
@@ -1200,6 +1200,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #if defined(SAI_CBFC_SUPPORTED)
         std::nullopt, // TC to VC map
         std::nullopt, // Queue to VC map
+        std::nullopt, // CBFC sender credit size
+        std::nullopt, // CBFC sender packet overhead
+        std::nullopt, // CBFC sender credit limit
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
         std::nullopt,
@@ -1296,6 +1299,29 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       swPort->getIngressAclTableName().value_or("none"),
       ingressAcl);
 
+#if defined(SAI_CBFC_SUPPORTED)
+  // Only on a port with virtual channels: brcm-sai rejects a sender set on a
+  // port with no CBFC.
+  std::optional<SaiPortTraits::Attributes::CbfcSenderCreditSize>
+      cbfcSenderCreditSize;
+  std::optional<SaiPortTraits::Attributes::CbfcSenderPacketOverhead>
+      cbfcSenderPacketOverhead;
+  std::optional<SaiPortTraits::Attributes::CbfcSenderCreditLimit>
+      cbfcSenderCreditLimit;
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::CBFC) &&
+      swPort->getVirtualChannels()) {
+    if (auto creditSize = swPort->getCbfcSenderCreditSize()) {
+      cbfcSenderCreditSize = static_cast<sai_uint16_t>(*creditSize);
+    }
+    if (auto packetOverhead = swPort->getCbfcSenderPacketOverhead()) {
+      cbfcSenderPacketOverhead = *packetOverhead;
+    }
+    if (auto creditLimit = swPort->getCbfcSenderCreditLimit()) {
+      cbfcSenderCreditLimit = static_cast<sai_uint32_t>(*creditLimit);
+    }
+  }
+#endif
+
   return SaiPortTraits::CreateAttributes{
 #if defined(BRCM_SAI_SDK_DNX)
       getPortTypeFromCfg(swPort->getPortType()),
@@ -1350,6 +1376,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #if defined(SAI_CBFC_SUPPORTED)
       std::nullopt, // TC to VC map
       std::nullopt, // Queue to VC map
+      cbfcSenderCreditSize,
+      cbfcSenderPacketOverhead,
+      cbfcSenderCreditLimit,
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
       interFrameGap, // Inter Frame Gap

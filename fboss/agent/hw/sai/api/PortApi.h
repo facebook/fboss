@@ -347,20 +347,12 @@ struct SaiPortTraits {
         SaiObjectIdDefault>;
     // CBFC S_P_CL, the cap on credits the sender may hold across all of the
     // port's virtual channels. Range 0..2^20-1.
-    //
-    // Deliberately NOT in CreateAttributes. brcm-sai 16.0_ea_odp rejects a GET
-    // of this attribute with INVALID PARAMETER, and SaiStore::reload() reads
-    // back every attribute in the tuple for every port at init -- so including
-    // it aborts the HW agent on boot, on every port, even with no CBFC
-    // configured. Set it directly through the port api instead.
     using CbfcSenderCreditLimit = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_CBFC_SENDER_CREDIT_LIMIT,
         sai_uint32_t,
         SaiIntDefault<sai_uint32_t>>;
     // Bytes per credit the sender charges; must suit the peer's receiver.
-    // Kept out of CreateAttributes for the same reason as
-    // CbfcSenderCreditLimit.
     using CbfcSenderCreditSize = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_CBFC_SENDER_CREDIT_SIZE,
@@ -869,6 +861,11 @@ struct SaiPortTraits {
 #if defined(SAI_CBFC_SUPPORTED)
       std::optional<Attributes::QosTcToVcMap>,
       std::optional<Attributes::QosQueueToVcMap>,
+      // In this order: brcm-sai recomputes the credit limit on a credit size
+      // or packet overhead set, so the limit must be written after both.
+      std::optional<Attributes::CbfcSenderCreditSize>,
+      std::optional<Attributes::CbfcSenderPacketOverhead>,
+      std::optional<Attributes::CbfcSenderCreditLimit>,
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
       std::optional<Attributes::InterFrameGap>,
