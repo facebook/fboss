@@ -668,9 +668,8 @@ struct SaiAclEntryTraits {
         AclEntryFieldSaiObjectIdT,
         AttributeFieldRouteDestination,
         SaiAclEntryFieldSaiObjectIdTDefault>;
-// SAI_ACL_ENTRY_ATTR_LABEL added in SAI 1.19, Cisco backport it to SDK_26_5
-// SAI 1.18.1 file
-#if defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_P200)
+#if (defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_P200)) || \
+    defined(BRCM_SAI_SDK_XGS_GTE_15_4_1)
     using Label = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_LABEL,
@@ -683,7 +682,8 @@ struct SaiAclEntryTraits {
   using AdapterHostKey = std::tuple<
       Attributes::TableId,
       std::optional<Attributes::Priority>
-#if defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_P200)
+#if (defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_P200)) || \
+    defined(BRCM_SAI_SDK_XGS_GTE_15_4_1)
       ,
       std::optional<Attributes::Label>
 #endif
@@ -763,7 +763,8 @@ struct SaiAclEntryTraits {
       std::optional<Attributes::ActionL3SwitchCancel>,
       std::optional<Attributes::FieldRouteDestination>
 #endif
-#if defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_P200)
+#if (defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_P200)) || \
+    defined(BRCM_SAI_SDK_XGS_GTE_15_4_1)
       ,
       std::optional<Attributes::Label>
 #endif
@@ -842,7 +843,8 @@ SAI_ATTRIBUTE_NAME(AclEntry, ActionSetEcmpHashAlgorithm);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionL3SwitchCancel);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldRouteDestination);
 #endif
-#if defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_P200)
+#if (defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_P200)) || \
+    defined(BRCM_SAI_SDK_XGS_GTE_15_4_1)
 SAI_ATTRIBUTE_NAME(AclEntry, Label);
 #endif
 

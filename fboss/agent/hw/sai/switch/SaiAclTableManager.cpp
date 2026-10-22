@@ -83,6 +83,29 @@ AclEntryFieldIpV6 ipV6WordField(uint32_t word, int wordIndex) {
           ipV6WordToAddress(kIpV6WordExactMatchMask, wordIndex)));
 }
 
+#if (defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_P200)) || \
+    defined(BRCM_SAI_SDK_XGS_GTE_15_4_1)
+std::vector<sai_int8_t> aclEntryLabel(const std::string& aclEntryName) {
+  std::vector<sai_int8_t> label(aclEntryName.begin(), aclEntryName.end());
+#if defined(BRCM_SAI_SDK_XGS)
+  constexpr size_t kMaxLabelLen = 256;
+  if (aclEntryName.size() >= kMaxLabelLen) {
+    throw FbossError(
+        "ACL entry name: ",
+        aclEntryName,
+        " size ",
+        aclEntryName.size(),
+        " exceeds max(",
+        kMaxLabelLen - 1,
+        ")");
+  }
+  // Broadcom overwrites the last label byte with NUL and returns it on GET.
+  label.push_back('\0');
+#endif
+  return label;
+}
+#endif
+
 } // namespace
 
 sai_u32_range_t SaiAclTableManager::getFdbDstUserMetaDataRange() const {
@@ -930,12 +953,12 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclTableHandle->aclTable->adapterKey()};
   SaiAclEntryTraits::Attributes::Priority priority{
       swPriorityToSaiPriority(addedAclEntry->getPriority())};
-#if defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_P200)
+#if (defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_P200)) || \
+    defined(BRCM_SAI_SDK_XGS_GTE_15_4_1)
   // Two entries in one table may share a priority (PBR does), so the entry name
   // is carried in the ACL entry label to keep their AdapterHostKeys distinct.
-  const auto& aclEntryName = addedAclEntry->getID();
   std::optional<SaiAclEntryTraits::Attributes::Label> label{
-      std::vector<sai_int8_t>(aclEntryName.begin(), aclEntryName.end())};
+      aclEntryLabel(addedAclEntry->getID())};
   SaiAclEntryTraits::AdapterHostKey adapterHostKey{aclTableId, priority, label};
 #else
   SaiAclEntryTraits::AdapterHostKey adapterHostKey{aclTableId, priority};
@@ -1915,7 +1938,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclActionL3SwitchCancel,
       aclFieldRouteDestination,
 #endif
-#if defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_P200)
+#if (defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_P200)) || \
+    defined(BRCM_SAI_SDK_XGS_GTE_15_4_1)
       label,
 #endif
       fieldPortUserMeta,
