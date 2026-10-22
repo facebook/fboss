@@ -113,7 +113,7 @@ class AgentSrv6MidpointTest : public AgentHwTest {
         asic, &cfg, std::set<folly::CIDRNetwork>{{kExpectedOuterDst, 128}});
   }
 
-  virtual cfg::MySidConfig makeAdjacencyMySidConfig(
+  cfg::MySidConfig makeAdjacencyMySidConfig(
       const cfg::SwitchConfig& cfg,
       const AgentEnsemble& ensemble) const {
     std::string portName;
@@ -125,8 +125,11 @@ class AgentSrv6MidpointTest : public AgentHwTest {
           utility::portNameForConfig(cfg, ensemble.masterLogicalPortIds()[0]);
     }
     // Function ID 1 → SID fdad:ffff:1::/48 (matches kMySidPrefix).
-    return utility::makeAdjacencyMySidConfig(
-        portName, "fdad:ffff::/32", /*functionId=*/1);
+    auto mySidConfig = utility::makeAdjacencyMySidConfig(
+        portName, utility::kSrv6LegacyLocatorPrefix, /*functionId=*/1);
+    mySidConfig.locatorPrefixes() = {
+        utility::kSrv6LegacyLocatorPrefix, utility::kSrv6PlaneLocatorPrefix};
+    return mySidConfig;
   }
 
   void applyConfigAndEnableTrunks(const cfg::SwitchConfig& config) {
@@ -628,15 +631,6 @@ class AgentSrv6MidpointDualLocatorTest
   const UsidShift kPlaneShift{
       folly::IPAddressV6("fdad:20d:1:aa::"),
       folly::IPAddressV6("fdad:20d:aa::")};
-
-  cfg::MySidConfig makeAdjacencyMySidConfig(
-      const cfg::SwitchConfig& cfg,
-      const AgentEnsemble& ensemble) const override {
-    auto mySidConfig = Base::makeAdjacencyMySidConfig(cfg, ensemble);
-    mySidConfig.locatorPrefixes() = {
-        utility::kSrv6LegacyLocatorPrefix, utility::kSrv6PlaneLocatorPrefix};
-    return mySidConfig;
-  }
 
   void addTrapAcls(const HwAsic* asic, cfg::SwitchConfig& cfg) const override {
     utility::addTrapPacketAcl(
