@@ -683,10 +683,10 @@ class ThriftConfigApplier {
 
   std::shared_ptr<MirrorOnDropReportMap> updateMirrorOnDropReports();
   std::shared_ptr<MirrorOnDropReport> createMirrorOnDropReport(
-      const cfg::MirrorOnDropReport* config);
+      const cfg::MirrorOnDropReport& config);
   std::shared_ptr<MirrorOnDropReport> updateMirrorOnDropReport(
       const std::shared_ptr<MirrorOnDropReport>& orig,
-      const cfg::MirrorOnDropReport* config);
+      const cfg::MirrorOnDropReport& config);
 
   std::shared_ptr<LabelForwardingEntry> createLabelForwardingEntry(
       MplsLabel label,
@@ -7200,10 +7200,10 @@ ThriftConfigApplier::updateMirrorOnDropReports() {
     auto origReport = origReports->getNodeIf(*config.name());
     std::shared_ptr<MirrorOnDropReport> newReport;
     if (origReport) {
-      newReport = updateMirrorOnDropReport(origReport, &config);
+      newReport = updateMirrorOnDropReport(origReport, config);
       ++numExistingProcessed;
     } else {
-      newReport = createMirrorOnDropReport(&config);
+      newReport = createMirrorOnDropReport(config);
     }
     changed |= updateThriftMapNode(newReports.get(), origReport, newReport);
   }
@@ -7236,12 +7236,18 @@ ThriftConfigApplier::updateMirrorOnDropReports() {
 
 std::shared_ptr<MirrorOnDropReport>
 ThriftConfigApplier::createMirrorOnDropReport(
-    const cfg::MirrorOnDropReport* config) {
+    const cfg::MirrorOnDropReport& config) {
+  if (*config.truncateSize() < 0) {
+    throw FbossError(
+        "MirrorOnDropReport ",
+        *config.name(),
+        " truncateSize must be non-negative");
+  }
   const HwAsic* asic = checkSameAndGetAsic(hwAsicTable_->getL3Asics());
   cfg::AsicType asicType = asic->getAsicType();
 
   folly::IPAddress localSrcIp;
-  auto collectorIp = folly::IPAddress(*config->collectorIp());
+  auto collectorIp = folly::IPAddress(*config.collectorIp());
   if (asic->getSwitchType() == cfg::SwitchType::VOQ) {
     auto switchId = getAnySwitchId(cfg::SwitchType::VOQ);
     if (!switchId.has_value()) {
@@ -7256,14 +7262,20 @@ ThriftConfigApplier::createMirrorOnDropReport(
   } else {
     // Use an optional from the MirrorDestination mirrorPort
     // -> MirrorTunnel tunnel -> string srcIp
-    if (!config->mirrorPort().has_value() ||
-        !config->mirrorPort()->tunnel().has_value() ||
-        !config->mirrorPort()->tunnel()->srcIp().has_value()) {
+    if (!config.mirrorPort().has_value() ||
+        !config.mirrorPort()->tunnel().has_value() ||
+        !config.mirrorPort()->tunnel()->srcIp().has_value()) {
       throw FbossError(
           "mirrorOnDropReports requires a mirrorPort with a tunnel that also "
           "specifies a srcIp");
     }
-    localSrcIp = folly::IPAddress(*config->mirrorPort()->tunnel()->srcIp());
+    if (config.mirrorPort()->tunnel()->srcIp()->empty()) {
+      throw FbossError(
+          "MirrorOnDropReport ",
+          *config.name(),
+          ": mirrorPort.tunnel.srcIp sentinel was not resolved");
+    }
+    localSrcIp = folly::IPAddress(*config.mirrorPort()->tunnel()->srcIp());
   }
 
   // Determine the switchId for looking up the first interface MAC.
@@ -7277,8 +7289,8 @@ ThriftConfigApplier::createMirrorOnDropReport(
   // Determine the mirror recirculation port.
   std::optional<PortID> mirrorPortId;
   if (asic->getSwitchType() == cfg::SwitchType::VOQ) {
-    if (config->mirrorPort().has_value()) {
-      auto egressPort = config->mirrorPort()->egressPort();
+    if (config.mirrorPort().has_value()) {
+      auto egressPort = config.mirrorPort()->egressPort();
       if (!egressPort.has_value()) {
         throw FbossError(
             "Only egressPort can be used as a Mirror-on-Drop destination");
@@ -7302,8 +7314,8 @@ ThriftConfigApplier::createMirrorOnDropReport(
           throw FbossError(
               "Must set either name or logicalID for MirrorEgressPort");
       }
-    } else if (config->mirrorPortId().has_value()) {
-      mirrorPortId = PortID(*config->mirrorPortId());
+    } else if (config.mirrorPortId().has_value()) {
+      mirrorPortId = PortID(*config.mirrorPortId());
     } else {
       if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO3) {
         // Find the lowest numbered local-scope recycle port.
@@ -7347,28 +7359,28 @@ ThriftConfigApplier::createMirrorOnDropReport(
   }
 
   return std::make_shared<MirrorOnDropReport>(
-      *config->name(),
+      *config.name(),
       *mirrorPortId,
       localSrcIp,
-      *config->localSrcPort(),
+      *config.localSrcPort(),
       collectorIp,
-      *config->collectorPort(),
-      *config->mtu(),
-      *config->truncateSize(),
-      static_cast<uint8_t>(*config->dscp()),
+      *config.collectorPort(),
+      *config.mtu(),
+      *config.truncateSize(),
+      static_cast<uint8_t>(*config.dscp()),
       getLocalMacAddress().toString(),
       utility::getMacForFirstInterfaceWithPorts(new_, *modSwitchId).toString(),
-      *config->modEventToConfigMap(),
-      *config->agingGroupAgingIntervalUsecs(),
-      config->samplingRate().to_optional(),
-      config->dropPacketRateThreshold().to_optional(),
-      config->aggregateDropPacketRateThreshold().to_optional());
+      *config.modEventToConfigMap(),
+      *config.agingGroupAgingIntervalUsecs(),
+      config.samplingRate().to_optional(),
+      config.dropPacketRateThreshold().to_optional(),
+      config.aggregateDropPacketRateThreshold().to_optional());
 }
 
 std::shared_ptr<MirrorOnDropReport>
 ThriftConfigApplier::updateMirrorOnDropReport(
     const std::shared_ptr<MirrorOnDropReport>& orig,
-    const cfg::MirrorOnDropReport* config) {
+    const cfg::MirrorOnDropReport& config) {
   auto newReport = createMirrorOnDropReport(config);
   if (newReport->getCollectorIp() == orig->getCollectorIp() &&
       newReport->getMirrorPortId() == orig->getMirrorPortId()) {
