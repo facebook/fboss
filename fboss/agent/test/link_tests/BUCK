@@ -258,6 +258,7 @@ cpp_library(
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:switchid_scope_resolver",
         "//fboss/agent/hw:hardware_stats-cpp2-types",
+        "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/lldp:lldp",
         "//fboss/agent/packet:packet",
