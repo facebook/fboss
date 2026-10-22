@@ -32,6 +32,7 @@ class Utils {
   void printPowerGoodDetails();
   void printLogs();
   void printDeviceRegistersDetails();
+  void printConfigDetails();
 
  private:
   const showtech_config::ShowtechConfig& config_;
@@ -41,6 +42,7 @@ class Utils {
   void printSysfsAttribute(const std::string& label, const std::string& path);
   void printGpio(const showtech_config::Gpio& gpio);
   void printServiceLogs(const std::string& service) const;
+  void printFile(const std::string& path) const;
   std::optional<std::tuple<int, int>> getI2cInfoForDevice(
       const std::string& path,
       bool skipLog = false);
