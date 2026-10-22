@@ -1693,7 +1693,7 @@ void SaiSwitchManager::setConditionalEntropyRehashPeriodUS(
 
 void SaiSwitchManager::setLinkUpDebounceTimeout(
     [[maybe_unused]] uint32_t linkUpDebounceTimeoutUs) {
-#if defined(BRCM_SAI_SDK_XGS_GTE_15_4)
+#if defined(BRCM_SAI_SDK_GTE_15_4)
   switch_->setOptionalAttribute(
       SaiSwitchTraits::Attributes::LinkUpDebounceTimeout{
           linkUpDebounceTimeoutUs});
@@ -1703,7 +1703,7 @@ void SaiSwitchManager::setLinkUpDebounceTimeout(
 }
 
 uint32_t SaiSwitchManager::getLinkUpDebounceTimeout() const {
-#if defined(BRCM_SAI_SDK_XGS_GTE_15_4)
+#if defined(BRCM_SAI_SDK_GTE_15_4)
   const auto& attr = std::get<
       std::optional<SaiSwitchTraits::Attributes::LinkUpDebounceTimeout>>(
       switch_->attributes());
