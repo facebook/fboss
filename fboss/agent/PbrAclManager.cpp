@@ -231,7 +231,12 @@ std::vector<StateDelta> PbrAclManager::reconstructFromSwitchState(
   XLOG(DBG2) << "PbrAclManager reconstructing from switch state";
   std::vector<StateDelta> deltas;
   deltas.emplace_back(std::make_shared<SwitchState>(), curState);
-  return modifyStateImpl(deltas);
+  deltas = modifyStateImpl(deltas);
+  CHECK(!deltas.empty());
+  StateDelta combined(deltas.front().oldState(), deltas.back().newState());
+  deltas.clear();
+  deltas.emplace_back(std::move(combined));
+  return deltas;
 }
 
 void PbrAclManager::updateDone() {
