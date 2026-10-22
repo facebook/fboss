@@ -226,6 +226,7 @@ struct TransceiverSpecFields {
   3: optional transceiver.MediaInterfaceCode mediaInterface;
   4: optional transceiver.TransceiverManagementInterface managementInterface;
   5: optional transceiver.Vendor vendor;
+  6: optional list<transceiver.TransceiverVendorOverride> vendorOverrides;
 }
 
 struct AclTtl {
