@@ -2455,6 +2455,17 @@ struct Srv6Tunnel {
   9: common.TunnelType tunnelType;
 }
 
+struct VxLanTunnel {
+  1: string vxlanTunnelId;
+  2: i32 underlayIntfID;
+  3: optional string srcIp;
+  4: optional string dstIp;
+  5: optional TunnelMode ttlMode;
+  6: optional TunnelMode dscpMode;
+  7: optional TunnelMode ecnMode;
+  8: optional TunnelTerminationType tunnelTermType;
+  9: common.TunnelType tunnelType;
+}
 // MySID (My SRv6 SID) configuration types.
 // MySID entries define how the switch handles packets matching its SRv6 SIDs.
 
