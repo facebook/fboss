@@ -443,6 +443,16 @@ struct PfcConfig {
   3: bool watchdog;
 }
 
+// CBFC profile bound to a port. The sender values are the configured ones;
+// on Tomahawk Ultra 1 the hardware credit limit differs (CS00012481990).
+struct CbfcInfo {
+  1: string configName;
+  2: list<i16> virtualChannels;
+  3: optional i16 senderCreditSize;
+  4: optional i16 senderPacketOverhead;
+  5: optional i64 senderCreditLimit;
+}
+
 struct PortInfoThrift {
   1: i32 portId;
   2: i64 speedMbps;
@@ -488,6 +498,9 @@ struct PortInfoThrift {
   // Ingress ACL table bound directly to this port. Mirrors
   // switch_config.Port.ingressAclTableName. Unset when no table is bound.
   38: optional string ingressAclTableName;
+
+  // Unset when the port has no cbfcConfigName.
+  39: optional CbfcInfo cbfc;
 }
 
 // Port queueing configuration

@@ -487,6 +487,21 @@ void getPortInfoHelper(
     pc.watchdog() = pfc->watchdog().has_value();
     portInfo.pfc() = pc;
   }
+  if (auto cbfcConfigName = port->getCbfcConfigName()) {
+    CbfcInfo cbfc;
+    cbfc.configName() = *cbfcConfigName;
+    if (const auto& virtualChannels = port->getVirtualChannels()) {
+      for (const auto& virtualChannel : *virtualChannels) {
+        cbfc.virtualChannels()->push_back(
+            virtualChannel->cref<switch_state_tags::id>()->cref());
+      }
+    }
+    cbfc.senderCreditSize().from_optional(port->getCbfcSenderCreditSize());
+    cbfc.senderPacketOverhead().from_optional(
+        port->getCbfcSenderPacketOverhead());
+    cbfc.senderCreditLimit().from_optional(port->getCbfcSenderCreditLimit());
+    portInfo.cbfc() = std::move(cbfc);
+  }
   try {
     portInfo.transceiverIdx() = sw.getTransceiverIdxThrift(port->getID());
   } catch (const facebook::fboss::FbossError&) {
