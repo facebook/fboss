@@ -138,6 +138,7 @@ TEST(
       PlatformType::PLATFORM_M4062NHP,
       PlatformType::PLATFORM_M4061CLSC,
       PlatformType::PLATFORM_M5120CSC,
+      PlatformType::PLATFORM_M4340NHP,
       futurePlatformType,
   };
   for (const auto type : platformTypes) {
