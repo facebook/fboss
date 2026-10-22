@@ -8,9 +8,40 @@
 
 #include <folly/Conv.h>
 
+#include <algorithm>
+
 namespace facebook::fboss {
 
 namespace {
+
+std::vector<folly::CIDRNetwork> parseLocatorPrefixes(
+    const cfg::MySidConfig& config) {
+  auto prefixes = *config.locatorPrefixes();
+  if (prefixes.empty() && !config.locatorPrefix()->empty()) {
+    prefixes.push_back(*config.locatorPrefix());
+  }
+  if (prefixes.empty()) {
+    throw FbossError(
+        "MySidConfig has neither locatorPrefixes nor locatorPrefix");
+  }
+  std::vector<folly::CIDRNetwork> locators;
+  for (const auto& prefix : prefixes) {
+    auto locator = folly::IPAddress::createNetwork(prefix);
+    if (!locators.empty() && locator.second != locators.front().second) {
+      throw FbossError(
+          "MySID locator prefix ",
+          prefix,
+          " length differs from ",
+          folly::IPAddress::networkToString(locators.front()));
+    }
+    if (std::find(locators.begin(), locators.end(), locator) !=
+        locators.end()) {
+      throw FbossError("Duplicate MySID locator prefix ", prefix);
+    }
+    locators.push_back(std::move(locator));
+  }
+  return locators;
+}
 
 MySidWithNextHops convertMySidEntry(
     const folly::IPAddressV6& locatorAddr,
@@ -177,15 +208,16 @@ std::vector<MySidWithNextHops> convertMySidConfig(
     const cfg::MySidConfig& config,
     const std::unordered_map<std::string, InterfaceID>& portNameToInterfaceId) {
   std::vector<MySidWithNextHops> result;
-  const auto [locatorIp, locatorPrefixLen] =
-      folly::IPAddress::createNetwork(*config.locatorPrefix());
-  for (const auto& [functionId, entryConfig] : *config.entries()) {
-    result.push_back(convertMySidEntry(
-        locatorIp.asV6(),
-        locatorPrefixLen,
-        functionId,
-        entryConfig,
-        portNameToInterfaceId));
+  for (const auto& [locatorIp, locatorPrefixLen] :
+       parseLocatorPrefixes(config)) {
+    for (const auto& [functionId, entryConfig] : *config.entries()) {
+      result.push_back(convertMySidEntry(
+          locatorIp.asV6(),
+          locatorPrefixLen,
+          functionId,
+          entryConfig,
+          portNameToInterfaceId));
+    }
   }
   return result;
 }
