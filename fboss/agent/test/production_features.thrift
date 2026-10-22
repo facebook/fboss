@@ -151,6 +151,8 @@ enum ProductionFeature {
   MY_MAC = 133,
   MIRROR_ON_DROP_AGGREGATE_RATE_LIMIT = 134,
   PBR_ACL = 135,
+  VXLAN_ENCAP = 136,
+  VXLAN_DECAP = 137,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }
