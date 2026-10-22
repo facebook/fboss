@@ -33,6 +33,7 @@ constexpr uint32_t kModDeviceId{0};
 } // namespace tam
 
 struct SaiTamHandle {
+  // Reverse declaration order is the SAI dependency destruction order.
   std::shared_ptr<SaiTamReport> report;
   std::shared_ptr<SaiTamEventAction> action;
   std::shared_ptr<SaiTamTransport> transport;
@@ -129,6 +130,16 @@ class SaiTamManager {
 #if defined(BRCM_SAI_SDK_XGS_GTE_13_0)
   void addXgsMirrorOnDropReport(
       const std::shared_ptr<MirrorOnDropReport>& report);
+#endif
+#if defined(CHENAB_SAI_SDK)
+  std::shared_ptr<SaiTamTransport> createTamTransport();
+  std::shared_ptr<SaiTamCollector> createTamCollector(
+      const std::shared_ptr<MirrorOnDropReport>& report,
+      sai_object_id_t transportId,
+      sai_object_id_t destinationId);
+  std::shared_ptr<SaiTamEvent> createTamEvent(
+      sai_object_id_t actionId,
+      sai_object_id_t collectorId);
 #endif
 };
 
