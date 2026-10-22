@@ -113,7 +113,7 @@ class AgentSrv6MidpointTest : public AgentHwTest {
         asic, &cfg, std::set<folly::CIDRNetwork>{{kExpectedOuterDst, 128}});
   }
 
-  cfg::MySidConfig makeAdjacencyMySidConfig(
+  virtual cfg::MySidConfig makeAdjacencyMySidConfig(
       const cfg::SwitchConfig& cfg,
       const AgentEnsemble& ensemble) const {
     std::string portName;
@@ -178,10 +178,15 @@ class AgentSrv6MidpointTest : public AgentHwTest {
   // and a state delta lands. SAI's add/remove MySidEntry is gated on
   // mysid->resolved(), so verify() must wait for the binding to settle in
   // either direction or it'll race the first packet.
-  void waitForMySidResolveOrUnresolve(bool resolved) {
+  void waitForMySidResolveOrUnresolve(
+      bool resolved,
+      std::optional<folly::IPAddressV6> mySidPrefix = std::nullopt) {
     auto getStateFn = [this]() { return this->getProgrammedState(); };
     utility::waitForMySidResolveOrUnresolve(
-        getStateFn, kMySidPrefix, kMySidPrefixLen, resolved);
+        getStateFn,
+        mySidPrefix.value_or(kMySidPrefix),
+        kMySidPrefixLen,
+        resolved);
   }
 
   PortID getEgressPort(const PortDescriptor& portDesc) const {
@@ -204,6 +209,11 @@ class AgentSrv6MidpointTest : public AgentHwTest {
     }
     throw FbossError("No UP port found besides egress port");
   }
+
+  struct UsidShift {
+    folly::IPAddressV6 pktOuterDst;
+    folly::IPAddressV6 expectedOuterDst;
+  };
 
   // Build and send an IPv6-in-IPv6 midpoint packet. Returns the original
   // EthFrame (for inner-packet comparison) before the txPacket is moved.
@@ -271,7 +281,10 @@ class AgentSrv6MidpointTest : public AgentHwTest {
       PortID egressPort,
       bool ecnMarked,
       bool isV4,
-      std::optional<PortID> injectPort = std::nullopt) {
+      std::optional<PortID> injectPort = std::nullopt,
+      std::optional<UsidShift> shift = std::nullopt) {
+    const auto [pktOuterDst, expectedOuterDst] =
+        shift.value_or(UsidShift{kPktOuterDst, kExpectedOuterDst});
     constexpr uint8_t kHopLimit{24};
     constexpr uint8_t kTc{42};
 
@@ -288,7 +301,8 @@ class AgentSrv6MidpointTest : public AgentHwTest {
     utility::SwSwitchPacketSnooper snooper(
         this->getSw(), "srv6MidpointSnooper", snooperPort);
 
-    auto origFrame = sendMidpointPacket(ecnMarked, isV4, injectPort);
+    auto origFrame =
+        sendMidpointPacket(ecnMarked, isV4, std::move(injectPort), pktOuterDst);
 
     auto frameRx = snooper.waitForPacket(1);
     WITH_RETRIES({
@@ -311,7 +325,7 @@ class AgentSrv6MidpointTest : public AgentHwTest {
     ASSERT_TRUE(rxV6.has_value());
     auto v6Hdr = rxV6->header();
     // The active uSID (1) has been popped; outer dst is now the next SID.
-    EXPECT_EQ(v6Hdr.dstAddr, kExpectedOuterDst);
+    EXPECT_EQ(v6Hdr.dstAddr, expectedOuterDst);
     // Hop limit decremented by 1 during midpoint forwarding.
     EXPECT_EQ(v6Hdr.hopLimit, kHopLimit - 1);
     // DSCP and ECN are preserved in the outer header.
@@ -339,22 +353,25 @@ class AgentSrv6MidpointTest : public AgentHwTest {
       PortID egressPort,
       bool ecnMarked,
       bool isV4,
-      std::optional<PortID> injectPort = std::nullopt) {
+      std::optional<PortID> injectPort = std::nullopt,
+      std::optional<UsidShift> shift = std::nullopt) {
     XLOG(DBG2) << "verifyMidpointForwarding: inner=" << (isV4 ? "v4" : "v6")
                << " ecn=" << (ecnMarked ? "marked" : "unmarked")
                << " send=" << (injectPort.has_value() ? "front-panel" : "cpu");
-    assertMidpointForwarding(egressPort, ecnMarked, isV4, injectPort);
+    assertMidpointForwarding(egressPort, ecnMarked, isV4, injectPort, shift);
   }
 
-  void verifyMidpointCpuAndFrontPanel(PortID egressPort) {
+  void verifyMidpointCpuAndFrontPanel(
+      PortID egressPort,
+      std::optional<UsidShift> shift = std::nullopt) {
     auto injectPort = findInjectPort(egressPort);
     for (bool isV4 : {false, true}) {
       // ECN not marked
-      verifyMidpointForwarding(egressPort, false, isV4);
-      verifyMidpointForwarding(egressPort, false, isV4, injectPort);
+      verifyMidpointForwarding(egressPort, false, isV4, std::nullopt, shift);
+      verifyMidpointForwarding(egressPort, false, isV4, injectPort, shift);
       // ECN marked
-      verifyMidpointForwarding(egressPort, true, isV4);
-      verifyMidpointForwarding(egressPort, true, isV4, injectPort);
+      verifyMidpointForwarding(egressPort, true, isV4, std::nullopt, shift);
+      verifyMidpointForwarding(egressPort, true, isV4, injectPort, shift);
     }
   }
 
@@ -591,6 +608,57 @@ TYPED_TEST(AgentSrv6MidpointUsdTest, uASidAsLastSidDecaps) {
     auto egressPort = this->getEgressPort(this->mySidPortDesc());
     this->verifyUsdDecapThenShift(egressPort);
   };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+template <typename PortType>
+class AgentSrv6MidpointDualLocatorTest
+    : public AgentSrv6MidpointTest<PortType> {
+ protected:
+  using Base = AgentSrv6MidpointTest<PortType>;
+  using UsidShift = typename Base::UsidShift;
+
+  const folly::IPAddressV6 kPlaneMySidPrefix{"fdad:20d:1::"};
+  const UsidShift kPlaneShift{
+      folly::IPAddressV6("fdad:20d:1:aa::"),
+      folly::IPAddressV6("fdad:20d:aa::")};
+
+  cfg::MySidConfig makeAdjacencyMySidConfig(
+      const cfg::SwitchConfig& cfg,
+      const AgentEnsemble& ensemble) const override {
+    auto mySidConfig = Base::makeAdjacencyMySidConfig(cfg, ensemble);
+    mySidConfig.locatorPrefixes() = {
+        utility::kSrv6LegacyLocatorPrefix, utility::kSrv6PlaneLocatorPrefix};
+    return mySidConfig;
+  }
+
+  void addTrapAcls(const HwAsic* asic, cfg::SwitchConfig& cfg) const override {
+    utility::addTrapPacketAcl(
+        asic,
+        &cfg,
+        std::set<folly::CIDRNetwork>{
+            {this->kExpectedOuterDst, 128},
+            {kPlaneShift.expectedOuterDst, 128}});
+  }
+
+  void verifyBothLocatorsForward() {
+    auto egressPort = this->getEgressPort(this->mySidPortDesc());
+    this->verifyMidpointCpuAndFrontPanel(egressPort);
+    this->verifyMidpointCpuAndFrontPanel(egressPort, kPlaneShift);
+  }
+};
+
+TYPED_TEST_SUITE(AgentSrv6MidpointDualLocatorTest, Srv6MidpointPortTypes);
+
+TYPED_TEST(AgentSrv6MidpointDualLocatorTest, sendPacketForUASidBothLocators) {
+  auto setup = [this]() {
+    this->setupHelper();
+    this->waitForMySidResolveOrUnresolve(
+        true /* resolved */, this->kPlaneMySidPrefix);
+  };
+
+  auto verify = [this]() { this->verifyBothLocatorsForward(); };
 
   this->verifyAcrossWarmBoots(setup, verify);
 }
