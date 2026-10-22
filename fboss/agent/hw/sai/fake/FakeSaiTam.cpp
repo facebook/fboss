@@ -687,6 +687,10 @@ sai_status_t create_tam_transport(
   std::optional<folly::MacAddress> srcMac;
   std::optional<folly::MacAddress> dstMac;
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  std::optional<sai_uint16_t> greProtocolType;
+#endif
+
   for (auto i = 0; i < attr_count; i++) {
     switch (attr_list[i].id) {
       case SAI_TAM_TRANSPORT_ATTR_TRANSPORT_TYPE:
@@ -713,6 +717,11 @@ sai_status_t create_tam_transport(
         dstMac = facebook::fboss::fromSaiMacAddress(attr_list[i].value.mac);
         break;
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      case SAI_TAM_TRANSPORT_ATTR_GRE_PROTOCOL_TYPE:
+        greProtocolType = attr_list[i].value.u16;
+        break;
+#endif
       default:
         return SAI_STATUS_ATTR_NOT_SUPPORTED_0 + i;
     }
@@ -720,6 +729,9 @@ sai_status_t create_tam_transport(
   auto fs = FakeSai::getInstance();
   *id = fs->tamTransportManager.create(
       transportType, srcPort, dstPort, mtu, srcMac, dstMac);
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  fs->tamTransportManager.get(*id).greProtocolType_ = greProtocolType;
+#endif
   return SAI_STATUS_SUCCESS;
 }
 
@@ -778,6 +790,14 @@ sai_status_t get_tam_transport_attribute(
             transport.dstMac_.value(), attr_list[i].value.mac);
         break;
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      case SAI_TAM_TRANSPORT_ATTR_GRE_PROTOCOL_TYPE:
+        if (!transport.greProtocolType_) {
+          return SAI_STATUS_ATTR_NOT_IMPLEMENTED_0 + i;
+        }
+        attr_list[i].value.u16 = *transport.greProtocolType_;
+        break;
+#endif
       default:
         return SAI_STATUS_ATTR_NOT_SUPPORTED_0 + i;
     }
@@ -816,6 +836,11 @@ sai_status_t set_tam_transport_attribute(
         transport.dstMac_ = facebook::fboss::fromSaiMacAddress(attr->value.mac);
         break;
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      case SAI_TAM_TRANSPORT_ATTR_GRE_PROTOCOL_TYPE:
+        transport.greProtocolType_ = attr->value.u16;
+        break;
+#endif
       default:
         return SAI_STATUS_ATTR_NOT_SUPPORTED_0;
     }
@@ -835,6 +860,15 @@ sai_status_t create_tam_collector(
   std::optional<sai_uint16_t> truncateSize{};
   sai_object_id_t transport{};
   std::optional<sai_uint8_t> dscp{};
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  std::optional<folly::MacAddress> srcMac;
+  std::optional<folly::MacAddress> dstMac;
+  std::optional<sai_object_id_t> destination;
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  std::optional<bool> localhost;
+#endif
 
   for (auto i = 0; i < attr_count; i++) {
     switch (attr_list[i].id) {
@@ -858,6 +892,22 @@ sai_status_t create_tam_collector(
         dscp = attr_list[i].value.u8;
         break;
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      case SAI_TAM_COLLECTOR_ATTR_SRC_MAC:
+        srcMac = facebook::fboss::fromSaiMacAddress(attr_list[i].value.mac);
+        break;
+      case SAI_TAM_COLLECTOR_ATTR_DST_MAC:
+        dstMac = facebook::fboss::fromSaiMacAddress(attr_list[i].value.mac);
+        break;
+      case SAI_TAM_COLLECTOR_ATTR_DESTINATION:
+        destination = attr_list[i].value.oid;
+        break;
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+      case SAI_TAM_COLLECTOR_ATTR_LOCALHOST:
+        localhost = attr_list[i].value.booldata;
+        break;
+#endif
       default:
         return SAI_STATUS_ATTR_NOT_SUPPORTED_0 + i;
     }
@@ -865,6 +915,14 @@ sai_status_t create_tam_collector(
   auto fs = FakeSai::getInstance();
   *id = fs->tamCollectorManager.create(
       srcIp, dstIp, truncateSize, transport, dscp);
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  fs->tamCollectorManager.get(*id).srcMac_ = srcMac;
+  fs->tamCollectorManager.get(*id).dstMac_ = dstMac;
+  fs->tamCollectorManager.get(*id).destination_ = destination;
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  fs->tamCollectorManager.get(*id).localhost_ = localhost;
+#endif
   return SAI_STATUS_SUCCESS;
 }
 
@@ -910,6 +968,36 @@ sai_status_t get_tam_collector_attribute(
         attr_list[i].value.u8 = collector.dscp_.value();
         break;
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      case SAI_TAM_COLLECTOR_ATTR_SRC_MAC:
+        if (!collector.srcMac_) {
+          return SAI_STATUS_ATTR_NOT_IMPLEMENTED_0 + i;
+        }
+        facebook::fboss::toSaiMacAddress(
+            *collector.srcMac_, attr_list[i].value.mac);
+        break;
+      case SAI_TAM_COLLECTOR_ATTR_DST_MAC:
+        if (!collector.dstMac_) {
+          return SAI_STATUS_ATTR_NOT_IMPLEMENTED_0 + i;
+        }
+        facebook::fboss::toSaiMacAddress(
+            *collector.dstMac_, attr_list[i].value.mac);
+        break;
+      case SAI_TAM_COLLECTOR_ATTR_DESTINATION:
+        if (!collector.destination_) {
+          return SAI_STATUS_ATTR_NOT_IMPLEMENTED_0 + i;
+        }
+        attr_list[i].value.oid = *collector.destination_;
+        break;
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+      case SAI_TAM_COLLECTOR_ATTR_LOCALHOST:
+        if (!collector.localhost_) {
+          return SAI_STATUS_ATTR_NOT_IMPLEMENTED_0 + i;
+        }
+        attr_list[i].value.booldata = *collector.localhost_;
+        break;
+#endif
       default:
         return SAI_STATUS_ATTR_NOT_SUPPORTED_0 + i;
     }
@@ -947,6 +1035,22 @@ sai_status_t set_tam_collector_attribute(
         collector.dscp_ = attr->value.u8;
         break;
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      case SAI_TAM_COLLECTOR_ATTR_SRC_MAC:
+        collector.srcMac_ = facebook::fboss::fromSaiMacAddress(attr->value.mac);
+        break;
+      case SAI_TAM_COLLECTOR_ATTR_DST_MAC:
+        collector.dstMac_ = facebook::fboss::fromSaiMacAddress(attr->value.mac);
+        break;
+      case SAI_TAM_COLLECTOR_ATTR_DESTINATION:
+        collector.destination_ = attr->value.oid;
+        break;
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+      case SAI_TAM_COLLECTOR_ATTR_LOCALHOST:
+        collector.localhost_ = attr->value.booldata;
+        break;
+#endif
       default:
         return SAI_STATUS_ATTR_NOT_SUPPORTED_0;
     }
