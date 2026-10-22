@@ -13,7 +13,10 @@
 #include "fboss/agent/state/ClassBasedPolicyMap.h"
 #include "fboss/agent/state/ClassBasedPolicyNode.h"
 #include "fboss/agent/state/DeltaFunctions.h"
+#include "fboss/agent/state/FibInfoMap.h"
+#include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/PbrUtils.h"
+#include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -167,6 +170,55 @@ void PbrAclManager::InputOutputState::appendDelta(const StateDelta& delta) {
   publishLastDelta();
   DCHECK(out_.empty() || out_.back().newState() == delta.oldState());
   out_.emplace_back(delta.oldState(), delta.newState());
+}
+
+void PbrAclManager::InputOutputState::replaceLastDelta(
+    const StateDelta& delta) {
+  CHECK(!out_.empty());
+  DCHECK(out_.back().oldState()->isPublished());
+  DCHECK_EQ(out_.back().oldState(), delta.oldState());
+  out_.pop_back();
+  out_.emplace_back(delta.oldState(), delta.newState());
+}
+
+template <typename AddrT>
+void PbrAclManager::InputOutputState::addOrUpdateRoute(
+    RouterID rid,
+    const std::shared_ptr<Route<AddrT>>& route,
+    bool withRouteDelta) {
+  DCHECK(getCurrentStateDelta().oldState()->isPublished());
+  if (withRouteDelta) {
+    publishLastDelta();
+  }
+  auto oldState = getCurrentStateDelta().newState();
+  auto newState = oldState->clone();
+  auto fib =
+      newState->getFibsInfoMap()->getFibContainer(rid)->getFib<AddrT>()->modify(
+          rid, &newState);
+  if (fib->getRouteIf(route->prefix())) {
+    fib->updateNode(route);
+  } else {
+    fib->addNode(route);
+  }
+  if (withRouteDelta) {
+    appendDelta(StateDelta(oldState, newState));
+  } else {
+    replaceLastDelta(StateDelta(getCurrentStateDelta().oldState(), newState));
+  }
+}
+
+template void PbrAclManager::InputOutputState::addOrUpdateRoute(
+    RouterID rid,
+    const std::shared_ptr<Route<folly::IPAddressV4>>& route,
+    bool withRouteDelta);
+template void PbrAclManager::InputOutputState::addOrUpdateRoute(
+    RouterID rid,
+    const std::shared_ptr<Route<folly::IPAddressV6>>& route,
+    bool withRouteDelta);
+
+StateDelta PbrAclManager::InputOutputState::getCurrentStateDelta() const {
+  CHECK(!out_.empty());
+  return StateDelta(out_.back().oldState(), out_.back().newState());
 }
 
 std::vector<StateDelta> PbrAclManager::modifyState(

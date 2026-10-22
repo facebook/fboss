@@ -990,6 +990,7 @@ cpp_library(
         "//folly/logging:logging",
     ],
     exported_deps = [
+        ":fboss-types",
         "//fboss/agent/state:state",
     ],
 )
