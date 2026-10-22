@@ -124,6 +124,16 @@ struct MySidEntry {
   # Must not be set in addMySidEntries. These are populated
   # when reporting nexthops back to the client
   5: list<common.NextHopThrift> resolvedNextHops;
+  # Backup next hops for SRv6 midpoint FRR, as requested via
+  # addAdjacencyFrr. Symmetric to nextHops (field 3).
+  # Must not be set in addMySidEntries. These are populated
+  # when reporting nexthops back to the client
+  6: list<common.NextHopThrift> backupUnresolvedNextHops;
+  # Backup next hops post resolution. Symmetric to
+  # resolvedNextHops (field 5). Must not be set in
+  # addMySidEntries. These are populated when reporting
+  # nexthops back to the client
+  7: list<common.NextHopThrift> backupResolvedNextHops;
 }
 
 struct ClientAndNextHops {
