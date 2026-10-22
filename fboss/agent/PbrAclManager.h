@@ -22,6 +22,10 @@ class PbrAclManager {
   struct InputOutputState {
     explicit InputOutputState(const StateDelta& in);
 
+    void publishLastDelta();
+
+    void appendDelta(const StateDelta& delta);
+
     size_t numDeltas() const {
       return out_.size();
     }

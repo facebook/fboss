@@ -156,6 +156,19 @@ PbrAclManager::InputOutputState::InputOutputState(const StateDelta& in) {
   out_.emplace_back(in.oldState(), in.newState());
 }
 
+void PbrAclManager::InputOutputState::publishLastDelta() {
+  if (!out_.empty()) {
+    DCHECK(out_.back().oldState()->isPublished());
+    out_.back().newState()->publish();
+  }
+}
+
+void PbrAclManager::InputOutputState::appendDelta(const StateDelta& delta) {
+  publishLastDelta();
+  DCHECK(out_.empty() || out_.back().newState() == delta.oldState());
+  out_.emplace_back(delta.oldState(), delta.newState());
+}
+
 std::vector<StateDelta> PbrAclManager::modifyState(
     const std::vector<StateDelta>& deltas) {
   return modifyStateImpl(deltas);
