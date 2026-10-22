@@ -38,6 +38,7 @@ cpp_library(
         "fbsource//third-party/fmt:fmt",
         "fbsource//xplat/folly:format",
         "fbsource//xplat/folly/logging:logging",
+        "//folly:exception",
     ],
     exported_deps = [
         "fbsource//third-party/glog:glog",
@@ -58,6 +59,7 @@ cpp_library(
         "PciDevice.h",
         "PciSystem.h",
     ],
+    deps = ["fbsource//third-party/fmt:fmt"],
     exported_deps = [
         "fbsource//xplat/folly:exception",
         "fbsource//xplat/folly:format",

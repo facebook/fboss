@@ -597,6 +597,7 @@ cpp_library(
         "HwVoqRouteCompetingRemoteNeighborBenchmarkHelper.h",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//xplat/folly:benchmark",
         "fbsource//xplat/folly:synchronized",
         ":hw_route_scale_benchmark_helpers",
