@@ -482,6 +482,9 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     }
     tcvrStats.sensor() = sensorInfo;
     tcvrState.vendor() = getVendorInfo();
+    if (tcvrConfig_ && tcvrConfig_->vendorOverrides_) {
+      tcvrState.vendorOverrides() = *tcvrConfig_->vendorOverrides_;
+    }
     tcvrState.cable() = getCableInfo();
     if (auto threshold = getThresholdInfo()) {
       tcvrState.thresholds() = *threshold;
