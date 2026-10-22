@@ -142,7 +142,8 @@ int getSysPortIdsAllocated(
 
 cfg::InterfaceType getInterfaceType(const HwAsic& asic) {
   if (asic.getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB ||
-      asic.getAsicType() == cfg::AsicType::ASIC_TYPE_P200) {
+      asic.getAsicType() == cfg::AsicType::ASIC_TYPE_P200 ||
+      asic.getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) {
     return cfg::InterfaceType::PORT;
   }
   return cfg::InterfaceType::VLAN;
