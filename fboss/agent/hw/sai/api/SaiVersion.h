@@ -136,6 +136,11 @@
 #define BRCM_SAI_SDK_XGS_GTE_16_0
 #endif
 
+// brcm-sai 15.4.0.0_odp is Broadcom's 15.4.1 GA drop.
+#if defined(BRCM_SAI_SDK_XGS_GTE_16_0) || defined(SAI_VERSION_15_4_0_0_ODP)
+#define BRCM_SAI_SDK_XGS_GTE_15_4_1
+#endif
+
 // CBFC (saivirtualchannel.h, the CBFC port attributes, the VC qos map types)
 // is upstream as of SAI 1.19.0. brcm-sai 16.0_ea_odp carries the same
 // declarations via its cbfc.patch while still reporting 1.18.1, so neither
