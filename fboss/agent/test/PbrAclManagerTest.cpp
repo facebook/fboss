@@ -602,6 +602,47 @@ TEST(PbrAclManagerTest, ReconstructIsIdempotent) {
   EXPECT_EQ(*pbrAcls(r2), *pbrAcls(r1));
 }
 
+TEST(PbrAclManagerTest, ModifyStateEmitsOneDeltaPerInputDelta) {
+  auto a = makePolicy("qzk1", 100, {{ForwardingClass::CLASS_1, 201}});
+  auto b = makePolicy("qzk2", 300, {{ForwardingClass::CLASS_2, 202}});
+  PbrAclManager mgr;
+  auto oldState = std::make_shared<SwitchState>();
+  oldState->publish();
+
+  // 1. A delta that programs entries.
+  std::vector<StateDelta> deltas;
+  deltas.emplace_back(oldState, makeState({a}, true /*withPbrTable*/));
+  auto out = mgr.modifyState(deltas);
+  EXPECT_EQ(out.size(), 1);
+
+  // 2. A delta the manager leaves alone still yields exactly one.
+  std::vector<StateDelta> noPolicyDeltas;
+  noPolicyDeltas.emplace_back(oldState, makeState({}, true /*withPbrTable*/));
+  EXPECT_EQ(mgr.modifyState(noPolicyDeltas).size(), 1);
+
+  // 3. Two input deltas yield two output deltas, chained oldState to newState.
+  std::vector<StateDelta> twoDeltas;
+  auto first = makeState({a}, true /*withPbrTable*/);
+  twoDeltas.emplace_back(oldState, first);
+  twoDeltas.emplace_back(first, withPolicies(first, {a, b}));
+  auto twoOut = mgr.modifyState(twoDeltas);
+  EXPECT_EQ(twoOut.size(), 2);
+  EXPECT_EQ(twoOut[0].newState(), twoOut[1].oldState());
+}
+
+TEST(PbrAclManagerTest, ReconstructReturnsOneDelta) {
+  auto a = makePolicy(
+      "qzk1",
+      100,
+      {{ForwardingClass::CLASS_1, 201}, {ForwardingClass::CLASS_2, 202}});
+  auto b = makePolicy("qzk2", 300, {{ForwardingClass::CLASS_3, 203}});
+  PbrAclManager mgr;
+  auto state = makeState({a, b}, true /*withPbrTable*/);
+  auto deltas = mgr.reconstructFromSwitchState(state);
+  EXPECT_EQ(deltas.size(), 1);
+  EXPECT_EQ(pbrAcls(deltas.back().newState())->numEntries(), 3);
+}
+
 TEST(PbrAclManagerTest, UpdateFailedThenReapplySucceeds) {
   auto a = makePolicy("qzk1", 100, {{ForwardingClass::CLASS_1, 201}});
   auto b = makePolicy("qzk2", 300, {{ForwardingClass::CLASS_2, 202}});
