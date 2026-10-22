@@ -68,12 +68,21 @@ struct SaiTamTransportTraits {
         EnumType,
         SAI_TAM_TRANSPORT_ATTR_TRANSPORT_TYPE,
         sai_int32_t>;
-    using SrcPort =
-        SaiAttribute<EnumType, SAI_TAM_TRANSPORT_ATTR_SRC_PORT, sai_uint32_t>;
-    using DstPort =
-        SaiAttribute<EnumType, SAI_TAM_TRANSPORT_ATTR_DST_PORT, sai_uint32_t>;
-    using Mtu =
-        SaiAttribute<EnumType, SAI_TAM_TRANSPORT_ATTR_MTU, sai_uint32_t>;
+    using SrcPort = SaiAttribute<
+        EnumType,
+        SAI_TAM_TRANSPORT_ATTR_SRC_PORT,
+        sai_uint32_t,
+        StdNullOptDefault<sai_uint32_t>>;
+    using DstPort = SaiAttribute<
+        EnumType,
+        SAI_TAM_TRANSPORT_ATTR_DST_PORT,
+        sai_uint32_t,
+        StdNullOptDefault<sai_uint32_t>>;
+    using Mtu = SaiAttribute<
+        EnumType,
+        SAI_TAM_TRANSPORT_ATTR_MTU,
+        sai_uint32_t,
+        StdNullOptDefault<sai_uint32_t>>;
     /* extension attributes */
     struct AttributeSrcMacAddress {
       std::optional<sai_attr_id_t> operator()();
@@ -93,9 +102,9 @@ struct SaiTamTransportTraits {
   using AdapterKey = TamTransportSaiId;
   using AdapterHostKey = std::tuple<
       Attributes::Type,
-      Attributes::SrcPort,
-      Attributes::DstPort,
-      Attributes::Mtu,
+      std::optional<Attributes::SrcPort>,
+      std::optional<Attributes::DstPort>,
+      std::optional<Attributes::Mtu>,
       std::optional<Attributes::SrcMacAddress>,
       std::optional<Attributes::DstMacAddress>>;
   using CreateAttributes = AdapterHostKey;

@@ -43,9 +43,12 @@ class TamStoreTest : public SaiStoreTest {
     SaiTamTransportTraits::AdapterHostKey result;
     std::get<SaiTamTransportTraits::Attributes::Type>(result) =
         SAI_TAM_TRANSPORT_TYPE_UDP;
-    std::get<SaiTamTransportTraits::Attributes::SrcPort>(result) = 10001;
-    std::get<SaiTamTransportTraits::Attributes::DstPort>(result) = 10002;
-    std::get<SaiTamTransportTraits::Attributes::Mtu>(result) = 1500;
+    std::get<std::optional<SaiTamTransportTraits::Attributes::SrcPort>>(
+        result) = 10001;
+    std::get<std::optional<SaiTamTransportTraits::Attributes::DstPort>>(
+        result) = 10002;
+    std::get<std::optional<SaiTamTransportTraits::Attributes::Mtu>>(result) =
+        1500;
     std::get<std::optional<SaiTamTransportTraits::Attributes::SrcMacAddress>>(
         result) = folly::MacAddress("00:00:00:00:00:01");
     std::get<std::optional<SaiTamTransportTraits::Attributes::DstMacAddress>>(
@@ -205,6 +208,12 @@ TEST_F(TamStoreTest, loadTam) {
 
 TEST_F(TamStoreTest, loadTamTransportAndCollectorWithUnsetOptionals) {
   auto transportAttrs = tamTransportTraits();
+  std::get<std::optional<SaiTamTransportTraits::Attributes::SrcPort>>(
+      transportAttrs) = std::nullopt;
+  std::get<std::optional<SaiTamTransportTraits::Attributes::DstPort>>(
+      transportAttrs) = std::nullopt;
+  std::get<std::optional<SaiTamTransportTraits::Attributes::Mtu>>(
+      transportAttrs) = std::nullopt;
   std::get<std::optional<SaiTamTransportTraits::Attributes::SrcMacAddress>>(
       transportAttrs) = std::nullopt;
   std::get<std::optional<SaiTamTransportTraits::Attributes::DstMacAddress>>(
@@ -227,6 +236,7 @@ TEST_F(TamStoreTest, loadTamTransportAndCollectorWithUnsetOptionals) {
       store.get<SaiTamTransportTraits>().get(transportAttrs);
   ASSERT_NE(loadedTransport, nullptr);
   EXPECT_EQ(loadedTransport->adapterKey(), transport);
+  EXPECT_EQ(loadedTransport->attributes(), transportAttrs);
   EXPECT_FALSE(
       std::get<std::optional<SaiTamTransportTraits::Attributes::SrcMacAddress>>(
           loadedTransport->attributes())
@@ -266,16 +276,22 @@ TEST_F(TamStoreTest, tamCtors) {
       std::get<SaiTamTransportTraits::Attributes::Type>(tamTransportAhk)
           .value());
   EXPECT_EQ(
-      GET_ATTR(TamTransport, SrcPort, transportObj.attributes()),
-      std::get<SaiTamTransportTraits::Attributes::SrcPort>(tamTransportAhk)
+      GET_OPT_ATTR(TamTransport, SrcPort, transportObj.attributes()),
+      std::get<std::optional<SaiTamTransportTraits::Attributes::SrcPort>>(
+          tamTransportAhk)
+          .value()
           .value());
   EXPECT_EQ(
-      GET_ATTR(TamTransport, DstPort, transportObj.attributes()),
-      std::get<SaiTamTransportTraits::Attributes::DstPort>(tamTransportAhk)
+      GET_OPT_ATTR(TamTransport, DstPort, transportObj.attributes()),
+      std::get<std::optional<SaiTamTransportTraits::Attributes::DstPort>>(
+          tamTransportAhk)
+          .value()
           .value());
   EXPECT_EQ(
-      GET_ATTR(TamTransport, Mtu, transportObj.attributes()),
-      std::get<SaiTamTransportTraits::Attributes::Mtu>(tamTransportAhk)
+      GET_OPT_ATTR(TamTransport, Mtu, transportObj.attributes()),
+      std::get<std::optional<SaiTamTransportTraits::Attributes::Mtu>>(
+          tamTransportAhk)
+          .value()
           .value());
   EXPECT_EQ(
       GET_OPT_ATTR(TamTransport, SrcMacAddress, transportObj.attributes()),
@@ -393,16 +409,23 @@ TEST_F(TamStoreTest, setObject) {
       GET_ATTR(TamTransport, Type, transport->attributes()),
       std::get<SaiTamTransportTraits::Attributes::Type>(transportAhk).value());
   EXPECT_EQ(
-      GET_ATTR(TamTransport, SrcPort, transport->attributes()),
-      std::get<SaiTamTransportTraits::Attributes::SrcPort>(transportAhk)
+      GET_OPT_ATTR(TamTransport, SrcPort, transport->attributes()),
+      std::get<std::optional<SaiTamTransportTraits::Attributes::SrcPort>>(
+          transportAhk)
+          .value()
           .value());
   EXPECT_EQ(
-      GET_ATTR(TamTransport, DstPort, transport->attributes()),
-      std::get<SaiTamTransportTraits::Attributes::DstPort>(transportAhk)
+      GET_OPT_ATTR(TamTransport, DstPort, transport->attributes()),
+      std::get<std::optional<SaiTamTransportTraits::Attributes::DstPort>>(
+          transportAhk)
+          .value()
           .value());
   EXPECT_EQ(
-      GET_ATTR(TamTransport, Mtu, transport->attributes()),
-      std::get<SaiTamTransportTraits::Attributes::Mtu>(transportAhk).value());
+      GET_OPT_ATTR(TamTransport, Mtu, transport->attributes()),
+      std::get<std::optional<SaiTamTransportTraits::Attributes::Mtu>>(
+          transportAhk)
+          .value()
+          .value());
   EXPECT_EQ(
       GET_OPT_ATTR(TamTransport, SrcMacAddress, transport->attributes()),
       std::get<std::optional<SaiTamTransportTraits::Attributes::SrcMacAddress>>(
@@ -566,11 +589,13 @@ TEST_F(TamStoreTest, updateObject) {
       GET_OPT_ATTR(TamEvent, SwitchEventType, updatedEvent->attributes()),
       newEvents);
 
-  std::get<SaiTamTransportTraits::Attributes::DstPort>(transportAhk) = 10003;
+  std::get<std::optional<SaiTamTransportTraits::Attributes::DstPort>>(
+      transportAhk) = 10003;
   auto updatedTransport =
       s.get<SaiTamTransportTraits>().setObject(transportAhk, transportAhk);
   EXPECT_EQ(
-      GET_ATTR(TamTransport, DstPort, updatedTransport->attributes()), 10003);
+      GET_OPT_ATTR(TamTransport, DstPort, updatedTransport->attributes()),
+      10003);
 
   std::get<std::optional<SaiTamCollectorTraits::Attributes::TruncateSize>>(
       collectorAhkV4) = 256;

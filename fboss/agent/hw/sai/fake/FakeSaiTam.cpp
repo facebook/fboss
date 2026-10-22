@@ -681,9 +681,9 @@ sai_status_t create_tam_transport(
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   sai_int32_t transportType{};
-  sai_uint32_t srcPort{};
-  sai_uint32_t dstPort{};
-  sai_uint32_t mtu{};
+  std::optional<sai_uint32_t> srcPort;
+  std::optional<sai_uint32_t> dstPort;
+  std::optional<sai_uint32_t> mtu;
   std::optional<folly::MacAddress> srcMac;
   std::optional<folly::MacAddress> dstMac;
 
@@ -742,15 +742,24 @@ sai_status_t get_tam_transport_attribute(
         break;
 
       case SAI_TAM_TRANSPORT_ATTR_SRC_PORT:
-        attr_list[i].value.u32 = transport.srcPort_;
+        if (!transport.srcPort_) {
+          return SAI_STATUS_ATTR_NOT_IMPLEMENTED_0 + i;
+        }
+        attr_list[i].value.u32 = *transport.srcPort_;
         break;
 
       case SAI_TAM_TRANSPORT_ATTR_DST_PORT:
-        attr_list[i].value.u32 = transport.dstPort_;
+        if (!transport.dstPort_) {
+          return SAI_STATUS_ATTR_NOT_IMPLEMENTED_0 + i;
+        }
+        attr_list[i].value.u32 = *transport.dstPort_;
         break;
 
       case SAI_TAM_TRANSPORT_ATTR_MTU:
-        attr_list[i].value.u32 = transport.mtu_;
+        if (!transport.mtu_) {
+          return SAI_STATUS_ATTR_NOT_IMPLEMENTED_0 + i;
+        }
+        attr_list[i].value.u32 = *transport.mtu_;
         break;
 
       case SAI_TAM_TRANSPORT_ATTR_FAKE_SRC_MAC_ADDRESS:

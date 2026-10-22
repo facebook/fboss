@@ -84,9 +84,12 @@ TEST_F(TamApiTest, TamTransport) {
   SaiTamTransportTraits::CreateAttributes transportAttr;
   std::get<SaiTamTransportTraits::Attributes::Type>(transportAttr) =
       SAI_TAM_TRANSPORT_TYPE_UDP;
-  std::get<SaiTamTransportTraits::Attributes::SrcPort>(transportAttr) = 10001;
-  std::get<SaiTamTransportTraits::Attributes::DstPort>(transportAttr) = 10002;
-  std::get<SaiTamTransportTraits::Attributes::Mtu>(transportAttr) = 1500;
+  std::get<std::optional<SaiTamTransportTraits::Attributes::SrcPort>>(
+      transportAttr) = 10001;
+  std::get<std::optional<SaiTamTransportTraits::Attributes::DstPort>>(
+      transportAttr) = 10002;
+  std::get<std::optional<SaiTamTransportTraits::Attributes::Mtu>>(
+      transportAttr) = 1500;
   std::get<std::optional<SaiTamTransportTraits::Attributes::SrcMacAddress>>(
       transportAttr) = folly::MacAddress("00:00:00:00:00:01");
   std::get<std::optional<SaiTamTransportTraits::Attributes::DstMacAddress>>(
