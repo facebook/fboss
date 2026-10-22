@@ -542,3 +542,25 @@ TEST_F(TamStoreTest, updateObject) {
       GET_OPT_ATTR(TamCollector, DscpValue, updatedCollectorV6->attributes()),
       2);
 }
+
+TEST_F(TamStoreTest, tamTransportSerDeser) {
+  const auto transport = createTransport();
+  verifyAdapterKeySerDeser<SaiTamTransportTraits>({transport});
+}
+
+TEST_F(TamStoreTest, tamCollectorSerDeser) {
+  const auto transport = createTransport();
+  const auto collector = createCollector(transport, true /* ipV4 */);
+  verifyAdapterKeySerDeser<SaiTamCollectorTraits>({collector});
+}
+
+TEST_F(TamStoreTest, tamTransportToStr) {
+  std::ignore = createTransport();
+  verifyToStr<SaiTamTransportTraits>();
+}
+
+TEST_F(TamStoreTest, tamCollectorToStr) {
+  const auto transport = createTransport();
+  std::ignore = createCollector(transport, true /* ipV4 */);
+  verifyToStr<SaiTamCollectorTraits>();
+}
