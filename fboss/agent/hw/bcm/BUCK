@@ -126,12 +126,12 @@ common_deps = [
     "//fboss/agent/hw:stats_constants",
     "//fboss/agent/hw/mock:pkt",
     "//fboss/lib:log_thrift_call",
-    "//folly:file",
-    "//folly:json",
+    "fbsource//xplat/folly:file",
+    "fbsource//xplat/folly:json",
     "//fboss/agent:hw_switch",
     "//fboss/agent:platform_base",
-    "//folly:subprocess",
-    "//folly/logging:logging",
+    "fbsource//xplat/folly:subprocess",
+    "fbsource//xplat/folly/logging:logging",
     "//fboss/agent:fboss-types",
     "//fboss/agent:thrifthandler_utils",
     "//fboss/agent/rib:standalone_rib",
@@ -150,8 +150,8 @@ cpp_library(
         "BcmAddressFBConvertors.h",
     ],
     exported_deps = [
-        "//folly:network_address",
-        "//folly:range",
+        "fbsource//xplat/folly:network_address",
+        "fbsource//xplat/folly:range",
     ],
     exported_external_deps = [
         ("broadcom-xgs-robo", None, "xgs_robo"),
@@ -264,6 +264,11 @@ cpp_library(
     ],
     exported_deps = common_deps
     + [
+        "fbsource//xplat/folly:indestructible",
+        "fbsource//xplat/folly/container:enumerate",
+        "fbsource//xplat/folly/container:f14_hash",
+        "fbsource//xplat/folly/executors:function_scheduler",
+        "fbsource//xplat/folly/io/async:async_base",
         ":bcm_types",
         ":types",
         "//common/logging:logging",
@@ -279,11 +284,6 @@ cpp_library(
         "//fboss/agent/hw/bcm:sdk_tracer",
         "//fboss/agent/hw/facebook:buffer_stats_scuba",
         "//fboss/lib/phy:phy_utils",
-        "//folly:indestructible",
-        "//folly/container:enumerate",
-        "//folly/container:f14_hash",
-        "//folly/executors:function_scheduler",
-        "//folly/io/async:async_base",
     ],
     exported_external_deps = [
         ("boost", None, "boost_assign"),
@@ -403,6 +403,8 @@ cpp_library(
     ],
     exported_deps = common_deps
     + [
+        "fbsource//xplat/folly/container:f14_hash",
+        "fbsource//xplat/folly/io/async:async_base",
         ":bcm_types",
         ":types",
         "//common/logging:logging",
@@ -418,8 +420,6 @@ cpp_library(
         "//fboss/agent/hw/bcm:if-cpp2-services",
         "//fboss/agent/hw/facebook:buffer_stats_scuba",
         "//fboss/lib/phy:phy_utils",
-        "//folly/container:f14_hash",
-        "//folly/io/async:async_base",
     ],
     exported_external_deps = [
         ("boost", None, "boost_assign"),
@@ -438,16 +438,16 @@ cpp_library(
         "BcmConfig.h",
     ],
     deps = [
+        "fbsource//xplat/folly:file_util",
+        "fbsource//xplat/folly/gen:string",
+        "fbsource//xplat/folly/logging:logging",
         ":bcm_config-cpp2-types",
         "//fboss/agent:fboss-error",
         "//fboss/agent:switch_config-cpp2-types",
-        "//folly:file_util",
-        "//folly/gen:string",
-        "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
     exported_deps = [
-        "//folly:range",
+        "fbsource//xplat/folly:range",
     ],
 )
 
@@ -589,16 +589,16 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
+        "fbsource//xplat/folly:file",
+        "fbsource//xplat/folly:file_util",
+        "fbsource//xplat/folly:map_util",
+        "fbsource//xplat/folly:singleton",
+        "fbsource//xplat/folly:string",
+        "fbsource//xplat/folly:synchronized",
+        "fbsource//xplat/folly/logging:logging",
         ":bcm_interface",
         ":bcm_sdk_interface",
         "//fboss/agent:async_logger",
-        "//folly:file",
-        "//folly:file_util",
-        "//folly:map_util",
-        "//folly:singleton",
-        "//folly:string",
-        "//folly:synchronized",
-        "//folly/logging:logging",
     ],
     external_deps = ["gflags"],
     exported_external_deps = [
@@ -615,7 +615,7 @@ cpp_library(
     headers = [
         "SdkWrapSettings.h",
     ],
-    deps = ["//folly:singleton"],
+    deps = ["fbsource//xplat/folly:singleton"],
     exported_deps = [],
 )
 

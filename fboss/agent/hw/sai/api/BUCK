@@ -12,10 +12,10 @@ cpp_library(
         "AddressUtil.h",
     ],
     exported_deps = [
-        "//folly:network_address",
-        "//folly:string",
-        "//folly/lang:assume",
-        "//folly/logging:logging",
+        "fbsource//xplat/folly:network_address",
+        "fbsource//xplat/folly:string",
+        "fbsource//xplat/folly/lang:assume",
+        "fbsource//xplat/folly/logging:logging",
     ],
     exported_external_deps = [
         ("sai", None),
@@ -120,7 +120,7 @@ cpp_library(
     ],
     labels = ["noautodeps"],
     exported_deps = [
+        "fbsource//xplat/folly:network_address",
         "//fboss/lib:tuple_utils",
-        "//folly:network_address",
     ],
 )

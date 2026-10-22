@@ -20,6 +20,7 @@ cpp_library(
     # will come when we build bcm/sai link test bins
     undefined_symbols = True,
     exported_deps = [
+        "fbsource//xplat/folly/gen:base",
         "//fboss/agent:agent_features",
         "//fboss/agent:asic_utils",
         "//fboss/agent:core",
@@ -47,6 +48,5 @@ cpp_library(
         "//fboss/agent/test/utils:pkt_test_utils",
         "//fboss/agent/test/utils:queue_per_host_test_utils",
         "//fboss/lib/config:fboss_config_utils",
-        "//folly/gen:base",
     ],
 )
