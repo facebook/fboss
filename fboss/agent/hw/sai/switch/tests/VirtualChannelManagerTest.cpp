@@ -320,6 +320,37 @@ TEST_F(VirtualChannelManagerTest, portCreateWithCbfcProgramsSenderCreditSize) {
       56);
 }
 
+TEST_F(VirtualChannelManagerTest, firstBindProgramsSenderCreditLimit) {
+  auto swPort = makePort(p0);
+  saiManagerTable->portManager().addPort(swPort);
+  auto cbfcPort = swPort->clone();
+  cbfcPort->setVirtualChannels(std::vector<state::PortVcFields>{makeVc(2, 36)});
+  cbfcPort->setCbfcSenderCreditLimit(8192);
+  saiManagerTable->portManager().changePort(swPort, cbfcPort);
+
+  EXPECT_EQ(
+      getPortAttr(cbfcPort, SaiPortTraits::Attributes::CbfcSenderCreditLimit{}),
+      8192);
+}
+
+TEST_F(VirtualChannelManagerTest, removingCbfcLeavesSenderCreditLimit) {
+  auto swPort = makePortWithVcs(p0, {makeVc(2, 36)});
+  swPort->setCbfcSenderCreditLimit(8192);
+  saiManagerTable->portManager().addPort(swPort);
+
+  // brcm-sai stores the limit as port credit, where the SAI default of 0 would
+  // leave the port with none, so nothing is written to clear it.
+  auto plainPort = swPort->clone();
+  plainPort->setVirtualChannels(std::nullopt);
+  plainPort->setCbfcSenderCreditLimit(std::nullopt);
+  saiManagerTable->portManager().changePort(swPort, plainPort);
+
+  EXPECT_EQ(
+      getPortAttr(
+          plainPort, SaiPortTraits::Attributes::CbfcSenderCreditLimit{}),
+      8192);
+}
+
 TEST_F(VirtualChannelManagerTest, firstBindWritesZeroPacketOverhead) {
   auto swPort = makePort(p0);
   saiManagerTable->portManager().addPort(swPort);
