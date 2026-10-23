@@ -711,6 +711,18 @@ struct Srv6TunnelFields {
   9: common.TunnelType tunnelType;
 }
 
+struct VxLanTunnelFields {
+  1: string vxlanTunnelId;
+  2: i32 underlayIntfId;
+  3: optional string srcIp;
+  4: optional string dstIp;
+  5: optional switch_config.TunnelMode ttlMode;
+  6: optional switch_config.TunnelMode dscpMode;
+  7: optional switch_config.TunnelMode ecnMode;
+  8: optional switch_config.TunnelTerminationType tunnelTermType;
+  9: common.TunnelType tunnelType;
+}
+
 struct MySidFields {
   1: common.MySidType type;
   # MySid entry in ip/mask format. 32 bits of this are
@@ -974,6 +986,7 @@ struct SwitchState {
     SwitchIdList,
     map<switch_config.AclStage, AclTableGroupFields>
   > portAclTableGroupMaps;
+  131: map<SwitchIdList, map<string, VxLanTunnelFields>> vxlanTunnelMaps;
   // Remote object maps
   600: map<SwitchIdList, map<i64, SystemPortFields>> remoteSystemPortMaps;
   601: map<SwitchIdList, map<i32, InterfaceFields>> remoteInterfaceMaps;
