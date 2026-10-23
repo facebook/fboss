@@ -2354,6 +2354,9 @@
           "test_name_regex": "warm_boot.AgentVoqSwitchWithFabricPortsTest.fdrCellDrops"
         },
         {
+          "test_name_regex": "AgentVoqSwitchFullScaleDsfNodesTest.systemPortScaleTestWithHyperPort$"
+        },
+        {
           "test_name_regex": "AgentHwSflowMirrorTest/1.HwResolvedMirrorStat$"
         },
         {
@@ -8567,6 +8570,12 @@
         },
         {
           "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/mono/fe13": [
@@ -10685,6 +10694,9 @@
         },
         {
           "test_name_regex": ".*AgentAccessPolicyClassId.*$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         }
     ],
     "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk4/multi_switch": [
