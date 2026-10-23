@@ -22,9 +22,17 @@ namespace facebook::fboss {
 
 std::string makePbrAclEntryName(
     const std::string& policyName,
-    ForwardingClass trafficClass) {
+    ForwardingClass trafficClass,
+    bool temporary) {
   return folly::to<std::string>(
-      policyName, "_tc", static_cast<int>(trafficClass));
+      temporary ? std::string(1, kPbrTempAclEntryPrefix) : std::string(),
+      policyName,
+      "_tc",
+      static_cast<int>(trafficClass));
+}
+
+bool isPbrTempAclEntry(const std::string& entryName) {
+  return !entryName.empty() && entryName.front() == kPbrTempAclEntryPrefix;
 }
 
 std::string makePbrCounterName(
@@ -42,7 +50,8 @@ std::vector<std::shared_ptr<AclEntry>> createAclEntriesFromPolicy(
     auto redirectId = *nhg.id();
     auto entry = std::make_shared<AclEntry>(
         FLAGS_pbr_acl_priority,
-        makePbrAclEntryName(policy->getID(), trafficClass));
+        makePbrAclEntryName(
+            policy->getID(), trafficClass, false /*temporary*/));
     entry->setNextHopGroupId(matchNhgId);
     entry->setTrafficClass(static_cast<uint8_t>(trafficClass));
     MatchAction action;

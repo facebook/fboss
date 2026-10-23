@@ -150,7 +150,10 @@ std::string counterNameOf(const std::shared_ptr<AclEntry>& entry) {
 } // namespace
 
 TEST(PbrUtils, EntryAndCounterNames) {
-  EXPECT_EQ(makePbrAclEntryName("qzk1", ForwardingClass::CLASS_2), "qzk1_tc2");
+  EXPECT_EQ(
+      makePbrAclEntryName(
+          "qzk1", ForwardingClass::CLASS_2, false /*temporary*/),
+      "qzk1_tc2");
   EXPECT_EQ(
       makePbrCounterName(ForwardingClass::CLASS_1, "qzk1-gold-nhg"),
       "CLASS_1_qzk1-gold-nhg");

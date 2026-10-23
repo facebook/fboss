@@ -46,7 +46,8 @@ void removePolicyEntries(
     AclMap& aclMap,
     const std::shared_ptr<ClassBasedPolicyNode>& policy) {
   for (const auto& [tc, _] : policy->getClass2NextHopGroup()) {
-    if (!aclMap.removeNodeIf(makePbrAclEntryName(policy->getID(), tc))) {
+    if (!aclMap.removeNodeIf(
+            makePbrAclEntryName(policy->getID(), tc, false /*temporary*/))) {
       throw FbossError(
           "removed PBR policy '",
           policy->getID(),
@@ -87,7 +88,8 @@ bool applyChangedPolicy(
   }
   bool changed = false;
   for (const auto& [tc, newNhg] : newTc2Nhg) {
-    auto name = makePbrAclEntryName(newPolicy->getID(), tc);
+    auto name =
+        makePbrAclEntryName(newPolicy->getID(), tc, false /*temporary*/);
     auto oldIt = oldTc2Nhg.find(tc);
     if (oldIt == oldTc2Nhg.end()) {
       aclMap.addNode(newEntries.at(name));
@@ -108,7 +110,8 @@ bool applyChangedPolicy(
   }
   for (const auto& [tc, _] : oldTc2Nhg) {
     if (!newTc2Nhg.count(tc)) {
-      if (aclMap.removeNodeIf(makePbrAclEntryName(newPolicy->getID(), tc))) {
+      if (aclMap.removeNodeIf(makePbrAclEntryName(
+              newPolicy->getID(), tc, false /*temporary*/))) {
         changed = true;
       }
     }
