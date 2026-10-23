@@ -437,31 +437,79 @@ def spawn_session(argv):
         for fd in (stdin_r, stdout_w):
             if fd > 2:
                 os.close(fd)
+        # Fresh session so abort kills the whole subtree by group. Any
+        # failure here fails the spawn closed via _exit below.
+        os.setsid()
         os.execvp(argv[0], argv)
     finally:
         os._exit(127)
 
 
 def _terminate(pid, grace=EXEC_TERM_GRACE):
-    """SIGTERM a session child, SIGKILL after grace; returns its wait status."""
-    try:
-        os.kill(pid, signal.SIGTERM)
-    except ProcessLookupError:
-        pass
+    """SIGTERM a session group, SIGKILL after grace (SIGKILL also runs when
+    the leader exits during grace, so stragglers never survive).
+
+    Returns the leader's wait status, or -1 when the leader could not
+    be reaped within the bound (a caller must check for -1 before
+    interpreting the status: it is a sentinel, not a wait status).
+
+    The post-SIGKILL reap is bounded too: a leader that cannot die
+    (EPERM group, uninterruptible state) is abandoned loud with -1
+    rather than hanging teardown; the serve child reaps it on exit.
+
+    Signals go to the whole process group (every spawn puts the child in
+    a fresh session, so the group is exactly our subtree and nothing else).
+    The group is signaled before the leader is reaped: a dead leader's
+    group outlives it while grandchildren remain, and a zombie leader
+    still pins its pid, so no reused pid can catch a stray signal.
+    Missing groups fail silent (nothing left to signal); groups that
+    are alive but unsignalable (EPERM, e.g. members in another user
+    namespace) are reported loud on stderr while teardown proceeds —
+    the broker cannot kill what it cannot signal, but the survival
+    must never be silent.
+    """
+    _signal_group(pid, signal.SIGTERM)
+    deadline = time.monotonic() + grace
+    while True:
+        done, status = os.waitpid(pid, os.WNOHANG)
+        if done != 0:
+            # Leader is down but SIGTERM-ignoring stragglers may outlive
+            # it, so the SIGKILL stage still runs: the group outlives the
+            # leader while members remain, and this killpg issues with no
+            # blocking call between the reap and the signal.
+            _signal_group(pid, signal.SIGKILL)
+            return status
+        if time.monotonic() >= deadline:
+            break
+        time.sleep(0.01)
+    _signal_group(pid, signal.SIGKILL)
     deadline = time.monotonic() + grace
     while True:
         done, status = os.waitpid(pid, os.WNOHANG)
         if done != 0:
             return status
         if time.monotonic() >= deadline:
-            break
+            print(
+                "admin-broker: leader %d unreaped after SIGKILL; giving up"
+                % pid,
+                file=sys.stderr,
+            )
+            return -1
         time.sleep(0.01)
+
+
+def _signal_group(pid, sig):
+    """Signal a session group; EPERM (alive but unsignalable) is loud."""
     try:
-        os.kill(pid, signal.SIGKILL)
+        os.killpg(pid, sig)
     except ProcessLookupError:
         pass
-    _, status = os.waitpid(pid, 0)
-    return status
+    except PermissionError:
+        print(
+            "admin-broker: killpg %s EPERM on group %d; subtree may survive"
+            % (signal.Signals(sig).name, pid),
+            file=sys.stderr,
+        )
 
 
 def _close_quietly(fd):
@@ -482,13 +530,15 @@ def _abort_session(pid, stdin_w, stdout_r, stdin_open):
 
 
 def _reap_session_exit(pid, grace=EXEC_TERM_GRACE):
-    """Exit code of a session whose stdout hit EOF.
+    """Exit code of a session whose stdout hit EOF, or None when the
+    leader will not die.
 
     Polls briefly first (the shell usually already exited); a lingering
     leader gets the full terminate treatment, which reaps it and reports
     its wait status. The status must come from _terminate: reaping here
     a second time would raise ChildProcessError on the already-reaped
-    child.
+    child. A -1 from _terminate means the leader survived SIGKILL and
+    is abandoned loud.
     """
     deadline = time.monotonic() + grace
     while True:
@@ -498,7 +548,14 @@ def _reap_session_exit(pid, grace=EXEC_TERM_GRACE):
         if time.monotonic() >= deadline:
             break
         time.sleep(0.01)
-    return os.waitstatus_to_exitcode(_terminate(pid))
+    status = _terminate(pid)
+    if status == -1:
+        print(
+            "admin-broker: session %d alive after kill; giving up" % pid,
+            file=sys.stderr,
+        )
+        return None
+    return os.waitstatus_to_exitcode(status)
 
 
 def parse_in_frames(buf):

@@ -477,6 +477,7 @@ class SpawnSessionTest(unittest.TestCase):
         with (
             mock.patch.object(os, "fork", return_value=0),
             mock.patch.object(os, "dup2") as duped,
+            mock.patch.object(os, "setsid") as sessioned,
             mock.patch.object(os, "execvp", side_effect=OSError("no")) as execed,
             mock.patch.object(os, "_exit") as gone,
         ):
@@ -484,34 +485,84 @@ class SpawnSessionTest(unittest.TestCase):
                 broker.spawn_session(argv)
         gone.assert_called_once_with(127)
         execed.assert_called_once_with("/bin/echo", argv)
+        sessioned.assert_called_once_with()
         self.assertEqual([call[0][1] for call in duped.call_args_list], [0, 1, 2])
+
+    def test_child_setsid_failure_fails_closed(self):
+        argv = ["/bin/echo", "hi"]
+        with (
+            mock.patch.object(os, "fork", return_value=0),
+            mock.patch.object(os, "dup2"),
+            mock.patch.object(os, "setsid", side_effect=OSError("nope")),
+            mock.patch.object(os, "execvp") as execed,
+            mock.patch.object(os, "_exit") as gone,
+        ):
+            with self.assertRaises(OSError):
+                broker.spawn_session(argv)
+        execed.assert_not_called()
+        gone.assert_called_once_with(127)
 
 
 class TerminateTest(unittest.TestCase):
     def test_fast_exit(self):
+        # Leader already dead: the group is still signaled first (it
+        # outlives the leader while grandchildren remain), then the
+        # leader is reaped, and the SIGKILL stage still runs so
+        # SIGTERM-ignoring stragglers cannot survive the leader.
         with (
-            mock.patch.object(os, "kill") as killed,
+            mock.patch.object(os, "killpg") as killed,
             mock.patch.object(os, "waitpid", return_value=(424242, 5)) as waited,
         ):
             self.assertEqual(broker._terminate(424242), 5)
-        killed.assert_called_once_with(424242, signal.SIGTERM)
+        self.assertEqual(
+            killed.call_args_list,
+            [
+                mock.call(424242, signal.SIGTERM),
+                mock.call(424242, signal.SIGKILL),
+            ],
+        )
         waited.assert_called_once_with(424242, os.WNOHANG)
 
-    def test_already_gone(self):
+    def test_dead_leader_gone_group_swallowed(self):
         with (
-            mock.patch.object(os, "kill", side_effect=ProcessLookupError()),
+            mock.patch.object(os, "killpg", side_effect=ProcessLookupError()),
             mock.patch.object(os, "waitpid", return_value=(424242, 0)),
+        ):
+            self.assertEqual(broker._terminate(424242), 0)
+
+    def test_term_then_reap(self):
+        with (
+            mock.patch.object(os, "killpg") as killed,
+            mock.patch.object(os, "waitpid", side_effect=[(0, 0), (424242, 7)]),
+        ):
+            self.assertEqual(broker._terminate(424242), 7)
+        self.assertEqual(
+            killed.call_args_list,
+            [
+                mock.call(424242, signal.SIGTERM),
+                mock.call(424242, signal.SIGKILL),
+            ],
+        )
+
+    def test_term_lookup_error_swallowed(self):
+        with (
+            mock.patch.object(os, "killpg", side_effect=ProcessLookupError()),
+            mock.patch.object(os, "waitpid", side_effect=[(0, 0), (424242, 0)]),
+            mock.patch.object(time, "monotonic", return_value=100.0),
         ):
             self.assertEqual(broker._terminate(424242), 0)
 
     def test_kill_after_grace(self):
         with (
-            mock.patch.object(os, "kill") as killed,
+            mock.patch.object(os, "killpg") as killed,
             mock.patch.object(os, "waitpid", side_effect=[(0, 0), (424242, 9)]),
-            mock.patch.object(time, "monotonic", side_effect=[100.0, 200.0]),
+            mock.patch.object(time, "monotonic", side_effect=[100.0, 200.0, 300.0]),
             mock.patch.object(time, "sleep") as slept,
         ):
             self.assertEqual(broker._terminate(424242, grace=2.0), 9)
+        # Reaped after grace expiry: TERM, then the scheduled KILL. No
+        # third signal: SIGKILL already ran, so the straggler sweep in
+        # the grace loop has nothing left to cover.
         self.assertEqual(
             killed.call_args_list,
             [
@@ -523,21 +574,116 @@ class TerminateTest(unittest.TestCase):
 
     def test_gone_before_kill(self):
         with (
-            mock.patch.object(os, "kill", side_effect=[None, ProcessLookupError()]),
+            mock.patch.object(os, "killpg", side_effect=[None, ProcessLookupError()]),
             mock.patch.object(os, "waitpid", side_effect=[(0, 0), (424242, 0)]),
-            mock.patch.object(time, "monotonic", side_effect=[100.0, 200.0]),
+            mock.patch.object(time, "monotonic", side_effect=[100.0, 200.0, 300.0]),
         ):
             self.assertEqual(broker._terminate(424242, grace=2.0), 0)
 
     def test_grace_sleeps_then_kills(self):
         with (
-            mock.patch.object(os, "kill"),
+            mock.patch.object(os, "killpg") as killed,
             mock.patch.object(os, "waitpid", side_effect=[(0, 0), (0, 0), (424242, 0)]),
-            mock.patch.object(time, "monotonic", side_effect=[100.0, 100.5, 200.0]),
+            mock.patch.object(
+                time, "monotonic", side_effect=[100.0, 100.5, 200.0, 300.0]
+            ),
             mock.patch.object(time, "sleep") as slept,
         ):
             self.assertEqual(broker._terminate(424242, grace=2.0), 0)
         slept.assert_called_once_with(0.01)
+        self.assertEqual(
+            killed.call_args_list,
+            [
+                mock.call(424242, signal.SIGTERM),
+                mock.call(424242, signal.SIGKILL),
+            ],
+        )
+
+    def test_kill_eperm_loud_but_proceeds(self):
+        stream = io.StringIO()
+        with (
+            mock.patch.object(os, "killpg", side_effect=PermissionError()),
+            mock.patch.object(os, "waitpid", side_effect=[(0, 0), (424242, 0)]),
+            mock.patch.object(sys, "stderr", stream),
+        ):
+            self.assertEqual(broker._terminate(424242, 0), 0)
+        warned = stream.getvalue()
+        self.assertIn("killpg SIGTERM EPERM on group 424242", warned)
+        self.assertIn("killpg SIGKILL EPERM on group 424242", warned)
+        self.assertIn("subtree may survive", warned)
+
+    def test_reap_polls_then_reaps(self):
+        with (
+            mock.patch.object(os, "killpg"),
+            mock.patch.object(os, "waitpid", side_effect=[(0, 0), (0, 0), (424242, 0)]),
+            mock.patch.object(
+                time, "monotonic", side_effect=[100.0, 200.0, 300.0, 300.5]
+            ),
+            mock.patch.object(time, "sleep") as slept,
+        ):
+            self.assertEqual(broker._terminate(424242, grace=2.0), 0)
+        slept.assert_called_once_with(0.01)
+
+    def test_sigkill_survivor_abandoned_loud(self):
+        stream = io.StringIO()
+        with (
+            mock.patch.object(os, "killpg"),
+            mock.patch.object(os, "waitpid", return_value=(0, 0)),
+            mock.patch.object(sys, "stderr", stream),
+            mock.patch.object(broker.time, "monotonic", return_value=100.0),
+        ):
+            self.assertEqual(broker._terminate(424242, 0), -1)
+        self.assertIn("leader 424242 unreaped after SIGKILL", stream.getvalue())
+
+    def test_live_straggler_killed(self):
+        # SIG_DFL while the child lives: earlier tests may leave the
+        # broker's SIGCHLD reaper installed, which would steal status.
+        previous = signal.getsignal(signal.SIGCHLD)
+        signal.signal(signal.SIGCHLD, signal.SIG_DFL)
+        try:
+            self._straggler_live()
+        finally:
+            signal.signal(signal.SIGCHLD, previous)
+
+    def _straggler_live(self):
+        # Bite proof: a grandchild ignoring SIGTERM must not survive
+        # its leader. The leader exits at once (reaped inside the grace
+        # loop); without the straggler SIGKILL the grandchild lives on.
+        pipe_r, pipe_w = os.pipe()
+        self.addCleanup(os.close, pipe_r)
+        leader = os.fork()
+        if leader == 0:
+            try:
+                os.close(pipe_r)
+                os.setsid()
+                grand = os.fork()
+                if grand == 0:
+                    try:
+                        signal.signal(signal.SIGTERM, signal.SIG_IGN)
+                        os.write(pipe_w, str(os.getpid()).encode())
+                        time.sleep(30)
+                    finally:
+                        os._exit(0)
+            finally:
+                os._exit(0)
+        os.close(pipe_w)
+        grandchild = int(os.read(pipe_r, 32))
+        try:
+            broker._terminate(leader, grace=5.0)
+            deadline = time.monotonic() + 5.0
+            while True:
+                try:
+                    os.kill(grandchild, 0)
+                except ProcessLookupError:
+                    break
+                if time.monotonic() >= deadline:
+                    self.fail("SIGTERM-ignoring grandchild survived _terminate")
+                time.sleep(0.05)
+        finally:
+            try:
+                os.kill(grandchild, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
 
 
 class ReapExitTest(unittest.TestCase):
@@ -557,6 +703,17 @@ class ReapExitTest(unittest.TestCase):
         ):
             self.assertEqual(broker._reap_session_exit(424242, grace=2.0), 0)
         term.assert_called_once_with(424242)
+
+    def test_abandoned_leader_returns_none_loud(self):
+        stream = io.StringIO()
+        with (
+            mock.patch.object(os, "waitpid", return_value=(0, 0)),
+            mock.patch.object(time, "monotonic", side_effect=[100.0, 200.0]),
+            mock.patch.object(broker, "_terminate", return_value=-1),
+            mock.patch.object(sys, "stderr", stream),
+        ):
+            self.assertIsNone(broker._reap_session_exit(424242, grace=2.0))
+        self.assertIn("session 424242 alive after kill", stream.getvalue())
 
     def test_lingering_leader_reaped_once_live(self):
         # No mocks: a real lingering leader must come back through
