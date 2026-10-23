@@ -19,6 +19,7 @@
 #include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
 #include <gflags/gflags.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thrift/lib/cpp2/FieldRef.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
@@ -217,22 +218,57 @@ std::optional<PlatformType> PlatformDescriptorRegistry::findPlatformType(
     for (const auto& entry : descriptorEntries_) {
       for (const auto& modeName : entry.descriptor.modeNames().value()) {
         if (equalsNormalized(mode, normalize(modeName))) {
-          return entry.descriptor.platformType().value();
+          const auto platformType = entry.descriptor.platformType().value();
+          XLOG(INFO) << "Found platform type "
+                     << apache::thrift::util::enumNameSafe(platformType)
+                     << " from platform descriptor for mode '" << mode << "'";
+          return platformType;
         }
       }
     }
     return std::nullopt;
   }
 
+  std::optional<PlatformType> bestMatch;
+  std::optional<PlatformType> conflictingBestMatch;
+  std::string bestMatchPrefix;
+  size_t bestMatchLength = 0;
   for (const auto& entry : descriptorEntries_) {
     for (const auto& productNamePrefix :
          entry.descriptor.productNamePrefixes().value()) {
-      if (startsWithNormalized(productName, normalize(productNamePrefix))) {
-        return entry.descriptor.platformType().value();
+      const auto normalizedPrefix = normalize(productNamePrefix);
+      if (!startsWithNormalized(productName, normalizedPrefix)) {
+        continue;
+      }
+      const auto platformType = entry.descriptor.platformType().value();
+      if (!bestMatch || normalizedPrefix.size() > bestMatchLength) {
+        bestMatch = platformType;
+        conflictingBestMatch.reset();
+        bestMatchPrefix = productNamePrefix;
+        bestMatchLength = normalizedPrefix.size();
+      } else if (
+          normalizedPrefix.size() == bestMatchLength &&
+          *bestMatch != platformType) {
+        conflictingBestMatch = platformType;
       }
     }
   }
-  return std::nullopt;
+  if (conflictingBestMatch) {
+    throw FbossError(
+        "Product name '",
+        productName,
+        "' ambiguously matches platform types ",
+        static_cast<int>(*bestMatch),
+        " and ",
+        static_cast<int>(*conflictingBestMatch));
+  }
+  if (bestMatch) {
+    XLOG(INFO) << "Found platform type "
+               << apache::thrift::util::enumNameSafe(*bestMatch)
+               << " from platform descriptor for product name '" << productName
+               << "' using prefix '" << bestMatchPrefix << "'";
+  }
+  return bestMatch;
 }
 
 std::optional<std::string> PlatformDescriptorRegistry::loadPlatformMapping(
