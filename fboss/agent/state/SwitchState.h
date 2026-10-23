@@ -58,6 +58,7 @@
 #include "fboss/agent/state/UdfConfig.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
+#include "fboss/agent/state/VxlanTunnelMap.h"
 #include "fboss/agent/types.h"
 
 DECLARE_bool(enable_acl_table_group);
@@ -118,6 +119,10 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::srv6TunnelMaps,
     MultiSwitchSrv6TunnelMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::vxlanTunnelMaps,
+    MultiSwitchVxlanTunnelMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::mySidMaps,
@@ -388,6 +393,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
 
   const std::shared_ptr<MultiSwitchSrv6TunnelMap>& getSrv6Tunnels() const;
 
+  const std::shared_ptr<MultiSwitchVxlanTunnelMap>& getVxlanTunnels() const;
+
   const std::shared_ptr<MultiSwitchMySidMap>& getMySids() const;
 
   const std::shared_ptr<MultiSwitchDsfNodeMap>& getDsfNodes() const;
@@ -477,6 +484,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void resetTunnels(std::shared_ptr<MultiSwitchIpTunnelMap> tunnels);
 
   void resetSrv6Tunnels(std::shared_ptr<MultiSwitchSrv6TunnelMap> tunnels);
+
+  void resetVxlanTunnels(std::shared_ptr<MultiSwitchVxlanTunnelMap> tunnels);
 
   void resetMySids(std::shared_ptr<MultiSwitchMySidMap> mySids);
 

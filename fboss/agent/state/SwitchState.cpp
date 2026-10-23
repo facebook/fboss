@@ -424,6 +424,16 @@ const std::shared_ptr<MultiSwitchSrv6TunnelMap>& SwitchState::getSrv6Tunnels()
   return safe_cref<switch_state_tags::srv6TunnelMaps>();
 }
 
+void SwitchState::resetVxlanTunnels(
+    std::shared_ptr<MultiSwitchVxlanTunnelMap> tunnels) {
+  ref<switch_state_tags::vxlanTunnelMaps>() = tunnels;
+}
+
+const std::shared_ptr<MultiSwitchVxlanTunnelMap>& SwitchState::getVxlanTunnels()
+    const {
+  return safe_cref<switch_state_tags::vxlanTunnelMaps>();
+}
+
 void SwitchState::resetMySids(std::shared_ptr<MultiSwitchMySidMap> mySids) {
   ref<switch_state_tags::mySidMaps>() = mySids;
 }
@@ -1176,6 +1186,8 @@ template MultiSwitchIpTunnelMap* SwitchState::modify<
     switch_state_tags::ipTunnelMaps>(std::shared_ptr<SwitchState>*);
 template MultiSwitchSrv6TunnelMap* SwitchState::modify<
     switch_state_tags::srv6TunnelMaps>(std::shared_ptr<SwitchState>*);
+template MultiSwitchVxlanTunnelMap* SwitchState::modify<
+    switch_state_tags::vxlanTunnelMaps>(std::shared_ptr<SwitchState>*);
 template MultiSwitchMySidMap* SwitchState::modify<switch_state_tags::mySidMaps>(
     std::shared_ptr<SwitchState>*);
 template MultiSwitchSystemPortMap* SwitchState::modify<
