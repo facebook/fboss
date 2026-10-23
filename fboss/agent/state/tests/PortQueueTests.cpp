@@ -382,6 +382,137 @@ TEST(PortQueue, checkSwConfPortQueueMatch) {
   EXPECT_TRUE(checkSwConfPortQueueMatch(swQueues->at(0), &cfgQueue));
 }
 
+TEST(PortQueue, checkSwConfPortQueueMatchBufferAttrs) {
+  auto platform = createMockPlatform();
+  auto stateV0 = applyInitConfig();
+
+  auto config = generateTestConfig();
+  config.bufferPoolConfigs() = {};
+  (*config.bufferPoolConfigs())["pool_a"] = cfg::BufferPoolConfig();
+  (*config.bufferPoolConfigs())["pool_b"] = cfg::BufferPoolConfig();
+  auto& cfgQueue = config.portQueueConfigs()["queue_config"][0];
+  cfgQueue.maxDynamicSharedBytes() = 1000;
+  cfgQueue.bufferPoolName() = "pool_a";
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  auto swQueue = stateV1->getPort(PortID(1))->getPortQueues()->at(0);
+  EXPECT_TRUE(checkSwConfPortQueueMatch(swQueue, &cfgQueue));
+
+  auto changed = cfgQueue;
+  changed.maxDynamicSharedBytes() = 2000;
+  EXPECT_FALSE(checkSwConfPortQueueMatch(swQueue, &changed));
+  changed = cfgQueue;
+  changed.maxDynamicSharedBytes().reset();
+  EXPECT_FALSE(checkSwConfPortQueueMatch(swQueue, &changed));
+  changed = cfgQueue;
+  changed.bufferPoolName() = "pool_b";
+  EXPECT_FALSE(checkSwConfPortQueueMatch(swQueue, &changed));
+  changed = cfgQueue;
+  changed.bufferPoolName().reset();
+  EXPECT_FALSE(checkSwConfPortQueueMatch(swQueue, &changed));
+}
+
+TEST(PortQueue, updateMaxDynamicSharedBytes) {
+  auto platform = createMockPlatform();
+  auto stateV0 = applyInitConfig();
+
+  auto config = generateTestConfig();
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  EXPECT_FALSE(stateV1->getPort(PortID(1))
+                   ->getPortQueues()
+                   ->at(0)
+                   ->getMaxDynamicSharedBytes()
+                   .has_value());
+
+  // add maxDynamicSharedBytes to an existing queue
+  config.portQueueConfigs()["queue_config"][0].maxDynamicSharedBytes() = 1000;
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  ASSERT_NE(nullptr, stateV2);
+  EXPECT_EQ(
+      1000,
+      stateV2->getPort(PortID(1))
+          ->getPortQueues()
+          ->at(0)
+          ->getMaxDynamicSharedBytes());
+
+  // change maxDynamicSharedBytes
+  config.portQueueConfigs()["queue_config"][0].maxDynamicSharedBytes() = 2000;
+  auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
+  ASSERT_NE(nullptr, stateV3);
+  EXPECT_EQ(
+      2000,
+      stateV3->getPort(PortID(1))
+          ->getPortQueues()
+          ->at(0)
+          ->getMaxDynamicSharedBytes());
+
+  // reset maxDynamicSharedBytes
+  config.portQueueConfigs()["queue_config"][0].maxDynamicSharedBytes().reset();
+  auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
+  ASSERT_NE(nullptr, stateV4);
+  EXPECT_FALSE(stateV4->getPort(PortID(1))
+                   ->getPortQueues()
+                   ->at(0)
+                   ->getMaxDynamicSharedBytes()
+                   .has_value());
+}
+
+TEST(PortQueue, updateBufferPoolName) {
+  auto platform = createMockPlatform();
+  auto stateV0 = applyInitConfig();
+
+  auto makePool = [](int sharedBytes) {
+    cfg::BufferPoolConfig pool;
+    pool.sharedBytes() = sharedBytes;
+    return pool;
+  };
+  auto getQueue = [](const std::shared_ptr<SwitchState>& state) {
+    return state->getPort(PortID(1))->getPortQueues()->at(0);
+  };
+
+  auto config = generateTestConfig();
+  config.bufferPoolConfigs() = {};
+  (*config.bufferPoolConfigs())["pool_a"] = makePool(1000);
+  (*config.bufferPoolConfigs())["pool_b"] = makePool(2000);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  EXPECT_FALSE(getQueue(stateV1)->getBufferPoolName().has_value());
+
+  // add bufferPoolName to an existing queue
+  config.portQueueConfigs()["queue_config"][0].bufferPoolName() = "pool_a";
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  ASSERT_NE(nullptr, stateV2);
+  EXPECT_EQ("pool_a", getQueue(stateV2)->getBufferPoolName());
+  ASSERT_TRUE(getQueue(stateV2)->getBufferPoolConfig().has_value());
+  EXPECT_EQ(
+      1000, (*getQueue(stateV2)->getBufferPoolConfig())->getSharedBytes());
+
+  // change bufferPoolName
+  config.portQueueConfigs()["queue_config"][0].bufferPoolName() = "pool_b";
+  auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
+  ASSERT_NE(nullptr, stateV3);
+  EXPECT_EQ("pool_b", getQueue(stateV3)->getBufferPoolName());
+  ASSERT_TRUE(getQueue(stateV3)->getBufferPoolConfig().has_value());
+  EXPECT_EQ(
+      2000, (*getQueue(stateV3)->getBufferPoolConfig())->getSharedBytes());
+
+  // change the referenced pool, queue must pick up the new pool config
+  (*config.bufferPoolConfigs())["pool_b"] = makePool(3000);
+  auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
+  ASSERT_NE(nullptr, stateV4);
+  ASSERT_TRUE(getQueue(stateV4)->getBufferPoolConfig().has_value());
+  EXPECT_EQ(
+      3000, (*getQueue(stateV4)->getBufferPoolConfig())->getSharedBytes());
+
+  // reset bufferPoolName
+  config.portQueueConfigs()["queue_config"][0].bufferPoolName().reset();
+  auto stateV5 = publishAndApplyConfig(stateV4, &config, platform.get());
+  ASSERT_NE(nullptr, stateV5);
+  EXPECT_FALSE(getQueue(stateV5)->getBufferPoolName().has_value());
+  EXPECT_FALSE(getQueue(stateV5)->getBufferPoolConfig().has_value());
+}
+
 TEST(PortQueue, checkValidPortQueueConfigRef) {
   auto platform = createMockPlatform();
   auto stateV0 = applyInitConfig();

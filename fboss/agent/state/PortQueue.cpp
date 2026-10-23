@@ -206,7 +206,15 @@ bool checkSwConfPortQueueMatch(
       isPortQueueOptionalAttributeSame(
              swQueue->getBandwidthBurstMaxKbits(),
              (bool)cfgQueue->bandwidthBurstMaxKbits(),
-             cfgQueue->bandwidthBurstMaxKbits().value_or({}));
+             cfgQueue->bandwidthBurstMaxKbits().value_or({})) &&
+      isPortQueueOptionalAttributeSame(
+             swQueue->getMaxDynamicSharedBytes(),
+             (bool)cfgQueue->maxDynamicSharedBytes(),
+             cfgQueue->maxDynamicSharedBytes().value_or({})) &&
+      isPortQueueOptionalAttributeSame(
+             swQueue->getBufferPoolName(),
+             (bool)cfgQueue->bufferPoolName(),
+             cfgQueue->bufferPoolName().value_or({}));
 }
 
 std::optional<cfg::QueueCongestionDetection> PortQueue::findDetectionInAqms(

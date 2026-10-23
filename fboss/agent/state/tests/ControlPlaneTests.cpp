@@ -432,6 +432,46 @@ TEST(ControlPlane, changeLowPrioQueue) {
   }
 }
 
+TEST(ControlPlane, cpuQueueBufferPool) {
+  auto platform = createMockPlatform();
+  auto stateV0 = genCPUSwitchState();
+
+  auto makePool = [](int sharedBytes) {
+    cfg::BufferPoolConfig pool;
+    pool.sharedBytes() = sharedBytes;
+    return pool;
+  };
+  auto getLowQueuePoolSharedBytes =
+      [](const std::shared_ptr<SwitchState>& state) {
+        std::optional<int> sharedBytes;
+        for (const auto& entry : std::as_const(*state->getControlPlane())) {
+          for (const auto& queue : std::as_const(*entry.second->getQueues())) {
+            if (queue->getID() == 0 && queue->getBufferPoolConfig()) {
+              sharedBytes = (*queue->getBufferPoolConfig())->getSharedBytes();
+            }
+          }
+        }
+        return sharedBytes;
+      };
+
+  // Pool and the CPU queue referencing it are added in the same apply.
+  cfg::SwitchConfig config;
+  *config.cpuQueues() = getConfigCPUQueues();
+  // the last one is low queue
+  config.cpuQueues()->back().bufferPoolName() = "cpu_pool";
+  config.bufferPoolConfigs() = {};
+  (*config.bufferPoolConfigs())["cpu_pool"] = makePool(1000);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  EXPECT_EQ(1000, getLowQueuePoolSharedBytes(stateV1));
+
+  // Change the referenced pool, CPU queue must pick up the new pool config.
+  (*config.bufferPoolConfigs())["cpu_pool"] = makePool(2000);
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  ASSERT_NE(nullptr, stateV2);
+  EXPECT_EQ(2000, getLowQueuePoolSharedBytes(stateV2));
+}
+
 TEST(ControlPlane, checkSwConfPortQueueMatch) {
   auto cfgCpuQueues = getConfigCPUQueues();
   auto swCpuQueuesMap = getCPUQueuesMap();

@@ -789,6 +789,18 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   new_ = orig_->clone();
   bool changed = false;
 
+  // Apply buffer pools before anything that builds port queues (control
+  // plane, ports, VOQs): createPortQueue() and updatePortQueue() resolve a
+  // queue's bufferPoolName against new_.
+  {
+    bool bufferPoolConfigChanged = false;
+    auto newBufferPoolCfg = updateBufferPoolConfigs(&bufferPoolConfigChanged);
+    if (bufferPoolConfigChanged) {
+      new_->resetBufferPoolCfgs(newBufferPoolCfg);
+      changed = true;
+    }
+  }
+
   {
     auto newControlPlane = updateControlPlane();
     if (newControlPlane) {
@@ -798,15 +810,6 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   }
 
   processVlanPorts();
-
-  {
-    bool bufferPoolConfigChanged = false;
-    auto newBufferPoolCfg = updateBufferPoolConfigs(&bufferPoolConfigChanged);
-    if (bufferPoolConfigChanged) {
-      new_->resetBufferPoolCfgs(newBufferPoolCfg);
-      changed = true;
-    }
-  }
 
   {
     bool portFlowletConfigChanged = false;
@@ -2500,7 +2503,18 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::updatePortQueue(
     std::optional<std::set<PfcPriority>> pfcPriorities) {
   CHECK_EQ(orig->getID(), *cfg->id());
 
-  if (checkSwConfPortQueueMatch(orig, cfg) &&
+  // The queue holds its own copy of the referenced buffer pool config, so it
+  // must be rebuilt when that pool changes even if the queue config does not.
+  bool bufferPoolCfgSame = true;
+  if (auto bufferPoolName = cfg->bufferPoolName()) {
+    auto newBufferPoolCfg =
+        new_->getBufferPoolCfgs()->getNodeIf(*bufferPoolName);
+    auto origBufferPoolCfg = orig->getBufferPoolConfig();
+    bufferPoolCfgSame = newBufferPoolCfg && origBufferPoolCfg &&
+        **origBufferPoolCfg == *newBufferPoolCfg;
+  }
+
+  if (checkSwConfPortQueueMatch(orig, cfg) && bufferPoolCfgSame &&
       trafficClass == orig->getTrafficClass() &&
       pfcPriorities == orig->getPfcPrioritySet()) {
     return orig;
