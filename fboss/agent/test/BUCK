@@ -250,6 +250,20 @@ cpp_unittest(
 )
 
 cpp_unittest(
+    name = "vxlan_tunnel_config_test",
+    srcs = [
+        "VxlanTunnelConfigTests.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    test_main = "//fboss/agent/test:fboss_test_main",
+    deps = [
+        ":utils",
+        "//fboss/agent/hw/mock:mock",
+        "//fboss/agent/state:state",
+    ],
+)
+
+cpp_unittest(
     name = "pfc_utils_test",
     srcs = [
         "PfcUtilsTests.cpp",

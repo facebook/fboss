@@ -15,6 +15,7 @@ class MirrorOnDropReport;
 class DsfNode;
 class IpInIpTunnel;
 class Srv6Tunnel;
+class VxLanTunnel;
 class AclEntry;
 class SystemPort;
 class Port;
@@ -28,6 +29,7 @@ class MirrorOnDropReport;
 class DsfNode;
 class IpTunnel;
 class Srv6Tunnel;
+class VxlanTunnel;
 class AclEntry;
 class SystemPort;
 class Vlan;
@@ -102,6 +104,15 @@ class SwitchIdScopeResolver {
       const std::shared_ptr<SwitchState>& state) const;
   HwSwitchMatcher scope(
       const std::shared_ptr<Srv6Tunnel>& tunnel,
+      const cfg::SwitchConfig& cfg) const;
+  HwSwitchMatcher scope(
+      const cfg::VxLanTunnel& tunnel,
+      const cfg::SwitchConfig& cfg) const;
+  HwSwitchMatcher scope(
+      const std::shared_ptr<VxlanTunnel>& tunnel,
+      const std::shared_ptr<SwitchState>& state) const;
+  HwSwitchMatcher scope(
+      const std::shared_ptr<VxlanTunnel>& tunnel,
       const cfg::SwitchConfig& cfg) const;
   HwSwitchMatcher scope(const cfg::AclEntry& acl) const;
   HwSwitchMatcher scope(const std::shared_ptr<AclEntry>& acl) const;

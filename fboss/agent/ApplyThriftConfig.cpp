@@ -84,6 +84,8 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
+#include "fboss/agent/state/VxlanTunnel.h"
+#include "fboss/agent/state/VxlanTunnelMap.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <boost/container/flat_map.hpp>
@@ -713,6 +715,11 @@ class ThriftConfigApplier {
       const std::shared_ptr<Srv6Tunnel>& orig,
       const cfg::Srv6Tunnel* config);
   std::shared_ptr<Srv6TunnelMap> updateSrv6Tunnels();
+  shared_ptr<VxlanTunnel> createVxlanTunnel(const cfg::VxLanTunnel& config);
+  shared_ptr<VxlanTunnel> updateVxlanTunnel(
+      const std::shared_ptr<VxlanTunnel>& orig,
+      const cfg::VxLanTunnel* config);
+  std::shared_ptr<VxlanTunnelMap> updateVxlanTunnels();
   std::shared_ptr<DsfNodeMap> updateDsfNodes();
   void processUpdatedDsfNodes();
   void processReachabilityGroup(
@@ -1149,6 +1156,16 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
       new_->resetSrv6Tunnels(
           toMultiSwitchMap<MultiSwitchSrv6TunnelMap>(
               newSrv6Tunnels, *cfg_, scopeResolver_));
+      changed = true;
+    }
+  }
+
+  {
+    auto newVxlanTunnels = updateVxlanTunnels();
+    if (newVxlanTunnels) {
+      new_->resetVxlanTunnels(
+          toMultiSwitchMap<MultiSwitchVxlanTunnelMap>(
+              newVxlanTunnels, *cfg_, scopeResolver_));
       changed = true;
     }
   }
@@ -7677,6 +7694,93 @@ shared_ptr<Srv6Tunnel> ThriftConfigApplier::createSrv6Tunnel(
         "Unsupported tunnel type for: ",
         tunnel->getID(),
         ", only SRV6_ENCAP and SRV6_DECAP are supported");
+  }
+  return tunnel;
+}
+
+std::shared_ptr<VxlanTunnelMap> ThriftConfigApplier::updateVxlanTunnels() {
+  const auto& origTunnels = orig_->getVxlanTunnels();
+  auto newTunnels = std::make_shared<VxlanTunnelMap>();
+
+  bool changed = false;
+  size_t numExistingProcessed = 0;
+  if (!cfg_->vxlanTunnels().has_value()) {
+    return nullptr;
+  }
+  for (const auto& tunnelCfg : cfg_->vxlanTunnels().value()) {
+    auto origTunnel = origTunnels->getNodeIf(*tunnelCfg.vxlanTunnelId());
+    std::shared_ptr<VxlanTunnel> newTunnel;
+    if (origTunnel) {
+      newTunnel = updateVxlanTunnel(origTunnel, &tunnelCfg);
+      ++numExistingProcessed;
+    } else {
+      newTunnel = createVxlanTunnel(tunnelCfg);
+    }
+
+    changed |= updateThriftMapNode(newTunnels.get(), origTunnel, newTunnel);
+  }
+
+  if (numExistingProcessed != origTunnels->numNodes()) {
+    CHECK_LT(numExistingProcessed, origTunnels->numNodes());
+    changed = true;
+  }
+
+  if (!changed) {
+    return nullptr;
+  }
+  return newTunnels;
+}
+
+shared_ptr<VxlanTunnel> ThriftConfigApplier::updateVxlanTunnel(
+    const std::shared_ptr<VxlanTunnel>& orig,
+    const cfg::VxLanTunnel* config) {
+  auto newTunnel = createVxlanTunnel(*config);
+  if (*newTunnel == *orig) {
+    return nullptr;
+  }
+  return newTunnel;
+}
+
+shared_ptr<VxlanTunnel> ThriftConfigApplier::createVxlanTunnel(
+    const cfg::VxLanTunnel& config) {
+  auto tunnel = make_shared<VxlanTunnel>(*config.vxlanTunnelId());
+  tunnel->setUnderlayIntfId(InterfaceID(*config.underlayIntfID()));
+  tunnel->setType(*config.tunnelType());
+  if (config.tunnelTermType().has_value()) {
+    tunnel->setTunnelTermType(*config.tunnelTermType());
+  }
+  if (config.ttlMode().has_value()) {
+    tunnel->setTTLMode(static_cast<cfg::TunnelMode>(*config.ttlMode()));
+  }
+  if (config.dscpMode().has_value()) {
+    tunnel->setDscpMode(static_cast<cfg::TunnelMode>(*config.dscpMode()));
+  }
+  if (config.ecnMode().has_value()) {
+    tunnel->setEcnMode(static_cast<cfg::TunnelMode>(*config.ecnMode()));
+  }
+  if (config.srcIp().has_value()) {
+    tunnel->setSrcIP(folly::IPAddress(*config.srcIp()));
+  }
+  if (config.dstIp().has_value()) {
+    tunnel->setDstIP(folly::IPAddress(*config.dstIp()));
+  }
+  if (config.vrf2Vni().has_value()) {
+    tunnel->setVrf2Vni(*config.vrf2Vni());
+  }
+  if (config.vniToVrf().has_value()) {
+    tunnel->setVniToVrf(*config.vniToVrf());
+  }
+  if (tunnel->getType() != TunnelType::VXLAN) {
+    throw FbossError(
+        "Unsupported tunnel type for: ",
+        tunnel->getID(),
+        ", only VXLAN is supported");
+  }
+  if (!tunnel->getSrcIP()) {
+    throw FbossError("Src IP not set for: ", tunnel->getID(), ", VXLAN tunnel");
+  }
+  if (!tunnel->getDstIP()) {
+    throw FbossError("Dst IP not set for: ", tunnel->getID(), ", VXLAN tunnel");
   }
   return tunnel;
 }

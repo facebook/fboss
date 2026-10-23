@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/state/Srv6Tunnel.h" // must precede SwSwitch.h to avoid template conflicts
+#include "fboss/agent/state/VxlanTunnel.h" // must precede SwSwitch.h to avoid template conflicts
 
 #include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/SwSwitch.h"
@@ -798,6 +799,105 @@ TYPED_TEST(SwitchIdScopeResolverTest, srv6TunnelStateScopeCfg) {
   tunnelFields.srv6TunnelId() = "tunnel0";
   tunnelFields.underlayIntfId() = static_cast<int>(intf->getID());
   auto tunnel = std::make_shared<Srv6Tunnel>(std::move(tunnelFields));
+
+  auto config = this->sw_->getConfig();
+  const auto& resolver = this->scopeResolver();
+  auto tunnelMatcher = resolver.scope(tunnel, config);
+  auto intfMatcher = resolver.scope(intf, config);
+  EXPECT_EQ(tunnelMatcher, intfMatcher);
+}
+
+TYPED_TEST(SwitchIdScopeResolverTest, vxlanTunnelCfgScope) {
+  if (this->isFabric()) {
+    return;
+  }
+  // Create a cfg::VxLanTunnel referencing a valid interface
+  cfg::VxLanTunnel tunnel;
+  tunnel.vxlanTunnelId() = "tunnel0";
+  tunnel.underlayIntfID() = 1;
+  tunnel.tunnelType() = TunnelType::VXLAN;
+
+  auto config = this->sw_->getConfig();
+  const auto& resolver = this->scopeResolver();
+  auto tunnelMatcher = resolver.scope(tunnel, config);
+
+  // The scope should match that of the underlay interface
+  for (const auto& intf : *config.interfaces()) {
+    if (*intf.intfID() == 1) {
+      auto intfMatcher = resolver.scope(*intf.type(), InterfaceID(1), config);
+      EXPECT_EQ(tunnelMatcher, intfMatcher);
+      break;
+    }
+  }
+}
+
+TYPED_TEST(SwitchIdScopeResolverTest, vxlanTunnelCfgScopePortIntf) {
+  if (this->switchType != cfg::SwitchType::NPU) {
+    return;
+  }
+  auto config = testConfigAWithPortInterfaces();
+  this->addMirrorConfig(&config);
+  this->sw_->applyConfig("applyConfig", config);
+
+  cfg::VxLanTunnel tunnel;
+  tunnel.vxlanTunnelId() = "tunnel0";
+  tunnel.underlayIntfID() = 6001;
+  tunnel.tunnelType() = TunnelType::VXLAN;
+
+  const auto& resolver = this->scopeResolver();
+  auto tunnelMatcher = resolver.scope(tunnel, config);
+  auto portMatcher = resolver.scope(PortID(1));
+  EXPECT_EQ(tunnelMatcher, portMatcher);
+}
+
+TYPED_TEST(SwitchIdScopeResolverTest, vxlanTunnelStateScope) {
+  if (this->isFabric()) {
+    return;
+  }
+  auto state = this->sw_->getState();
+  auto allIntfs = state->getInterfaces();
+  auto intf = allIntfs->getAllNodes()->cbegin()->second;
+
+  // Create VxlanTunnel with underlay pointing to existing interface
+  state::VxLanTunnelFields tunnelFields;
+  tunnelFields.vxlanTunnelId() = "tunnel0";
+  tunnelFields.underlayIntfId() = static_cast<int>(intf->getID());
+  tunnelFields.tunnelType() = TunnelType::VXLAN;
+  auto tunnel = std::make_shared<VxlanTunnel>(std::move(tunnelFields));
+
+  const auto& resolver = this->scopeResolver();
+  auto tunnelMatcher = resolver.scope(tunnel, state);
+  auto intfMatcher = resolver.scope(intf, state);
+  EXPECT_EQ(tunnelMatcher, intfMatcher);
+}
+
+TYPED_TEST(SwitchIdScopeResolverTest, vxlanTunnelCfgScopeInvalidIntf) {
+  if (this->isFabric()) {
+    return;
+  }
+  cfg::VxLanTunnel tunnel;
+  tunnel.vxlanTunnelId() = "tunnel0";
+  tunnel.underlayIntfID() = 99999;
+  tunnel.tunnelType() = TunnelType::VXLAN;
+
+  auto config = this->sw_->getConfig();
+  const auto& resolver = this->scopeResolver();
+  EXPECT_THROW(resolver.scope(tunnel, config), FbossError);
+}
+
+TYPED_TEST(SwitchIdScopeResolverTest, vxlanTunnelStateScopeCfg) {
+  if (this->isFabric()) {
+    return;
+  }
+  auto state = this->sw_->getState();
+  auto allIntfs = state->getInterfaces();
+  auto intf = allIntfs->getAllNodes()->cbegin()->second;
+
+  state::VxLanTunnelFields tunnelFields;
+  tunnelFields.vxlanTunnelId() = "tunnel0";
+  tunnelFields.underlayIntfId() = static_cast<int>(intf->getID());
+  tunnelFields.tunnelType() = TunnelType::VXLAN;
+  auto tunnel = std::make_shared<VxlanTunnel>(std::move(tunnelFields));
 
   auto config = this->sw_->getConfig();
   const auto& resolver = this->scopeResolver();

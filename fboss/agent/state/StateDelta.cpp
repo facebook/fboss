@@ -36,6 +36,7 @@
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/state/VlanMapDelta.h"
+#include "fboss/agent/state/VxlanTunnelMap.h"
 #include "fboss/fsdb/common/Utils.h"
 
 #include <folly/json/dynamic.h>
@@ -356,6 +357,7 @@ template struct MultiSwitchMapDelta<MultiLabelForwardingInformationBase>;
 template struct MultiSwitchMapDelta<MultiSwitchQosPolicyMap>;
 template struct MultiSwitchMapDelta<MultiSwitchIpTunnelMap>;
 template struct MultiSwitchMapDelta<MultiSwitchSrv6TunnelMap>;
+template struct MultiSwitchMapDelta<MultiSwitchVxlanTunnelMap>;
 template struct MultiSwitchMapDelta<MultiTeFlowTable>;
 template struct MultiSwitchMapDelta<MultiSwitchAggregatePortMap>;
 template struct MultiSwitchMapDelta<MultiSwitchLoadBalancerMap>;
