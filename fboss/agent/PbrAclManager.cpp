@@ -46,8 +46,12 @@ void removePolicyEntries(
     AclMap& aclMap,
     const std::shared_ptr<ClassBasedPolicyNode>& policy) {
   for (const auto& [tc, _] : policy->getClass2NextHopGroup()) {
-    if (!aclMap.removeNodeIf(
-            makePbrAclEntryName(policy->getID(), tc, false /*temporary*/))) {
+    bool removed = false;
+    for (bool temporary : {false, true}) {
+      removed |= aclMap.removeNodeIf(makePbrAclEntryName(
+                     policy->getID(), tc, temporary)) != nullptr;
+    }
+    if (!removed) {
       throw FbossError(
           "removed PBR policy '",
           policy->getID(),
