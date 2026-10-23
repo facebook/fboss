@@ -2465,6 +2465,8 @@ struct VxLanTunnel {
   7: optional TunnelMode ecnMode;
   8: optional TunnelTerminationType tunnelTermType;
   9: common.TunnelType tunnelType;
+  10: optional map<i64, i64> vrf2Vni;
+  11: optional map<i64, i64> vniToVrf;
 }
 // MySID (My SRv6 SID) configuration types.
 // MySID entries define how the switch handles packets matching its SRv6 SIDs.

@@ -7,6 +7,7 @@
 #include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
+#include <map>
 #include <optional>
 
 namespace facebook::fboss {
@@ -118,6 +119,32 @@ class VxlanTunnel
   }
   void setType(TunnelType type) {
     set<switch_state_tags::tunnelType>(type);
+  }
+  std::optional<std::map<int64_t, int64_t>> getVrf2Vni() const {
+    if (auto vrf2Vni = cref<switch_state_tags::vrf2Vni>()) {
+      return vrf2Vni->toThrift();
+    }
+    return std::nullopt;
+  }
+  void setVrf2Vni(const std::optional<std::map<int64_t, int64_t>>& vrf2Vni) {
+    if (!vrf2Vni) {
+      ref<switch_state_tags::vrf2Vni>().reset();
+    } else {
+      set<switch_state_tags::vrf2Vni>(*vrf2Vni);
+    }
+  }
+  std::optional<std::map<int64_t, int64_t>> getVniToVrf() const {
+    if (auto vniToVrf = cref<switch_state_tags::vniToVrf>()) {
+      return vniToVrf->toThrift();
+    }
+    return std::nullopt;
+  }
+  void setVniToVrf(const std::optional<std::map<int64_t, int64_t>>& vniToVrf) {
+    if (!vniToVrf) {
+      ref<switch_state_tags::vniToVrf>().reset();
+    } else {
+      set<switch_state_tags::vniToVrf>(*vniToVrf);
+    }
   }
 
  private:

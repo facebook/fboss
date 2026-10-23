@@ -721,6 +721,8 @@ struct VxLanTunnelFields {
   7: optional switch_config.TunnelMode ecnMode;
   8: optional switch_config.TunnelTerminationType tunnelTermType;
   9: common.TunnelType tunnelType;
+  10: optional map<i64, i64> vrf2Vni;
+  11: optional map<i64, i64> vniToVrf;
 }
 
 struct MySidFields {
