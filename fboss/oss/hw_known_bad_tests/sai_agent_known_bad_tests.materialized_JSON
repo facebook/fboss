@@ -404,9 +404,6 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
@@ -913,13 +910,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest.*$"
@@ -938,9 +935,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateV6Test.verifyL4SrcPortRandomization$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -1506,13 +1500,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -1558,9 +1552,6 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_prod_2_trunk.cold_boot.AgentFlowletSprayTest.VerifyEcmpRandomSpray$"
-        },
-        {
-          "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTable$"
         },
         {
           "test_name_regex": "roundtrip.trunk_2_prod_2_trunk.warm_boot.*$"
@@ -1979,13 +1970,13 @@
           "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
@@ -2361,9 +2352,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentVoqSwitchWithFabricPortsTest.fdrCellDrops"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchFullScaleDsfNodesTest.systemPortScaleTestWithHyperPort$"
         },
         {
           "test_name_regex": "AgentHwSflowMirrorTest/1.HwResolvedMirrorStat$"
@@ -2791,13 +2779,13 @@
           "test_name_regex": "AgentHwMirrorTest/[01].HwMirrorLimitExceeded$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ"
@@ -2892,12 +2880,6 @@
     ],
     "brcm/11.7.0.0_dnx_odp/11.7.0.0_dnx_odp/ramon3/mono": [
         {
-          "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
-        },
-        {
-          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
-        },
-        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -2911,6 +2893,9 @@
         },
         {
           "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/11.7.0.0_dnx_odp/ramon3/multi_switch": [
@@ -3317,13 +3302,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "AgentBalancedInputModeTest.init$"
@@ -3841,13 +3826,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
@@ -4686,13 +4671,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ"
@@ -4832,12 +4817,6 @@
     ],
     "brcm/11.7.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/mono": [
         {
-          "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
-        },
-        {
-          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
-        },
-        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -4851,6 +4830,12 @@
         },
         {
           "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/multi_switch": [
@@ -5257,13 +5242,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "AgentBalancedInputModeTest.init$"
@@ -5775,13 +5760,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "AgentPfcTest.*$"
@@ -5919,9 +5904,6 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
-        },
-        {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
@@ -5941,6 +5923,9 @@
         },
         {
           "test_name_regex": "AgentCoppQueueStuckTest.CpuQueueHighRateTraffic$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentHwPtpTcProvisionTests.VerifyPtpTcDelayRequest$"
@@ -6362,13 +6347,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
@@ -7153,13 +7138,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
@@ -7956,13 +7941,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ"
@@ -8462,13 +8447,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ"
@@ -8569,12 +8554,6 @@
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/mono": [
         {
-          "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
-        },
-        {
-          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
-        },
-        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -8592,12 +8571,6 @@
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/mono/fe13": [
         {
-          "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
-        },
-        {
-          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
-        },
-        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -8611,15 +8584,12 @@
         },
         {
           "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/mono/fe2": [
-        {
-          "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
-        },
-        {
-          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
-        },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
@@ -9040,13 +9010,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "AgentBalancedInputModeTest.init$"
@@ -9558,13 +9528,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "AgentBalancedInputModeTest.init$"
@@ -10076,13 +10046,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "AgentBalancedInputModeTest.init$"
@@ -10588,13 +10558,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest.*$"
@@ -10613,9 +10583,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateV6Test.verifyL4SrcPortRandomization$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -11181,13 +11148,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -11224,9 +11191,6 @@
         },
         {
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "roundtrip.trunk_2_prod_2_trunk.warm_boot.*$"
@@ -11645,13 +11609,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "AgentPfcTest.*$"
@@ -11789,9 +11753,6 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
-        },
-        {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
@@ -11898,9 +11859,6 @@
         },
         {
           "test_name_regex": "AgentTest_PROFILE_800G_.*$"
-        },
-        {
-          "test_name_regex": "AgentQueuePerHostTest.VerifyHostToQueueMappingClassIDsAfterResolve$"
         },
         {
           "test_name_regex": "roundtrip.(preprod_2_trunk_2_preprod|trunk_2_preprod_2_trunk).(cold_boot|warm_boot).AgentMyMacTest.*$"
@@ -12316,13 +12274,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
@@ -13137,13 +13095,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
@@ -13964,13 +13922,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
@@ -14800,13 +14758,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ"
@@ -15333,13 +15291,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ"
@@ -15458,12 +15416,6 @@
     ],
     "brcm/14.2.0.0_dnx_odp/14.2.0.0_dnx_odp/ramon3/mono": [
         {
-          "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
-        },
-        {
-          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
-        },
-        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -15477,16 +15429,16 @@
         },
         {
           "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
         }
     ],
     "brcm/14.2.0.0_dnx_odp/14.2.0.0_dnx_odp/ramon3/mono/fe13": [
         {
-          "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
-        },
-        {
-          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
-        },
-        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -15500,16 +15452,16 @@
         },
         {
           "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
         }
     ],
     "brcm/14.2.0.0_dnx_odp/14.2.0.0_dnx_odp/ramon3/mono/fe2": [
         {
-          "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
-        },
-        {
-          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
-        },
-        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
@@ -15523,6 +15475,12 @@
         },
         {
           "test_name_regex": "AgentRollbackTest.rollbackNeighborResolution$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
         }
     ],
     "brcm/14.2.0.0_dnx_odp/14.2.0.0_dnx_odp/ramon3/multi_switch": [
@@ -15929,13 +15887,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "AgentBalancedInputModeTest.init$"
@@ -16022,6 +15980,12 @@
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticMacEntryAdd$"
         },
         {
+          "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
+        },
+        {
           "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
         },
         {
@@ -16032,12 +15996,6 @@
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnWithoutWredPostWarmboot$"
-        },
-        {
-          "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
-        },
-        {
-          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
         },
         {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
@@ -16459,13 +16417,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "AgentBalancedInputModeTest.init$"
@@ -16977,13 +16935,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "AgentBalancedInputModeTest.init$"
@@ -17495,13 +17453,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
@@ -17577,9 +17535,6 @@
         },
         {
           "test_name_regex": "AgentPortProfileTest_PROFILE_800G_.*$"
-        },
-        {
-          "test_name_regex": "AgentQueuePerHostTest.VerifyHostToQueueMappingClassIDsAfterResolve$"
         },
         {
           "test_name_regex": "warm_boot.AgentQueuePerHostTest.VerifyHostToQueueMappingClassIDsWithResolve$"
@@ -18001,9 +17956,6 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
@@ -18110,6 +18062,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         }
     ],
     "brcm/15.4.0.0_odp/15.4.0.0_odp/tomahawk3/multi_switch": [
@@ -18510,13 +18465,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest.*$"
@@ -18535,9 +18490,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateV6Test.verifyL4SrcPortRandomization$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -18637,6 +18589,9 @@
         },
         {
           "test_name_regex": ".*AgentAccessPolicyClassId.*$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         }
     ],
     "brcm/15.4.0.0_odp/15.4.0.0_odp/tomahawk4/multi_switch": [
@@ -19100,13 +19055,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -19570,13 +19525,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "AgentPfcTest.*$"
@@ -19714,9 +19669,6 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
-        },
-        {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
@@ -19741,10 +19693,13 @@
           "test_name_regex": "AgentTest_PROFILE_800G_.*$"
         },
         {
-          "test_name_regex": "AgentQueuePerHostTest.VerifyHostToQueueMappingClassIDsAfterResolve$"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentFlowletSwitchingTest.CreateMaxDlbGroups$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentFlowletSwitchingTest.CreateMaxDlbGroups$"
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentQueuePerHostTest.VerifyHostToQueueMappingClassIDsAfterResolve$"
         }
     ],
     "brcm/15.4.0.0_odp/15.4.0.0_odp/tomahawk5/multi_switch/rbb": [
@@ -20151,13 +20106,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "AgentPfcTest.*$"
@@ -20295,9 +20250,6 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
-        },
-        {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
@@ -20322,10 +20274,13 @@
           "test_name_regex": "AgentTest_PROFILE_800G_.*$"
         },
         {
-          "test_name_regex": "AgentQueuePerHostTest.VerifyHostToQueueMappingClassIDsAfterResolve$"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentFlowletSwitchingTest.CreateMaxDlbGroups$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentFlowletSwitchingTest.CreateMaxDlbGroups$"
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentQueuePerHostTest.VerifyHostToQueueMappingClassIDsAfterResolve$"
         }
     ],
     "brcm/16.0_ea_odp/16.0_ea_odp/tomahawk6/multi_switch": [
@@ -20732,13 +20687,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
@@ -20816,9 +20771,6 @@
           "test_name_regex": "AgentPortProfileTest_PROFILE_800G_.*$"
         },
         {
-          "test_name_regex": "AgentQueuePerHostTest.VerifyHostToQueueMappingClassIDsAfterResolve$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentQueuePerHostTest.VerifyHostToQueueMappingClassIDsWithResolve$"
         },
         {
@@ -20832,6 +20784,9 @@
         },
         {
           "test_name_regex": "AgentCoppQueueStuckTest.CpuQueueHighRateTraffic$"
+        },
+        {
+          "test_name_regex": "AgentQueuePerHostTest.VerifyHostToQueueMappingClassIDsAfterResolve$"
         }
     ],
     "brcm/16.0_ea_odp/16.0_ea_odp/tomahawk6/multi_switch/rbb": [
@@ -21238,13 +21193,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.verifyL4SrcPortRandomization$"
@@ -21322,9 +21277,6 @@
           "test_name_regex": "AgentPortProfileTest_PROFILE_800G_.*$"
         },
         {
-          "test_name_regex": "AgentQueuePerHostTest.VerifyHostToQueueMappingClassIDsAfterResolve$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentQueuePerHostTest.VerifyHostToQueueMappingClassIDsWithResolve$"
         },
         {
@@ -21338,6 +21290,9 @@
         },
         {
           "test_name_regex": "AgentCoppQueueStuckTest.CpuQueueHighRateTraffic$"
+        },
+        {
+          "test_name_regex": "AgentQueuePerHostTest.VerifyHostToQueueMappingClassIDsAfterResolve$"
         }
     ],
     "brcm/16.0_ea_odp/16.0_ea_odp/tomahawkultra1/multi_switch": [
@@ -21744,13 +21699,13 @@
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
-        },
-        {
           "test_name_regex": "AgentMplsRouteTest.StaticIp2MplsRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
           "test_name_regex": "AgentPfcTest.*$"
@@ -21888,9 +21843,6 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
-        },
-        {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
@@ -21931,6 +21883,9 @@
         },
         {
           "test_name_regex": "AgentQueuePerHostTest.VerifyHostToQueueMappingClassIDsAfterResolve$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         }
     ],
     "chenab/2511.36/2511.36/chenab/mono": [
@@ -22693,6 +22648,18 @@
           "test_name_regex": "AgentHwAclQualifierTest.AclVlanIDQualifier$"
         },
         {
+          "test_name_regex": "AgentHwAclQualifierTest.AclIp4TcpQualifiers$"
+        },
+        {
+          "test_name_regex": "AgentHwAclQualifierTest.AclIp6TcpQualifiers$"
+        },
+        {
+          "test_name_regex": "AgentHwAclQualifierTest.AclModifyQualifier$"
+        },
+        {
+          "test_name_regex": "AgentAclInDiscardsCounterTest.verifyAclInDiscards$"
+        },
+        {
           "test_name_regex": "AgentHwAclQualifierTest.AclIcmp4Qualifiers$"
         },
         {
@@ -22727,9 +22694,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifySampledPacketRate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateV6Test.VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentSflowMirrorUntruncateTestV4.VerifySampledPacketRate$"
@@ -22813,9 +22777,6 @@
           "test_name_regex": "AgentQueuePerHostTest.VerifyTtldCounter$"
         },
         {
-          "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
-        },
-        {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
         },
         {
@@ -22829,18 +22790,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
-          "test_name_regex": "AgentHwAclQualifierTest.AclIp4TcpQualifiers$"
-        },
-        {
-          "test_name_regex": "AgentHwAclQualifierTest.AclIp6TcpQualifiers$"
-        },
-        {
-          "test_name_regex": "AgentHwAclQualifierTest.AclModifyQualifier$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
@@ -23239,9 +23188,6 @@
           "test_name_regex": "AgentAclInDiscardsCounterTest.aclInDiscards$"
         },
         {
-          "test_name_regex": "AgentAclInDiscardsCounterTest.verifyAclInDiscards$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInPauseDiscardsCounterTest.rxPauseEnabled$"
         },
         {
@@ -23252,9 +23198,6 @@
         },
         {
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -23277,16 +23220,13 @@
           "test_name_regex": "AgentCoppTest/[01].NdpSolicitationToHighPriQ$"
         },
         {
-          "test_name_regex": "AgentQueuePerHostL2Test.VerifyHostToQueueMappingClassID$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentMacSwLearningModeTest.VerifyCallbacksOnMacEntryChange$"
         },
         {
           "test_name_regex": "warm_boot.AgentMacSwLearningModeTest.VerifySwAgingForPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendTest.PortTxEnableTest$"
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentRouteStatTest.V4V6SeparateCounters$"
@@ -23305,12 +23245,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV4.StressRecreateMirror$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateV4Test.StressRecreateMirror$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateV6Test.VerifyTruncate$"
         },
         {
           "test_name_regex": "AgentSflowMirrorUntruncateTestV4.VerifySampledPacketRate$"
@@ -23391,12 +23325,6 @@
           "test_name_regex": "AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
-          "test_name_regex": "AgentHwAclQualifierTest.AclIcmp4Qualifiers$"
-        },
-        {
-          "test_name_regex": "AgentHwAclQualifierTest.AclIcmp6Qualifiers$"
-        },
-        {
           "test_name_regex": "AgentMPLSTest/[01].MplsMatchPktsNottrapped$"
         },
         {
@@ -23413,18 +23341,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
-          "test_name_regex": "AgentHwAclQualifierTest.AclIp4TcpQualifiers$"
-        },
-        {
-          "test_name_regex": "AgentHwAclQualifierTest.AclIp6TcpQualifiers$"
-        },
-        {
-          "test_name_regex": "AgentHwAclQualifierTest.AclModifyQualifier$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
@@ -23823,9 +23739,6 @@
           "test_name_regex": "AgentAclInDiscardsCounterTest.aclInDiscards$"
         },
         {
-          "test_name_regex": "AgentAclInDiscardsCounterTest.verifyAclInDiscards$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInPauseDiscardsCounterTest.rxPauseEnabled$"
         },
         {
@@ -23836,9 +23749,6 @@
         },
         {
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -24370,6 +24280,12 @@
     ],
     "leaba/25.11.4210/25.11.4210/gibraltar/multi_switch": [
         {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentAclInDiscardsCounterTest.verifyAclInDiscards$"
+        },
+        {
           "test_name_regex": "AgentAclAndDscpQueueMappingTest.VerifyAclAndQosMap$"
         },
         {
@@ -24404,18 +24320,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
-          "test_name_regex": "AgentHwAclQualifierTest.AclIp4TcpQualifiers$"
-        },
-        {
-          "test_name_regex": "AgentHwAclQualifierTest.AclIp6TcpQualifiers$"
-        },
-        {
-          "test_name_regex": "AgentHwAclQualifierTest.AclModifyQualifier$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
@@ -24814,9 +24718,6 @@
           "test_name_regex": "AgentAclInDiscardsCounterTest.aclInDiscards$"
         },
         {
-          "test_name_regex": "AgentAclInDiscardsCounterTest.verifyAclInDiscards$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInPauseDiscardsCounterTest.rxPauseEnabled$"
         },
         {
@@ -24827,9 +24728,6 @@
         },
         {
           "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
-        },
-        {
-          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -26176,9 +26074,6 @@
           "test_name_regex": "warm_boot.AgentHwLinkDebounceTest.Link(Up|Down)DebounceRetriggerCount$"
         },
         {
-          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
-        },
-        {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
         }
     ],
@@ -26653,9 +26548,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentHwLinkDebounceTest.Link(Up|Down)DebounceRetriggerCount$"
-        },
-        {
-          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
         },
         {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
