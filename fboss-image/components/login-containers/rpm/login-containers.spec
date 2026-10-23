@@ -69,6 +69,7 @@ for f in /var/lib/machines/netops/etc/passwd \
     /usr/local/sbin/escape-keygen \
     /usr/lib/systemd/system/escape-keygen.service \
     /etc/ssh/sshd_config.d/12-escape-localhost.conf \
+    /etc/ssh/sshd_config.d/13-client-alive.conf \
     /etc/sudoers.d/login-containers; do
   [ -s "$f" ] || { echo "login-containers: missing $f" >&2; exit 1; }
 done
@@ -97,6 +98,7 @@ done
 /usr/lib/systemd/system/netadmin-machine.service
 /usr/lib/systemd/system/escape-keygen.service
 /etc/ssh/sshd_config.d/12-escape-localhost.conf
+/etc/ssh/sshd_config.d/13-client-alive.conf
 /var/lib/machines/netops/etc/passwd
 /var/lib/machines/netops/etc/group
 /var/lib/machines/netops/etc/shadow

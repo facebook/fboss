@@ -25,6 +25,13 @@ python_unittest(
     },
 )
 
+python_unittest(
+    name = "test_sshd_posture",
+    srcs = ["test_sshd_posture.py"],
+    base_module = "login_containers.tests",
+    network_access = network_access_utils.none(),
+)
+
 python_library(
     name = "__init__",
     srcs = ["__init__.py"],
