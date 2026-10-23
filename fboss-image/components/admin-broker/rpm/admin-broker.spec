@@ -24,8 +24,10 @@ systemctl is-enabled --quiet admin-broker.service \
 # broker is missing or not executable.
 [ -x /usr/local/sbin/admin-broker ] || { echo "admin-broker: missing daemon" >&2; exit 1; }
 [ -s /usr/lib/systemd/system/admin-broker.service ] || { echo "admin-broker: missing unit" >&2; exit 1; }
+[ -s /etc/admin-broker/allowlist.conf ] || { echo "admin-broker: missing allowlist" >&2; exit 1; }
 /usr/local/sbin/admin-broker --help >/dev/null || { echo "admin-broker: daemon does not start" >&2; exit 1; }
 %files
 %defattr(-,root,root,-)
 %attr(0755,root,root) /usr/local/sbin/admin-broker
 /usr/lib/systemd/system/admin-broker.service
+/etc/admin-broker/allowlist.conf

@@ -14,9 +14,9 @@ peer credentials plus the peer's cgroup session scope, which survives the
 netadmin sudo escape, and appended to an audit log. One command per
 connection; the reply ends with connection close.
 
-B1 verbs: WHOAMI (role identity), PS (host process relay). Unit control and
-namespace-fd passing arrive in B2/B3; the role map moves to a policy file
-in B4.
+Verbs: WHOAMI (role identity), PS (host process relay), and
+STATUS/START/STOP/RESTART over a build-time allowlist of units. The role
+gate is interim hardcoded until the policy file lands.
 """
 
 import argparse
@@ -25,14 +25,20 @@ import os
 import re
 import socket
 import struct
+import subprocess
 import sys
 import time
 
 SOCKET_NAME = "\0admin-broker"
 AUDIT_PATH = "/var/log/admin-broker/audit.log"
+ALLOWLIST_PATH = "/etc/admin-broker/allowlist.conf"
 MAX_REQUEST = 4096
+SYSTEMCTL_TIMEOUT = 120
+UNIT_VERBS = ("STATUS", "START", "STOP", "RESTART")
+UNIT_RE = re.compile(r"^[A-Za-z0-9_.@-]+\.service$")
 # Role origin: the cgroup user slice survives sudo escape, so it wins over
 # the peer uid. Uids are image-pinned (see the login-containers machines).
+# Interim: the map and the gate move to the policy file with the role matrix.
 ROLE_BY_UID = {1000: "netops", 1001: "netadmin"}
 USER_SCOPE_RE = re.compile(r"user-(\d+)\.slice/session-(\d+)\.scope")
 
@@ -80,12 +86,23 @@ def resolve_role(peer_uid, origin_uid):
     return ROLE_BY_UID.get(key, "unknown")
 
 
-def audit_line(verb, ident, role, session, result):
+def audit_line(verb, ident, role, session, target, result):
     """One tab-free audit record; every field is sanitized at its source."""
     stamp = time.strftime("%Y-%m-%dT%H:%M:%S%z")
     return (
-        "%s verb=%s peer_uid=%d peer_gid=%d peer_pid=%d role=%s session=%s result=%s\n"
-        % (stamp, verb, ident["uid"], ident["gid"], ident["pid"], role, session, result)
+        "%s verb=%s peer_uid=%d peer_gid=%d peer_pid=%d role=%s session=%s "
+        "target=%s result=%s\n"
+        % (
+            stamp,
+            verb,
+            ident["uid"],
+            ident["gid"],
+            ident["pid"],
+            role,
+            session,
+            target,
+            result,
+        )
     )
 
 
@@ -131,8 +148,20 @@ def list_processes(proc_root="/proc"):
     return lines
 
 
-def handle_command(cmd, ident, proc_root="/proc"):
-    """Run one verb; returns (reply_text, result_tag). Never raises."""
+def run_systemctl(argv, timeout=SYSTEMCTL_TIMEOUT):
+    """Run one systemctl call; raises TimeoutExpired/OSError to the caller."""
+    return subprocess.run(
+        ["/usr/bin/systemctl", "--no-pager", "--no-ask-password", *argv],
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+    )
+
+
+def handle_command(
+    cmd, ident, proc_root="/proc", allowlist=frozenset(), run_fn=run_systemctl
+):
+    """Run one verb; returns (reply_text, context, result_tag). Never raises."""
     origin_uid, session = read_origin(ident["pid"], proc_root)
     role = resolve_role(ident["uid"], origin_uid)
     comm = read_comm(ident["pid"], proc_root)
@@ -140,20 +169,120 @@ def handle_command(cmd, ident, proc_root="/proc"):
         "role": role,
         "session": session if session is not None else "-",
         "comm": comm,
+        "target": "-",
+        "verb": "-",
     }
-    if cmd == "WHOAMI":
-        reply = "role=%s uid=%d gid=%d pid=%d session=%s comm=%s" % (
-            role,
-            ident["uid"],
-            ident["gid"],
-            ident["pid"],
-            context["session"],
-            comm,
-        )
-        return reply, context, "ok"
-    if cmd == "PS":
+    if not cmd:
+        return "ERR unknown-command", context, "err:unknown-command"
+    parts = cmd.split(None, 1)
+    verb = parts[0]
+    context["verb"] = verb
+    arg = parts[1] if len(parts) > 1 else None
+    if verb in ("WHOAMI", "PS") and arg is None:
+        if verb == "WHOAMI":
+            reply = "role=%s uid=%d gid=%d pid=%d session=%s comm=%s" % (
+                role,
+                ident["uid"],
+                ident["gid"],
+                ident["pid"],
+                context["session"],
+                comm,
+            )
+            return reply, context, "ok"
         return "\n".join(list_processes(proc_root)), context, "ok"
+    if verb in UNIT_VERBS:
+        if arg is None:
+            return "ERR missing-unit", context, "err:missing-unit"
+        target = arg.strip()
+        reply, result = control_unit(verb, target, role, allowlist, run_fn)
+        context["target"] = target
+        return reply, context, result
     return "ERR unknown-command", context, "err:unknown-command"
+
+
+def sanitize_line(text, limit=512):
+    """Flatten stderr to one log-safe suffix, empty when there is nothing to say."""
+    flat = " ".join(text.split())[:limit]
+    if not flat:
+        return ""
+    return ": " + flat
+
+
+def load_allowlist(path):
+    """Unit patterns from a build-time file; unreadable means deny-all (empty)."""
+    try:
+        with open(path) as handle:
+            lines = handle.read().splitlines()
+    except OSError:
+        return frozenset()
+    units = set()
+    for line in lines:
+        entry = line.split("#", 1)[0].strip()
+        if entry:
+            units.add(entry)
+    return frozenset(units)
+
+
+def valid_unit_syntax(unit):
+    """Strict service-name shape; rejects paths, spaces, and non-services."""
+    return UNIT_RE.match(unit) is not None
+
+
+def unit_allowed(unit, allowlist):
+    """Exact match, or a numeric instance of an allowlisted template.
+
+    A bare template (x@.service) never matches: systemctl cannot act
+    on an uninstantiated template, so the broker rejects it instead
+    of passing it through to fail there.
+    """
+    if unit in allowlist and not unit.endswith("@.service"):
+        return True
+    for entry in allowlist:
+        if not entry.endswith("@.service"):
+            continue
+        base = entry[: -len("@.service")]
+        if not unit.startswith(base + "@") or not unit.endswith(".service"):
+            continue
+        if unit[len(base) + 1 : -len(".service")].isdigit():
+            return True
+    return False
+
+
+def control_unit(verb, unit, role, allowlist, run_fn=run_systemctl):
+    """Run a unit verb; returns (reply_text, result_tag). Never raises."""
+    if not valid_unit_syntax(unit):
+        return "ERR bad-unit", "err:bad-unit"
+    if role not in ("netops", "netadmin"):
+        return "ERR forbidden", "err:forbidden"
+    if not unit_allowed(unit, allowlist):
+        return "ERR not-allowlisted", "err:not-allowlisted"
+    if verb != "STATUS" and role != "netadmin":
+        return "ERR forbidden", "err:forbidden"
+    if verb == "STATUS":
+        cmd = ["show", unit, "-p", "ActiveState,SubState,MainPID"]
+    else:
+        cmd = [verb.lower(), unit]
+    try:
+        proc = run_fn(cmd)
+    except subprocess.TimeoutExpired:
+        return "ERR timeout", "err:timeout"
+    except OSError:
+        return "ERR exec-error", "err:exec-error"
+    if verb == "STATUS":
+        if proc.returncode != 0:
+            return (
+                "ERR status-failed rc=%d%s"
+                % (proc.returncode, sanitize_line(proc.stderr)),
+                "err:status-failed",
+            )
+        return proc.stdout.strip(), "ok"
+    if proc.returncode != 0:
+        return (
+            "ERR %s-failed rc=%d%s"
+            % (verb.lower(), proc.returncode, sanitize_line(proc.stderr)),
+            "err:%s-failed" % verb.lower(),
+        )
+    return "ok", "ok"
 
 
 def read_request(conn):
@@ -176,7 +305,7 @@ def serve_error(conn, audit_path, ident, result, reply, proc_root="/proc"):
     """Audit a rejected request and, unless the peer is gone, send the error."""
     origin_uid, _session = read_origin(ident["pid"], proc_root)
     role = resolve_role(ident["uid"], origin_uid)
-    append_audit(audit_path, audit_line("-", ident, role, "-", result))
+    append_audit(audit_path, audit_line("-", ident, role, "-", "-", result))
     if reply is not None:
         conn.sendall(reply)
     return result
@@ -199,16 +328,16 @@ def _discard_unread(conn):
         pass
 
 
-def serve_once(conn, audit_path, proc_root="/proc"):
+def serve_once(conn, audit_path, proc_root="/proc", allowlist=frozenset(), run_fn=run_systemctl):
     """Serve one connection: attribute, run, audit, reply. Returns the result tag."""
     ident = peer_identity(conn)
     try:
-        return _serve_request(conn, audit_path, ident, proc_root)
+        return _serve_request(conn, audit_path, ident, proc_root, allowlist, run_fn)
     finally:
         _discard_unread(conn)
 
 
-def _serve_request(conn, audit_path, ident, proc_root):
+def _serve_request(conn, audit_path, ident, proc_root, allowlist, run_fn):
     """Run the request; the caller owns shutdown/close and the audit trail."""
     raw, error = read_request(conn)
     if error == "err:recv":
@@ -228,15 +357,23 @@ def _serve_request(conn, audit_path, ident, proc_root):
         )
     if not cmd:
         return serve_error(conn, audit_path, ident, "err:empty", b"ERR empty", proc_root)
-    reply, context, result = handle_command(cmd, ident, proc_root)
+    reply, context, result = handle_command(cmd, ident, proc_root, allowlist, run_fn)
     append_audit(
-        audit_path, audit_line(cmd, ident, context["role"], context["session"], result)
+        audit_path,
+        audit_line(
+            context["verb"],
+            ident,
+            context["role"],
+            context["session"],
+            context["target"],
+            result,
+        ),
     )
     conn.sendall(reply.encode("utf-8"))
     return result
 
 
-def serve(sock, audit_path, proc_root="/proc", max_requests=None):
+def serve(sock, audit_path, proc_root="/proc", allowlist=frozenset(), run_fn=run_systemctl, max_requests=None):
     """Accept loop; max_requests bounds it for tests (None runs forever)."""
     served = 0
     while max_requests is None or served < max_requests:
@@ -255,7 +392,7 @@ def serve(sock, audit_path, proc_root="/proc", max_requests=None):
             served += 1
             continue
         try:
-            serve_once(conn, audit_path, proc_root)
+            serve_once(conn, audit_path, proc_root, allowlist, run_fn)
         except OSError:
             pass
         finally:
@@ -268,14 +405,23 @@ def main(argv):
     parser = argparse.ArgumentParser(description="scoped host control broker")
     parser.add_argument("--socket-name", default=SOCKET_NAME)
     parser.add_argument("--audit-path", default=AUDIT_PATH)
+    parser.add_argument("--allowlist-path", default=ALLOWLIST_PATH)
     parser.add_argument("--proc-root", default="/proc")
     parser.add_argument("--max-requests", type=int, default=None)
     args = parser.parse_args(argv)
+    allowlist = load_allowlist(args.allowlist_path)
+    if not allowlist:
+        print(
+            "admin-broker: warning: empty allowlist, unit verbs deny all",
+            file=sys.stderr,
+        )
+    else:
+        print("admin-broker: allowlist: %d units" % len(allowlist), file=sys.stderr)
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     sock.bind(args.socket_name)
     sock.listen(16)
     try:
-        serve(sock, args.audit_path, args.proc_root, args.max_requests)
+        serve(sock, args.audit_path, args.proc_root, allowlist, run_systemctl, args.max_requests)
     finally:
         sock.close()
     return 0

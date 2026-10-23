@@ -181,15 +181,28 @@ class AuditTest(unittest.TestCase):
             {"uid": 1001, "gid": 1002, "pid": 55},
             "netadmin",
             "user-1001.slice/session-1.scope",
+            "-",
             "ok",
         )
         self.assertRegex(
             line,
             r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{4} "
             r"verb=WHOAMI peer_uid=1001 peer_gid=1002 peer_pid=55 "
-            r"role=netadmin session=user-1001\.slice/session-1\.scope result=ok\n$",
+            r"role=netadmin session=user-1001\.slice/session-1\.scope "
+            r"target=- result=ok\n$",
         )
         self.assertNotIn("\t", line)
+
+    def test_line_with_target(self):
+        line = broker.audit_line(
+            "RESTART",
+            {"uid": 1001, "gid": 1002, "pid": 55},
+            "netadmin",
+            "user-1001.slice/session-1.scope",
+            "fboss_sw_agent.service",
+            "ok",
+        )
+        self.assertIn("target=fboss_sw_agent.service result=ok", line)
 
     def test_append_roundtrip(self):
         tmp = _mktemp(self, "audit-")
@@ -525,7 +538,12 @@ class ServeTest(unittest.TestCase):
         sock.bind(name)
         sock.listen(16)
         self.addCleanup(sock.close)
-        worker = threading.Thread(target=broker.serve, args=(sock, audit, str(tmp), 1))
+        worker = threading.Thread(
+            target=broker.serve,
+            args=(sock, audit, str(tmp)),
+            kwargs={"max_requests": 1},
+            daemon=True,
+        )
         worker.start()
         client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         client.connect(name)
@@ -572,7 +590,7 @@ class MainTest(unittest.TestCase):
                 ]
             )
 
-        worker = threading.Thread(target=run)
+        worker = threading.Thread(target=run, daemon=True)
         worker.start()
         client = None
         for _ in range(100):
@@ -629,6 +647,331 @@ class MainGuardTest(unittest.TestCase):
             with self.assertRaises(SystemExit) as ctx:
                 runpy.run_path(_daemon_path(), run_name="__main__")
         self.assertEqual(ctx.exception.code, 0)
+
+
+class SanitizeLineTest(unittest.TestCase):
+    def test_suffix(self):
+        self.assertEqual(broker.sanitize_line("boom\nfailed"), ": boom failed")
+
+    def test_empty(self):
+        self.assertEqual(broker.sanitize_line("  \n "), "")
+
+    def test_truncates(self):
+        self.assertEqual(len(broker.sanitize_line("x" * 5000)), 514)
+
+
+class AllowlistTest(unittest.TestCase):
+    def test_missing_file_denies_all(self):
+        tmp = _mktemp(self, "allow-")
+        self.assertEqual(broker.load_allowlist(str(tmp / "nope.conf")), frozenset())
+
+    def test_parses_entries_skips_comments(self):
+        tmp = _mktemp(self, "allow-")
+        path = tmp / "allowlist.conf"
+        path.write_text(
+            "# heading comment\n"
+            "\n"
+            "fboss_sw_agent.service  # trailing comment\n"
+            "   \n"
+            "fboss_hw_agent@.service\n"
+        )
+        self.assertEqual(
+            broker.load_allowlist(str(path)),
+            frozenset({"fboss_sw_agent.service", "fboss_hw_agent@.service"}),
+        )
+
+
+class UnitSyntaxTest(unittest.TestCase):
+    def test_valid(self):
+        for unit in (
+            "fboss_sw_agent.service",
+            "fboss_hw_agent@0.service",
+            "a-b_c.d@1.service",
+        ):
+            self.assertTrue(broker.valid_unit_syntax(unit), unit)
+
+    def test_invalid(self):
+        for unit in (
+            "",
+            "nope",
+            "../x.service",
+            "a b.service",
+            "a.service/x",
+            "a.socket",
+            "a@Service",
+        ):
+            self.assertFalse(broker.valid_unit_syntax(unit), unit)
+
+
+class UnitAllowedTest(unittest.TestCase):
+    ALLOW = frozenset({"fboss_sw_agent.service", "fboss_hw_agent@.service"})
+
+    def test_exact(self):
+        self.assertTrue(broker.unit_allowed("fboss_sw_agent.service", self.ALLOW))
+
+    def test_template_numeric(self):
+        self.assertTrue(broker.unit_allowed("fboss_hw_agent@0.service", self.ALLOW))
+        self.assertTrue(broker.unit_allowed("fboss_hw_agent@12.service", self.ALLOW))
+
+    def test_template_evil_instance(self):
+        self.assertFalse(broker.unit_allowed("fboss_hw_agent@x.service", self.ALLOW))
+        self.assertFalse(
+            broker.unit_allowed("fboss_hw_agent@0.service@1.service", self.ALLOW)
+        )
+
+    def test_template_bare_rejected(self):
+        self.assertFalse(broker.unit_allowed("fboss_hw_agent@.service", self.ALLOW))
+
+    def test_mismatch(self):
+        self.assertFalse(broker.unit_allowed("qsfp_service.service", self.ALLOW))
+        self.assertFalse(broker.unit_allowed("qsfp@0.service", self.ALLOW))
+        self.assertFalse(broker.unit_allowed("fboss_hw_agent@0.timer", self.ALLOW))
+        self.assertFalse(broker.unit_allowed("fboss_sw_agent.service", frozenset()))
+
+    def test_non_template_entries_skipped(self):
+        allow = frozenset({"plain.service"})
+        self.assertFalse(broker.unit_allowed("other@0.service", allow))
+
+
+class RunSystemctlTest(unittest.TestCase):
+    def test_argv_and_timeout(self):
+        with mock.patch.object(broker.subprocess, "run") as run:
+            broker.run_systemctl(["show", "a.service"])
+        run.assert_called_once_with(
+            [
+                "/usr/bin/systemctl",
+                "--no-pager",
+                "--no-ask-password",
+                "show",
+                "a.service",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+
+    def test_timeout_override(self):
+        with mock.patch.object(broker.subprocess, "run") as run:
+            broker.run_systemctl(["show", "a.service"], timeout=5)
+        self.assertEqual(run.call_args[1]["timeout"], 5)
+
+
+def _proc_result(rc=0, stdout="", stderr=""):
+    proc = mock.Mock()
+    proc.returncode = rc
+    proc.stdout = stdout
+    proc.stderr = stderr
+    return proc
+
+
+class ControlUnitTest(unittest.TestCase):
+    ALLOW = frozenset({"fboss_sw_agent.service", "fboss_hw_agent@.service"})
+
+    def test_bad_unit(self):
+        run = mock.Mock()
+        reply, result = broker.control_unit(
+            "START", "../x.service", "netadmin", self.ALLOW, run
+        )
+        self.assertEqual((reply, result), ("ERR bad-unit", "err:bad-unit"))
+        run.assert_not_called()
+
+    def test_unknown_role_forbidden(self):
+        run = mock.Mock()
+        reply, result = broker.control_unit(
+            "STATUS", "fboss_sw_agent.service", "unknown", self.ALLOW, run
+        )
+        self.assertEqual((reply, result), ("ERR forbidden", "err:forbidden"))
+        run.assert_not_called()
+
+    def test_not_allowlisted(self):
+        run = mock.Mock()
+        reply, result = broker.control_unit(
+            "STATUS", "cron.service", "netadmin", self.ALLOW, run
+        )
+        self.assertEqual(
+            (reply, result), ("ERR not-allowlisted", "err:not-allowlisted")
+        )
+        run.assert_not_called()
+
+    def test_netops_status_ok_but_mutating_forbidden(self):
+        run = mock.Mock(return_value=_proc_result(0, "ActiveState=active\n"))
+        reply, result = broker.control_unit(
+            "STATUS", "fboss_sw_agent.service", "netops", self.ALLOW, run
+        )
+        self.assertEqual(result, "ok")
+        self.assertIn("ActiveState=active", reply)
+        run.assert_called_once_with(
+            ["show", "fboss_sw_agent.service", "-p", "ActiveState,SubState,MainPID"]
+        )
+        reply, result = broker.control_unit(
+            "RESTART", "fboss_sw_agent.service", "netops", self.ALLOW, run
+        )
+        self.assertEqual((reply, result), ("ERR forbidden", "err:forbidden"))
+
+    def test_netadmin_mutating_ok(self):
+        run = mock.Mock(return_value=_proc_result(0))
+        for verb in ("START", "STOP", "RESTART"):
+            reply, result = broker.control_unit(
+                verb, "fboss_sw_agent.service", "netadmin", self.ALLOW, run
+            )
+            self.assertEqual((reply, result), ("ok", "ok"), verb)
+        run.assert_called_with(["restart", "fboss_sw_agent.service"])
+
+    def test_template_instance_ok(self):
+        run = mock.Mock(return_value=_proc_result(0))
+        reply, result = broker.control_unit(
+            "STATUS", "fboss_hw_agent@0.service", "netadmin", self.ALLOW, run
+        )
+        self.assertEqual(result, "ok")
+
+    def test_status_failed(self):
+        run = mock.Mock(return_value=_proc_result(4, "", "not found"))
+        reply, result = broker.control_unit(
+            "STATUS", "fboss_sw_agent.service", "netadmin", self.ALLOW, run
+        )
+        self.assertEqual(
+            (reply, result),
+            ("ERR status-failed rc=4: not found", "err:status-failed"),
+        )
+
+    def test_mutating_failed_with_detail(self):
+        run = mock.Mock(return_value=_proc_result(1, "", "job\nfailed"))
+        reply, result = broker.control_unit(
+            "STOP", "fboss_sw_agent.service", "netadmin", self.ALLOW, run
+        )
+        self.assertEqual(reply, "ERR stop-failed rc=1: job failed")
+        self.assertEqual(result, "err:stop-failed")
+
+    def test_mutating_failed_without_detail(self):
+        run = mock.Mock(return_value=_proc_result(1, "", " \n "))
+        reply, result = broker.control_unit(
+            "STOP", "fboss_sw_agent.service", "netadmin", self.ALLOW, run
+        )
+        self.assertEqual(reply, "ERR stop-failed rc=1")
+
+    def test_timeout(self):
+        import subprocess as _subprocess
+
+        run = mock.Mock(side_effect=_subprocess.TimeoutExpired("systemctl", 120))
+        reply, result = broker.control_unit(
+            "RESTART", "fboss_sw_agent.service", "netadmin", self.ALLOW, run
+        )
+        self.assertEqual((reply, result), ("ERR timeout", "err:timeout"))
+
+    def test_exec_error(self):
+        run = mock.Mock(side_effect=OSError("gone"))
+        reply, result = broker.control_unit(
+            "RESTART", "fboss_sw_agent.service", "netadmin", self.ALLOW, run
+        )
+        self.assertEqual((reply, result), ("ERR exec-error", "err:exec-error"))
+
+
+class UnitDispatchTest(unittest.TestCase):
+    def _ident(self, uid=1001, pid=7):
+        return {"uid": uid, "gid": 1002, "pid": pid}
+
+    def test_empty_command(self):
+        root = _mktemp(self, "cmd-")
+        reply, _, result = broker.handle_command("", self._ident(), str(root))
+        self.assertEqual(
+            (reply, result), ("ERR unknown-command", "err:unknown-command")
+        )
+
+    def test_bare_verb_with_arg_rejected(self):
+        root = _mktemp(self, "cmd-")
+        reply, _, result = broker.handle_command("WHOAMI X", self._ident(), str(root))
+        self.assertEqual(result, "err:unknown-command")
+
+    def test_missing_unit(self):
+        root = _mktemp(self, "cmd-")
+        reply, context, result = broker.handle_command(
+            "STATUS", self._ident(), str(root)
+        )
+        self.assertEqual((reply, result), ("ERR missing-unit", "err:missing-unit"))
+        self.assertEqual(context["target"], "-")
+
+    def test_unit_dispatch_audits_target(self):
+        root = _mktemp(self, "cmd-")
+        run = mock.Mock(return_value=_proc_result(0))
+        allow = frozenset({"fboss_sw_agent.service"})
+        reply, context, result = broker.handle_command(
+            "STATUS   fboss_sw_agent.service  ", self._ident(), str(root), allow, run
+        )
+        self.assertEqual(result, "ok")
+        self.assertEqual(context["target"], "fboss_sw_agent.service")
+        run.assert_called_once_with(
+            ["show", "fboss_sw_agent.service", "-p", "ActiveState,SubState,MainPID"]
+        )
+
+
+class ServeUnitTest(unittest.TestCase):
+    def test_status_roundtrip_audits_target(self):
+        tmp = _mktemp(self, "serve-")
+        _write_proc(
+            tmp,
+            os.getpid(),
+            comm="test\n",
+            cgroup="0::/user.slice/user-1001.slice/session-21.scope\n",
+        )
+        audit = str(tmp / "audit.log")
+        allow = frozenset({"fboss_sw_agent.service"})
+        run = mock.Mock(return_value=_proc_result(0, "ActiveState=active\n"))
+        ours, peer = socket.socketpair()
+        self.addCleanup(ours.close)
+        self.addCleanup(peer.close)
+        ours.sendall(b"STATUS fboss_sw_agent.service\n")
+        ours.shutdown(socket.SHUT_WR)
+        result = broker.serve_once(peer, audit, str(tmp), allow, run)
+        peer.close()
+        reply = _read_all(ours).decode()
+        self.assertEqual(result, "ok")
+        self.assertIn("ActiveState=active", reply)
+        with open(audit) as handle:
+            record = handle.read()
+        self.assertIn("verb=STATUS peer_uid=", record)
+        self.assertIn("target=fboss_sw_agent.service result=ok", record)
+
+
+class MainAllowlistTest(unittest.TestCase):
+    def test_empty_allowlist_warns(self):
+        tmp = _mktemp(self, "main-")
+        stream = io.StringIO()
+        with mock.patch.object(sys, "stderr", stream):
+            rc = broker.main(
+                [
+                    "--socket-name",
+                    _abstract_name(),
+                    "--audit-path",
+                    str(tmp / "audit.log"),
+                    "--allowlist-path",
+                    str(tmp / "missing.conf"),
+                    "--max-requests",
+                    "0",
+                ]
+            )
+        self.assertEqual(rc, 0)
+        self.assertIn("warning: empty allowlist", stream.getvalue())
+
+    def test_loaded_allowlist_counts(self):
+        tmp = _mktemp(self, "main-")
+        path = tmp / "allowlist.conf"
+        path.write_text("a.service\nb.service\n")
+        stream = io.StringIO()
+        with mock.patch.object(sys, "stderr", stream):
+            rc = broker.main(
+                [
+                    "--socket-name",
+                    _abstract_name(),
+                    "--audit-path",
+                    str(tmp / "audit.log"),
+                    "--allowlist-path",
+                    str(path),
+                    "--max-requests",
+                    "0",
+                ]
+            )
+        self.assertEqual(rc, 0)
+        self.assertIn("allowlist: 2 units", stream.getvalue())
 
 
 class SelfCoverageTest(unittest.TestCase):
