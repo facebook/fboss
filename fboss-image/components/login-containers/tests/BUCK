@@ -15,6 +15,16 @@ python_unittest(
     },
 )
 
+python_unittest(
+    name = "test_escape_keygen",
+    srcs = ["test_escape_keygen.py"],
+    base_module = "login_containers.tests",
+    network_access = network_access_utils.none(),
+    resources = {
+        "//fboss/github/fboss-image/components/login-containers/payload/usr/local/sbin:escape-keygen": "escape-keygen",
+    },
+)
+
 python_library(
     name = "__init__",
     srcs = ["__init__.py"],
