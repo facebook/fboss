@@ -634,6 +634,18 @@ def parse_in_frames(buf):
         buf = rest[size:]
 
 
+def exit_report(code):
+    """(wire_code, audit_tag) for a waitstatus exit code.
+
+    Signal deaths report the shell-conventional 128+N on the wire
+    (host-ctl exits like a shell would) and sig-N in the audit, where
+    the tag disambiguates a real 137 exit from a SIGKILL.
+    """
+    if code < 0:
+        return 128 - code, "sig-%d" % -code
+    return code, "exit-%d" % code
+
+
 def proxy_session(conn, pid, stdin_w, stdout_r, initial=b""):
     """Relay client<->shell until one side ends. Returns the shell exit code,
     None when the client vanished first, "err:bad-stdin" when the client
@@ -737,8 +749,9 @@ def proxy_session(conn, pid, stdin_w, stdout_r, initial=b""):
                 if code is None:
                     _send_error(conn, b"ERR reap-failed")
                     return "err:reap-failed"
+                wire, _tag = exit_report(code)
                 try:
-                    conn.sendall(b"EXIT %d\n" % code)
+                    conn.sendall(b"EXIT %d\n" % wire)
                 except OSError:
                     pass
                 return code
@@ -819,7 +832,7 @@ def _serve_exec(conn, audit_path, ident, role, session, count_text, rest):
     elif isinstance(code, str):
         result = code
     else:
-        result = "exit-%d" % code
+        result = exit_report(code)[1]
     append_audit(
         audit_path, audit_line("EXEC", ident, role, session, target, result, detail)
     )

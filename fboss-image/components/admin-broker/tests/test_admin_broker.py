@@ -972,7 +972,7 @@ class ProxyTest(unittest.TestCase):
             code = broker.proxy_session(peer, 424242, stdin_w, stdout_r)
         self.assertEqual(code, -9)
         peer.close()
-        self.assertEqual(_read_all(ours), b"EXIT -9\n")
+        self.assertEqual(_read_all(ours), b"EXIT 137\n")
 
     def test_stdout_eof_with_stdin_open(self):
         ours, peer = self._pair()
@@ -1472,6 +1472,20 @@ class ProxyTest(unittest.TestCase):
         self.assertEqual(code, 0)
 
 
+class ExitReportTest(unittest.TestCase):
+    def test_signal_maps_to_shell_convention(self):
+        self.assertEqual(broker.exit_report(-9), (137, "sig-9"))
+        self.assertEqual(broker.exit_report(-15), (143, "sig-15"))
+        self.assertEqual(broker.exit_report(-1), (129, "sig-1"))
+
+    def test_plain_codes_unchanged(self):
+        self.assertEqual(broker.exit_report(0), (0, "exit-0"))
+        self.assertEqual(broker.exit_report(1), (1, "exit-1"))
+        # A real 137 exit keeps the exit- tag: the audit tag is what
+        # disambiguates it from a SIGKILL (sig-9).
+        self.assertEqual(broker.exit_report(137), (137, "exit-137"))
+
+
 class ServeExecTest(unittest.TestCase):
     def _pair(self):
         ours, peer = socket.socketpair()
@@ -1662,6 +1676,40 @@ class ServeExecTest(unittest.TestCase):
         self.assertIn("target=/bin/echo", records[0])
         self.assertIn("detail=/bin/echo hi", records[0])
         self.assertIn("result=exit-0", records[1])
+
+    def test_session_signaled_audits_sig(self):
+        tmp = _mktemp(self, "exec-")
+        audit = str(tmp / "audit.log")
+        ours, peer = self._pair()
+        ours.sendall(b"IN_EOF\n")
+        stdin_r, stdin_w = os.pipe()
+        self.addCleanup(os.close, stdin_r)
+        stdout_r, stdout_w = os.pipe()
+        os.close(stdout_w)
+        with (
+            mock.patch.object(
+                broker,
+                "spawn_session",
+                return_value=(424242, stdin_w, stdout_r),
+            ),
+            mock.patch.object(os, "waitpid", return_value=(424242, 9)),
+        ):
+            result = broker._serve_exec(
+                peer,
+                audit,
+                self._ident(),
+                "netadmin",
+                "sess",
+                "1",
+                b"/bin/sleep\n",
+            )
+        peer.close()
+        self.assertEqual(result, "sig-9")
+        self.assertEqual(_read_all(ours), b"EXIT 137\n")
+        with open(audit) as handle:
+            records = handle.read().splitlines()
+        self.assertEqual(len(records), 2)
+        self.assertIn("result=sig-9", records[1])
 
     def test_pipelined_stdin_forwarded(self):
         tmp = _mktemp(self, "exec-")
