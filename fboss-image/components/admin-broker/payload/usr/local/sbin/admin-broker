@@ -209,18 +209,46 @@ def sanitize_line(text, limit=512):
 
 
 def load_allowlist(path):
-    """Unit patterns from a build-time file; unreadable means deny-all (empty)."""
+    """Unit -> verbs map from a build-time file; unreadable means deny-all.
+
+    Line format: 'unit.service' (STATUS only) or 'unit.service: VERB, ...'.
+    Unknown verbs are ignored with a stderr warning; entries left with no
+    valid verbs deny every verb, loudly (stderr warning naming the entry).
+    """
     try:
         with open(path) as handle:
             lines = handle.read().splitlines()
     except OSError:
-        return frozenset()
-    units = set()
-    for line in lines:
+        return {}
+    units = {}
+    for lineno, line in enumerate(lines, 1):
         entry = line.split("#", 1)[0].strip()
-        if entry:
-            units.add(entry)
-    return frozenset(units)
+        if not entry:
+            continue
+        unit, sep, verbs = entry.partition(":")
+        unit = unit.strip()
+        if not sep:
+            units[unit] = frozenset({"STATUS"})
+            continue
+        allowed = set()
+        for token in verbs.split(","):
+            verb = token.strip().upper()
+            if verb in UNIT_VERBS:
+                allowed.add(verb)
+            elif verb:
+                print(
+                    "admin-broker: warning: %s:%d: unknown verb %r ignored"
+                    % (path, lineno, token.strip()),
+                    file=sys.stderr,
+                )
+        if not allowed:
+            print(
+                "admin-broker: warning: %s:%d: entry %r has no valid verbs; "
+                "denying every verb" % (path, lineno, unit),
+                file=sys.stderr,
+            )
+        units[unit] = frozenset(allowed)
+    return units
 
 
 def valid_unit_syntax(unit):
@@ -228,15 +256,15 @@ def valid_unit_syntax(unit):
     return UNIT_RE.match(unit) is not None
 
 
-def unit_allowed(unit, allowlist):
-    """Exact match, or a numeric instance of an allowlisted template.
+def pattern_for(unit, allowlist):
+    """Allowlist entry covering unit (exact or numeric-instance template), else None.
 
-    A bare template (x@.service) never matches: systemctl cannot act
-    on an uninstantiated template, so the broker rejects it instead
+    A bare template (x@.service) never matches exactly: systemctl cannot
+    act on an uninstantiated template, so the broker rejects it instead
     of passing it through to fail there.
     """
     if unit in allowlist and not unit.endswith("@.service"):
-        return True
+        return unit
     for entry in allowlist:
         if not entry.endswith("@.service"):
             continue
@@ -244,8 +272,8 @@ def unit_allowed(unit, allowlist):
         if not unit.startswith(base + "@") or not unit.endswith(".service"):
             continue
         if unit[len(base) + 1 : -len(".service")].isdigit():
-            return True
-    return False
+            return entry
+    return None
 
 
 def control_unit(verb, unit, role, allowlist, run_fn=run_systemctl):
@@ -254,8 +282,11 @@ def control_unit(verb, unit, role, allowlist, run_fn=run_systemctl):
         return "ERR bad-unit", "err:bad-unit"
     if role not in ("netops", "netadmin"):
         return "ERR forbidden", "err:forbidden"
-    if not unit_allowed(unit, allowlist):
+    pattern = pattern_for(unit, allowlist)
+    if pattern is None:
         return "ERR not-allowlisted", "err:not-allowlisted"
+    if verb not in allowlist[pattern]:
+        return "ERR verb-not-allowed", "err:verb-not-allowed"
     if verb != "STATUS" and role != "netadmin":
         return "ERR forbidden", "err:forbidden"
     if verb == "STATUS":

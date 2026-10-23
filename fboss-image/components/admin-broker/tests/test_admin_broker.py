@@ -663,22 +663,56 @@ class SanitizeLineTest(unittest.TestCase):
 class AllowlistTest(unittest.TestCase):
     def test_missing_file_denies_all(self):
         tmp = _mktemp(self, "allow-")
-        self.assertEqual(broker.load_allowlist(str(tmp / "nope.conf")), frozenset())
+        self.assertEqual(broker.load_allowlist(str(tmp / "nope.conf")), {})
 
-    def test_parses_entries_skips_comments(self):
+    def test_parses_verbs_skips_comments(self):
         tmp = _mktemp(self, "allow-")
         path = tmp / "allowlist.conf"
         path.write_text(
             "# heading comment\n"
             "\n"
-            "fboss_sw_agent.service  # trailing comment\n"
+            "fboss_sw_agent.service: STATUS, restart  # trailing comment\n"
             "   \n"
-            "fboss_hw_agent@.service\n"
+            "fboss_hw_agent@.service: STATUS,\n"
         )
         self.assertEqual(
             broker.load_allowlist(str(path)),
-            frozenset({"fboss_sw_agent.service", "fboss_hw_agent@.service"}),
+            {
+                "fboss_sw_agent.service": frozenset({"STATUS", "RESTART"}),
+                "fboss_hw_agent@.service": frozenset({"STATUS"}),
+            },
         )
+
+    def test_bare_unit_defaults_status_only(self):
+        tmp = _mktemp(self, "allow-")
+        path = tmp / "allowlist.conf"
+        path.write_text("fsdb.service\n")
+        self.assertEqual(
+            broker.load_allowlist(str(path)), {"fsdb.service": frozenset({"STATUS"})}
+        )
+
+    def test_unknown_verb_warns_and_drops(self):
+        tmp = _mktemp(self, "allow-")
+        path = tmp / "allowlist.conf"
+        path.write_text("a.service: STATUS, RESTRAT\n")
+        stream = io.StringIO()
+        with mock.patch.object(sys, "stderr", stream):
+            mapping = broker.load_allowlist(str(path))
+        self.assertEqual(mapping, {"a.service": frozenset({"STATUS"})})
+        self.assertIn("unknown verb 'RESTRAT' ignored", stream.getvalue())
+
+    def test_empty_verbs_deny_loudly(self):
+        tmp = _mktemp(self, "allow-")
+        path = tmp / "allowlist.conf"
+        path.write_text("a.service:\nb.service: FOO\n")
+        stream = io.StringIO()
+        with mock.patch.object(sys, "stderr", stream):
+            mapping = broker.load_allowlist(str(path))
+        self.assertEqual(mapping, {"a.service": frozenset(), "b.service": frozenset()})
+        err = stream.getvalue()
+        self.assertIn("has no valid verbs; denying every verb", err)
+        self.assertIn("'a.service'", err)
+        self.assertIn("'b.service'", err)
 
 
 class UnitSyntaxTest(unittest.TestCase):
@@ -703,34 +737,46 @@ class UnitSyntaxTest(unittest.TestCase):
             self.assertFalse(broker.valid_unit_syntax(unit), unit)
 
 
-class UnitAllowedTest(unittest.TestCase):
-    ALLOW = frozenset({"fboss_sw_agent.service", "fboss_hw_agent@.service"})
+class PatternTest(unittest.TestCase):
+    ALLOW = {
+        "fboss_sw_agent.service": frozenset({"STATUS"}),
+        "fboss_hw_agent@.service": frozenset({"STATUS"}),
+    }
 
     def test_exact(self):
-        self.assertTrue(broker.unit_allowed("fboss_sw_agent.service", self.ALLOW))
+        self.assertEqual(
+            broker.pattern_for("fboss_sw_agent.service", self.ALLOW),
+            "fboss_sw_agent.service",
+        )
 
     def test_template_numeric(self):
-        self.assertTrue(broker.unit_allowed("fboss_hw_agent@0.service", self.ALLOW))
-        self.assertTrue(broker.unit_allowed("fboss_hw_agent@12.service", self.ALLOW))
+        self.assertEqual(
+            broker.pattern_for("fboss_hw_agent@0.service", self.ALLOW),
+            "fboss_hw_agent@.service",
+        )
+        self.assertEqual(
+            broker.pattern_for("fboss_hw_agent@12.service", self.ALLOW),
+            "fboss_hw_agent@.service",
+        )
 
     def test_template_evil_instance(self):
-        self.assertFalse(broker.unit_allowed("fboss_hw_agent@x.service", self.ALLOW))
-        self.assertFalse(
-            broker.unit_allowed("fboss_hw_agent@0.service@1.service", self.ALLOW)
+        self.assertIsNone(broker.pattern_for("fboss_hw_agent@x.service", self.ALLOW))
+        self.assertIsNone(
+            broker.pattern_for("fboss_hw_agent@0.service@1.service", self.ALLOW)
         )
 
     def test_template_bare_rejected(self):
-        self.assertFalse(broker.unit_allowed("fboss_hw_agent@.service", self.ALLOW))
+        self.assertIsNone(broker.pattern_for("fboss_hw_agent@.service", self.ALLOW))
 
     def test_mismatch(self):
-        self.assertFalse(broker.unit_allowed("qsfp_service.service", self.ALLOW))
-        self.assertFalse(broker.unit_allowed("qsfp@0.service", self.ALLOW))
-        self.assertFalse(broker.unit_allowed("fboss_hw_agent@0.timer", self.ALLOW))
-        self.assertFalse(broker.unit_allowed("fboss_sw_agent.service", frozenset()))
+        self.assertIsNone(broker.pattern_for("qsfp_service.service", self.ALLOW))
+        self.assertIsNone(broker.pattern_for("qsfp@0.service", self.ALLOW))
+        self.assertIsNone(broker.pattern_for("fboss_hw_agent@0.timer", self.ALLOW))
+        self.assertIsNone(broker.pattern_for("fboss_sw_agent.service", {}))
 
     def test_non_template_entries_skipped(self):
-        allow = frozenset({"plain.service"})
-        self.assertFalse(broker.unit_allowed("other@0.service", allow))
+        allow = {"plain.service": frozenset({"STATUS"})}
+        self.assertIsNone(broker.pattern_for("other@0.service", allow))
 
 
 class RunSystemctlTest(unittest.TestCase):
@@ -765,7 +811,11 @@ def _proc_result(rc=0, stdout="", stderr=""):
 
 
 class ControlUnitTest(unittest.TestCase):
-    ALLOW = frozenset({"fboss_sw_agent.service", "fboss_hw_agent@.service"})
+    ALLOW = {
+        "fboss_sw_agent.service": frozenset(broker.UNIT_VERBS),
+        "fboss_hw_agent@.service": frozenset(broker.UNIT_VERBS),
+        "fsdb.service": frozenset({"STATUS"}),
+    }
 
     def test_bad_unit(self):
         run = mock.Mock()
@@ -849,6 +899,23 @@ class ControlUnitTest(unittest.TestCase):
         )
         self.assertEqual(reply, "ERR stop-failed rc=1")
 
+    def test_verb_not_allowed(self):
+        run = mock.Mock()
+        reply, result = broker.control_unit(
+            "RESTART", "fsdb.service", "netadmin", self.ALLOW, run
+        )
+        self.assertEqual(
+            (reply, result), ("ERR verb-not-allowed", "err:verb-not-allowed")
+        )
+        run.assert_not_called()
+
+    def test_verb_allowed_template(self):
+        run = mock.Mock(return_value=_proc_result(0))
+        reply, result = broker.control_unit(
+            "RESTART", "fboss_hw_agent@0.service", "netadmin", self.ALLOW, run
+        )
+        self.assertEqual((reply, result), ("ok", "ok"))
+
     def test_timeout(self):
         import subprocess as _subprocess
 
@@ -893,7 +960,7 @@ class UnitDispatchTest(unittest.TestCase):
     def test_unit_dispatch_audits_target(self):
         root = _mktemp(self, "cmd-")
         run = mock.Mock(return_value=_proc_result(0))
-        allow = frozenset({"fboss_sw_agent.service"})
+        allow = {"fboss_sw_agent.service": frozenset(broker.UNIT_VERBS)}
         reply, context, result = broker.handle_command(
             "STATUS   fboss_sw_agent.service  ", self._ident(), str(root), allow, run
         )
@@ -914,7 +981,7 @@ class ServeUnitTest(unittest.TestCase):
             cgroup="0::/user.slice/user-1001.slice/session-21.scope\n",
         )
         audit = str(tmp / "audit.log")
-        allow = frozenset({"fboss_sw_agent.service"})
+        allow = {"fboss_sw_agent.service": frozenset(broker.UNIT_VERBS)}
         run = mock.Mock(return_value=_proc_result(0, "ActiveState=active\n"))
         ours, peer = socket.socketpair()
         self.addCleanup(ours.close)
