@@ -52,8 +52,20 @@ PROXY_CHUNK = 65536
 STDIN_PENDING_CAP = 1 << 20
 # Role origin: the cgroup user slice survives sudo escape, so it wins over
 # the peer uid. Uids are image-pinned (see the login-containers machines).
-# Interim: the map and the gate move to the policy file with the role matrix.
 ROLE_BY_UID = {1000: "netops", 1001: "netadmin"}
+
+# Role matrix. Read-only verbs serve both roles (netops observability);
+# state-changing verbs require escaped netadmin (peer uid 0: the sudo
+# hop). Unknown role gets WHOAMI only: anything local that is not a
+# role shell uses /proc and systemctl natively instead of this channel.
+READ_VERBS = frozenset({"PS", "STATUS"})
+MUTATE_VERBS = frozenset({"START", "STOP", "RESTART"})
+
+# Netops EXEC argv allowlist: exact argv tuples only (absolute binary,
+# literal args, no shells). EMPTY: netops currently gets no EXEC at all;
+# adding an entry requires extending NetopsExecPolicyTest (fail-closed
+# by process: data cannot land without its test).
+NETOPS_EXEC_ALLOW = frozenset()
 USER_SCOPE_RE = re.compile(r"user-(\d+)\.slice/session-(\d+)\.scope")
 
 
@@ -214,12 +226,16 @@ def handle_command(
                 comm,
             )
             return reply, context, "ok"
+        if not verb_allowed(verb, role, ident["uid"]):
+            return "ERR forbidden", context, "err:forbidden"
         return "\n".join(list_processes(proc_root)), context, "ok"
     if verb in UNIT_VERBS:
         if arg is None:
             return "ERR missing-unit", context, "err:missing-unit"
         target = arg.strip()
-        reply, result = control_unit(verb, target, role, allowlist, run_fn)
+        reply, result = control_unit(
+            verb, target, role, ident["uid"], allowlist, run_fn
+        )
         context["target"] = target
         return reply, context, result
     return "ERR unknown-command", context, "err:unknown-command"
@@ -301,19 +317,17 @@ def pattern_for(unit, allowlist):
     return None
 
 
-def control_unit(verb, unit, role, allowlist, run_fn=run_systemctl):
+def control_unit(verb, unit, role, uid, allowlist, run_fn=run_systemctl):
     """Run a unit verb; returns (reply_text, result_tag). Never raises."""
     if not valid_unit_syntax(unit):
         return "ERR bad-unit", "err:bad-unit"
-    if role not in ("netops", "netadmin"):
+    if not verb_allowed(verb, role, uid):
         return "ERR forbidden", "err:forbidden"
     pattern = pattern_for(unit, allowlist)
     if pattern is None:
         return "ERR not-allowlisted", "err:not-allowlisted"
     if verb not in allowlist[pattern]:
         return "ERR verb-not-allowed", "err:verb-not-allowed"
-    if verb != "STATUS" and role != "netadmin":
-        return "ERR forbidden", "err:forbidden"
     if verb == "STATUS":
         cmd = ["show", unit, "-p", "ActiveState,SubState,MainPID"]
     else:
@@ -396,10 +410,37 @@ def sanitize_detail(argv, limit=512):
     return "".join(c if c.isprintable() else "_" for c in flat)[:limit]
 
 
-def exec_allowed(role, uid):
-    """EXEC gate: escaped netadmin only. The argv command policy lands with
-    the policy matrix; until then any argv is allowed and audited."""
-    return role == "netadmin" and uid == 0
+def verb_allowed(verb, role, uid):
+    """Single policy predicate for the role matrix (all verbs).
+
+    Read-only verbs serve both roles; state-changing verbs require
+    escaped netadmin (peer uid 0, the sudo hop). Unknown role gets
+    WHOAMI only.
+    """
+    if role not in ("netops", "netadmin"):
+        return False
+    if verb in READ_VERBS:
+        return True
+    return verb in MUTATE_VERBS and role == "netadmin" and uid == 0
+
+
+def valid_exec_entry(entry):
+    """An allowlist entry must be an absolute-binary argv tuple, no shells."""
+    if not isinstance(entry, tuple) or not entry:
+        return False
+    if not all(isinstance(arg, str) and arg for arg in entry):
+        return False
+    return entry[0].startswith("/") and entry[0] == os.path.normpath(entry[0])
+
+
+def exec_allowed(role, uid, argv):
+    """EXEC gate: escaped netadmin runs anything (audited); netops only
+    exact allowlisted argv; unknown role nothing."""
+    if role == "netadmin" and uid == 0:
+        return True
+    if role == "netops" and uid == 1000 and valid_exec_entry(tuple(argv)):
+        return tuple(argv) in NETOPS_EXEC_ALLOW
+    return False
 
 
 def spawn_session(argv):
@@ -724,12 +765,6 @@ def _serve_exec(conn, audit_path, ident, role, session, count_text, rest):
         )
         _send_error(conn, b"ERR bad-exec")
         return "err:bad-exec"
-    if not exec_allowed(role, ident["uid"]):
-        append_audit(
-            audit_path, audit_line("EXEC", ident, role, session, "-", "err:forbidden")
-        )
-        _send_error(conn, b"ERR forbidden")
-        return "err:forbidden"
     reader = LineReader(conn, rest)
     argv = []
     for _ in range(count):
@@ -756,6 +791,13 @@ def _serve_exec(conn, audit_path, ident, role, session, count_text, rest):
         )
         _send_error(conn, b"ERR bad-exec")
         return "err:bad-exec"
+    if not exec_allowed(role, ident["uid"], argv):
+        append_audit(
+            audit_path,
+            audit_line("EXEC", ident, role, session, "-", "err:forbidden"),
+        )
+        _send_error(conn, b"ERR forbidden")
+        return "err:forbidden"
     target = sanitize_target(argv[0])
     detail = sanitize_detail(argv)
     append_audit(

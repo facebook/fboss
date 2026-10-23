@@ -335,6 +335,20 @@ class HandleCommandTest(unittest.TestCase):
         self.assertEqual(result, "ok")
         self.assertEqual(reply, "5 0 init init")
 
+    def test_ps_netops_ok(self):
+        root = _mktemp(self, "cmd-")
+        _write_proc(root, 5, status=_status(0), comm="init\n", cmdline=b"init\x00")
+        ident = {"uid": 1000, "gid": 1000, "pid": 7}
+        reply, _, result = broker.handle_command("PS", ident, str(root))
+        self.assertEqual(result, "ok")
+        self.assertEqual(reply, "5 0 init init")
+
+    def test_ps_unknown_role_forbidden(self):
+        root = _mktemp(self, "cmd-")
+        ident = {"uid": 4242, "gid": 4242, "pid": 7}
+        reply, _, result = broker.handle_command("PS", ident, str(root))
+        self.assertEqual((reply, result), ("ERR forbidden", "err:forbidden"))
+
     def test_unknown(self):
         root = _mktemp(self, "cmd-")
         reply, _, result = broker.handle_command("BOGUS", self._ident(), str(root))
@@ -411,16 +425,118 @@ class SanitizeExecTest(unittest.TestCase):
         )
 
 
+class VerbMatrixTest(unittest.TestCase):
+    """The role matrix: reads serve both roles, mutates need escaped netadmin."""
+
+    def test_reads_serve_both_roles_regardless_of_uid(self):
+        for role, uid in (
+            ("netops", 1000),
+            ("netops", 0),
+            ("netadmin", 1001),
+            ("netadmin", 0),
+        ):
+            for verb in ("PS", "STATUS"):
+                with self.subTest(verb=verb, role=role, uid=uid):
+                    self.assertTrue(broker.verb_allowed(verb, role, uid))
+
+    def test_mutates_require_escaped_netadmin(self):
+        for verb in ("START", "STOP", "RESTART"):
+            with self.subTest(verb=verb, role="netadmin", uid=0):
+                self.assertTrue(broker.verb_allowed(verb, "netadmin", 0))
+            for role, uid in (
+                ("netadmin", 1001),
+                ("netops", 1000),
+                ("netops", 0),
+                ("unknown", 0),
+            ):
+                with self.subTest(verb=verb, role=role, uid=uid):
+                    self.assertFalse(broker.verb_allowed(verb, role, uid))
+
+    def test_unknown_role_gets_nothing(self):
+        for verb in ("PS", "STATUS", "START", "STOP", "RESTART"):
+            self.assertFalse(broker.verb_allowed(verb, "unknown", 0), verb)
+
+    def test_unknown_verb_denied_even_for_escaped_netadmin(self):
+        self.assertFalse(broker.verb_allowed("BOGUS", "netadmin", 0))
+
+
 class ExecAllowedTest(unittest.TestCase):
-    def test_escaped_netadmin(self):
-        self.assertTrue(broker.exec_allowed("netadmin", 0))
+    def test_escaped_netadmin_unrestricted(self):
+        self.assertTrue(broker.exec_allowed("netadmin", 0, ["/bin/sh"]))
+        self.assertTrue(broker.exec_allowed("netadmin", 0, ["anything", "goes"]))
 
     def test_unescaped_denied(self):
-        self.assertFalse(broker.exec_allowed("netadmin", 1001))
+        self.assertFalse(broker.exec_allowed("netadmin", 1001, ["/bin/true"]))
 
-    def test_other_roles_denied(self):
-        self.assertFalse(broker.exec_allowed("netops", 0))
-        self.assertFalse(broker.exec_allowed("unknown", 0))
+    def test_unknown_denied(self):
+        self.assertFalse(broker.exec_allowed("unknown", 0, ["/bin/true"]))
+
+    def test_netops_denied_with_empty_allowlist(self):
+        self.assertFalse(broker.exec_allowed("netops", 1000, ["/bin/true"]))
+
+    def test_netops_allowlisted_argv_exact_match(self):
+        allow = frozenset({("/bin/true",)})
+        with mock.patch.object(broker, "NETOPS_EXEC_ALLOW", allow):
+            self.assertTrue(broker.exec_allowed("netops", 1000, ["/bin/true"]))
+            self.assertFalse(broker.exec_allowed("netops", 1000, ["/bin/true", "x"]))
+            self.assertFalse(broker.exec_allowed("netops", 1000, ["/bin/false"]))
+
+    def test_netops_wrong_uid_denied_even_when_allowlisted(self):
+        allow = frozenset({("/bin/true",)})
+        with mock.patch.object(broker, "NETOPS_EXEC_ALLOW", allow):
+            self.assertFalse(broker.exec_allowed("netops", 0, ["/bin/true"]))
+
+
+# Must match the fake manifest's escape-key path: this test fails if
+# netops EXEC can ever reach the key file, whatever the allowlist holds.
+NETADMIN_KEY_PATH = "/var/lib/machines/netadmin/home/netadmin/.ssh/id_ed25519"
+
+
+class NetopsExecPolicyTest(unittest.TestCase):
+    """Key-exfil invariant: no netops EXEC argv reaches shells, ssh,
+    sudo, the escape key, or credential files."""
+
+    SENSITIVE = (
+        ["/bin/cat", NETADMIN_KEY_PATH],
+        ["/bin/cat", "/root/.ssh/authorized_keys"],
+        ["/bin/cat", "/etc/passwd"],
+        ["/bin/cat", "/etc/shadow"],
+        ["/bin/cat", "/etc/sudoers"],
+        ["/bin/cat", "/etc/ssh/ssh_host_ed25519_key"],
+        ["/usr/bin/ssh", "root@localhost"],
+        ["/usr/bin/sudo", "su", "-"],
+        ["/bin/sh", "-c", "id"],
+        ["/bin/bash"],
+        ["/bin/cat", "/etc/passwd;id"],
+        ["cat", "/etc/passwd"],
+        [""],
+    )
+
+    def test_sensitive_argv_denied(self):
+        for argv in self.SENSITIVE:
+            with self.subTest(argv=argv):
+                self.assertFalse(broker.exec_allowed("netops", 1000, argv))
+
+    def test_allowlist_starts_empty(self):
+        # Structural fail-closed: any future allowlist entry breaks this
+        # test and forces its author to extend this class with the
+        # per-entry justification. Data cannot land without its test.
+        self.assertEqual(broker.NETOPS_EXEC_ALLOW, frozenset())
+
+    def test_shape_rejects_shell_spelling(self):
+        self.assertTrue(broker.valid_exec_entry(("/bin/true",)))
+        self.assertTrue(broker.valid_exec_entry(("/bin/cat", "/etc/hosts")))
+        for entry in (
+            (),
+            "cat",
+            ("cat",),
+            ("",),
+            ("/bin/cat", ""),
+            ("/bin/cat", None),
+            ("/bin/../bin/cat",),
+            ("/bin/./cat",),
+        ):
+            self.assertFalse(broker.valid_exec_entry(entry), entry)
 
 
 class SpawnSessionTest(unittest.TestCase):
@@ -1380,18 +1496,39 @@ class ServeExecTest(unittest.TestCase):
             with open(audit) as handle:
                 self.assertIn("result=err:bad-exec", handle.read())
 
-    def test_forbidden_before_reading_argv(self):
-        for role, uid in (("netops", 0), ("netadmin", 1001), ("unknown", 0)):
+    def test_forbidden_after_reading_argv(self):
+        for role, uid in (("netops", 1000), ("netadmin", 1001), ("unknown", 0)):
             tmp = _mktemp(self, "exec-")
             audit = str(tmp / "audit.log")
-            conn = mock.Mock()
+            ours, peer = self._pair()
+            ours.sendall(b"/bin/echo\nhi\n")
+            ours.shutdown(socket.SHUT_WR)
             ident = {"uid": uid, "gid": 0, "pid": 1}
-            result = broker._serve_exec(conn, audit, ident, role, "s", "2", b"")
+            result = broker._serve_exec(peer, audit, ident, role, "s", "2", b"")
+            peer.close()
             self.assertEqual(result, "err:forbidden")
-            conn.sendall.assert_called_once_with(b"ERR forbidden")
-            conn.recv.assert_not_called()
+            self.assertEqual(_read_all(ours), b"ERR forbidden")
             with open(audit) as handle:
-                self.assertIn("result=err:forbidden", handle.read())
+                record = handle.read()
+            self.assertIn("target=- result=err:forbidden", record)
+            self.assertNotIn("/bin/echo", record)
+
+    def test_netops_key_path_forbidden_over_wire(self):
+        tmp = _mktemp(self, "exec-")
+        audit = str(tmp / "audit.log")
+        ours, peer = self._pair()
+        ours.sendall(b"/bin/cat\n" + NETADMIN_KEY_PATH.encode() + b"\n")
+        ours.shutdown(socket.SHUT_WR)
+        ident = {"uid": 1000, "gid": 0, "pid": 1}
+        result = broker._serve_exec(peer, audit, ident, "netops", "s", "2", b"")
+        peer.close()
+        self.assertEqual(result, "err:forbidden")
+        self.assertEqual(_read_all(ours), b"ERR forbidden")
+        with open(audit) as handle:
+            record = handle.read()
+        self.assertIn("role=netops", record)
+        self.assertIn("result=err:forbidden", record)
+        self.assertNotIn("id_ed25519", record)
 
     def test_arg_long(self):
         tmp = _mktemp(self, "exec-")
@@ -1424,9 +1561,10 @@ class ServeExecTest(unittest.TestCase):
         tmp = _mktemp(self, "exec-")
         audit = str(tmp / "audit.log")
         conn = mock.Mock()
+        conn.recv.side_effect = [b"/bin/echo\nhi\n", b""]
         conn.sendall.side_effect = OSError("gone")
-        ident = {"uid": 0, "gid": 0, "pid": 1}
-        result = broker._serve_exec(conn, audit, ident, "netops", "s", "1", b"")
+        ident = {"uid": 1000, "gid": 0, "pid": 1}
+        result = broker._serve_exec(conn, audit, ident, "netops", "s", "2", b"")
         self.assertEqual(result, "err:forbidden")
 
     def test_spawn_failure_audited_twice(self):
@@ -2276,7 +2414,7 @@ class ControlUnitTest(unittest.TestCase):
     def test_bad_unit(self):
         run = mock.Mock()
         reply, result = broker.control_unit(
-            "START", "../x.service", "netadmin", self.ALLOW, run
+            "START", "../x.service", "netadmin", 0, self.ALLOW, run
         )
         self.assertEqual((reply, result), ("ERR bad-unit", "err:bad-unit"))
         run.assert_not_called()
@@ -2284,7 +2422,7 @@ class ControlUnitTest(unittest.TestCase):
     def test_unknown_role_forbidden(self):
         run = mock.Mock()
         reply, result = broker.control_unit(
-            "STATUS", "fboss_sw_agent.service", "unknown", self.ALLOW, run
+            "STATUS", "fboss_sw_agent.service", "unknown", 0, self.ALLOW, run
         )
         self.assertEqual((reply, result), ("ERR forbidden", "err:forbidden"))
         run.assert_not_called()
@@ -2292,7 +2430,7 @@ class ControlUnitTest(unittest.TestCase):
     def test_not_allowlisted(self):
         run = mock.Mock()
         reply, result = broker.control_unit(
-            "STATUS", "cron.service", "netadmin", self.ALLOW, run
+            "STATUS", "cron.service", "netadmin", 1001, self.ALLOW, run
         )
         self.assertEqual(
             (reply, result), ("ERR not-allowlisted", "err:not-allowlisted")
@@ -2302,7 +2440,7 @@ class ControlUnitTest(unittest.TestCase):
     def test_netops_status_ok_but_mutating_forbidden(self):
         run = mock.Mock(return_value=_proc_result(0, "ActiveState=active\n"))
         reply, result = broker.control_unit(
-            "STATUS", "fboss_sw_agent.service", "netops", self.ALLOW, run
+            "STATUS", "fboss_sw_agent.service", "netops", 1000, self.ALLOW, run
         )
         self.assertEqual(result, "ok")
         self.assertIn("ActiveState=active", reply)
@@ -2310,7 +2448,7 @@ class ControlUnitTest(unittest.TestCase):
             ["show", "fboss_sw_agent.service", "-p", "ActiveState,SubState,MainPID"]
         )
         reply, result = broker.control_unit(
-            "RESTART", "fboss_sw_agent.service", "netops", self.ALLOW, run
+            "RESTART", "fboss_sw_agent.service", "netops", 1000, self.ALLOW, run
         )
         self.assertEqual((reply, result), ("ERR forbidden", "err:forbidden"))
 
@@ -2318,22 +2456,31 @@ class ControlUnitTest(unittest.TestCase):
         run = mock.Mock(return_value=_proc_result(0))
         for verb in ("START", "STOP", "RESTART"):
             reply, result = broker.control_unit(
-                verb, "fboss_sw_agent.service", "netadmin", self.ALLOW, run
+                verb, "fboss_sw_agent.service", "netadmin", 0, self.ALLOW, run
             )
             self.assertEqual((reply, result), ("ok", "ok"), verb)
         run.assert_called_with(["restart", "fboss_sw_agent.service"])
 
+    def test_netadmin_unescaped_mutating_forbidden(self):
+        run = mock.Mock()
+        for verb in ("START", "STOP", "RESTART"):
+            reply, result = broker.control_unit(
+                verb, "fboss_sw_agent.service", "netadmin", 1001, self.ALLOW, run
+            )
+            self.assertEqual((reply, result), ("ERR forbidden", "err:forbidden"), verb)
+        run.assert_not_called()
+
     def test_template_instance_ok(self):
         run = mock.Mock(return_value=_proc_result(0))
         reply, result = broker.control_unit(
-            "STATUS", "fboss_hw_agent@0.service", "netadmin", self.ALLOW, run
+            "STATUS", "fboss_hw_agent@0.service", "netadmin", 1001, self.ALLOW, run
         )
         self.assertEqual(result, "ok")
 
     def test_status_failed(self):
         run = mock.Mock(return_value=_proc_result(4, "", "not found"))
         reply, result = broker.control_unit(
-            "STATUS", "fboss_sw_agent.service", "netadmin", self.ALLOW, run
+            "STATUS", "fboss_sw_agent.service", "netadmin", 1001, self.ALLOW, run
         )
         self.assertEqual(
             (reply, result),
@@ -2343,7 +2490,7 @@ class ControlUnitTest(unittest.TestCase):
     def test_mutating_failed_with_detail(self):
         run = mock.Mock(return_value=_proc_result(1, "", "job\nfailed"))
         reply, result = broker.control_unit(
-            "STOP", "fboss_sw_agent.service", "netadmin", self.ALLOW, run
+            "STOP", "fboss_sw_agent.service", "netadmin", 0, self.ALLOW, run
         )
         self.assertEqual(reply, "ERR stop-failed rc=1: job failed")
         self.assertEqual(result, "err:stop-failed")
@@ -2351,14 +2498,14 @@ class ControlUnitTest(unittest.TestCase):
     def test_mutating_failed_without_detail(self):
         run = mock.Mock(return_value=_proc_result(1, "", " \n "))
         reply, result = broker.control_unit(
-            "STOP", "fboss_sw_agent.service", "netadmin", self.ALLOW, run
+            "STOP", "fboss_sw_agent.service", "netadmin", 0, self.ALLOW, run
         )
         self.assertEqual(reply, "ERR stop-failed rc=1")
 
     def test_verb_not_allowed(self):
         run = mock.Mock()
         reply, result = broker.control_unit(
-            "RESTART", "fsdb.service", "netadmin", self.ALLOW, run
+            "RESTART", "fsdb.service", "netadmin", 0, self.ALLOW, run
         )
         self.assertEqual(
             (reply, result), ("ERR verb-not-allowed", "err:verb-not-allowed")
@@ -2368,7 +2515,7 @@ class ControlUnitTest(unittest.TestCase):
     def test_verb_allowed_template(self):
         run = mock.Mock(return_value=_proc_result(0))
         reply, result = broker.control_unit(
-            "RESTART", "fboss_hw_agent@0.service", "netadmin", self.ALLOW, run
+            "RESTART", "fboss_hw_agent@0.service", "netadmin", 0, self.ALLOW, run
         )
         self.assertEqual((reply, result), ("ok", "ok"))
 
@@ -2377,14 +2524,14 @@ class ControlUnitTest(unittest.TestCase):
 
         run = mock.Mock(side_effect=_subprocess.TimeoutExpired("systemctl", 120))
         reply, result = broker.control_unit(
-            "RESTART", "fboss_sw_agent.service", "netadmin", self.ALLOW, run
+            "RESTART", "fboss_sw_agent.service", "netadmin", 0, self.ALLOW, run
         )
         self.assertEqual((reply, result), ("ERR timeout", "err:timeout"))
 
     def test_exec_error(self):
         run = mock.Mock(side_effect=OSError("gone"))
         reply, result = broker.control_unit(
-            "RESTART", "fboss_sw_agent.service", "netadmin", self.ALLOW, run
+            "RESTART", "fboss_sw_agent.service", "netadmin", 0, self.ALLOW, run
         )
         self.assertEqual((reply, result), ("ERR exec-error", "err:exec-error"))
 
