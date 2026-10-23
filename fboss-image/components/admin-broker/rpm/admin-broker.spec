@@ -8,7 +8,8 @@ BuildArch: noarch
 Host-side broker for the netops/netadmin login containers: an abstract-socket
 daemon that attributes requests by kernel peer credentials plus cgroup session
 scope, audits every action, and exposes allowlisted host operations
-(identity/process relay and unit control).
+(identity/process relay, unit control, and broker-spawned EXEC
+sessions via the host-ctl client).
 %install
 cp -a %{_payload}/* %{buildroot}/
 # Build-system shims (BUCK export_files for tests) live next to the scripts
@@ -26,8 +27,11 @@ systemctl is-enabled --quiet admin-broker.service \
 [ -s /usr/lib/systemd/system/admin-broker.service ] || { echo "admin-broker: missing unit" >&2; exit 1; }
 [ -s /etc/admin-broker/allowlist.conf ] || { echo "admin-broker: missing allowlist" >&2; exit 1; }
 /usr/local/sbin/admin-broker --help >/dev/null || { echo "admin-broker: daemon does not start" >&2; exit 1; }
+[ -x /usr/local/bin/host-ctl ] || { echo "admin-broker: missing host-ctl" >&2; exit 1; }
+/usr/local/bin/host-ctl --help >/dev/null || { echo "admin-broker: host-ctl does not start" >&2; exit 1; }
 %files
 %defattr(-,root,root,-)
 %attr(0755,root,root) /usr/local/sbin/admin-broker
+%attr(0755,root,root) /usr/local/bin/host-ctl
 /usr/lib/systemd/system/admin-broker.service
 /etc/admin-broker/allowlist.conf

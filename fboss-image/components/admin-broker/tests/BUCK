@@ -14,6 +14,16 @@ python_unittest(
     },
 )
 
+python_unittest(
+    name = "test_host_ctl",
+    srcs = ["test_host_ctl.py"],
+    base_module = "admin_broker.tests",
+    network_access = network_access_utils.none(),
+    resources = {
+        "//fboss/github/fboss-image/components/admin-broker/payload/usr/local/bin:host-ctl": "host-ctl",
+    },
+)
+
 python_library(
     name = "__init__",
     srcs = ["__init__.py"],
