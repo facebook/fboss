@@ -190,7 +190,7 @@ class AuditTest(unittest.TestCase):
             r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{4} "
             r"verb=WHOAMI peer_uid=1001 peer_gid=1002 peer_pid=55 "
             r"role=netadmin session=user-1001\.slice/session-1\.scope "
-            r"target=- result=ok\n$",
+            r"target=- result=ok detail=-\n$",
         )
         self.assertNotIn("\t", line)
 
@@ -204,6 +204,18 @@ class AuditTest(unittest.TestCase):
             "ok",
         )
         self.assertIn("target=fboss_sw_agent.service result=ok", line)
+
+    def test_line_with_detail(self):
+        line = broker.audit_line(
+            "EXEC",
+            {"uid": 0, "gid": 0, "pid": 9},
+            "netadmin",
+            "user-1001.slice/session-1.scope",
+            "/bin/ps",
+            "started",
+            "/bin/ps -e",
+        )
+        self.assertIn("result=started detail=/bin/ps -e\n", line)
 
     def test_append_roundtrip(self):
         tmp = _mktemp(self, "audit-")
@@ -378,6 +390,814 @@ class LineReaderTest(unittest.TestCase):
         self.assertEqual(reader.readline(4096), (None, "err:exec-eof"))
 
 
+class SanitizeExecTest(unittest.TestCase):
+    def test_target_keeps_safe_token(self):
+        self.assertEqual(broker.sanitize_target("/bin/ps"), "/bin/ps")
+
+    def test_target_clamps_and_truncates(self):
+        self.assertEqual(broker.sanitize_target("a b\nc;d", limit=4), "a_b_")
+        self.assertEqual(broker.sanitize_target("abc", limit=2), "ab")
+
+    def test_detail_flattens_and_truncates(self):
+        self.assertEqual(
+            broker.sanitize_detail(["/bin/echo", "a\nb", "  c  "]), "/bin/echo a b c"
+        )
+        self.assertEqual(broker.sanitize_detail(["abcdef"], limit=3), "abc")
+
+    def test_detail_clamps_controls(self):
+        self.assertEqual(
+            broker.sanitize_detail(["/bin/echo", "\x1b[31mred\x07", "a\x7fb"]),
+            "/bin/echo _[31mred_ a_b",
+        )
+
+
+class ExecAllowedTest(unittest.TestCase):
+    def test_escaped_netadmin(self):
+        self.assertTrue(broker.exec_allowed("netadmin", 0))
+
+    def test_unescaped_denied(self):
+        self.assertFalse(broker.exec_allowed("netadmin", 1001))
+
+    def test_other_roles_denied(self):
+        self.assertFalse(broker.exec_allowed("netops", 0))
+        self.assertFalse(broker.exec_allowed("unknown", 0))
+
+
+class SpawnSessionTest(unittest.TestCase):
+    def test_parent_keeps_own_ends(self):
+        with mock.patch.object(os, "fork", return_value=1234):
+            pid, stdin_w, stdout_r = broker.spawn_session(["/bin/echo", "hi"])
+        self.assertEqual(pid, 1234)
+        for fd in (stdin_w, stdout_r):
+            os.close(fd)
+            with self.assertRaises(OSError):
+                os.fstat(fd)
+
+    def test_fork_failure_closes_all_pipes(self):
+        made = []
+        real_pipe = os.pipe
+
+        def record_pipe():
+            pair = real_pipe()
+            made.extend(pair)
+            return pair
+
+        with (
+            mock.patch.object(os, "pipe", side_effect=record_pipe),
+            mock.patch.object(os, "fork", side_effect=OSError("EAGAIN")),
+        ):
+            with self.assertRaises(OSError):
+                broker.spawn_session(["/bin/echo", "hi"])
+        self.assertEqual(len(made), 4)
+        for fd in made:
+            with self.assertRaises(OSError):
+                os.fstat(fd)
+
+    def test_second_pipe_failure_closes_first_pipe(self):
+        made = []
+        real_pipe = os.pipe
+
+        def fail_second():
+            if not made:
+                pair = real_pipe()
+                made.extend(pair)
+                return pair
+            raise OSError("ENFILE")
+
+        with mock.patch.object(os, "pipe", side_effect=fail_second):
+            with self.assertRaises(OSError):
+                broker.spawn_session(["/bin/echo", "hi"])
+        self.assertEqual(len(made), 2)
+        for fd in made:
+            with self.assertRaises(OSError):
+                os.fstat(fd)
+
+    def test_child_dups_and_execs(self):
+        argv = ["/bin/echo", "hi"]
+        with (
+            mock.patch.object(os, "fork", return_value=0),
+            mock.patch.object(os, "dup2") as duped,
+            mock.patch.object(os, "execvp", side_effect=OSError("no")) as execed,
+            mock.patch.object(os, "_exit") as gone,
+        ):
+            with self.assertRaises(OSError):
+                broker.spawn_session(argv)
+        gone.assert_called_once_with(127)
+        execed.assert_called_once_with("/bin/echo", argv)
+        self.assertEqual([call[0][1] for call in duped.call_args_list], [0, 1, 2])
+
+
+class TerminateTest(unittest.TestCase):
+    def test_fast_exit(self):
+        with (
+            mock.patch.object(os, "kill") as killed,
+            mock.patch.object(os, "waitpid", return_value=(424242, 5)) as waited,
+        ):
+            self.assertEqual(broker._terminate(424242), 5)
+        killed.assert_called_once_with(424242, signal.SIGTERM)
+        waited.assert_called_once_with(424242, os.WNOHANG)
+
+    def test_already_gone(self):
+        with (
+            mock.patch.object(os, "kill", side_effect=ProcessLookupError()),
+            mock.patch.object(os, "waitpid", return_value=(424242, 0)),
+        ):
+            self.assertEqual(broker._terminate(424242), 0)
+
+    def test_kill_after_grace(self):
+        with (
+            mock.patch.object(os, "kill") as killed,
+            mock.patch.object(os, "waitpid", side_effect=[(0, 0), (424242, 9)]),
+            mock.patch.object(time, "monotonic", side_effect=[100.0, 200.0]),
+            mock.patch.object(time, "sleep") as slept,
+        ):
+            self.assertEqual(broker._terminate(424242, grace=2.0), 9)
+        self.assertEqual(
+            killed.call_args_list,
+            [
+                mock.call(424242, signal.SIGTERM),
+                mock.call(424242, signal.SIGKILL),
+            ],
+        )
+        slept.assert_not_called()
+
+    def test_gone_before_kill(self):
+        with (
+            mock.patch.object(os, "kill", side_effect=[None, ProcessLookupError()]),
+            mock.patch.object(os, "waitpid", side_effect=[(0, 0), (424242, 0)]),
+            mock.patch.object(time, "monotonic", side_effect=[100.0, 200.0]),
+        ):
+            self.assertEqual(broker._terminate(424242, grace=2.0), 0)
+
+    def test_grace_sleeps_then_kills(self):
+        with (
+            mock.patch.object(os, "kill"),
+            mock.patch.object(os, "waitpid", side_effect=[(0, 0), (0, 0), (424242, 0)]),
+            mock.patch.object(time, "monotonic", side_effect=[100.0, 100.5, 200.0]),
+            mock.patch.object(time, "sleep") as slept,
+        ):
+            self.assertEqual(broker._terminate(424242, grace=2.0), 0)
+        slept.assert_called_once_with(0.01)
+
+
+class ReapExitTest(unittest.TestCase):
+    def test_fast_reap(self):
+        with (
+            mock.patch.object(os, "waitpid", return_value=(424242, 0)),
+            mock.patch.object(broker, "_terminate") as term,
+        ):
+            self.assertEqual(broker._reap_session_exit(424242), 0)
+        term.assert_not_called()
+
+    def test_lingering_leader_terminated(self):
+        with (
+            mock.patch.object(os, "waitpid", return_value=(0, 0)),
+            mock.patch.object(time, "monotonic", side_effect=[100.0, 200.0]),
+            mock.patch.object(broker, "_terminate", return_value=0) as term,
+        ):
+            self.assertEqual(broker._reap_session_exit(424242, grace=2.0), 0)
+        term.assert_called_once_with(424242)
+
+    def test_lingering_leader_reaped_once_live(self):
+        # No mocks: a real lingering leader must come back through
+        # _terminate's status, not a second waitpid (which raises
+        # ChildProcessError on the already-reaped child). SIG_DFL while
+        # the child lives: earlier tests may leave the broker's
+        # SIGCHLD reaper installed, which would steal its status.
+        previous = signal.getsignal(signal.SIGCHLD)
+        signal.signal(signal.SIGCHLD, signal.SIG_DFL)
+        try:
+            self._reap_live_leader()
+        finally:
+            signal.signal(signal.SIGCHLD, previous)
+
+    def _reap_live_leader(self):
+        pid = os.fork()
+        if pid == 0:
+            try:
+                os.setsid()
+                os.close(1)
+                time.sleep(30)
+            finally:
+                os._exit(0)
+        try:
+            time.sleep(0.1)
+            self.assertEqual(broker._reap_session_exit(pid, grace=0.1), -signal.SIGTERM)
+        finally:
+            try:
+                gone, _status = os.waitpid(pid, os.WNOHANG)
+            except ChildProcessError:
+                gone = pid
+            if gone == 0:
+                os.kill(pid, signal.SIGKILL)
+                os.waitpid(pid, 0)
+                self.fail("_reap_session_exit left the leader unreaped")
+
+
+class WriteAllTest(unittest.TestCase):
+    def test_roundtrip(self):
+        r, w = os.pipe()
+        try:
+            broker._write_all(w, b"hello")
+        finally:
+            os.close(w)
+        self.assertEqual(os.read(r, 5), b"hello")
+        os.close(r)
+
+    def test_partial_writes_loop(self):
+        with mock.patch.object(os, "write", side_effect=[2, 3]) as wrote:
+            broker._write_all(9, b"abcde")
+        self.assertEqual(
+            wrote.call_args_list, [mock.call(9, b"abcde"), mock.call(9, b"cde")]
+        )
+
+
+class CloseQuietlyTest(unittest.TestCase):
+    def test_closes(self):
+        fd = os.open("/dev/null", os.O_RDONLY)
+        broker._close_quietly(fd)
+        with self.assertRaises(OSError):
+            os.fstat(fd)
+
+    def test_bogus_is_silent(self):
+        broker._close_quietly(-1)
+
+
+class ProxyTest(unittest.TestCase):
+    def _pair(self):
+        ours, peer = socket.socketpair()
+        self.addCleanup(ours.close)
+        self.addCleanup(peer.close)
+        return ours, peer
+
+    def test_forward_stdin_frame_stdout_exit(self):
+        ours, peer = self._pair()
+        ours.sendall(b"hi")
+        ours.shutdown(socket.SHUT_WR)
+        stdin_r, stdin_w = os.pipe()
+        self.addCleanup(os.close, stdin_r)
+        stdout_r, stdout_w = os.pipe()
+        os.write(stdout_w, b"hi\n")
+        os.close(stdout_w)
+        with mock.patch.object(os, "waitpid", return_value=(424242, 0)):
+            code = broker.proxy_session(peer, 424242, stdin_w, stdout_r)
+        self.assertEqual(code, 0)
+        peer.close()
+        self.assertEqual(_read_all(ours), b"DATA 3\nhi\nEXIT 0\n")
+        self.assertEqual(os.read(stdin_r, 2), b"hi")
+
+    def test_signaled_exit_code(self):
+        ours, peer = self._pair()
+        ours.shutdown(socket.SHUT_WR)
+        stdin_r, stdin_w = os.pipe()
+        self.addCleanup(os.close, stdin_r)
+        stdout_r, stdout_w = os.pipe()
+        os.close(stdout_w)
+        with mock.patch.object(os, "waitpid", return_value=(424242, 9)):
+            code = broker.proxy_session(peer, 424242, stdin_w, stdout_r)
+        self.assertEqual(code, -9)
+        peer.close()
+        self.assertEqual(_read_all(ours), b"EXIT -9\n")
+
+    def test_stdout_eof_with_stdin_open(self):
+        ours, peer = self._pair()
+        stdin_r, stdin_w = os.pipe()
+        self.addCleanup(os.close, stdin_r)
+        stdout_r, stdout_w = os.pipe()
+        os.close(stdout_w)
+        with (
+            mock.patch.object(
+                broker.select, "select", return_value=([stdout_r], [], [])
+            ),
+            mock.patch.object(os, "waitpid", return_value=(424242, 0)),
+        ):
+            code = broker.proxy_session(peer, 424242, stdin_w, stdout_r)
+        self.assertEqual(code, 0)
+        peer.close()
+        self.assertEqual(_read_all(ours), b"EXIT 0\n")
+        with self.assertRaises(OSError):
+            os.fstat(stdin_w)
+
+    def test_recv_error_aborts(self):
+        conn = mock.Mock()
+        conn.recv.side_effect = OSError("rst")
+        stdin_r, stdin_w = os.pipe()
+        self.addCleanup(os.close, stdin_r)
+        stdout_r, stdout_w = os.pipe()
+        os.close(stdout_w)
+        with (
+            mock.patch.object(broker.select, "select", return_value=([conn], [], [])),
+            mock.patch.object(broker, "_terminate") as term,
+        ):
+            self.assertIsNone(broker.proxy_session(conn, 424242, stdin_w, stdout_r))
+        term.assert_called_once_with(424242)
+        for fd in (stdin_w, stdout_r):
+            with self.assertRaises(OSError):
+                os.fstat(fd)
+
+    def test_send_error_aborts(self):
+        conn = mock.Mock()
+        conn.recv.return_value = b""
+        conn.sendall.side_effect = OSError("gone")
+        stdin_r, stdin_w = os.pipe()
+        os.close(stdin_r)
+        stdout_r, stdout_w = os.pipe()
+        os.write(stdout_w, b"zz")
+        self.addCleanup(os.close, stdout_w)
+        with (
+            mock.patch.object(
+                broker.select,
+                "select",
+                side_effect=[([conn], [], []), ([stdout_r], [], [])],
+            ),
+            mock.patch.object(broker, "_terminate") as term,
+        ):
+            self.assertIsNone(broker.proxy_session(conn, 424242, stdin_w, stdout_r))
+        term.assert_called_once_with(424242)
+        for fd in (stdin_w, stdout_r):
+            with self.assertRaises(OSError):
+                os.fstat(fd)
+
+    def test_broken_stdin_pipe_continues(self):
+        ours, peer = self._pair()
+        # No client bytes: with stdin broken from the start the proxy
+        # never reads the client (undeliverable input is dropped, and
+        # unread bytes would RST the close).
+        ours.shutdown(socket.SHUT_WR)
+        stdin_r, stdin_w = os.pipe()
+        os.close(stdin_r)
+        os.close(stdin_w)
+        stdout_r, stdout_w = os.pipe()
+        os.close(stdout_w)
+        with mock.patch.object(os, "waitpid", return_value=(424242, 0)):
+            code = broker.proxy_session(peer, 424242, stdin_w, stdout_r)
+        self.assertEqual(code, 0)
+        peer.close()
+        self.assertEqual(_read_all(ours), b"EXIT 0\n")
+
+    def test_set_blocking_failure_closes_stdin(self):
+        ours, peer = self._pair()
+        ours.shutdown(socket.SHUT_WR)
+        stdin_r, stdin_w = os.pipe()
+        os.close(stdin_r)
+        stdout_r, stdout_w = os.pipe()
+        os.close(stdout_w)
+        with (
+            mock.patch.object(os, "set_blocking", side_effect=OSError("bad")),
+            mock.patch.object(os, "waitpid", return_value=(424242, 0)),
+            mock.patch.object(
+                broker.select, "select", return_value=([stdout_r], [], [])
+            ),
+        ):
+            code = broker.proxy_session(peer, 424242, stdin_w, stdout_r)
+        self.assertEqual(code, 0)
+        peer.close()
+        self.assertEqual(_read_all(ours), b"EXIT 0\n")
+        with self.assertRaises(OSError):
+            os.fstat(stdin_w)
+
+    def test_stdout_read_error_aborts_loud(self):
+        ours, peer = self._pair()
+        ours.shutdown(socket.SHUT_WR)
+        stdin_r, stdin_w = os.pipe()
+        os.close(stdin_r)
+        stdout_r, stdout_w = os.pipe()
+        self.addCleanup(os.close, stdout_w)
+        with (
+            mock.patch.object(
+                broker.select, "select", return_value=([stdout_r], [], [])
+            ),
+            mock.patch.object(os, "read", side_effect=OSError("bad")),
+            mock.patch.object(os, "waitpid", return_value=(424242, 0)),
+        ):
+            result = broker.proxy_session(peer, 424242, stdin_w, stdout_r)
+        self.assertEqual(result, "err:stdout-read")
+        peer.close()
+        self.assertEqual(_read_all(ours), b"ERR stdout-read")
+        with self.assertRaises(OSError):
+            os.fstat(stdin_w)
+        with self.assertRaises(OSError):
+            os.fstat(stdout_r)
+
+    def test_initial_bytes_flushed_first(self):
+        ours, peer = self._pair()
+        ours.shutdown(socket.SHUT_WR)
+        stdin_r, stdin_w = os.pipe()
+        self.addCleanup(os.close, stdin_r)
+        stdout_r, stdout_w = os.pipe()
+        os.close(stdout_w)
+        with mock.patch.object(os, "waitpid", return_value=(424242, 0)):
+            code = broker.proxy_session(peer, 424242, stdin_w, stdout_r, b"seed")
+        self.assertEqual(code, 0)
+        peer.close()
+        self.assertEqual(_read_all(ours), b"EXIT 0\n")
+        self.assertEqual(os.read(stdin_r, 4), b"seed")
+
+    def test_initial_broken_pipe_continues(self):
+        ours, peer = self._pair()
+        ours.shutdown(socket.SHUT_WR)
+        stdin_r, stdin_w = os.pipe()
+        os.close(stdin_r)
+        os.close(stdin_w)
+        stdout_r, stdout_w = os.pipe()
+        os.close(stdout_w)
+        with mock.patch.object(os, "waitpid", return_value=(424242, 0)):
+            code = broker.proxy_session(peer, 424242, stdin_w, stdout_r, b"seed")
+        self.assertEqual(code, 0)
+        peer.close()
+        self.assertEqual(_read_all(ours), b"EXIT 0\n")
+
+    def test_stdin_write_wouldblock_retries(self):
+        ours, peer = self._pair()
+        ours.sendall(b"hi")
+        ours.shutdown(socket.SHUT_WR)
+        stdin_r, stdin_w = os.pipe()
+        self.addCleanup(os.close, stdin_r)
+        stdout_r, stdout_w = os.pipe()
+        os.close(stdout_w)
+        real_write = os.write
+        calls = []
+
+        def fake_write(fd, data):
+            calls.append(bytes(data))
+            if len(calls) == 1:
+                raise BlockingIOError()
+            return real_write(fd, data)
+
+        with (
+            mock.patch.object(os, "write", side_effect=fake_write),
+            mock.patch.object(
+                broker.select,
+                "select",
+                side_effect=[
+                    ([peer], [], []),
+                    ([], [stdin_w], []),
+                    ([], [stdin_w], []),
+                    ([peer], [], []),
+                    ([stdout_r], [], []),
+                ],
+            ),
+            mock.patch.object(os, "waitpid", return_value=(424242, 0)),
+        ):
+            code = broker.proxy_session(peer, 424242, stdin_w, stdout_r)
+        self.assertEqual(code, 0)
+        self.assertEqual(calls, [b"hi", b"hi"])
+        peer.close()
+        self.assertEqual(_read_all(ours), b"EXIT 0\n")
+        self.assertEqual(os.read(stdin_r, 2), b"hi")
+
+    def test_stdin_write_error_closes_stdin(self):
+        ours, peer = self._pair()
+        ours.sendall(b"hi")
+        ours.shutdown(socket.SHUT_WR)
+        stdin_r, stdin_w = os.pipe()
+        self.addCleanup(os.close, stdin_r)
+        stdout_r, stdout_w = os.pipe()
+        os.close(stdout_w)
+
+        def fake_write(fd, data):
+            raise BrokenPipeError()
+
+        with (
+            mock.patch.object(os, "write", side_effect=fake_write),
+            mock.patch.object(
+                broker.select,
+                "select",
+                side_effect=[
+                    ([peer], [], []),
+                    ([], [stdin_w], []),
+                    ([stdout_r], [], []),
+                ],
+            ),
+            mock.patch.object(os, "waitpid", return_value=(424242, 0)),
+        ):
+            code = broker.proxy_session(peer, 424242, stdin_w, stdout_r)
+        self.assertEqual(code, 0)
+        with self.assertRaises(OSError):
+            os.fstat(stdin_w)
+
+    def test_eof_flushes_pending_before_close(self):
+        conn = mock.Mock()
+        conn.recv.side_effect = [b"hi", b""]
+        stdin_r, stdin_w = os.pipe()
+        self.addCleanup(os.close, stdin_r)
+        stdout_r, stdout_w = os.pipe()
+        os.close(stdout_w)
+        with (
+            mock.patch.object(
+                broker.select,
+                "select",
+                side_effect=[
+                    ([conn], [], []),
+                    ([conn], [], []),
+                    ([], [stdin_w], []),
+                    ([stdout_r], [], []),
+                ],
+            ),
+            mock.patch.object(os, "waitpid", return_value=(424242, 0)),
+        ):
+            code = broker.proxy_session(conn, 424242, stdin_w, stdout_r)
+        self.assertEqual(code, 0)
+        self.assertEqual(os.read(stdin_r, 2), b"hi")
+        with self.assertRaises(OSError):
+            os.fstat(stdin_w)
+
+    def test_pending_cap_pauses_client_reads(self):
+        conn = mock.Mock()
+        conn.recv.return_value = b"xx"
+        stdin_r, stdin_w = os.pipe()
+        self.addCleanup(os.close, stdin_r)
+        stdout_r, stdout_w = os.pipe()
+        os.close(stdout_w)
+        seen = []
+
+        def fake_select(readers, writers, _x):
+            seen.append((list(readers), list(writers)))
+            if len(seen) == 1:
+                return ([conn], [], [])
+            if len(seen) == 2:
+                return ([], [stdin_w], [])
+            return ([stdout_r], [], [])
+
+        with (
+            mock.patch.object(broker, "STDIN_PENDING_CAP", 2),
+            mock.patch.object(broker.select, "select", side_effect=fake_select),
+            mock.patch.object(os, "waitpid", return_value=(424242, 0)),
+        ):
+            code = broker.proxy_session(conn, 424242, stdin_w, stdout_r)
+        self.assertEqual(code, 0)
+        self.assertEqual(seen[0][0], [stdout_r, conn])
+        self.assertEqual(seen[1][0], [stdout_r])
+        self.assertEqual(seen[1][1], [stdin_w])
+
+    def test_eof_unkillable_reports_reap_failed(self):
+        ours, peer = self._pair()
+        ours.shutdown(socket.SHUT_WR)
+        stdin_r, stdin_w = os.pipe()
+        self.addCleanup(os.close, stdin_r)
+        stdout_r, stdout_w = os.pipe()
+        os.close(stdout_w)
+        with mock.patch.object(broker, "_reap_session_exit", return_value=None):
+            result = broker.proxy_session(peer, 424242, stdin_w, stdout_r)
+        self.assertEqual(result, "err:reap-failed")
+        peer.close()
+        self.assertEqual(_read_all(ours), b"ERR reap-failed")
+
+    def test_exit_send_error_still_returns_code(self):
+        conn = mock.Mock()
+        conn.sendall.side_effect = [None, OSError("gone")]
+        stdin_r, stdin_w = os.pipe()
+        os.close(stdin_r)
+        stdout_r, stdout_w = os.pipe()
+        os.write(stdout_w, b"zz")
+        os.close(stdout_w)
+        with (
+            mock.patch.object(
+                broker.select,
+                "select",
+                side_effect=[([stdout_r], [], []), ([stdout_r], [], [])],
+            ),
+            mock.patch.object(os, "waitpid", return_value=(424242, 0)),
+        ):
+            code = broker.proxy_session(conn, 424242, stdin_w, stdout_r)
+        self.assertEqual(code, 0)
+
+
+class ServeExecTest(unittest.TestCase):
+    def _pair(self):
+        ours, peer = socket.socketpair()
+        self.addCleanup(ours.close)
+        self.addCleanup(peer.close)
+        return ours, peer
+
+    def _ident(self):
+        return {"uid": 0, "gid": 0, "pid": 424242}
+
+    def test_bad_counts_rejected(self):
+        for count in (None, "abc", "0", "33", "-2"):
+            tmp = _mktemp(self, "exec-")
+            audit = str(tmp / "audit.log")
+            ours, peer = self._pair()
+            result = broker._serve_exec(
+                peer, audit, self._ident(), "netadmin", "s", count, b""
+            )
+            peer.close()
+            self.assertEqual(result, "err:bad-exec")
+            self.assertEqual(_read_all(ours), b"ERR bad-exec")
+            with open(audit) as handle:
+                self.assertIn("result=err:bad-exec", handle.read())
+
+    def test_forbidden_before_reading_argv(self):
+        for role, uid in (("netops", 0), ("netadmin", 1001), ("unknown", 0)):
+            tmp = _mktemp(self, "exec-")
+            audit = str(tmp / "audit.log")
+            conn = mock.Mock()
+            ident = {"uid": uid, "gid": 0, "pid": 1}
+            result = broker._serve_exec(conn, audit, ident, role, "s", "2", b"")
+            self.assertEqual(result, "err:forbidden")
+            conn.sendall.assert_called_once_with(b"ERR forbidden")
+            conn.recv.assert_not_called()
+            with open(audit) as handle:
+                self.assertIn("result=err:forbidden", handle.read())
+
+    def test_arg_long(self):
+        tmp = _mktemp(self, "exec-")
+        audit = str(tmp / "audit.log")
+        ours, peer = self._pair()
+        ours.sendall(b"x" * 5000)
+        ours.shutdown(socket.SHUT_WR)
+        result = broker._serve_exec(
+            peer, audit, self._ident(), "netadmin", "s", "1", b""
+        )
+        # Drain the unread overlong bytes as serve_once's discard would,
+        # so close() is a clean FIN instead of RST.
+        peer.recv(65536)
+        peer.close()
+        self.assertEqual(result, "err:exec-arg-long")
+        self.assertEqual(_read_all(ours), b"ERR exec-arg-long")
+
+    def test_arg_long_send_error_swallowed(self):
+        tmp = _mktemp(self, "exec-")
+        audit = str(tmp / "audit.log")
+        conn = mock.Mock()
+        conn.recv.return_value = b"x" * 5000
+        conn.sendall.side_effect = OSError("gone")
+        result = broker._serve_exec(
+            conn, audit, self._ident(), "netadmin", "s", "1", b""
+        )
+        self.assertEqual(result, "err:exec-arg-long")
+
+    def test_forbidden_send_error_swallowed(self):
+        tmp = _mktemp(self, "exec-")
+        audit = str(tmp / "audit.log")
+        conn = mock.Mock()
+        conn.sendall.side_effect = OSError("gone")
+        ident = {"uid": 0, "gid": 0, "pid": 1}
+        result = broker._serve_exec(conn, audit, ident, "netops", "s", "1", b"")
+        self.assertEqual(result, "err:forbidden")
+
+    def test_spawn_failure_audited_twice(self):
+        tmp = _mktemp(self, "exec-")
+        audit = str(tmp / "audit.log")
+        ours, peer = self._pair()
+        with mock.patch.object(broker, "spawn_session", side_effect=OSError("EAGAIN")):
+            result = broker._serve_exec(
+                peer, audit, self._ident(), "netadmin", "s", "1", b"/bin/true\n"
+            )
+        peer.close()
+        self.assertEqual(result, "err:spawn-failed")
+        self.assertEqual(_read_all(ours), b"ERR spawn-failed")
+        with open(audit) as handle:
+            records = handle.read().splitlines()
+        self.assertEqual(len(records), 2)
+        self.assertIn("result=started", records[0])
+        self.assertIn("result=err:spawn-failed", records[1])
+
+    def test_eof_mid_argv(self):
+        tmp = _mktemp(self, "exec-")
+        audit = str(tmp / "audit.log")
+        ours, peer = self._pair()
+        ours.sendall(b"/bin/echo\n")
+        ours.shutdown(socket.SHUT_WR)
+        result = broker._serve_exec(
+            peer, audit, self._ident(), "netadmin", "s", "2", b""
+        )
+        peer.close()
+        self.assertEqual(result, "err:exec-eof")
+        self.assertEqual(_read_all(ours), b"")
+        with open(audit) as handle:
+            self.assertIn("result=err:exec-eof", handle.read())
+
+    def test_bad_encoding(self):
+        tmp = _mktemp(self, "exec-")
+        audit = str(tmp / "audit.log")
+        ours, peer = self._pair()
+        ours.sendall(b"\xff\xfe\n")
+        ours.shutdown(socket.SHUT_WR)
+        result = broker._serve_exec(
+            peer, audit, self._ident(), "netadmin", "s", "1", b""
+        )
+        peer.close()
+        self.assertEqual(result, "err:bad-encoding")
+        self.assertEqual(_read_all(ours), b"ERR bad-encoding")
+
+    def test_empty_argv0(self):
+        tmp = _mktemp(self, "exec-")
+        audit = str(tmp / "audit.log")
+        ours, peer = self._pair()
+        ours.sendall(b"\n")
+        ours.shutdown(socket.SHUT_WR)
+        result = broker._serve_exec(
+            peer, audit, self._ident(), "netadmin", "s", "1", b""
+        )
+        peer.close()
+        self.assertEqual(result, "err:bad-exec")
+        self.assertEqual(_read_all(ours), b"ERR bad-exec")
+
+    def test_session_ok(self):
+        tmp = _mktemp(self, "exec-")
+        audit = str(tmp / "audit.log")
+        ours, peer = self._pair()
+        ours.shutdown(socket.SHUT_WR)
+        stdin_r, stdin_w = os.pipe()
+        self.addCleanup(os.close, stdin_r)
+        stdout_r, stdout_w = os.pipe()
+        os.write(stdout_w, b"hi\n")
+        os.close(stdout_w)
+        with (
+            mock.patch.object(
+                broker,
+                "spawn_session",
+                return_value=(424242, stdin_w, stdout_r),
+            ),
+            mock.patch.object(os, "waitpid", return_value=(424242, 0)),
+        ):
+            result = broker._serve_exec(
+                peer,
+                audit,
+                self._ident(),
+                "netadmin",
+                "sess",
+                "2",
+                b"/bin/echo\nhi\n",
+            )
+        peer.close()
+        self.assertEqual(result, "exit-0")
+        self.assertEqual(_read_all(ours), b"DATA 3\nhi\nEXIT 0\n")
+        with open(audit) as handle:
+            records = handle.read().splitlines()
+        self.assertEqual(len(records), 2)
+        self.assertIn("result=started", records[0])
+        self.assertIn("target=/bin/echo", records[0])
+        self.assertIn("detail=/bin/echo hi", records[0])
+        self.assertIn("result=exit-0", records[1])
+
+    def test_pipelined_stdin_forwarded(self):
+        tmp = _mktemp(self, "exec-")
+        audit = str(tmp / "audit.log")
+        ours, peer = self._pair()
+        stdin_r, stdin_w = os.pipe()
+        self.addCleanup(os.close, stdin_r)
+        stdout_r, stdout_w = os.pipe()
+        os.write(stdout_w, b"piped\n")
+        os.close(stdout_w)
+        with (
+            mock.patch.object(
+                broker,
+                "spawn_session",
+                return_value=(424242, stdin_w, stdout_r),
+            ),
+            mock.patch.object(os, "waitpid", return_value=(424242, 0)),
+        ):
+            result = broker._serve_exec(
+                peer,
+                audit,
+                self._ident(),
+                "netadmin",
+                "sess",
+                "1",
+                b"/bin/cat\npiped\n",
+            )
+        peer.close()
+        self.assertEqual(result, "exit-0")
+        self.assertEqual(_read_all(ours), b"DATA 6\npiped\nEXIT 0\n")
+        self.assertEqual(os.read(stdin_r, 6), b"piped\n")
+
+    def test_client_gone(self):
+        tmp = _mktemp(self, "exec-")
+        audit = str(tmp / "audit.log")
+        ours, peer = self._pair()
+        with (
+            mock.patch.object(broker, "spawn_session", return_value=(424242, 9, 10)),
+            mock.patch.object(broker, "proxy_session", return_value=None),
+        ):
+            result = broker._serve_exec(
+                peer, audit, self._ident(), "netadmin", "sess", "1", b"/bin/sleep\n"
+            )
+        self.assertEqual(result, "err:client-gone")
+        with open(audit) as handle:
+            records = handle.read().splitlines()
+        self.assertEqual(len(records), 2)
+        self.assertIn("result=err:client-gone", records[1])
+
+    def test_reap_failed(self):
+        tmp = _mktemp(self, "exec-")
+        audit = str(tmp / "audit.log")
+        ours, peer = self._pair()
+        with (
+            mock.patch.object(broker, "spawn_session", return_value=(424242, 9, 10)),
+            mock.patch.object(broker, "proxy_session", return_value="err:reap-failed"),
+        ):
+            result = broker._serve_exec(
+                peer, audit, self._ident(), "netadmin", "sess", "1", b"/bin/sleep\n"
+            )
+        self.assertEqual(result, "err:reap-failed")
+        with open(audit) as handle:
+            records = handle.read().splitlines()
+        self.assertEqual(len(records), 2)
+        self.assertIn("result=err:reap-failed", records[1])
+
+
 class ServeOnceTest(unittest.TestCase):
     def _pair(self, request):
         ours, peer = socket.socketpair()
@@ -504,6 +1324,41 @@ class ServeOnceTest(unittest.TestCase):
             record = handle.read()
         self.assertIn("result=err:recv", record)
         self.assertIn("role=netadmin", record)
+
+    def test_exec_dispatched(self):
+        tmp = _mktemp(self, "serve-")
+        _write_proc(
+            tmp,
+            424242,
+            comm="sudo\n",
+            cgroup="0::/user.slice/user-1001.slice/session-11.scope\n",
+        )
+        audit = str(tmp / "audit.log")
+        ours, peer = self._pair(b"EXEC 1\n/bin/true\n")
+        ident = {"uid": 0, "gid": 0, "pid": 424242}
+        with (
+            mock.patch.object(broker, "peer_identity", return_value=ident),
+            mock.patch.object(broker, "_serve_exec", return_value="exit-0") as execed,
+        ):
+            result = broker.serve_once(peer, audit, str(tmp))
+        self.assertEqual(result, "exit-0")
+        execed.assert_called_once_with(
+            peer,
+            audit,
+            ident,
+            "netadmin",
+            "user-1001.slice/session-11.scope",
+            "1",
+            b"/bin/true\n",
+        )
+
+    def test_exec_bare_dispatched(self):
+        tmp = _mktemp(self, "serve-")
+        audit = str(tmp / "audit.log")
+        ours, peer = self._pair(b"EXEC\n")
+        with mock.patch.object(broker, "_serve_exec", return_value="err:bad-exec"):
+            result = broker.serve_once(peer, audit, str(tmp))
+        self.assertEqual(result, "err:bad-exec")
 
 
 class ReapTest(unittest.TestCase):

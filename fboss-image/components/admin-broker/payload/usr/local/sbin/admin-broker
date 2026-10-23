@@ -14,15 +14,17 @@ peer credentials plus the peer's cgroup session scope, which survives the
 netadmin sudo escape, and appended to an audit log. One command per
 connection; the reply ends with connection close.
 
-Verbs: WHOAMI (role identity), PS (host process relay), and
-STATUS/START/STOP/RESTART over a build-time allowlist of units. The role
-gate is interim hardcoded until the policy file lands.
+Verbs: WHOAMI (role identity), PS (host process relay),
+STATUS/START/STOP/RESTART over a build-time allowlist of units, and EXEC
+(broker-spawned host shell sessions for escaped netadmin). The role gate
+is interim hardcoded until the policy file lands.
 """
 
 import argparse
 import errno
 import os
 import re
+import select
 import signal
 import socket
 import struct
@@ -37,6 +39,15 @@ MAX_REQUEST = 4096
 SYSTEMCTL_TIMEOUT = 120
 UNIT_VERBS = ("STATUS", "START", "STOP", "RESTART")
 UNIT_RE = re.compile(r"^[A-Za-z0-9_.@-]+\.service$")
+MAX_EXEC_ARGS = 32
+MAX_EXEC_ARG_LEN = 4096
+EXEC_TERM_GRACE = 2.0
+PROXY_CHUNK = 65536
+# Owed-but-undelivered shell-stdin bytes; the broker stops reading the
+# client past this so a stalled shell backpressures instead of OOMing it.
+# A soft threshold, not a hard bound: one in-flight PROXY_CHUNK can land
+# past it before reads pause, so pending peaks near cap + 64 KiB.
+STDIN_PENDING_CAP = 1 << 20
 # Role origin: the cgroup user slice survives sudo escape, so it wins over
 # the peer uid. Uids are image-pinned (see the login-containers machines).
 # Interim: the map and the gate move to the policy file with the role matrix.
@@ -87,12 +98,23 @@ def resolve_role(peer_uid, origin_uid):
     return ROLE_BY_UID.get(key, "unknown")
 
 
-def audit_line(verb, ident, role, session, target, result):
-    """One tab-free audit record; every field is sanitized at its source."""
+def request_origin(ident, proc_root="/proc"):
+    """(role, session) attribution for a request; session '-' when unknown."""
+    origin_uid, session = read_origin(ident["pid"], proc_root)
+    role = resolve_role(ident["uid"], origin_uid)
+    return role, session if session is not None else "-"
+
+
+def audit_line(verb, ident, role, session, target, result, detail="-"):
+    """One tab-free audit record; every field is sanitized at its source.
+
+    detail is a trailing free-text field (EXEC argv); as the last field it
+    stays parseable despite spaces.
+    """
     stamp = time.strftime("%Y-%m-%dT%H:%M:%S%z")
     return (
         "%s verb=%s peer_uid=%d peer_gid=%d peer_pid=%d role=%s session=%s "
-        "target=%s result=%s\n"
+        "target=%s result=%s detail=%s\n"
         % (
             stamp,
             verb,
@@ -103,6 +125,7 @@ def audit_line(verb, ident, role, session, target, result):
             session,
             target,
             result,
+            detail,
         )
     )
 
@@ -163,12 +186,11 @@ def handle_command(
     cmd, ident, proc_root="/proc", allowlist=frozenset(), run_fn=run_systemctl
 ):
     """Run one verb; returns (reply_text, context, result_tag). Never raises."""
-    origin_uid, session = read_origin(ident["pid"], proc_root)
-    role = resolve_role(ident["uid"], origin_uid)
+    role, session = request_origin(ident, proc_root)
     comm = read_comm(ident["pid"], proc_root)
     context = {
         "role": role,
-        "session": session if session is not None else "-",
+        "session": session,
         "comm": comm,
         "target": "-",
         "verb": "-",
@@ -356,6 +378,299 @@ class LineReader:
         return line, None
 
 
+def sanitize_target(text, limit=128):
+    """Clamp free text to one audit-safe token."""
+    return "".join(c if c.isalnum() or c in "/._-+:@" else "_" for c in text)[:limit]
+
+
+def sanitize_detail(argv, limit=512):
+    """Flatten an argv vector to one log-safe line for the audit detail field.
+
+    Whitespace collapses to single spaces; any surviving non-printable
+    (ESC, DEL, C0 controls) becomes "_" so escape sequences cannot reach
+    the audit log.
+    """
+    flat = " ".join(" ".join(argv).split())
+    return "".join(c if c.isprintable() else "_" for c in flat)[:limit]
+
+
+def exec_allowed(role, uid):
+    """EXEC gate: escaped netadmin only. The argv command policy lands with
+    the policy matrix; until then any argv is allowed and audited."""
+    return role == "netadmin" and uid == 0
+
+
+def spawn_session(argv):
+    """Fork a session child with piped stdio (stderr merged into stdout).
+
+    Returns (pid, stdin_w, stdout_r) in the parent; the child execs argv
+    and never returns (exit 127 when the binary is missing).
+    """
+    stdin_r, stdin_w = os.pipe()
+    try:
+        stdout_r, stdout_w = os.pipe()
+    except OSError:
+        _close_quietly(stdin_r)
+        _close_quietly(stdin_w)
+        raise
+    try:
+        pid = os.fork()
+    except OSError:
+        # Fork failure (EAGAIN under pressure) must not leak the four
+        # pipe fds into the long-lived broker; the re-raised error is
+        # shed by the serve loop's OSError guard.
+        for fd in (stdin_r, stdin_w, stdout_r, stdout_w):
+            _close_quietly(fd)
+        raise
+    if pid != 0:
+        os.close(stdin_r)
+        os.close(stdout_w)
+        return pid, stdin_w, stdout_r
+    try:
+        os.close(stdin_w)
+        os.close(stdout_r)
+        os.dup2(stdin_r, 0)
+        os.dup2(stdout_w, 1)
+        os.dup2(stdout_w, 2)
+        for fd in (stdin_r, stdout_w):
+            if fd > 2:
+                os.close(fd)
+        os.execvp(argv[0], argv)
+    finally:
+        os._exit(127)
+
+
+def _terminate(pid, grace=EXEC_TERM_GRACE):
+    """SIGTERM a session child, SIGKILL after grace; returns its wait status."""
+    try:
+        os.kill(pid, signal.SIGTERM)
+    except ProcessLookupError:
+        pass
+    deadline = time.monotonic() + grace
+    while True:
+        done, status = os.waitpid(pid, os.WNOHANG)
+        if done != 0:
+            return status
+        if time.monotonic() >= deadline:
+            break
+        time.sleep(0.01)
+    try:
+        os.kill(pid, signal.SIGKILL)
+    except ProcessLookupError:
+        pass
+    _, status = os.waitpid(pid, 0)
+    return status
+
+
+def _close_quietly(fd):
+    """Best-effort close for session teardown paths."""
+    try:
+        os.close(fd)
+    except OSError:
+        pass
+
+
+def _write_all(fd, data):
+    """Write every byte; raises OSError (broken pipe) when the reader is gone."""
+    while data:
+        sent = os.write(fd, data)
+        data = data[sent:]
+
+
+def _abort_session(pid, stdin_w, stdout_r, stdin_open):
+    """Client vanished mid-session: kill the shell, close up, report no code."""
+    _terminate(pid)
+    if stdin_open:
+        _close_quietly(stdin_w)
+    _close_quietly(stdout_r)
+    return None
+
+
+def _reap_session_exit(pid, grace=EXEC_TERM_GRACE):
+    """Exit code of a session whose stdout hit EOF.
+
+    Polls briefly first (the shell usually already exited); a lingering
+    leader gets the full terminate treatment, which reaps it and reports
+    its wait status. The status must come from _terminate: reaping here
+    a second time would raise ChildProcessError on the already-reaped
+    child.
+    """
+    deadline = time.monotonic() + grace
+    while True:
+        done, status = os.waitpid(pid, os.WNOHANG)
+        if done != 0:
+            return os.waitstatus_to_exitcode(status)
+        if time.monotonic() >= deadline:
+            break
+        time.sleep(0.01)
+    return os.waitstatus_to_exitcode(_terminate(pid))
+
+
+def proxy_session(conn, pid, stdin_w, stdout_r, initial=b""):
+    """Relay client<->shell until one side ends. Returns the shell exit code,
+    None when the client vanished first, or "err:reap-failed" when the
+    session would not die after EOF. initial holds stdin bytes that
+    arrived with the argv and are flushed to the shell first. Shell stdin
+    is non-blocking behind a bounded pending buffer: the broker never
+    blocks writing stdin while stdout goes undrained (that deadlock
+    killed large-stdin sessions against chatty shells), and stops
+    reading the client while the buffer is full so a stalled shell
+    applies backpressure instead of OOMing the broker. A clean client
+    EOF closes shell stdin once owed bytes flush (half-close: output
+    still flows); a dead connection aborts the shell. Never raises."""
+    try:
+        os.set_blocking(stdin_w, False)
+    except OSError:
+        _close_quietly(stdin_w)
+        stdin_open = False
+        pending = b""
+    else:
+        stdin_open = True
+        pending = initial
+    stdin_eof = False
+    while True:
+        readers = [stdout_r]
+        if stdin_open and not stdin_eof and len(pending) < STDIN_PENDING_CAP:
+            readers.append(conn)
+        writers = [stdin_w] if stdin_open and pending else []
+        ready_r, ready_w, _ = select.select(readers, writers, [])
+        if conn in ready_r:
+            try:
+                data = conn.recv(PROXY_CHUNK)
+            except OSError:
+                return _abort_session(pid, stdin_w, stdout_r, stdin_open)
+            if data:
+                if stdin_open:
+                    pending += data
+            elif not pending:
+                _close_quietly(stdin_w)
+                stdin_open = False
+            else:
+                stdin_eof = True
+        if stdin_w in ready_w:
+            try:
+                sent = os.write(stdin_w, pending)
+            except BlockingIOError:
+                pass
+            except OSError:
+                _close_quietly(stdin_w)
+                stdin_open = False
+                pending = b""
+            else:
+                pending = pending[sent:]
+                if not pending and stdin_eof:
+                    _close_quietly(stdin_w)
+                    stdin_open = False
+        if stdout_r in ready_r:
+            try:
+                out = os.read(stdout_r, PROXY_CHUNK)
+            except OSError:
+                # A read error is not EOF: kill the shell and report it
+                # as an error, never as a clean exit with a made-up code.
+                _abort_session(pid, stdin_w, stdout_r, stdin_open)
+                _send_error(conn, b"ERR stdout-read")
+                return "err:stdout-read"
+            if out:
+                try:
+                    conn.sendall(b"DATA %d\n" % len(out) + out)
+                except OSError:
+                    return _abort_session(pid, stdin_w, stdout_r, stdin_open)
+            else:
+                _close_quietly(stdout_r)
+                if stdin_open:
+                    _close_quietly(stdin_w)
+                code = _reap_session_exit(pid)
+                if code is None:
+                    _send_error(conn, b"ERR reap-failed")
+                    return "err:reap-failed"
+                try:
+                    conn.sendall(b"EXIT %d\n" % code)
+                except OSError:
+                    pass
+                return code
+
+
+def _send_error(conn, payload):
+    """Best-effort error reply; a vanished peer must not raise."""
+    try:
+        conn.sendall(payload)
+    except OSError:
+        pass
+
+
+def _serve_exec(conn, audit_path, ident, role, session, count_text, rest):
+    """Run an EXEC session; returns the audit result tag. Audited twice:
+    once with result=started at spawn, once with the outcome at the end."""
+    try:
+        count = int(count_text)
+    except (TypeError, ValueError):
+        count = 0
+    if not 1 <= count <= MAX_EXEC_ARGS:
+        append_audit(
+            audit_path, audit_line("EXEC", ident, role, session, "-", "err:bad-exec")
+        )
+        _send_error(conn, b"ERR bad-exec")
+        return "err:bad-exec"
+    if not exec_allowed(role, ident["uid"]):
+        append_audit(
+            audit_path, audit_line("EXEC", ident, role, session, "-", "err:forbidden")
+        )
+        _send_error(conn, b"ERR forbidden")
+        return "err:forbidden"
+    reader = LineReader(conn, rest)
+    argv = []
+    for _ in range(count):
+        raw, error = reader.readline(MAX_EXEC_ARG_LEN)
+        if error is not None:
+            append_audit(
+                audit_path, audit_line("EXEC", ident, role, session, "-", error)
+            )
+            if error == "err:exec-arg-long":
+                _send_error(conn, b"ERR exec-arg-long")
+            return error
+        try:
+            argv.append(raw.decode("utf-8"))
+        except UnicodeDecodeError:
+            append_audit(
+                audit_path,
+                audit_line("EXEC", ident, role, session, "-", "err:bad-encoding"),
+            )
+            _send_error(conn, b"ERR bad-encoding")
+            return "err:bad-encoding"
+    if not argv[0]:
+        append_audit(
+            audit_path, audit_line("EXEC", ident, role, session, "-", "err:bad-exec")
+        )
+        _send_error(conn, b"ERR bad-exec")
+        return "err:bad-exec"
+    target = sanitize_target(argv[0])
+    detail = sanitize_detail(argv)
+    append_audit(
+        audit_path, audit_line("EXEC", ident, role, session, target, "started", detail)
+    )
+    try:
+        pid, stdin_w, stdout_r = spawn_session(argv)
+    except OSError:
+        result = "err:spawn-failed"
+        append_audit(
+            audit_path,
+            audit_line("EXEC", ident, role, session, target, result, detail),
+        )
+        _send_error(conn, b"ERR spawn-failed")
+        return result
+    code = proxy_session(conn, pid, stdin_w, stdout_r, reader.buf)
+    if code is None:
+        result = "err:client-gone"
+    elif isinstance(code, str):
+        result = code
+    else:
+        result = "exit-%d" % code
+    append_audit(
+        audit_path, audit_line("EXEC", ident, role, session, target, result, detail)
+    )
+    return result
+
+
 def serve_error(conn, audit_path, ident, result, reply, proc_root="/proc"):
     """Audit a rejected request and, unless the peer is gone, send the error."""
     origin_uid, _session = read_origin(ident["pid"], proc_root)
@@ -399,8 +714,9 @@ def _serve_request(conn, audit_path, ident, proc_root, allowlist, run_fn):
         return serve_error(conn, audit_path, ident, error, None, proc_root)
     if error is not None:
         return serve_error(conn, audit_path, ident, error, b"ERR too-long", proc_root)
+    first, _, rest = raw.partition(b"\n")
     try:
-        cmd = raw.partition(b"\n")[0].decode("utf-8").strip()
+        cmd = first.decode("utf-8").strip()
     except UnicodeDecodeError:
         return serve_error(
             conn,
@@ -412,6 +728,18 @@ def _serve_request(conn, audit_path, ident, proc_root, allowlist, run_fn):
         )
     if not cmd:
         return serve_error(conn, audit_path, ident, "err:empty", b"ERR empty", proc_root)
+    parts = cmd.split(None, 1)
+    if parts[0] == "EXEC":
+        role, session = request_origin(ident, proc_root)
+        return _serve_exec(
+            conn,
+            audit_path,
+            ident,
+            role,
+            session,
+            parts[1] if len(parts) > 1 else None,
+            rest,
+        )
     reply, context, result = handle_command(cmd, ident, proc_root, allowlist, run_fn)
     append_audit(
         audit_path,
