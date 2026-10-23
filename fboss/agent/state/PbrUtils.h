@@ -37,6 +37,7 @@ std::string makePbrCounterName(
     const std::string& redirectNhgName);
 
 std::vector<std::shared_ptr<AclEntry>> createAclEntriesFromPolicy(
-    const std::shared_ptr<ClassBasedPolicyNode>& policy);
+    const std::shared_ptr<ClassBasedPolicyNode>& policy,
+    bool temporary = false);
 
 } // namespace facebook::fboss

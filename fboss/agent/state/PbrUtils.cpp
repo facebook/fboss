@@ -43,15 +43,15 @@ std::string makePbrCounterName(
 }
 
 std::vector<std::shared_ptr<AclEntry>> createAclEntriesFromPolicy(
-    const std::shared_ptr<ClassBasedPolicyNode>& policy) {
+    const std::shared_ptr<ClassBasedPolicyNode>& policy,
+    bool temporary) {
   std::vector<std::shared_ptr<AclEntry>> entries;
   auto matchNhgId = *policy->getDefaultNextHopGroup().id();
   for (const auto& [trafficClass, nhg] : policy->getClass2NextHopGroup()) {
     auto redirectId = *nhg.id();
     auto entry = std::make_shared<AclEntry>(
         FLAGS_pbr_acl_priority,
-        makePbrAclEntryName(
-            policy->getID(), trafficClass, false /*temporary*/));
+        makePbrAclEntryName(policy->getID(), trafficClass, temporary));
     entry->setNextHopGroupId(matchNhgId);
     entry->setTrafficClass(static_cast<uint8_t>(trafficClass));
     MatchAction action;
