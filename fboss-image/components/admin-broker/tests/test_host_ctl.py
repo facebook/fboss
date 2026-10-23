@@ -444,6 +444,16 @@ class MainTest(unittest.TestCase):
             self.assertEqual(helper.main(["exec", "/bin/true"]), 1)
         self.assertIn("connection lost", err.getvalue())
 
+    def test_interrupted_returns_130_quietly(self):
+        err = io.StringIO()
+        with (
+            mock.patch.object(helper, "socket"),
+            mock.patch.object(helper, "run_session", side_effect=KeyboardInterrupt()),
+            contextlib.redirect_stderr(err),
+        ):
+            self.assertEqual(helper.main(["exec", "/bin/true"]), 130)
+        self.assertEqual(err.getvalue(), "")
+
     def test_ok_returns_remote_code(self):
         with (
             mock.patch.object(helper, "socket") as sockmod,

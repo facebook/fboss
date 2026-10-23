@@ -190,6 +190,8 @@ def main(argv):
         except _Refused as refused:
             print("host-ctl: broker refused: %s" % refused, file=sys.stderr)
             return 1
+        except KeyboardInterrupt:
+            return 130
         if code is None:
             print("host-ctl: connection lost", file=sys.stderr)
             return 1
