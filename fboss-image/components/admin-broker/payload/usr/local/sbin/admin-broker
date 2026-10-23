@@ -41,6 +41,8 @@ UNIT_VERBS = ("STATUS", "START", "STOP", "RESTART")
 UNIT_RE = re.compile(r"^[A-Za-z0-9_.@-]+\.service$")
 MAX_EXEC_ARGS = 32
 MAX_EXEC_ARG_LEN = 4096
+MAX_IN_LINE = 128
+MAX_IN_CHUNK = 1048576
 EXEC_TERM_GRACE = 2.0
 PROXY_CHUNK = 65536
 # Owed-but-undelivered shell-stdin bytes; the broker stops reading the
@@ -470,13 +472,6 @@ def _close_quietly(fd):
         pass
 
 
-def _write_all(fd, data):
-    """Write every byte; raises OSError (broken pipe) when the reader is gone."""
-    while data:
-        sent = os.write(fd, data)
-        data = data[sent:]
-
-
 def _abort_session(pid, stdin_w, stdout_r, stdin_open):
     """Client vanished mid-session: kill the shell, close up, report no code."""
     _terminate(pid)
@@ -506,31 +501,97 @@ def _reap_session_exit(pid, grace=EXEC_TERM_GRACE):
     return os.waitstatus_to_exitcode(_terminate(pid))
 
 
+def parse_in_frames(buf):
+    """Consume complete stdin frames from buf.
+
+    Client stdin is framed so a dead client stays distinguishable from
+    a finished stdin: 'IN <n>' plus n bytes per chunk, 'IN_EOF' for end
+    of input. Returns (events, rest, error): events is [(kind, payload)]
+    with kind b"IN" or b"IN_EOF", rest is the unconsumed tail (a partial
+    frame), error is None or "err:bad-stdin". Never raises.
+    """
+    events = []
+    while True:
+        line, sep, rest = buf.partition(b"\n")
+        if not sep:
+            if len(buf) > MAX_IN_LINE:
+                return events, b"", "err:bad-stdin"
+            return events, buf, None
+        if len(line) > MAX_IN_LINE:
+            return events, b"", "err:bad-stdin"
+        if line == b"IN_EOF":
+            events.append((b"IN_EOF", b""))
+            # Stdin ends here: leave the tail unconsumed so the
+            # caller drains it instead of aborting on garbage.
+            return events, rest, None
+        parts = line.split(None, 1)
+        if len(parts) != 2 or parts[0] != b"IN" or not parts[1].isdigit():
+            return events, b"", "err:bad-stdin"
+        size = int(parts[1])
+        if size > MAX_IN_CHUNK:
+            return events, b"", "err:bad-stdin"
+        if len(rest) < size:
+            return events, buf, None
+        events.append((b"IN", rest[:size]))
+        buf = rest[size:]
+
+
 def proxy_session(conn, pid, stdin_w, stdout_r, initial=b""):
     """Relay client<->shell until one side ends. Returns the shell exit code,
-    None when the client vanished first, or "err:reap-failed" when the
-    session would not die after EOF. initial holds stdin bytes that
-    arrived with the argv and are flushed to the shell first. Shell stdin
-    is non-blocking behind a bounded pending buffer: the broker never
-    blocks writing stdin while stdout goes undrained (that deadlock
-    killed large-stdin sessions against chatty shells), and stops
-    reading the client while the buffer is full so a stalled shell
-    applies backpressure instead of OOMing the broker. A clean client
-    EOF closes shell stdin once owed bytes flush (half-close: output
-    still flows); a dead connection aborts the shell. Never raises."""
+    None when the client vanished first, "err:bad-stdin" when the client
+    spoke malformed stdin frames, or "err:reap-failed" when the session
+    would not die after EOF; every abort kills the shell. initial holds
+    bytes read past the argv: the start of the framed stdin stream. Only an
+    explicit IN_EOF ends stdin cleanly, so any connection close or error
+    aborts the shell. Shell stdin is non-blocking behind a bounded pending
+    buffer: the broker never blocks writing stdin while stdout goes
+    undrained (that deadlock killed large-stdin sessions against chatty
+    shells), and stops reading the client while the buffer is full so a
+    stalled shell applies backpressure instead of OOMing the broker.
+    IN_EOF closes shell stdin once owed bytes flush; the connection
+    stays watched while flushing so a disconnect still aborts the
+    shell. Never raises."""
     try:
         os.set_blocking(stdin_w, False)
     except OSError:
         _close_quietly(stdin_w)
         stdin_open = False
-        pending = b""
     else:
         stdin_open = True
-        pending = initial
+    inbuf = initial
+    pending = b""
     stdin_eof = False
     while True:
+        if inbuf:
+            if stdin_eof or not stdin_open:
+                # Stdin phase is over (clean EOF, even while owed
+                # bytes still flush, or a broken pipe): drain further
+                # client bytes without parsing, so post-EOF garbage
+                # can never abort a running shell.
+                inbuf = b""
+            else:
+                events, inbuf, error = parse_in_frames(inbuf)
+                if error is not None:
+                    _abort_session(pid, stdin_w, stdout_r, stdin_open)
+                    return error
+                for kind, payload in events:
+                    if kind == b"IN_EOF":
+                        stdin_eof = True
+                        if not pending:
+                            _close_quietly(stdin_w)
+                            stdin_open = False
+                    elif stdin_open and not stdin_eof:
+                        pending += payload
         readers = [stdout_r]
-        if stdin_open and not stdin_eof and len(pending) < STDIN_PENDING_CAP:
+        # The connection stays watched in every phase but one: intake
+        # pauses only while the pending buffer is full, so a stalled
+        # shell backpressures instead of OOMing the broker. Past EOF —
+        # closed or still flushing owed bytes — its close aborts the
+        # shell and its data just drains.
+        intake_paused = (
+            stdin_open and not stdin_eof and len(pending) >= STDIN_PENDING_CAP
+        )
+        if not intake_paused:
             readers.append(conn)
         writers = [stdin_w] if stdin_open and pending else []
         ready_r, ready_w, _ = select.select(readers, writers, [])
@@ -539,14 +600,9 @@ def proxy_session(conn, pid, stdin_w, stdout_r, initial=b""):
                 data = conn.recv(PROXY_CHUNK)
             except OSError:
                 return _abort_session(pid, stdin_w, stdout_r, stdin_open)
-            if data:
-                if stdin_open:
-                    pending += data
-            elif not pending:
-                _close_quietly(stdin_w)
-                stdin_open = False
-            else:
-                stdin_eof = True
+            if not data:
+                return _abort_session(pid, stdin_w, stdout_r, stdin_open)
+            inbuf += data
         if stdin_w in ready_w:
             try:
                 sent = os.write(stdin_w, pending)

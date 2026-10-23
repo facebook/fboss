@@ -594,24 +594,6 @@ class ReapExitTest(unittest.TestCase):
                 self.fail("_reap_session_exit left the leader unreaped")
 
 
-class WriteAllTest(unittest.TestCase):
-    def test_roundtrip(self):
-        r, w = os.pipe()
-        try:
-            broker._write_all(w, b"hello")
-        finally:
-            os.close(w)
-        self.assertEqual(os.read(r, 5), b"hello")
-        os.close(r)
-
-    def test_partial_writes_loop(self):
-        with mock.patch.object(os, "write", side_effect=[2, 3]) as wrote:
-            broker._write_all(9, b"abcde")
-        self.assertEqual(
-            wrote.call_args_list, [mock.call(9, b"abcde"), mock.call(9, b"cde")]
-        )
-
-
 class CloseQuietlyTest(unittest.TestCase):
     def test_closes(self):
         fd = os.open("/dev/null", os.O_RDONLY)
@@ -623,6 +605,66 @@ class CloseQuietlyTest(unittest.TestCase):
         broker._close_quietly(-1)
 
 
+class ParseInFramesTest(unittest.TestCase):
+    def test_empty_and_partial_wait(self):
+        self.assertEqual(broker.parse_in_frames(b""), ([], b"", None))
+        self.assertEqual(broker.parse_in_frames(b"IN 3"), ([], b"IN 3", None))
+
+    def test_overlong_header_without_newline(self):
+        events, rest, error = broker.parse_in_frames(b"x" * 129)
+        self.assertEqual((events, rest, error), ([], b"", "err:bad-stdin"))
+
+    def test_overlong_line_with_newline(self):
+        events, rest, error = broker.parse_in_frames(b"x" * 129 + b"\n")
+        self.assertEqual((events, rest, error), ([], b"", "err:bad-stdin"))
+
+    def test_in_eof_keeps_trailing_partial(self):
+        self.assertEqual(
+            broker.parse_in_frames(b"IN_EOF\nIN"),
+            ([(b"IN_EOF", b"")], b"IN", None),
+        )
+
+    def test_in_chunk_and_empty_chunk(self):
+        self.assertEqual(
+            broker.parse_in_frames(b"IN 3\nabc"),
+            ([(b"IN", b"abc")], b"", None),
+        )
+        self.assertEqual(
+            broker.parse_in_frames(b"IN 0\n"),
+            ([(b"IN", b"")], b"", None),
+        )
+
+    def test_split_payload_waits(self):
+        self.assertEqual(broker.parse_in_frames(b"IN 5\nab"), ([], b"IN 5\nab", None))
+
+    def test_bad_headers_rejected(self):
+        for raw in (b"BOGUS 1\n", b"IN\n", b"IN x\n", b"IN -1\n", b"IN 1 2\n"):
+            events, rest, error = broker.parse_in_frames(raw)
+            self.assertEqual((events, rest, error), ([], b"", "err:bad-stdin"), raw)
+
+    def test_oversize_rejected(self):
+        events, rest, error = broker.parse_in_frames(b"IN 2000000\n")
+        self.assertEqual((events, rest, error), ([], b"", "err:bad-stdin"))
+
+    def test_multiple_frames_in_order(self):
+        self.assertEqual(
+            broker.parse_in_frames(b"IN 1\naIN_EOF\nIN 2\nbc"),
+            (
+                [(b"IN", b"a"), (b"IN_EOF", b"")],
+                b"IN 2\nbc",
+                None,
+            ),
+        )
+
+    def test_parse_stops_at_eof_leaving_tail(self):
+        # Bytes after IN_EOF are never frames: the parser leaves them
+        # unconsumed (no error) so the caller drains them.
+        self.assertEqual(
+            broker.parse_in_frames(b"IN_EOF\nGARBAGE\n"),
+            ([(b"IN_EOF", b"")], b"GARBAGE\n", None),
+        )
+
+
 class ProxyTest(unittest.TestCase):
     def _pair(self):
         ours, peer = socket.socketpair()
@@ -632,8 +674,7 @@ class ProxyTest(unittest.TestCase):
 
     def test_forward_stdin_frame_stdout_exit(self):
         ours, peer = self._pair()
-        ours.sendall(b"hi")
-        ours.shutdown(socket.SHUT_WR)
+        ours.sendall(b"IN 2\nhiIN_EOF\n")
         stdin_r, stdin_w = os.pipe()
         self.addCleanup(os.close, stdin_r)
         stdout_r, stdout_w = os.pipe()
@@ -645,10 +686,11 @@ class ProxyTest(unittest.TestCase):
         peer.close()
         self.assertEqual(_read_all(ours), b"DATA 3\nhi\nEXIT 0\n")
         self.assertEqual(os.read(stdin_r, 2), b"hi")
+        self.assertEqual(os.read(stdin_r, 1), b"")
 
     def test_signaled_exit_code(self):
         ours, peer = self._pair()
-        ours.shutdown(socket.SHUT_WR)
+        ours.sendall(b"IN_EOF\n")
         stdin_r, stdin_w = os.pipe()
         self.addCleanup(os.close, stdin_r)
         stdout_r, stdout_w = os.pipe()
@@ -697,7 +739,7 @@ class ProxyTest(unittest.TestCase):
 
     def test_send_error_aborts(self):
         conn = mock.Mock()
-        conn.recv.return_value = b""
+        conn.recv.side_effect = [b"IN_EOF\n"]
         conn.sendall.side_effect = OSError("gone")
         stdin_r, stdin_w = os.pipe()
         os.close(stdin_r)
@@ -729,7 +771,12 @@ class ProxyTest(unittest.TestCase):
         os.close(stdin_w)
         stdout_r, stdout_w = os.pipe()
         os.close(stdout_w)
-        with mock.patch.object(os, "waitpid", return_value=(424242, 0)):
+        with (
+            mock.patch.object(
+                broker.select, "select", return_value=([stdout_r], [], [])
+            ),
+            mock.patch.object(os, "waitpid", return_value=(424242, 0)),
+        ):
             code = broker.proxy_session(peer, 424242, stdin_w, stdout_r)
         self.assertEqual(code, 0)
         peer.close()
@@ -779,15 +826,14 @@ class ProxyTest(unittest.TestCase):
         with self.assertRaises(OSError):
             os.fstat(stdout_r)
 
-    def test_initial_bytes_flushed_first(self):
+    def test_initial_frames_flushed_first(self):
         ours, peer = self._pair()
-        ours.shutdown(socket.SHUT_WR)
         stdin_r, stdin_w = os.pipe()
         self.addCleanup(os.close, stdin_r)
         stdout_r, stdout_w = os.pipe()
         os.close(stdout_w)
         with mock.patch.object(os, "waitpid", return_value=(424242, 0)):
-            code = broker.proxy_session(peer, 424242, stdin_w, stdout_r, b"seed")
+            code = broker.proxy_session(peer, 424242, stdin_w, stdout_r, b"IN 4\nseed")
         self.assertEqual(code, 0)
         peer.close()
         self.assertEqual(_read_all(ours), b"EXIT 0\n")
@@ -795,21 +841,152 @@ class ProxyTest(unittest.TestCase):
 
     def test_initial_broken_pipe_continues(self):
         ours, peer = self._pair()
-        ours.shutdown(socket.SHUT_WR)
         stdin_r, stdin_w = os.pipe()
         os.close(stdin_r)
         os.close(stdin_w)
         stdout_r, stdout_w = os.pipe()
         os.close(stdout_w)
         with mock.patch.object(os, "waitpid", return_value=(424242, 0)):
-            code = broker.proxy_session(peer, 424242, stdin_w, stdout_r, b"seed")
+            code = broker.proxy_session(peer, 424242, stdin_w, stdout_r, b"IN 4\nseed")
+        self.assertEqual(code, 0)
+        peer.close()
+        self.assertEqual(_read_all(ours), b"EXIT 0\n")
+
+    def test_close_mid_session_aborts(self):
+        ours, peer = self._pair()
+        ours.sendall(b"IN 2\nhi")
+        stdin_r, stdin_w = os.pipe()
+        self.addCleanup(os.close, stdin_r)
+        stdout_r, stdout_w = os.pipe()
+        self.addCleanup(os.close, stdout_w)
+        with mock.patch.object(broker, "_terminate") as term:
+            ours.close()
+            self.assertIsNone(broker.proxy_session(peer, 424242, stdin_w, stdout_r))
+        term.assert_called_once_with(424242)
+        for fd in (stdin_w, stdout_r):
+            with self.assertRaises(OSError):
+                os.fstat(fd)
+
+    def test_close_after_in_eof_aborts(self):
+        ours, peer = self._pair()
+        ours.sendall(b"IN_EOF\n")
+        ours.close()
+        stdin_r, stdin_w = os.pipe()
+        self.addCleanup(os.close, stdin_r)
+        stdout_r, stdout_w = os.pipe()
+        self.addCleanup(os.close, stdout_w)
+        with mock.patch.object(broker, "_terminate") as term:
+            self.assertIsNone(broker.proxy_session(peer, 424242, stdin_w, stdout_r))
+        term.assert_called_once_with(424242)
+        for fd in (stdin_w, stdout_r):
+            with self.assertRaises(OSError):
+                os.fstat(fd)
+
+    def test_malformed_frame_aborts(self):
+        ours, peer = self._pair()
+        ours.sendall(b"BOGUS\n")
+        stdin_r, stdin_w = os.pipe()
+        self.addCleanup(os.close, stdin_r)
+        stdout_r, stdout_w = os.pipe()
+        self.addCleanup(os.close, stdout_w)
+        with mock.patch.object(broker, "_terminate") as term:
+            result = broker.proxy_session(peer, 424242, stdin_w, stdout_r)
+        self.assertEqual(result, "err:bad-stdin")
+        term.assert_called_once_with(424242)
+        for fd in (stdin_w, stdout_r):
+            with self.assertRaises(OSError):
+                os.fstat(fd)
+
+    def test_split_frame_across_recvs(self):
+        conn = mock.Mock()
+        conn.recv.side_effect = [b"IN 5\nab", b"cdeIN_EOF\n"]
+        stdin_r, stdin_w = os.pipe()
+        self.addCleanup(os.close, stdin_r)
+        stdout_r, stdout_w = os.pipe()
+        os.write(stdout_w, b"done\n")
+        os.close(stdout_w)
+        with (
+            mock.patch.object(
+                broker.select,
+                "select",
+                side_effect=[
+                    ([conn], [], []),
+                    ([conn], [], []),
+                    ([stdout_r], [stdin_w], []),
+                    ([stdout_r], [], []),
+                ],
+            ),
+            mock.patch.object(os, "waitpid", return_value=(424242, 0)),
+        ):
+            code = broker.proxy_session(conn, 424242, stdin_w, stdout_r)
+        self.assertEqual(code, 0)
+        self.assertEqual(os.read(stdin_r, 5), b"abcde")
+        conn.sendall.assert_any_call(b"DATA 5\ndone\n")
+        conn.sendall.assert_called_with(b"EXIT 0\n")
+
+    def test_late_frame_after_eof_dropped(self):
+        ours, peer = self._pair()
+        stdin_r, stdin_w = os.pipe()
+        self.addCleanup(os.close, stdin_r)
+        stdout_r, stdout_w = os.pipe()
+        os.close(stdout_w)
+        with mock.patch.object(os, "waitpid", return_value=(424242, 0)):
+            code = broker.proxy_session(
+                peer, 424242, stdin_w, stdout_r, b"IN_EOF\nIN 1\nx"
+            )
+        self.assertEqual(code, 0)
+        peer.close()
+        self.assertEqual(_read_all(ours), b"EXIT 0\n")
+        self.assertEqual(os.read(stdin_r, 1), b"")
+
+    def test_malformed_tail_after_eof_discarded(self):
+        ours, peer = self._pair()
+        stdin_r, stdin_w = os.pipe()
+        self.addCleanup(os.close, stdin_r)
+        stdout_r, stdout_w = os.pipe()
+        os.close(stdout_w)
+        with (
+            mock.patch.object(
+                broker.select,
+                "select",
+                side_effect=[([], [], []), ([stdout_r], [], [])],
+            ),
+            mock.patch.object(os, "waitpid", return_value=(424242, 0)),
+        ):
+            code = broker.proxy_session(
+                peer, 424242, stdin_w, stdout_r, b"IN_EOF\nGARBAGE\n"
+            )
+        self.assertEqual(code, 0)
+        peer.close()
+        self.assertEqual(_read_all(ours), b"EXIT 0\n")
+
+    def test_malformed_recv_after_eof_discarded(self):
+        ours, peer = self._pair()
+        ours.sendall(b"GARBAGE-NO-FRAME\n")
+        stdin_r, stdin_w = os.pipe()
+        self.addCleanup(os.close, stdin_r)
+        stdout_r, stdout_w = os.pipe()
+        os.close(stdout_w)
+        with (
+            mock.patch.object(
+                broker.select,
+                "select",
+                side_effect=[
+                    ([peer], [], []),
+                    ([], [], []),
+                    ([stdout_r], [], []),
+                ],
+            ),
+            mock.patch.object(os, "waitpid", return_value=(424242, 0)),
+        ):
+            code = broker.proxy_session(peer, 424242, stdin_w, stdout_r, b"IN_EOF\n")
         self.assertEqual(code, 0)
         peer.close()
         self.assertEqual(_read_all(ours), b"EXIT 0\n")
 
     def test_stdin_write_wouldblock_retries(self):
         ours, peer = self._pair()
-        ours.sendall(b"hi")
+        ours.sendall(b"IN 2\nhiIN_EOF\n")
         ours.shutdown(socket.SHUT_WR)
         stdin_r, stdin_w = os.pipe()
         self.addCleanup(os.close, stdin_r)
@@ -833,7 +1010,6 @@ class ProxyTest(unittest.TestCase):
                     ([peer], [], []),
                     ([], [stdin_w], []),
                     ([], [stdin_w], []),
-                    ([peer], [], []),
                     ([stdout_r], [], []),
                 ],
             ),
@@ -848,7 +1024,7 @@ class ProxyTest(unittest.TestCase):
 
     def test_stdin_write_error_closes_stdin(self):
         ours, peer = self._pair()
-        ours.sendall(b"hi")
+        ours.sendall(b"IN 2\nhiIN_EOF\n")
         ours.shutdown(socket.SHUT_WR)
         stdin_r, stdin_w = os.pipe()
         self.addCleanup(os.close, stdin_r)
@@ -876,9 +1052,9 @@ class ProxyTest(unittest.TestCase):
         with self.assertRaises(OSError):
             os.fstat(stdin_w)
 
-    def test_eof_flushes_pending_before_close(self):
+    def test_in_eof_flushes_pending_before_close(self):
         conn = mock.Mock()
-        conn.recv.side_effect = [b"hi", b""]
+        conn.recv.side_effect = [b"IN 2\nhi", b"IN_EOF\n"]
         stdin_r, stdin_w = os.pipe()
         self.addCleanup(os.close, stdin_r)
         stdout_r, stdout_w = os.pipe()
@@ -902,9 +1078,68 @@ class ProxyTest(unittest.TestCase):
         with self.assertRaises(OSError):
             os.fstat(stdin_w)
 
+    def test_post_eof_garbage_drained_while_flushing(self):
+        conn = mock.Mock()
+        conn.recv.side_effect = [b"IN 2\nhi", b"IN_EOF\n", b"GARBAGE\n"]
+        stdin_r, stdin_w = os.pipe()
+        self.addCleanup(os.close, stdin_r)
+        stdout_r, stdout_w = os.pipe()
+        os.close(stdout_w)
+        with (
+            mock.patch.object(
+                broker.select,
+                "select",
+                side_effect=[
+                    ([conn], [], []),
+                    ([conn], [], []),
+                    ([], [], []),
+                    ([conn], [], []),
+                    ([], [stdin_w], []),
+                    ([stdout_r], [], []),
+                ],
+            ),
+            mock.patch.object(os, "waitpid", return_value=(424242, 0)),
+        ):
+            code = broker.proxy_session(conn, 424242, stdin_w, stdout_r)
+        self.assertEqual(code, 0)
+        self.assertEqual(os.read(stdin_r, 2), b"hi")
+        with self.assertRaises(OSError):
+            os.fstat(stdin_w)
+
+    def test_disconnect_during_drain_aborts(self):
+        conn = mock.Mock()
+        conn.recv.side_effect = [b"IN 2\nhi", b"IN_EOF\n", b""]
+        stdin_r, stdin_w = os.pipe()
+        self.addCleanup(os.close, stdin_r)
+        stdout_r, stdout_w = os.pipe()
+        self.addCleanup(os.close, stdout_w)
+        seen = []
+        scripted = [([conn], [], []), ([conn], [], []), ([conn], [], [])]
+
+        def fake_select(readers, writers, _x):
+            seen.append((list(readers), list(writers)))
+            return scripted[len(seen) - 1]
+
+        with (
+            mock.patch.object(broker.select, "select", side_effect=fake_select),
+            mock.patch.object(os, "write", side_effect=BlockingIOError()),
+            mock.patch.object(os, "waitpid", return_value=(424242, 0)),
+            mock.patch.object(broker, "_terminate") as term,
+        ):
+            result = broker.proxy_session(conn, 424242, stdin_w, stdout_r)
+        self.assertIsNone(result)
+        term.assert_called_once_with(424242)
+        # The flush is stuck (writes block) yet the connection stays
+        # watched: disconnect aborts instead of hanging on the shell.
+        self.assertEqual(seen[2][0], [stdout_r, conn])
+        with self.assertRaises(OSError):
+            os.fstat(stdin_w)
+        with self.assertRaises(OSError):
+            os.fstat(stdout_r)
+
     def test_pending_cap_pauses_client_reads(self):
         conn = mock.Mock()
-        conn.recv.return_value = b"xx"
+        conn.recv.return_value = b"IN 2\nxx"
         stdin_r, stdin_w = os.pipe()
         self.addCleanup(os.close, stdin_r)
         stdout_r, stdout_w = os.pipe()
@@ -932,6 +1167,7 @@ class ProxyTest(unittest.TestCase):
 
     def test_eof_unkillable_reports_reap_failed(self):
         ours, peer = self._pair()
+        ours.sendall(b"IN_EOF\n")
         ours.shutdown(socket.SHUT_WR)
         stdin_r, stdin_w = os.pipe()
         self.addCleanup(os.close, stdin_r)
@@ -1098,7 +1334,7 @@ class ServeExecTest(unittest.TestCase):
         tmp = _mktemp(self, "exec-")
         audit = str(tmp / "audit.log")
         ours, peer = self._pair()
-        ours.shutdown(socket.SHUT_WR)
+        ours.sendall(b"IN_EOF\n")
         stdin_r, stdin_w = os.pipe()
         self.addCleanup(os.close, stdin_r)
         stdout_r, stdout_w = os.pipe()
@@ -1156,12 +1392,29 @@ class ServeExecTest(unittest.TestCase):
                 "netadmin",
                 "sess",
                 "1",
-                b"/bin/cat\npiped\n",
+                b"/bin/cat\nIN 6\npiped\nIN_EOF\n",
             )
         peer.close()
         self.assertEqual(result, "exit-0")
         self.assertEqual(_read_all(ours), b"DATA 6\npiped\nEXIT 0\n")
         self.assertEqual(os.read(stdin_r, 6), b"piped\n")
+
+    def test_bad_stdin_audited(self):
+        tmp = _mktemp(self, "exec-")
+        audit = str(tmp / "audit.log")
+        ours, peer = self._pair()
+        with (
+            mock.patch.object(broker, "spawn_session", return_value=(424242, 9, 10)),
+            mock.patch.object(broker, "proxy_session", return_value="err:bad-stdin"),
+        ):
+            result = broker._serve_exec(
+                peer, audit, self._ident(), "netadmin", "sess", "1", b"/bin/cat\n"
+            )
+        self.assertEqual(result, "err:bad-stdin")
+        with open(audit) as handle:
+            records = handle.read().splitlines()
+        self.assertEqual(len(records), 2)
+        self.assertIn("result=err:bad-stdin", records[1])
 
     def test_client_gone(self):
         tmp = _mktemp(self, "exec-")

@@ -9,12 +9,13 @@
 """host-ctl: control channel client for admin-broker EXEC sessions.
 
 Sends 'EXEC <n>' plus n argv lines (never a shell string), forwards local
-stdin to the broker, and renders DATA frames to stdout until the EXIT
-trailer carries the remote exit code back. The broker spawns the command
-on the host, so it is born in the host pid namespace with the host
-filesystem; killing host-ctl closes the socket and the broker kills the
-shell. Only escaped netadmin is authorized; anything else gets an
-audited refusal and no session.
+stdin to the broker as 'IN <n>' chunks with an 'IN_EOF' trailer, and
+renders DATA frames to stdout until the EXIT trailer carries the remote
+exit code back. The broker spawns the command on the host, so it is born
+in the host pid namespace with the host filesystem. The socket stays open
+until EXIT arrives, so any earlier close (kill, signal, dropped ssh)
+aborts the shell on the broker: abort always aborts. Only escaped netadmin
+is authorized; anything else gets an audited refusal and no session.
 
 Usage: host-ctl exec command [args ...]
 """
@@ -92,10 +93,13 @@ def _write_all(fd, data):
 
 
 def run_session(sock, stdin_fd, stdout_fd):
-    """Forward stdin_fd to the broker and DATA frames to stdout_fd.
+    """Forward stdin_fd to the broker as IN frames and DATA frames to stdout_fd.
 
-    Returns the remote exit code, or None when the connection dies (or our
-    own stdout does) first. Raises _Refused when the broker answers ERR.
+    Stdin travels as 'IN <n>' chunks plus an 'IN_EOF' trailer, so the broker
+    tells a dead client (closed socket: abort the shell) from a finished
+    stdin. Returns the remote exit code, or None when the connection dies
+    (or our own stdout does) first. Raises _Refused when the broker
+    answers ERR.
     """
     reader = FrameReader(sock)
     stdin_open = True
@@ -111,12 +115,12 @@ def run_session(sock, stdin_fd, stdout_fd):
                 data = b""
             if data:
                 try:
-                    sock.sendall(data)
+                    sock.sendall(b"IN %d\n" % len(data) + data)
                 except OSError:
                     return None
             else:
                 try:
-                    sock.shutdown(socket.SHUT_WR)
+                    sock.sendall(b"IN_EOF\n")
                 except OSError:
                     return None
                 stdin_open = False

@@ -156,6 +156,31 @@ class WriteAllTest(unittest.TestCase):
         )
 
 
+class FramingContractTest(unittest.TestCase):
+    def test_client_chunk_within_broker_cap(self):
+        import importlib.util
+        from importlib.machinery import SourceFileLoader
+
+        try:
+            from importlib.resources import files
+
+            package = __package__ or "admin_broker.tests"
+            path = str(files(package) / "admin-broker")
+        except (FileNotFoundError, ModuleNotFoundError):
+            path = str(
+                Path(__file__).resolve().parents[1]
+                / "payload/usr/local/sbin/admin-broker"
+            )
+        loader = SourceFileLoader("broker_framing_contract", path)
+        spec = importlib.util.spec_from_loader("broker_framing_contract", loader)
+        broker = importlib.util.module_from_spec(spec)
+        sys.modules["broker_framing_contract"] = broker
+        loader.exec_module(broker)
+        # host-ctl reads stdin in CHUNK slices, so no IN frame it emits
+        # can exceed CHUNK; the broker must accept at least that much.
+        self.assertLessEqual(helper.CHUNK, broker.MAX_IN_CHUNK)
+
+
 class RunSessionTest(unittest.TestCase):
     def _pair(self):
         ours, peer = socket.socketpair()
@@ -202,7 +227,34 @@ class RunSessionTest(unittest.TestCase):
             if not chunk:
                 break
             got += chunk
-        self.assertEqual(got, b"xy")
+        self.assertEqual(got, b"IN 2\nxy")
+
+    def test_stdin_binary_framed(self):
+        server, client = self._pair()
+        server.sendall(b"EXIT 0\n")
+        out_r, out_w = self._stdout()
+        code = helper.run_session(client, self._stdin(b"a\nb\x00c"), out_w)
+        os.close(out_w)
+        self.assertEqual(code, 0)
+        client.shutdown(socket.SHUT_WR)
+        got = b""
+        while True:
+            chunk = server.recv(65536)
+            if not chunk:
+                break
+            got += chunk
+        self.assertEqual(got, b"IN 5\na\nb\x00c")
+
+    def test_output_flows_after_in_eof(self):
+        server, client = self._pair()
+        server.sendall(b"DATA 3\nhi\nEXIT 0\n")
+        server.shutdown(socket.SHUT_WR)
+        out_r, out_w = self._stdout()
+        code = helper.run_session(client, self._stdin(b""), out_w)
+        os.close(out_w)
+        self.assertEqual(code, 0)
+        self.assertEqual(os.read(out_r, 3), b"hi\n")
+        self.assertEqual(server.recv(7), b"IN_EOF\n")
 
     def test_refused(self):
         server, client = self._pair()
@@ -264,9 +316,9 @@ class RunSessionTest(unittest.TestCase):
             self.assertIsNone(helper.run_session(sock, stdin, out_w))
         os.close(out_w)
 
-    def test_lost_on_shutdown_error(self):
+    def test_lost_on_in_eof_error(self):
         sock = mock.Mock()
-        sock.shutdown.side_effect = OSError("gone")
+        sock.sendall.side_effect = OSError("gone")
         out_r, out_w = self._stdout()
         stdin = self._stdin(b"")
         with mock.patch.object(helper.select, "select", return_value=([stdin], [], [])):
@@ -285,7 +337,7 @@ class RunSessionTest(unittest.TestCase):
             mock.patch.object(os, "read", side_effect=OSError("bad")),
         ):
             self.assertIsNone(helper.run_session(sock, 99, 100))
-        sock.shutdown.assert_called_once_with(socket.SHUT_WR)
+        sock.sendall.assert_called_once_with(b"IN_EOF\n")
 
     def test_lost_on_stdout_error(self):
         server, client = self._pair()
