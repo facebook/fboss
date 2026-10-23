@@ -5616,6 +5616,20 @@ TEST_F(NamedNextHopGroupThriftTest, addPoliciesRejectsInlineNexthopsInPolicy) {
           ::testing::HasSubstr("supplies inline next hops")));
 }
 
+TEST_F(NamedNextHopGroupThriftTest, addPoliciesRejectsTheTemporaryEntryPrefix) {
+  ThriftHandler handler(sw_);
+  auto groups = std::make_unique<std::vector<NextHopGroup>>();
+  groups->push_back(makeGroup("defaultNhg", {"2401:db00:2110:3001::2"}));
+  handler.addOrUpdateNamedNextHopGroups(std::move(groups));
+
+  EXPECT_THAT(
+      [&] {
+        handler.addPolicies(onePolicy(makeCbfPolicy("#pol1", "defaultNhg")));
+      },
+      ::testing::ThrowsMessage<FbossError>(
+          ::testing::HasSubstr("cannot start with")));
+}
+
 // testConfigA has no PBR ACL table, so a policy that passes validation fails
 // the HW update.
 TEST_F(NamedNextHopGroupThriftTest, addPoliciesPassesValidationWhenWellFormed) {

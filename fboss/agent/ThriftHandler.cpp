@@ -57,6 +57,7 @@
 #include "fboss/agent/state/LabelForwardingEntry.h"
 #include "fboss/agent/state/NdpEntry.h"
 #include "fboss/agent/state/NdpTable.h"
+#include "fboss/agent/state/PbrUtils.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/Route.h"
@@ -899,6 +900,14 @@ void validateClassBasedPolicies(
   }
 
   for (const auto& policy : policies) {
+    if (policy.name()->starts_with(kPbrTempAclEntryPrefix)) {
+      throw FbossError(
+          "Class-based policy name '",
+          *policy.name(),
+          "' cannot start with '",
+          kPbrTempAclEntryPrefix,
+          "'");
+    }
     for (const auto& [forwardingClass, nhg] : *policy.class2NextHopGroup()) {
       if (!nhg.nexthops()->empty()) {
         throw FbossError(
