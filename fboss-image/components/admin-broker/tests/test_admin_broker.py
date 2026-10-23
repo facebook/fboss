@@ -21,6 +21,7 @@ import itertools
 import os
 import runpy
 import shutil
+import signal
 import socket
 import struct
 import sys
@@ -457,6 +458,137 @@ class ServeOnceTest(unittest.TestCase):
         self.assertIn("role=netadmin", record)
 
 
+class ReapTest(unittest.TestCase):
+    def test_reaps_until_none(self):
+        with mock.patch.object(
+            os, "waitpid", side_effect=[(1234, 0), (0, 0)]
+        ) as waited:
+            self.assertIsNone(broker._reap_children(None, None))
+        self.assertEqual(waited.call_count, 2)
+        waited.assert_called_with(-1, os.WNOHANG)
+
+    def test_no_children_returns(self):
+        with mock.patch.object(
+            os, "waitpid", side_effect=ChildProcessError()
+        ) as waited:
+            self.assertIsNone(broker._reap_children(None, None))
+        self.assertEqual(waited.call_count, 1)
+
+
+class MaybeForkTest(unittest.TestCase):
+    def test_inline_never_forks(self):
+        with mock.patch.object(os, "fork") as forked:
+            self.assertFalse(broker._maybe_fork(False))
+        forked.assert_not_called()
+
+    def test_parent_and_child(self):
+        with mock.patch.object(os, "fork", return_value=1234):
+            self.assertFalse(broker._maybe_fork(True))
+        with mock.patch.object(os, "fork", return_value=0):
+            self.assertTrue(broker._maybe_fork(True))
+
+
+class ServeSpawnTest(unittest.TestCase):
+    def test_parent_closes_and_counts(self):
+        tmp = _mktemp(self, "spawn-")
+        audit = str(tmp / "audit.log")
+        conn = mock.Mock()
+        srv = mock.Mock()
+        srv.accept.return_value = (conn, None)
+        with (
+            mock.patch.object(os, "fork", return_value=1234),
+            mock.patch.object(signal, "signal"),
+        ):
+            broker.serve(srv, audit, max_requests=1, spawn=True)
+        conn.close.assert_called_once_with()
+        # The parent serves nothing itself: no audit record appears.
+        self.assertFalse(os.path.exists(audit))
+        # The parent keeps accepting: its listener stays open.
+        srv.close.assert_not_called()
+
+    def test_fork_failure_sheds_connection_and_continues(self):
+        tmp = _mktemp(self, "spawn-")
+        audit = str(tmp / "audit.log")
+        dropped = mock.Mock()
+        kept = mock.Mock()
+        srv = mock.Mock()
+        srv.accept.side_effect = [(dropped, None), (kept, None)]
+        with (
+            mock.patch.object(os, "fork", side_effect=[OSError("EAGAIN"), 1234]),
+            mock.patch.object(signal, "signal"),
+        ):
+            broker.serve(srv, audit, max_requests=2, spawn=True)
+        dropped.close.assert_called_once_with()
+        kept.close.assert_called_once_with()
+        self.assertEqual(srv.accept.call_count, 2)
+        self.assertFalse(os.path.exists(audit))
+
+    def test_fork_failure_counts_against_bound(self):
+        tmp = _mktemp(self, "spawn-")
+        audit = str(tmp / "audit.log")
+        dropped = mock.Mock()
+        srv = mock.Mock()
+        srv.accept.side_effect = [(dropped, None)]
+        with (
+            mock.patch.object(os, "fork", side_effect=OSError("EAGAIN")),
+            mock.patch.object(signal, "signal"),
+        ):
+            broker.serve(srv, audit, max_requests=1, spawn=True)
+        dropped.close.assert_called_once_with()
+        self.assertEqual(srv.accept.call_count, 1)
+        self.assertFalse(os.path.exists(audit))
+
+    def test_child_serves_and_exits(self):
+        tmp = _mktemp(self, "spawn-")
+        _write_proc(
+            tmp,
+            os.getpid(),
+            comm="test\n",
+            cgroup="0::/user.slice/user-1001.slice/session-13.scope\n",
+        )
+        audit = str(tmp / "audit.log")
+        ours, peer = socket.socketpair()
+        self.addCleanup(ours.close)
+        self.addCleanup(peer.close)
+        ours.sendall(b"WHOAMI\n")
+        ours.shutdown(socket.SHUT_WR)
+        srv = mock.Mock()
+        srv.accept.return_value = (peer, None)
+        with (
+            mock.patch.object(os, "fork", return_value=0),
+            mock.patch.object(os, "_exit") as gone,
+            mock.patch.object(signal, "signal"),
+        ):
+            broker.serve(srv, audit, str(tmp), max_requests=1, spawn=True)
+        gone.assert_called_once_with(0)
+        self.assertIn("role=netadmin", _read_all(ours).decode())
+        with open(audit) as handle:
+            record = handle.read()
+        self.assertIn("verb=WHOAMI", record)
+        self.assertIn("result=ok", record)
+
+    def test_child_exits_on_unexpected_error(self):
+        tmp = _mktemp(self, "spawn-")
+        audit = str(tmp / "audit.log")
+        conn = mock.Mock()
+        srv = mock.Mock()
+        srv.accept.return_value = (conn, None)
+        with (
+            mock.patch.object(os, "fork", return_value=0),
+            mock.patch.object(os, "_exit") as gone,
+            mock.patch.object(signal, "signal"),
+            mock.patch.object(broker, "serve_once", side_effect=ValueError("boom")),
+        ):
+            with self.assertRaises(ValueError):
+                broker.serve(srv, audit, max_requests=1, spawn=True)
+        gone.assert_called_once_with(0)
+        conn.close.assert_called_once_with()
+        self.assertEqual(srv.accept.call_count, 1)
+        # The child serves one connection, so it drops its inherited
+        # copy of the listening socket before serving.
+        srv.close.assert_called_once_with()
+
+
 class ServeTest(unittest.TestCase):
     def _mock_conn(self):
         conn = mock.Mock()
@@ -491,7 +623,7 @@ class ServeTest(unittest.TestCase):
             (self._mock_conn(), None),
             (self._mock_conn(), None),
         ]
-        broker.serve(srv, audit, str(tmp), max_requests=2)
+        broker.serve(srv, audit, str(tmp), max_requests=2, spawn=False)
         self.assertEqual(srv.accept.call_count, 2)
         with open(audit) as handle:
             self.assertEqual(len(handle.read().splitlines()), 2)
@@ -499,7 +631,7 @@ class ServeTest(unittest.TestCase):
     def test_audit_failure_does_not_kill_loop(self):
         srv = mock.Mock()
         srv.accept.return_value = (self._mock_conn(), None)
-        broker.serve(srv, "/nonexistent-dir-xyz/audit.log", max_requests=1)
+        broker.serve(srv, "/nonexistent-dir-xyz/audit.log", max_requests=1, spawn=False)
         self.assertEqual(srv.accept.call_count, 1)
 
     def test_accept_error_sheds_one_round_and_continues(self):
@@ -511,7 +643,9 @@ class ServeTest(unittest.TestCase):
             (self._mock_conn(), None),
         ]
         with mock.patch.object(time, "sleep") as slept:
-            broker.serve(srv, audit, max_requests=2)
+            # spawn=False serves inline: the shed-round assertions must not
+            # race a forked child for the audit record.
+            broker.serve(srv, audit, max_requests=2, spawn=False)
         slept.assert_called_once_with(0.05)
         self.assertEqual(srv.accept.call_count, 2)
         with open(audit) as handle:
@@ -527,7 +661,7 @@ class ServeTest(unittest.TestCase):
         srv = mock.Mock()
         srv.accept.side_effect = KeyboardInterrupt()
         with self.assertRaises(KeyboardInterrupt):
-            broker.serve(srv, "/nonexistent/audit.log")
+            broker.serve(srv, "/nonexistent/audit.log", spawn=False)
 
     def test_live_accept_loop(self):
         tmp = _mktemp(self, "serve-")
@@ -541,7 +675,7 @@ class ServeTest(unittest.TestCase):
         worker = threading.Thread(
             target=broker.serve,
             args=(sock, audit, str(tmp)),
-            kwargs={"max_requests": 1},
+            kwargs={"max_requests": 1, "spawn": False},
             daemon=True,
         )
         worker.start()
@@ -590,26 +724,35 @@ class MainTest(unittest.TestCase):
                 ]
             )
 
-        worker = threading.Thread(target=run, daemon=True)
-        worker.start()
-        client = None
-        for _ in range(100):
-            attempt = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-            try:
-                attempt.connect(name)
-                client = attempt
-                break
-            except OSError:
-                attempt.close()
-                time.sleep(0.05)
-        self.assertIsNotNone(client)
-        client.sendall(b"WHOAMI\n")
-        reply = _read_all(client).decode()
-        client.close()
-        worker.join(timeout=10)
-        self.assertFalse(worker.is_alive())
+        # Mocked child: serve() forks per connection in production, but the
+        # unit suite pins the child path in-process (fork -> 0, _exit mock).
+        with (
+            mock.patch.object(os, "fork", return_value=0),
+            mock.patch.object(os, "_exit") as gone,
+            mock.patch.object(signal, "signal") as sig,
+        ):
+            worker = threading.Thread(target=run, daemon=True)
+            worker.start()
+            client = None
+            for _ in range(100):
+                attempt = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                try:
+                    attempt.connect(name)
+                    client = attempt
+                    break
+                except OSError:
+                    attempt.close()
+                    time.sleep(0.05)
+            self.assertIsNotNone(client)
+            client.sendall(b"WHOAMI\n")
+            reply = _read_all(client).decode()
+            client.close()
+            worker.join(timeout=10)
+            self.assertFalse(worker.is_alive())
         self.assertEqual(result["rc"], 0)
         self.assertIn("role=netops", reply)
+        gone.assert_called_once_with(0)
+        sig.assert_any_call(signal.SIGCHLD, broker._reap_children)
 
     def test_zero_requests_exits(self):
         tmp = _mktemp(self, "main-")

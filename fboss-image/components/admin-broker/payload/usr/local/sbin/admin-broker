@@ -23,6 +23,7 @@ import argparse
 import errno
 import os
 import re
+import signal
 import socket
 import struct
 import subprocess
@@ -404,8 +405,29 @@ def _serve_request(conn, audit_path, ident, proc_root, allowlist, run_fn):
     return result
 
 
-def serve(sock, audit_path, proc_root="/proc", allowlist=frozenset(), run_fn=run_systemctl, max_requests=None):
-    """Accept loop; max_requests bounds it for tests (None runs forever)."""
+def _reap_children(signum, frame):
+    """SIGCHLD handler: reap finished serve-children. Never blocks, never raises."""
+    while True:
+        try:
+            pid, _status = os.waitpid(-1, os.WNOHANG)
+        except ChildProcessError:
+            return
+        if pid == 0:
+            return
+
+
+def _maybe_fork(spawn):
+    """Fork a serve-child when asked; True in the child, False in the parent."""
+    if not spawn:
+        return False
+    return os.fork() == 0
+
+
+def serve(sock, audit_path, proc_root="/proc", allowlist=frozenset(), run_fn=run_systemctl, max_requests=None, spawn=True):
+    """Accept loop; each connection is served by a forked child so one
+    long session never blocks the rest (spawn=False serves inline)."""
+    if spawn:
+        signal.signal(signal.SIGCHLD, _reap_children)
     served = 0
     while max_requests is None or served < max_requests:
         try:
@@ -423,10 +445,34 @@ def serve(sock, audit_path, proc_root="/proc", allowlist=frozenset(), run_fn=run
             served += 1
             continue
         try:
-            serve_once(conn, audit_path, proc_root, allowlist, run_fn)
+            child = _maybe_fork(spawn)
         except OSError:
-            pass
-        finally:
+            # Fork failure (EAGAIN/ENOMEM under load) sheds this
+            # connection instead of killing the accept loop. The shed
+            # connection counts against max_requests so the bounded
+            # loop still terminates.
+            conn.close()
+            served += 1
+            continue
+        if child or not spawn:
+            if child:
+                signal.signal(signal.SIGCHLD, signal.SIG_DFL)
+                # Drop our copy of the listening socket: the child serves
+                # one connection and exits; holding the listener delays
+                # teardown and breaks clean restart.
+                sock.close()
+            try:
+                serve_once(conn, audit_path, proc_root, allowlist, run_fn)
+            except OSError:
+                pass
+            finally:
+                conn.close()
+                # In finally so the child exits on ANY exception type:
+                # a non-OSError (struct.error, ValueError, ...) must
+                # never let the forked child fall back into accept.
+                if child:
+                    os._exit(0)
+        else:
             conn.close()
         served += 1
 

@@ -8,7 +8,7 @@ BuildArch: noarch
 Host-side broker for the netops/netadmin login containers: an abstract-socket
 daemon that attributes requests by kernel peer credentials plus cgroup session
 scope, audits every action, and exposes allowlisted host operations
-(identity/process relay in B1; unit control and namespace entry follow).
+(identity/process relay and unit control).
 %install
 cp -a %{_payload}/* %{buildroot}/
 # Build-system shims (BUCK export_files for tests) live next to the scripts
