@@ -330,6 +330,54 @@ class HandleCommandTest(unittest.TestCase):
         self.assertEqual(result, "err:unknown-command")
 
 
+class LineReaderTest(unittest.TestCase):
+    def _pair(self):
+        ours, peer = socket.socketpair()
+        self.addCleanup(ours.close)
+        self.addCleanup(peer.close)
+        return ours, peer
+
+    def test_seeded_lines(self):
+        ours, peer = self._pair()
+        reader = broker.LineReader(peer, b"/bin/ps\n-e\n")
+        self.assertEqual(reader.readline(4096), (b"/bin/ps", None))
+        self.assertEqual(reader.readline(4096), (b"-e", None))
+
+    def test_leftover_preserved(self):
+        ours, peer = self._pair()
+        reader = broker.LineReader(peer, b"a\nbc")
+        self.assertEqual(reader.readline(4096), (b"a", None))
+        ours.sendall(b"d\n")
+        ours.shutdown(socket.SHUT_WR)
+        self.assertEqual(reader.readline(4096), (b"bcd", None))
+
+    def test_split_recvs(self):
+        conn = mock.Mock()
+        conn.recv.side_effect = [b"ab", b"cd\n"]
+        reader = broker.LineReader(conn)
+        self.assertEqual(reader.readline(4096), (b"abcd", None))
+
+    def test_overlong(self):
+        ours, peer = self._pair()
+        ours.sendall(b"0123456789")
+        ours.shutdown(socket.SHUT_WR)
+        reader = broker.LineReader(peer)
+        self.assertEqual(reader.readline(4), (None, "err:exec-arg-long"))
+
+    def test_eof(self):
+        ours, peer = self._pair()
+        ours.sendall(b"partial")
+        ours.shutdown(socket.SHUT_WR)
+        reader = broker.LineReader(peer)
+        self.assertEqual(reader.readline(4096), (None, "err:exec-eof"))
+
+    def test_recv_error(self):
+        conn = mock.Mock()
+        conn.recv.side_effect = OSError("gone")
+        reader = broker.LineReader(conn)
+        self.assertEqual(reader.readline(4096), (None, "err:exec-eof"))
+
+
 class ServeOnceTest(unittest.TestCase):
     def _pair(self, request):
         ours, peer = socket.socketpair()

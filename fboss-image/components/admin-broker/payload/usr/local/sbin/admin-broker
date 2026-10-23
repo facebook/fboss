@@ -333,6 +333,29 @@ def read_request(conn):
     return buf, None
 
 
+class LineReader:
+    """Buffered newline-line reader over a socket, seeded with bytes already read."""
+
+    def __init__(self, conn, initial=b""):
+        self.conn = conn
+        self.buf = initial
+
+    def readline(self, limit):
+        """Next line without the newline, or (None, err-tag) on EOF/error/overlong."""
+        while b"\n" not in self.buf:
+            if len(self.buf) > limit:
+                return None, "err:exec-arg-long"
+            try:
+                chunk = self.conn.recv(limit + 1 - len(self.buf))
+            except OSError:
+                return None, "err:exec-eof"
+            if not chunk:
+                return None, "err:exec-eof"
+            self.buf += chunk
+        line, _, self.buf = self.buf.partition(b"\n")
+        return line, None
+
+
 def serve_error(conn, audit_path, ident, result, reply, proc_root="/proc"):
     """Audit a rejected request and, unless the peer is gone, send the error."""
     origin_uid, _session = read_origin(ident["pid"], proc_root)
