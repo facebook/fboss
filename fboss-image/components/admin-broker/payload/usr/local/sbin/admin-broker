@@ -1,0 +1,285 @@
+#!/usr/bin/python3
+# Copyright (c) 2004-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+"""admin-broker: scoped host control channel for role login containers.
+
+Listens on an abstract unix socket (shared netns makes it reachable from the
+machines without any filesystem path). Every request is attributed by kernel
+peer credentials plus the peer's cgroup session scope, which survives the
+netadmin sudo escape, and appended to an audit log. One command per
+connection; the reply ends with connection close.
+
+B1 verbs: WHOAMI (role identity), PS (host process relay). Unit control and
+namespace-fd passing arrive in B2/B3; the role map moves to a policy file
+in B4.
+"""
+
+import argparse
+import errno
+import os
+import re
+import socket
+import struct
+import sys
+import time
+
+SOCKET_NAME = "\0admin-broker"
+AUDIT_PATH = "/var/log/admin-broker/audit.log"
+MAX_REQUEST = 4096
+# Role origin: the cgroup user slice survives sudo escape, so it wins over
+# the peer uid. Uids are image-pinned (see the login-containers machines).
+ROLE_BY_UID = {1000: "netops", 1001: "netadmin"}
+USER_SCOPE_RE = re.compile(r"user-(\d+)\.slice/session-(\d+)\.scope")
+
+
+def peer_identity(conn):
+    """Kernel peer credentials of a unix-socket connection."""
+    raw = conn.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED, struct.calcsize("3i"))
+    pid, uid, gid = struct.unpack("3i", raw)
+    return {"pid": pid, "uid": uid, "gid": gid}
+
+
+def origin_from_cgroup(text):
+    """Parse (origin_uid, session_scope) from cgroup(5) content, else (None, None)."""
+    match = USER_SCOPE_RE.search(text)
+    if match is None:
+        return None, None
+    return int(match.group(1)), "user-%s.slice/session-%s.scope" % (
+        match.group(1),
+        match.group(2),
+    )
+
+
+def read_origin(pid, proc_root="/proc"):
+    """Session origin of a host pid; (None, None) when unreadable or unmatched."""
+    try:
+        with open(os.path.join(proc_root, str(pid), "cgroup")) as handle:
+            text = handle.read()
+    except OSError:
+        return None, None
+    return origin_from_cgroup(text)
+
+
+def read_comm(pid, proc_root="/proc"):
+    """Short command name of a host pid, '?' when unreadable."""
+    try:
+        with open(os.path.join(proc_root, str(pid), "comm")) as handle:
+            return handle.read().strip()
+    except OSError:
+        return "?"
+
+
+def resolve_role(peer_uid, origin_uid):
+    """Role name: cgroup origin wins (escape-proof), else peer uid, else unknown."""
+    key = origin_uid if origin_uid is not None else peer_uid
+    return ROLE_BY_UID.get(key, "unknown")
+
+
+def audit_line(verb, ident, role, session, result):
+    """One tab-free audit record; every field is sanitized at its source."""
+    stamp = time.strftime("%Y-%m-%dT%H:%M:%S%z")
+    return (
+        "%s verb=%s peer_uid=%d peer_gid=%d peer_pid=%d role=%s session=%s result=%s\n"
+        % (stamp, verb, ident["uid"], ident["gid"], ident["pid"], role, session, result)
+    )
+
+
+def append_audit(path, line):
+    """Append one record and fsync; the trail must survive a crash, not a purge."""
+    with open(path, "a") as handle:
+        handle.write(line)
+        handle.flush()
+        os.fsync(handle.fileno())
+
+
+def sanitize_cmdline(raw):
+    """Flatten a /proc cmdline blob to one log-safe line."""
+    return " ".join(raw.replace(b"\0", b" ").decode("utf-8", "replace").split())[:1024]
+
+
+def read_process(proc_root, pid):
+    """(uid, comm, cmdline) for one pid, or None when it vanishes mid-read."""
+    try:
+        with open(os.path.join(proc_root, pid, "status")) as handle:
+            status = handle.read()
+        with open(os.path.join(proc_root, pid, "comm")) as handle:
+            comm = handle.read().strip()
+        with open(os.path.join(proc_root, pid, "cmdline"), "rb") as handle:
+            cmdline = handle.read()
+        uid = status.split("Uid:")[1].split()[0]
+    except (OSError, IndexError):
+        return None
+    return (uid, comm.replace("\n", " "), sanitize_cmdline(cmdline))
+
+
+def list_processes(proc_root="/proc"):
+    """Host process table as 'PID UID COMM CMDLINE' lines; racy pids are skipped."""
+    try:
+        names = os.listdir(proc_root)
+    except OSError:
+        return []
+    lines = []
+    for name in sorted((n for n in names if n.isdigit()), key=int):
+        entry = read_process(proc_root, name)
+        if entry is not None:
+            lines.append("%s %s %s %s" % (name, entry[0], entry[1], entry[2]))
+    return lines
+
+
+def handle_command(cmd, ident, proc_root="/proc"):
+    """Run one verb; returns (reply_text, result_tag). Never raises."""
+    origin_uid, session = read_origin(ident["pid"], proc_root)
+    role = resolve_role(ident["uid"], origin_uid)
+    comm = read_comm(ident["pid"], proc_root)
+    context = {
+        "role": role,
+        "session": session if session is not None else "-",
+        "comm": comm,
+    }
+    if cmd == "WHOAMI":
+        reply = "role=%s uid=%d gid=%d pid=%d session=%s comm=%s" % (
+            role,
+            ident["uid"],
+            ident["gid"],
+            ident["pid"],
+            context["session"],
+            comm,
+        )
+        return reply, context, "ok"
+    if cmd == "PS":
+        return "\n".join(list_processes(proc_root)), context, "ok"
+    return "ERR unknown-command", context, "err:unknown-command"
+
+
+def read_request(conn):
+    """Read one newline-terminated request; (bytes, None) or (None, err-tag)."""
+    buf = b""
+    while b"\n" not in buf:
+        if len(buf) > MAX_REQUEST:
+            return None, "err:too-long"
+        try:
+            chunk = conn.recv(MAX_REQUEST + 1 - len(buf))
+        except OSError:
+            return None, "err:recv"
+        if not chunk:
+            break
+        buf += chunk
+    return buf, None
+
+
+def serve_error(conn, audit_path, ident, result, reply, proc_root="/proc"):
+    """Audit a rejected request and, unless the peer is gone, send the error."""
+    origin_uid, _session = read_origin(ident["pid"], proc_root)
+    role = resolve_role(ident["uid"], origin_uid)
+    append_audit(audit_path, audit_line("-", ident, role, "-", result))
+    if reply is not None:
+        conn.sendall(reply)
+    return result
+
+
+def _discard_unread(conn):
+    """Empty the kernel receive queue so close() is a clean FIN, never RST."""
+    try:
+        conn.setblocking(False)
+    except OSError:
+        return
+    try:
+        while conn.recv(65536):
+            pass
+    except OSError:
+        pass
+    try:
+        conn.setblocking(True)
+    except OSError:
+        pass
+
+
+def serve_once(conn, audit_path, proc_root="/proc"):
+    """Serve one connection: attribute, run, audit, reply. Returns the result tag."""
+    ident = peer_identity(conn)
+    try:
+        return _serve_request(conn, audit_path, ident, proc_root)
+    finally:
+        _discard_unread(conn)
+
+
+def _serve_request(conn, audit_path, ident, proc_root):
+    """Run the request; the caller owns shutdown/close and the audit trail."""
+    raw, error = read_request(conn)
+    if error == "err:recv":
+        return serve_error(conn, audit_path, ident, error, None, proc_root)
+    if error is not None:
+        return serve_error(conn, audit_path, ident, error, b"ERR too-long", proc_root)
+    try:
+        cmd = raw.partition(b"\n")[0].decode("utf-8").strip()
+    except UnicodeDecodeError:
+        return serve_error(
+            conn,
+            audit_path,
+            ident,
+            "err:bad-encoding",
+            b"ERR bad-encoding",
+            proc_root,
+        )
+    if not cmd:
+        return serve_error(conn, audit_path, ident, "err:empty", b"ERR empty", proc_root)
+    reply, context, result = handle_command(cmd, ident, proc_root)
+    append_audit(
+        audit_path, audit_line(cmd, ident, context["role"], context["session"], result)
+    )
+    conn.sendall(reply.encode("utf-8"))
+    return result
+
+
+def serve(sock, audit_path, proc_root="/proc", max_requests=None):
+    """Accept loop; max_requests bounds it for tests (None runs forever)."""
+    served = 0
+    while max_requests is None or served < max_requests:
+        try:
+            conn, _ = sock.accept()
+        except OSError as exc:
+            if exc.errno in (errno.EBADF, errno.EINVAL, errno.ENOTSOCK):
+                # Listener itself is broken; no recovery by retrying.
+                raise
+            # Transient accept failure (EINTR, EMFILE, ECONNABORTED)
+            # sheds one round instead of killing the daemon; the shed
+            # round counts against max_requests so the bounded loop
+            # still terminates. The nap keeps a persistent-but-valid
+            # listener from hot-spinning the unbounded loop.
+            time.sleep(0.05)
+            served += 1
+            continue
+        try:
+            serve_once(conn, audit_path, proc_root)
+        except OSError:
+            pass
+        finally:
+            conn.close()
+        served += 1
+
+
+def main(argv):
+    """Bind and serve; returns the process exit code."""
+    parser = argparse.ArgumentParser(description="scoped host control broker")
+    parser.add_argument("--socket-name", default=SOCKET_NAME)
+    parser.add_argument("--audit-path", default=AUDIT_PATH)
+    parser.add_argument("--proc-root", default="/proc")
+    parser.add_argument("--max-requests", type=int, default=None)
+    args = parser.parse_args(argv)
+    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    sock.bind(args.socket_name)
+    sock.listen(16)
+    try:
+        serve(sock, args.audit_path, args.proc_root, args.max_requests)
+    finally:
+        sock.close()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
