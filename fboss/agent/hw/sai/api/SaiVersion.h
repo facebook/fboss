@@ -251,11 +251,13 @@
     defined(TAJO_SDK_VERSION_25_5_4210) ||                                     \
     defined(TAJO_SDK_VERSION_25_11_4210) ||                                    \
     defined(TAJO_SDK_VERSION_26_2_4210) ||                                     \
+    defined(TAJO_SDK_VERSION_26_5_4210) ||                                     \
     defined(TAJO_SDK_VERSION_26_5_5210) || defined(TAJO_SDK_VERSION_26_7_5211)
 #define TAJO_SDK_EBRO
 #endif
 
-#if defined(TAJO_SDK_VERSION_26_5_5210) || defined(TAJO_SDK_VERSION_26_7_5211)
+#if defined(TAJO_SDK_VERSION_26_5_4210) || \
+    defined(TAJO_SDK_VERSION_26_5_5210) || defined(TAJO_SDK_VERSION_26_7_5211)
 #define TAJO_SDK_GTE_26_5
 #endif
 

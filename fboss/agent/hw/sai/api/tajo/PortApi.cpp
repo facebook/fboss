@@ -437,7 +437,8 @@ const std::vector<sai_stat_id_t>& SaiPortTraits::pfcXoffTotalDurationStats() {
 // path below is used instead.
 const std::vector<sai_stat_id_t>&
 SaiPortTraits::linkDownDebounceRetriggerStats() {
-#if defined(TAJO_SDK_VERSION_26_2_4210) || defined(TAJO_SDK_VERSION_26_5_5210)
+#if defined(TAJO_SDK_VERSION_26_2_4210) || \
+    defined(TAJO_SDK_VERSION_26_5_4210) || defined(TAJO_SDK_VERSION_26_5_5210)
   static const std::vector<sai_stat_id_t> stats{
       SAI_PORT_STAT_EXT_LINK_DOWN_DEBOUNCE_RETRIGGER_COUNT};
 #else
@@ -448,7 +449,8 @@ SaiPortTraits::linkDownDebounceRetriggerStats() {
 
 const std::vector<sai_stat_id_t>&
 SaiPortTraits::linkUpDebounceRetriggerStats() {
-#if defined(TAJO_SDK_VERSION_26_2_4210) || defined(TAJO_SDK_VERSION_26_5_5210)
+#if defined(TAJO_SDK_VERSION_26_2_4210) || \
+    defined(TAJO_SDK_VERSION_26_5_4210) || defined(TAJO_SDK_VERSION_26_5_5210)
   static const std::vector<sai_stat_id_t> stats{
       SAI_PORT_STAT_EXT_LINK_UP_DEBOUNCE_RETRIGGER_COUNT};
 #else
