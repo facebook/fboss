@@ -2928,4 +2928,5 @@ struct SwitchConfig {
   62: optional map<CbfcConfigName, CbfcConfig> cbfcConfigs;
   // Named isolation groups, referenced per-port by Port.isolationGroup.
   63: optional map<IsolationGroupName, IsolationGroup> isolationGroups;
+  64: optional list<VxLanTunnel> vxlanTunnels;
 }
