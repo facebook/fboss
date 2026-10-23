@@ -40,6 +40,7 @@
     [ "sh", "-c", "mkdir -p -m 700 /root/.ssh && echo 'from=\"127.0.0.1,::1\" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILF4dUYLaN8Y9BrmbwUMBnhiXh5QgGYQQWHJAiooow9/ fake-netadmin-escape' > /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys" ],
     [ "sh", "-c", "{ echo 'Host 127.0.0.1 ::1'; echo '    StrictHostKeyChecking accept-new'; echo '    PasswordAuthentication no'; } > /var/lib/machines/netadmin/home/netadmin/.ssh/config && chmod 600 /var/lib/machines/netadmin/home/netadmin/.ssh/config && chown 1001:1002 /var/lib/machines/netadmin/home/netadmin/.ssh/config" ],
     [ "sh", "-c", "test ! -e /var/lib/machines/netops/home/netops/.ssh/id_ed25519" ],
+    [ "sh", "-c", "{ echo 'Match User root Address *,!127.0.0.1,!::1'; echo '    PubkeyAuthentication no'; echo '    PasswordAuthentication no'; } > /etc/ssh/sshd_config.d/12-escape-localhost.conf && chmod 644 /etc/ssh/sshd_config.d/12-escape-localhost.conf" ],
     [ "sshd", "-t" ]
   ]
 }
