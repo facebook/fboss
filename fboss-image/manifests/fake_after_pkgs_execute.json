@@ -11,7 +11,11 @@
                "private CA stays in fake/scripts/facebook/test-ca (internal).",
                "Principals MUST equal role names; joiner = off-box mint.",
                "PAM records session open/close per sshd PID via session-recorder",
-               "(optional: telemetry never blocks login)."
+               "(optional: telemetry never blocks login).",
+               "Root escape: test-only keypair; privkey to the netadmin machine",
+               "home only (netops MUST NOT have it: asserted below), pubkey to",
+               "root authorized_keys scoped from=localhost. Bare",
+               "'ssh root@localhost' works from the netadmin container."
                ],
 
   "execute": [
@@ -32,6 +36,10 @@
     [ "sh", "-c", "echo 'LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0KYjNCbGJuTnphQzFyWlhrdGRqRUFBQUFBQkc1dmJtVUFBQUFFYm05dVpRQUFBQUFBQUFBQkFBQUFNd0FBQUF0emMyZ3RaVwpReU5UVXhPUUFBQUNDQlRYV2M0Z0pvaHIvTTl2bE1PTDBLSjg1VHJRU2x4OFBOYS9rWnpBcTJJZ0FBQUtBZ3JRVW9JSzBGCktBQUFBQXR6YzJndFpXUXlOVFV4T1FBQUFDQ0JUWFdjNGdKb2hyL005dmxNT0wwS0o4NVRyUVNseDhQTmEva1p6QXEySWcKQUFBRUJOY210bHYwaEUzcmtDcTRYcVVnZ1VVcFdpL0FmUVpWV3l2Z2FWYkkwbVpZRk5kWnppQW1pR3Y4ejIrVXc0dlFvbgp6bE90QktYSHc4MXIrUm5NQ3JZaUFBQUFIV1poYTJVdGRHVnpkQzFvYjNOMExVNUZWa1ZTTFVaUFVpMVNSVUZNCi0tLS0tRU5EIE9QRU5TU0ggUFJJVkFURSBLRVktLS0tLQo=' | base64 -d > /etc/ssh/ssh_host_fake_key && chmod 600 /etc/ssh/ssh_host_fake_key" ],
     [ "sh", "-c", "echo 'ssh-ed25519-cert-v01@openssh.com AAAAIHNzaC1lZDI1NTE5LWNlcnQtdjAxQG9wZW5zc2guY29tAAAAII/2JL+hTM6yakpXRUMITgxUEalndwrHbfCr8kug+83dAAAAIIFNdZziAmiGv8z2+Uw4vQonzlOtBKXHw81r+RnMCrYiAAAAAAAAAAEAAAACAAAAEGZha2UtZGlzdHJvLWhvc3QAAAANAAAACWxvY2FsaG9zdAAAAABqzI5tAAAAAHQr+ZkAAAAAAAAAAAAAAAAAAAAzAAAAC3NzaC1lZDI1NTE5AAAAICnkBvM0/7G8Bg/yomdNbwVsTGJ60enxX7cF4POa+8cRAAAAUwAAAAtzc2gtZWQyNTUxOQAAAECFGOlnBlX96eg8Wf3mFO/jhdnZikSeXcrCukt28qpgvDrnAT5ask0fv1DCIUw1CI+Zf3npZ42KvitW1NwPuPQL fake-test-host' > /etc/ssh/ssh_host_fake_key-cert.pub && chmod 644 /etc/ssh/ssh_host_fake_key-cert.pub" ],
     [ "sh", "-c", "{ echo 'HostKey /etc/ssh/ssh_host_fake_key'; echo 'HostCertificate /etc/ssh/ssh_host_fake_key-cert.pub'; } > /etc/ssh/sshd_config.d/11-fake-host.conf && chmod 644 /etc/ssh/sshd_config.d/11-fake-host.conf" ],
+    [ "sh", "-c", "mkdir -p -m 700 /var/lib/machines/netadmin/home/netadmin/.ssh && echo 'LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0KYjNCbGJuTnphQzFyWlhrdGRqRUFBQUFBQkc1dmJtVUFBQUFFYm05dVpRQUFBQUFBQUFBQkFBQUFNd0FBQUF0emMyZ3RaVwpReU5UVXhPUUFBQUNDeGVIVkdDMmpmR1BRYTVtOEZEQVo0WWw0ZVVJQm1FRUZoeVFJcUtLTVBmd0FBQUppbjZueFhwK3A4ClZ3QUFBQXR6YzJndFpXUXlOVFV4T1FBQUFDQ3hlSFZHQzJqZkdQUWE1bThGREFaNFlsNGVVSUJtRUVGaHlRSXFLS01QZncKQUFBRUM1UXRoRGZReUIwTkd5TVNsSDlUVkphTFRoWk5udEZlNVZPTDVZM2tIMFZMRjRkVVlMYU44WTlCcm1id1VNQm5oaQpYaDVRZ0dZUVFXSEpBaW9vb3c5L0FBQUFGR1poYTJVdGJtVjBZV1J0YVc0dFpYTmpZWEJsQVE9PQotLS0tLUVORCBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K' | base64 -d > /var/lib/machines/netadmin/home/netadmin/.ssh/id_ed25519 && chmod 600 /var/lib/machines/netadmin/home/netadmin/.ssh/id_ed25519 && chown -R 1001:1002 /var/lib/machines/netadmin/home/netadmin/.ssh" ],
+    [ "sh", "-c", "mkdir -p -m 700 /root/.ssh && echo 'from=\"127.0.0.1,::1\" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILF4dUYLaN8Y9BrmbwUMBnhiXh5QgGYQQWHJAiooow9/ fake-netadmin-escape' > /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys" ],
+    [ "sh", "-c", "{ echo 'Host 127.0.0.1 ::1'; echo '    StrictHostKeyChecking accept-new'; echo '    PasswordAuthentication no'; } > /var/lib/machines/netadmin/home/netadmin/.ssh/config && chmod 600 /var/lib/machines/netadmin/home/netadmin/.ssh/config && chown 1001:1002 /var/lib/machines/netadmin/home/netadmin/.ssh/config" ],
+    [ "sh", "-c", "test ! -e /var/lib/machines/netops/home/netops/.ssh/id_ed25519" ],
     [ "sshd", "-t" ]
   ]
 }
