@@ -733,12 +733,12 @@ void SwitchState::fromThrift(bool emptyMnpuMapOk) {
 // TODO: remove once the NextHopIDManager migration is complete and
 // enable_nexthop_id_manager is permanently on.
 //
-// Clear stale resolvedNextHopSetID / normalizedResolvedNextHopSetID from every
-// route, the matching MPLS labelFib and the matching mySid map for one
-// switch's FibInfo, and wipe that FibInfo's id maps. Caller invokes this
-// per-FibInfo so that per-switch divergence (today every FibInfo is mirrored,
-// but the cleanup must not silently miss a divergent switch tomorrow) is
-// handled correctly.
+// Clear stale resolvedNextHopSetID / normalizedResolvedNextHopSetID /
+// overrideNextHopSetID from every route, the matching MPLS labelFib and the
+// matching mySid map for one switch's FibInfo, and wipe that FibInfo's id
+// maps. Caller invokes this per-FibInfo so that per-switch divergence (today
+// every FibInfo is mirrored, but the cleanup must not silently miss a divergent
+// switch tomorrow) is handled correctly.
 void clearNextHopIdsForFibInfo(
     SwitchState& state,
     const std::string& matcher,
@@ -749,6 +749,7 @@ void clearNextHopIdsForFibInfo(
     RouteNextHopEntry newFwd(fwd.toThrift());
     newFwd.setResolvedNextHopSetID(nullId);
     newFwd.setNormalizedResolvedNextHopSetID(nullId);
+    newFwd.setOverrideNextHopSetID(nullId);
     route->setResolved(newFwd);
   };
 
@@ -779,7 +780,8 @@ void clearNextHopIdsForFibInfo(
     for (const auto& [_, route] : std::as_const(*routeMap)) {
       const auto& fwd = route->getForwardInfo();
       if (fwd.getResolvedNextHopSetID().has_value() ||
-          fwd.getNormalizedResolvedNextHopSetID().has_value()) {
+          fwd.getNormalizedResolvedNextHopSetID().has_value() ||
+          fwd.getOverrideNextHopSetID().has_value()) {
         clearRouteIds(route);
       }
       clearClientIds(route);
@@ -800,6 +802,9 @@ void clearNextHopIdsForFibInfo(
   }
   if (auto idToNhSet = fibInfo->getIdToNextHopIdSetMap()) {
     idToNhSet->clear();
+  }
+  if (auto overrideIdToNhSet = fibInfo->getOverrideIdToNextHopIdSetMap()) {
+    overrideIdToNhSet->clear();
   }
   fibInfo->setNameToNextHopSetId({});
 
@@ -905,13 +910,17 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
     for (auto& [matcher, fibInfo] : std::as_const(*fibsInfoMap)) {
       const auto& idToNh = fibInfo->getIdToNextHopMap();
       const auto& idToNhSet = fibInfo->getIdToNextHopIdSetMap();
+      const auto& overrideIdToNhSet = fibInfo->getOverrideIdToNextHopIdSetMap();
       bool idMapsEmpty =
           (!idToNh || idToNh->empty()) && (!idToNhSet || idToNhSet->empty());
+      bool overrideIdMapEmpty =
+          !overrideIdToNhSet || overrideIdToNhSet->empty();
 
       XLOG(DBG3) << "NextHopId cleanup gate: matcher=" << matcher
                  << " flag=" << (FLAGS_enable_nexthop_id_manager ? "ON" : "OFF")
                  << " idMapsEmpty=" << idMapsEmpty;
-      if (!FLAGS_enable_nexthop_id_manager && !idMapsEmpty) {
+      if (!FLAGS_enable_nexthop_id_manager &&
+          (!idMapsEmpty || !overrideIdMapEmpty)) {
         clearNextHopIdsForFibInfo(*state, matcher, fibInfo);
       }
       if (FLAGS_enable_nexthop_id_manager && idMapsEmpty) {
