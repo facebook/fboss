@@ -79,8 +79,10 @@ cpp_library(
         "fbsource//xplat/folly:file_util",
         "fbsource//xplat/folly:format",
         "fbsource//xplat/folly:scope_guard",
+        "fbsource//xplat/folly:string",
         "fbsource//xplat/folly/logging:logging",
         ":fbiob_device_config-cpp2-types",
+        "//fboss/lib:gpiod_line",
         "//fboss/platform/helpers:platform_utils",
         "//fboss/platform/platform_manager:fan_cpld_manager",
         "//fboss/platform/platform_manager:fbiob_ioctl_h",
@@ -95,6 +97,9 @@ cpp_library(
         ":bsp_test_environment",
         ":bsp_tests_runtime_config-cpp2-types",
         "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
+    ],
+    external_deps = [
+        ("libgpiod", None, "gpiod"),
     ],
 )
 
