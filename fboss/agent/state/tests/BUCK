@@ -59,6 +59,7 @@ cpp_unittest(
         "TransceiverTests.cpp",
         "UdfTests.cpp",
         "VlanTests.cpp",
+        "VxlanTunnelTests.cpp",
     ],
     network_access = network_access_utils.none(),
     test_main = "//fboss/agent/test:fboss_test_main",
