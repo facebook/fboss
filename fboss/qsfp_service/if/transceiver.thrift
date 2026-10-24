@@ -260,6 +260,12 @@ enum MediaInterfaceCode {
   DR4_8x800G = 36,
   FR2_200G = 37,
   DR8_800G = 38,
+  // Active copper at 200G/lane (IEEE 802.3 Clause 179). The hw test runner
+  // parses the trailing speed off these names, so keep the suffix.
+  CR1_200G = 40,
+  CR2_400G = 41,
+  CR4_800G = 42,
+  CR8_1600G = 43,
 }
 
 // The extended specification compliance code of the transceiver module.
@@ -372,6 +378,13 @@ enum ActiveCuHostInterfaceCode {
   AUI_PAM4_2S_200G = 0x4D,
   AUI_PAM4_4S_400G = 0x4F,
   AUI_PAM4_8S_800G = 0x51,
+  // 200G/lane host interfaces (IEEE 802.3 Annex 176E). Annex 176E defines no
+  // short/long reach variants, so these carry no -S/-L suffix unlike the
+  // 100G/lane codes above (0x4B/0x4D/0x4F/0x51 are the -S half of a pair).
+  AUI_PAM4_1_200G = 0x80,
+  AUI_PAM4_2_400G = 0x81,
+  AUI_PAM4_4_800G = 0x82,
+  AUI_PAM4_8_1600G = 0x83,
 }
 
 union MediaInterfaceUnion {
