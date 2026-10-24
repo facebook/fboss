@@ -46,6 +46,8 @@ std::string getProfileName(ConfigProfileType profile) {
       return "hw_test";
     case ConfigProfileType::BENCHMARK:
       return "benchmark";
+    case ConfigProfileType::LINK_TEST:
+      return "link_test";
   }
   throw FbossError(
       "Unsupported config generation profile: ",

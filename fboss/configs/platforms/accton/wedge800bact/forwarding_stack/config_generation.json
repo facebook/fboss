@@ -10,6 +10,11 @@
       {
         "profile": "BENCHMARK",
         "asicConfigVariant": "default"
+      },
+      {
+        "profile": "LINK_TEST",
+        "asicConfigVariant": "hw_test",
+        "linkTopologyVariant": "link_test_default"
       }
     ]
   }

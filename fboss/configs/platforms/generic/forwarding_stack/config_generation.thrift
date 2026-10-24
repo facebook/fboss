@@ -24,6 +24,8 @@ enum ConfigProfileType {
   HW_TEST = 2,
   // Configuration used by FBOSS hardware benchmarks.
   BENCHMARK = 3,
+  // Configuration used by FBOSS link tests.
+  LINK_TEST = 4,
 }
 
 struct ConfigOption {
