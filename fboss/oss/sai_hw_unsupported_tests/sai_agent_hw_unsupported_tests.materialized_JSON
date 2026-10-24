@@ -290,6 +290,9 @@
           "test_name_regex": "AgentPortProfileTest_PROFILE_.*$"
         },
         {
+          "test_name_regex": "AgentCsigTest.*$"
+        },
+        {
           "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
         },
         {
@@ -386,6 +389,9 @@
         },
         {
           "test_name_regex": "AgentPortProfileTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentCsigTest.*$"
         },
         {
           "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
@@ -574,6 +580,9 @@
           "test_name_regex": "AgentPortProfileTest_PROFILE_.*$"
         },
         {
+          "test_name_regex": "AgentCsigTest.*$"
+        },
+        {
           "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
         },
         {
@@ -688,6 +697,9 @@
         },
         {
           "test_name_regex": "AgentPortProfileTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentCsigTest.*$"
         },
         {
           "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
@@ -968,6 +980,9 @@
           "test_name_regex": "AgentPortProfileTest_PROFILE_.*$"
         },
         {
+          "test_name_regex": "AgentCsigTest.*$"
+        },
+        {
           "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
         },
         {
@@ -1052,6 +1067,9 @@
         },
         {
           "test_name_regex": "AgentPortProfileTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentCsigTest.*$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
@@ -1140,6 +1158,9 @@
           "test_name_regex": "AgentPortProfileTest_PROFILE_.*$"
         },
         {
+          "test_name_regex": "AgentCsigTest.*$"
+        },
+        {
           "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
         },
         {
@@ -1224,6 +1245,9 @@
         },
         {
           "test_name_regex": "AgentPortProfileTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentCsigTest.*$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
@@ -1759,6 +1783,9 @@
           "test_name_regex": "AgentPortProfileTest_PROFILE_.*$"
         },
         {
+          "test_name_regex": "AgentCsigTest.*$"
+        },
+        {
           "test_name_regex": "AgentVoqSwitchInterruptTest.alignerError$"
         },
         {
@@ -1840,6 +1867,9 @@
         },
         {
           "test_name_regex": "AgentPortProfileTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentCsigTest.*$"
         },
         {
           "test_name_regex": "AgentVoqSwitchInterruptTest.alignerError$"
@@ -1925,6 +1955,9 @@
           "test_name_regex": "AgentPortProfileTest_PROFILE_.*$"
         },
         {
+          "test_name_regex": "AgentCsigTest.*$"
+        },
+        {
           "test_name_regex": "AgentVoqSwitchInterruptTest.alignerError$"
         },
         {
@@ -2008,6 +2041,9 @@
           "test_name_regex": "AgentPortProfileTest_PROFILE_.*$"
         },
         {
+          "test_name_regex": "AgentCsigTest.*$"
+        },
+        {
           "test_name_regex": "AgentVoqSwitchInterruptTest.alignerError$"
         },
         {
@@ -2089,6 +2125,9 @@
         },
         {
           "test_name_regex": "AgentPortProfileTest_PROFILE_.*$"
+        },
+        {
+          "test_name_regex": "AgentCsigTest.*$"
         },
         {
           "test_name_regex": "AgentVoqSwitchInterruptTest.alignerError$"
