@@ -23271,6 +23271,9 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentAclTableRecreateTest.AclEntryCount$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentHwAclQualifierTest.Acl(Icmp4Qualifiers|Icmp6Qualifiers|Ip4TcpQualifiers|Ip6TcpQualifiers|ModifyQualifier)$"
+        },
+        {
           "test_name_regex": "AgentHwAclQualifierTest.AclVlanIDQualifier$"
         },
         {
