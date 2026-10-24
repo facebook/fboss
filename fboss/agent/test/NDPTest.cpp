@@ -27,6 +27,7 @@
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/NdpTable.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/HwTestHandle.h"
@@ -38,6 +39,7 @@
 #include <folly/io/Cursor.h>
 #include <netinet/icmp6.h>
 #include <future>
+#include <thread>
 
 using namespace facebook::fboss;
 using facebook::network::toBinaryAddress;
@@ -1359,6 +1361,70 @@ TEST_F(NdpTest, RouterAdvertiserMoveAssignStopsReplacedAdvertiser) {
   waitForBackgroundThread(sw);
   counters.update();
   counters.checkDelta(kRaCounter, 1);
+}
+
+TEST_F(
+    NdpTest,
+    RouterAdvertiserTimerDoesNotContinueAfterInterfaceNdpEntryChange) {
+  constexpr auto kOriginalRaIntervalSeconds = 1;
+  constexpr auto kReplacementRaIntervalSeconds = 3600;
+  auto config = createSwitchConfig(
+      seconds(kOriginalRaIntervalSeconds), seconds(0), false, std::nullopt, 3);
+  config.interfaces()[2].ndp() = cfg::NdpConfig();
+  *config.interfaces()[2].ndp()->routerAdvertisementSeconds() =
+      kReplacementRaIntervalSeconds;
+
+  auto handle = createTestHandle(&config);
+  auto sw = handle->getSw();
+  sw->initialConfigApplied(std::chrono::steady_clock::now());
+  EXPECT_MANY_SWITCHED_PKTS(sw, "router advertisement", [](const TxPacket*) {});
+  waitForBackgroundThread(sw);
+
+  const InterfaceID intfID(5);
+  const IPAddressV6 neighborIP("2401:db00:2110:3004::b");
+  // On production VOQ switches, local NDP entries are children of Interface.
+  // Updating this table makes IPv6Handler::stateUpdated() erase and recreate
+  // interface 5's advertiser. The later RA-enabled interface forces erase()
+  // to shift a flat_map entry over the advertiser being torn down. Give the
+  // replacement a long interval so any subsequent RA during this test can only
+  // come from the leaked pre-update advertiser, which retains its 1s interval.
+  sw->updateStateBlocking(
+      "Add NDP neighbor under interface",
+      [intfID, neighborIP, kReplacementRaIntervalSeconds](
+          const std::shared_ptr<SwitchState> state) {
+        auto newState = state->clone();
+        auto ndpTable = std::make_shared<NdpTable>();
+        ndpTable->addEntry(
+            neighborIP,
+            MacAddress("02:05:73:f9:46:fb"),
+            PortDescriptor(PortID(1)),
+            intfID);
+        auto oldIntf = state->getInterfaces()->getNode(intfID);
+        auto newIntf = oldIntf->modify(&newState);
+        auto ndpConfig = oldIntf->getNdpConfig()->toThrift();
+        *ndpConfig.routerAdvertisementSeconds() = kReplacementRaIntervalSeconds;
+        newIntf->setNdpConfig(std::move(ndpConfig));
+        newIntf->setNdpTable(std::move(ndpTable));
+        return newState;
+      });
+  waitForBackgroundThread(sw);
+
+  ASSERT_NE(
+      sw->getState()
+          ->getInterfaces()
+          ->getNode(intfID)
+          ->getNdpTable()
+          ->getEntryIf(neighborIP),
+      nullptr);
+
+  // Take the baseline after the state update has completed. The replacement
+  // and the later interface both have long intervals. With the move-assignment
+  // fix, no RA should follow; without it, the leaked advertiser keeps firing.
+  CounterCache counters(sw);
+  std::this_thread::sleep_for(seconds(kOriginalRaIntervalSeconds + 1));
+  waitForBackgroundThread(sw);
+  counters.update();
+  counters.checkDelta("PrimaryInterface.router_advertisements.sum", 0);
 }
 
 TEST_F(NdpTest, receiveNeighborAdvertisementUnsolicited) {
