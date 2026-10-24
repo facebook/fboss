@@ -86,6 +86,7 @@ OSS_MULTI_NPU_SUPPORTED_PLATFORMS: dict[bool, list[str]] = {
         "wedge800bact",
         "m4052actm",
         "m4062nhp",
+        "m4061nhp",
         "m4061clsc",
         "m5120csc",
         "wedge800bnhp",
