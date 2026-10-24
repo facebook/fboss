@@ -206,6 +206,8 @@ class AgentMirrorOnDropStatelessTest : public AgentMirrorOnDropTestBase {
   void waitForStatsToStabilize(const std::vector<PortID>& ports);
 
  private:
+  uint32_t getExpectedModPacketIngressPortId(PortID port) const;
+
   // Shared body of the two warmboot toggle tests above. enablePostWarmboot
   // selects the direction: true = coldboot empty → warmboot adds the report;
   // false = coldboot has the report → warmboot removes it.

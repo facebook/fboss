@@ -167,6 +167,20 @@ void AgentMirrorOnDropStatelessTest::configureErspanMirror(
       config, mirrorName, tunnelDstIp, tunnelSrcIp, srcPortId);
 }
 
+uint32_t AgentMirrorOnDropStatelessTest::getExpectedModPacketIngressPortId(
+    PortID port) const {
+  // Tajo exports FBOSS port IDs; XGS exports SDK logical port IDs.
+  if (hwAsicForPort(port)->getAsicVendor() ==
+      HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
+    return static_cast<uint32_t>(port);
+  }
+  const auto hwLogicalPortId = getSw()->getHwLogicalPortId(port);
+  if (!hwLogicalPortId.has_value()) {
+    throw FbossError("Missing hardware logical port ID for port ", port);
+  }
+  return *hwLogicalPortId;
+}
+
 void AgentMirrorOnDropStatelessTest::validateMirrorOnDropPacket(
     const folly::IOBuf* captured,
     const PortID& injectionPortId,
@@ -189,7 +203,8 @@ void AgentMirrorOnDropStatelessTest::validateMirrorOnDropPacket(
   EXPECT_EQ(fields.outerSrcIp, kSwitchIp_);
   EXPECT_EQ(fields.outerDstIp, kCollectorIp_);
   EXPECT_EQ(fields.outerDstPort, static_cast<uint16_t>(kMirrorDstPort));
-  EXPECT_EQ(fields.ingressPort, static_cast<uint16_t>(injectionPortId));
+  EXPECT_EQ(
+      fields.ingressPort, getExpectedModPacketIngressPortId(injectionPortId));
   EXPECT_EQ(fields.dropReasonIngress, expectedReasons.ingressDropReason);
   EXPECT_EQ(fields.dropReasonEgress, expectedReasons.egressDropReason);
   EXPECT_EQ(fields.innerSrcIp, expectedInnerSrcIp.value_or(kPacketSrcIp_));
