@@ -10,6 +10,7 @@
 #include "fboss/lib/bsp/leh800bcls/Leh800bclsBspPlatformMapping.h"
 #include "fboss/lib/bsp/m4052actm/M4052ACTMBspPlatformMapping.h"
 #include "fboss/lib/bsp/m4061clsc/M4061clscBspPlatformMapping.h"
+#include "fboss/lib/bsp/m4061nhp/M4061nhpBspPlatformMapping.h"
 #include "fboss/lib/bsp/m4062nhp/M4062nhpBspPlatformMapping.h"
 #include "fboss/lib/bsp/m5120csc/M5120cscBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bfa/Meru800bfaBspPlatformMapping.h"
@@ -214,6 +215,15 @@ template <>
 std::shared_ptr<M4052ACTMSystemContainer>
 M4052ACTMSystemContainer::getInstance() {
   return _m4052actmSystemContainer.try_get();
+}
+
+using M4061nhpSystemContainer =
+    BspGenericSystemContainer<M4061nhpBspPlatformMapping>;
+folly::Singleton<M4061nhpSystemContainer> _m4061nhpSystemContainer;
+template <>
+std::shared_ptr<M4061nhpSystemContainer>
+M4061nhpSystemContainer::getInstance() {
+  return _m4061nhpSystemContainer.try_get();
 }
 
 using M4062nhpSystemContainer =

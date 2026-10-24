@@ -66,6 +66,7 @@ add_library(led_manager_lib
   fboss/led_service/Icecube800banwLedManager.cpp
   fboss/led_service/Icecube800bcLedManager.cpp
   fboss/led_service/M4052ACTMLedManager.cpp
+  fboss/led_service/M4061nhpLedManager.cpp
   fboss/led_service/M4062nhpLedManager.cpp
   fboss/led_service/Icetea800bcLedManager.cpp
   fboss/led_service/Meru800biaLedManager.cpp
@@ -94,6 +95,7 @@ target_link_libraries(led_manager_lib
   montblanc_bsp
   m4061clsc_bsp
   icecube800bc_bsp
+  m4061nhp_bsp
   m4062nhp_bsp
   icetea800bc_bsp
   meru800bia_bsp
