@@ -430,10 +430,18 @@ void HwTransceiverUtils::verifyMediaInterfaceCompliance(
 
     case cfg::PortProfileID::PROFILE_800G_4_PAM4_RS544X2N_OPTICAL:
     case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_OPTICAL:
-      verifyOptical800gProfile(mgmtInterface, mediaInterfaces);
+      verifyOpticalProfileForSpeed(
+          mgmtInterface, mediaInterfaces, cfg::PortSpeed::EIGHTHUNDREDG);
+      break;
+    case cfg::PortProfileID::PROFILE_1600G_8_PAM4_RS544X2N_OPTICAL:
+      verifyOpticalProfileForSpeed(
+          mgmtInterface, mediaInterfaces, cfg::PortSpeed::ONEPOINTSIXT);
       break;
     case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_COPPER:
       verifyCopper800gProfile(tcvrState, mediaInterfaces);
+      break;
+    case cfg::PortProfileID::PROFILE_1600G_8_PAM4_RS544X2N_COPPER:
+      verifyCopper1600gProfile(tcvrState, mediaInterfaces);
       break;
     default:
       throw FbossError(
@@ -630,16 +638,17 @@ void HwTransceiverUtils::verifyCopper53gProfile(
   }
 }
 
-void HwTransceiverUtils::verifyOptical800gProfile(
+void HwTransceiverUtils::verifyOpticalProfileForSpeed(
     const TransceiverManagementInterface mgmtInterface,
-    const std::vector<MediaInterfaceId>& mediaInterfaces) {
+    const std::vector<MediaInterfaceId>& mediaInterfaces,
+    cfg::PortSpeed speed) {
   EXPECT_EQ(mgmtInterface, TransceiverManagementInterface::CMIS);
 
-  // Collect valid SMF codes for 800G speed from config
+  // Collect valid SMF codes for this speed from config
   std::set<SMFMediaInterfaceCode> validSmfCodes;
   for (auto code : TransceiverPropertiesManager::getKnownCodes()) {
     auto codes = TransceiverPropertiesManager::getMediaCodesForSpeed<
-        SMFMediaInterfaceCode>(code, cfg::PortSpeed::EIGHTHUNDREDG);
+        SMFMediaInterfaceCode>(code, speed);
     validSmfCodes.insert(codes.begin(), codes.end());
   }
 
@@ -670,6 +679,28 @@ void HwTransceiverUtils::verifyCopper800gProfile(
           *mediaId.media()->activeCuCode() ==
           ActiveCuHostInterfaceCode::AUI_PAM4_8S_800G);
     }
+  }
+}
+
+void HwTransceiverUtils::verifyCopper1600gProfile(
+    const TcvrState& tcvrState,
+    const std::vector<MediaInterfaceId>& mediaInterfaces) {
+  const auto& cable = *tcvrState.cable();
+  const auto& transmitterTech = *cable.transmitterTech();
+  auto mgmtInterface =
+      apache::thrift::can_throw(*tcvrState.transceiverManagementInterface());
+
+  EXPECT_EQ(mgmtInterface, TransceiverManagementInterface::CMIS);
+  EXPECT_EQ(TransmitterTechnology::COPPER, transmitterTech);
+  // 1.6T over copper only exists as an active cable: a passive DAC carries no
+  // 200G/lane SerDes on any of our platforms.
+  EXPECT_TRUE(TransceiverManager::activeCable(tcvrState));
+
+  for (const auto& mediaId : mediaInterfaces) {
+    EXPECT_EQ(*mediaId.code(), MediaInterfaceCode::CR8_1600G);
+    EXPECT_EQ(
+        *mediaId.media()->activeCuCode(),
+        ActiveCuHostInterfaceCode::AUI_PAM4_8_1600G);
   }
 }
 
