@@ -22,7 +22,9 @@
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
+#include "fboss/agent/state/MatchAction.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -136,6 +138,34 @@ size_t programmedPbrEntries(const AgentEnsemble& ensemble) {
   return acls ? acls->size() : 0;
 }
 
+size_t pbrEntriesCountingPacketsAndBytes(const AgentEnsemble& ensemble) {
+  auto acls = ensemble.getSw()->getState()->getAclsForTable(
+      cfg::AclStage::INGRESS,
+      cfg::switch_config_constants::DEFAULT_PBR_ACL_TABLE());
+  if (!acls) {
+    return 0;
+  }
+  size_t counted = 0;
+  for (const auto& [_, entry] : std::as_const(*acls)) {
+    auto aclAction = entry->getAclAction();
+    if (!aclAction) {
+      continue;
+    }
+    auto counter =
+        MatchAction::fromThrift(aclAction->toThrift()).getTrafficCounter();
+    if (!counter) {
+      continue;
+    }
+    const auto& types = *counter->types();
+    if (std::count(types.begin(), types.end(), cfg::CounterType::PACKETS) ==
+            1 &&
+        std::count(types.begin(), types.end(), cfg::CounterType::BYTES) == 1) {
+      ++counted;
+    }
+  }
+  return counted;
+}
+
 AgentEnsembleSwitchConfigFn makePbrConfigFn() {
   return [](const AgentEnsemble& ensemble) {
     auto cfg = utility::onePortPerInterfaceConfig(
@@ -201,6 +231,9 @@ void pbrAclStatsCollectionBenchmark(int numPolicies) {
   }
   CHECK_EQ(
       programmedPbrEntries(*ensemble),
+      static_cast<size_t>(kClassesPerPolicy * numPolicies));
+  CHECK_EQ(
+      pbrEntriesCountingPacketsAndBytes(*ensemble),
       static_cast<size_t>(kClassesPerPolicy * numPolicies));
   suspender.dismiss();
   for (int i = 0; i < kStatsCollectionIterations; ++i) {
