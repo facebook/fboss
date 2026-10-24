@@ -8,11 +8,18 @@
  *
  */
 
+#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/if/gen-cpp2/AgentHwTestCtrl.h"
 #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
+#include "fboss/agent/test/utils/PacketTestUtils.h"
+#include "fboss/agent/test/utils/QosTestUtils.h"
 
 #include <fmt/core.h>
 #include <folly/logging/xlog.h>
@@ -98,7 +105,28 @@ class AgentHwCbfcTest : public AgentHwTest {
   }
 
   void verifyCbfcProgrammed();
+  void sendPacket(uint8_t dscp);
 };
+
+// Routed once out of the port the default route points to, through the queue
+// its DSCP maps to. On a CBFC port that send needs credit from the peer.
+void AgentHwCbfcTest::sendPacket(uint8_t dscp) {
+  auto intfMac =
+      getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
+  auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
+  auto txPacket = utility::makeUDPTxPacket(
+      getSw(),
+      getVlanIDForTx(),
+      srcMac,
+      intfMac,
+      folly::IPAddressV6(kTestSrcIpV6),
+      folly::IPAddressV6(kTestDstIpV6),
+      kTestSrcPort,
+      kTestDstPort,
+      dscp << 2, // the low two bits are ECN
+      255);
+  sendPacketSwitchedAsync(std::move(txPacket));
+}
 
 void AgentHwCbfcTest::verifyCbfcProgrammed() {
   auto setup = []() {};
@@ -229,6 +257,47 @@ void AgentHwCbfcTest::verifyCbfcProgrammed() {
 
 TEST_F(AgentHwCbfcTest, verifyCbfcConfig) {
   verifyCbfcProgrammed();
+}
+
+// A MAC loopback does not return CF_Update to the port (RX_CBFC_CF_OS stays 0)
+// and TU1 rejects PHY loopback, so traffic tests run with no loopback. The CBFC
+// port needs a cable or an optic that loops it back to itself.
+class AgentHwCbfcTrafficTest : public AgentHwCbfcTest {
+ protected:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = AgentHwCbfcTest::initialConfig(ensemble);
+    for (const auto& portId : ensemble.masterLogicalInterfacePortIds()) {
+      utility::findCfgPort(cfg, portId)->loopbackMode() =
+          cfg::PortLoopbackMode::NONE;
+    }
+    return cfg;
+  }
+};
+
+// Traffic on both lossless VCs leaves a CBFC port. Queue N maps to VC N.
+TEST_F(AgentHwCbfcTrafficTest, verifyLosslessVcTraffic) {
+  auto setup = [this]() {
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    resolveNeighborAndProgramRoutes(ecmpHelper, 1);
+  };
+  auto verify = [this]() {
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    auto portId = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
+    const auto& queueToDscp = utility::kOlympicQueueToDscp();
+    std::map<int, std::vector<uint8_t>> vcQueueToDscp{
+        {kRdmaVc, {queueToDscp.at(kRdmaVc).front()}},
+        {kMonitoringVc, {queueToDscp.at(kMonitoringVc).front()}}};
+    utility::sendPktAndVerifyQueueHit(
+        vcQueueToDscp,
+        getSw(),
+        [this](int dscp) { sendPacket(dscp); },
+        portId,
+        std::nullopt);
+  };
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss
