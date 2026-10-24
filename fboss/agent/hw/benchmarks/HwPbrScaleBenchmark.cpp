@@ -10,6 +10,7 @@
 
 #include <fmt/core.h>
 #include <folly/Benchmark.h>
+#include <folly/IPAddress.h>
 #include <algorithm>
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/AgentFeatures.h"
@@ -29,6 +30,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/Srv6TestUtils.h"
 
 DEFINE_int32(
     pbr_policy_scale,
@@ -43,6 +45,12 @@ constexpr int kClassesPerPolicy = 4;
 constexpr int kMembersPerNhg = 2;
 constexpr int kMaxNexthops = 64;
 constexpr int kStatsCollectionIterations = 100;
+constexpr auto kSrv6TunnelId = "srv6Tunnel0";
+
+folly::IPAddressV6 makeSid(int index) {
+  return folly::IPAddressV6(
+      fmt::format("3001:db8:{:x}:{:x}::", (index >> 8) + 1, index & 0xFF));
+}
 
 std::string makeNhgName(int index) {
   return fmt::format("pbrNhg{:05d}", index);
@@ -58,21 +66,26 @@ std::vector<RouteNextHopSet> makeDistinctNhgSets(
     int count) {
   std::vector<RouteNextHopSet> sets;
   sets.reserve(count);
-  auto done = [&]() { return static_cast<int>(sets.size()) == count; };
-  for (int first = 0; first < numNhops && !done(); ++first) {
-    for (int second = first + 1; second < numNhops && !done(); ++second) {
-      std::vector<ResolvedNextHop> members;
-      members.reserve(kMembersPerNhg);
-      for (auto index : {first, second}) {
-        const auto& nhop = ecmpHelper.nhop(index);
-        members.emplace_back(folly::IPAddress(nhop.ip), nhop.intf, ECMP_WEIGHT);
-      }
-      sets.emplace_back(members.begin(), members.end());
+  for (int group = 0; group < count; ++group) {
+    std::vector<ResolvedNextHop> members;
+    members.reserve(kMembersPerNhg);
+    for (int member = 0; member < kMembersPerNhg; ++member) {
+      auto globalIndex = group * kMembersPerNhg + member;
+      const auto& nhop = ecmpHelper.nhop(globalIndex % numNhops);
+      members.emplace_back(
+          folly::IPAddress(nhop.ip),
+          nhop.intf,
+          ECMP_WEIGHT,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::vector<folly::IPAddressV6>{makeSid(globalIndex)},
+          TunnelType::SRV6_ENCAP,
+          std::string(kSrv6TunnelId));
     }
+    sets.emplace_back(members.begin(), members.end());
   }
-  CHECK_EQ(static_cast<int>(sets.size()), count)
-      << "only " << numNhops << " next hops: cannot build " << count
-      << " distinct " << kMembersPerNhg << "-member groups";
   return sets;
 }
 
@@ -136,6 +149,8 @@ AgentEnsembleSwitchConfigFn makePbrConfigFn() {
         {cfg::AclTableActionType::COUNTER, cfg::AclTableActionType::REDIRECT},
         {cfg::AclTableQualifier::TC,
          cfg::AclTableQualifier::NEXT_HOP_GROUP_ID});
+    cfg.srv6Tunnels() = {utility::makeSrv6TunnelConfig(
+        kSrv6TunnelId, InterfaceID(cfg.interfaces()[0].intfID().value()))};
     return cfg;
   };
 }
