@@ -21,6 +21,7 @@
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/cli/fboss2/commands/config/gen/ConfigGenerationUtils.h"
+#include "fboss/configs/platforms/generic/forwarding_stack/utils/LinkTopologyUtils.h"
 #include "fboss/lib/platforms/gen-cpp2/platform_descriptor_types.h"
 
 namespace facebook::fboss::configgen {
@@ -31,6 +32,7 @@ struct ResolvedAgentConfigInputs {
   PlatformDescriptor platformDescriptor;
   std::map<int32_t, cfg::PortAssignment> portAssignments;
   std::unique_ptr<PlatformMapping> platformMapping;
+  std::optional<LinkTopology> linkTopology;
   // Asic config inputs
   cfg::ChipConfig chipConfig;
 };
@@ -91,7 +93,8 @@ ResolvedAgentConfigInputs resolveAgentConfigInputs(
     std::string_view profile,
     const std::optional<std::filesystem::path>& asicConfigFile = std::nullopt,
     const std::optional<cfg::AsicConfigType>& asicConfigType = std::nullopt,
-    std::optional<std::string_view> asicConfigVariant = std::nullopt);
+    std::optional<std::string_view> asicConfigVariant = std::nullopt,
+    std::optional<std::string_view> linkTopologyVariant = std::nullopt);
 
 // Generates SwitchSettings for a single NPU platform. Multi-ASIC platforms are
 // rejected until their switch IDs and indexes can be supplied explicitly.
@@ -100,6 +103,13 @@ cfg::SwitchSettings generateSwitchSettings(
 
 // Constructs the switch section of an AgentConfig from resolved inputs.
 cfg::SwitchConfig generateSwitchConfig(const ResolvedAgentConfigInputs& inputs);
+
+// Applies requested profiles and modeled LLDP peers, removes ports subsumed by
+// those profiles, and disables ports outside the topology.
+void applyLinkTopology(
+    cfg::SwitchConfig& switchConfig,
+    const PlatformMapping& platformMapping,
+    const LinkTopology& topology);
 
 // Constructs the platform section of an AgentConfig from resolved inputs.
 cfg::PlatformConfig generatePlatformConfig(

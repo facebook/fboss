@@ -26,6 +26,7 @@
 #include "fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.h"
 #include "fboss/cli/fboss2/utils/ConfigFileUtils.h"
 #include "fboss/configs/platforms/generic/forwarding_stack/utils/FeatureDefaultCommandArgsUtils.h" // @manual=//fboss/configs/platforms/generic/forwarding_stack/utils:config_generation_utils
+#include "fboss/configs/platforms/generic/forwarding_stack/utils/LinkTopologyUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/config/agent/AclConfigUtils.h"
 #include "fboss/lib/config/agent/CoppConfigUtils.h"
@@ -463,7 +464,122 @@ void addDefaultProfilePortGraph(
   utility::addDefaultLoopbackInterface(switchConfig, asic);
 }
 
+struct LinkTopologyEndpoint {
+  std::string portName;
+  std::optional<std::string> peer;
+  cfg::PortProfileID profile;
+};
+
+std::map<PortID, LinkTopologyEndpoint> resolveLinkTopologyEndpoints(
+    const LinkTopology& topology,
+    const PlatformMapping& platformMapping) {
+  std::map<PortID, LinkTopologyEndpoint> endpoints;
+  const auto addEndpoint = [&](const std::string& portName,
+                               std::optional<std::string> peerName,
+                               cfg::PortProfileID profile) {
+    const auto portID = platformMapping.getPortID(portName);
+    if (!endpoints
+             .emplace(
+                 portID,
+                 LinkTopologyEndpoint{
+                     .portName = portName,
+                     .peer = std::move(peerName),
+                     .profile = profile})
+             .second) {
+      throw FbossError(
+          "Link topology resolves more than one endpoint to port '",
+          portName,
+          "'");
+    }
+  };
+
+  for (const auto& link : topology) {
+    addEndpoint(link.portA, link.portB, link.profile);
+    if (link.portB && *link.portB != link.portA) {
+      addEndpoint(*link.portB, link.portA, link.profile);
+    }
+  }
+  return endpoints;
+}
+
+void enableTopologyPort(
+    cfg::SwitchConfig& switchConfig,
+    PortID portID,
+    const LinkTopologyEndpoint& endpoint) {
+  auto portIt = std::find_if(
+      switchConfig.ports()->begin(),
+      switchConfig.ports()->end(),
+      [portID](const auto& port) {
+        return *port.logicalID() == static_cast<int32_t>(portID);
+      });
+  if (portIt == switchConfig.ports()->end()) {
+    throw FbossError(
+        "Link topology profile application did not create port '",
+        endpoint.portName,
+        "'");
+  }
+  if (*portIt->portType() == cfg::PortType::MANAGEMENT_PORT) {
+    // Routed management interfaces remain logically up independently of the
+    // physical port state, matching the default port graph behavior.
+    const auto managementInterface = std::find_if(
+        switchConfig.interfaces()->begin(),
+        switchConfig.interfaces()->end(),
+        [&](const auto& interface) {
+          return *interface.vlanID() == *portIt->ingressVlan();
+        });
+    if (managementInterface == switchConfig.interfaces()->end()) {
+      throw FbossError(
+          "No routed interface exists for management port '",
+          endpoint.portName,
+          "'");
+    }
+    managementInterface->isVirtual() = true;
+    managementInterface->isStateSyncDisabled() = true;
+  }
+  portIt->state() = cfg::PortState::ENABLED;
+  if (endpoint.peer) {
+    portIt->expectedLLDPValues()[cfg::LLDPTag::PORT] = *endpoint.peer;
+  }
+}
+
 } // namespace
+
+void applyLinkTopology(
+    cfg::SwitchConfig& switchConfig,
+    const PlatformMapping& platformMapping,
+    const LinkTopology& topology) {
+  // Resolve every named endpoint before mutating the config so invalid or
+  // ambiguous platform mappings fail without partially applying the topology.
+  const auto endpoints =
+      resolveLinkTopologyEndpoints(topology, platformMapping);
+  std::vector<utility::PortProfileRequest> requests;
+  requests.reserve(endpoints.size());
+  for (const auto& [_, endpoint] : endpoints) {
+    requests.push_back(
+        {.portName = endpoint.portName, .profileID = endpoint.profile});
+  }
+  const auto result =
+      utility::applyPortProfileChanges(switchConfig, platformMapping, requests);
+  // Profile changes can collapse a breakout group. Remove the subsumed ports
+  // and their dependent VLAN/interface state before enabling the final graph.
+  if (!result.subsumedPorts.empty()) {
+    std::set<PortID> subsumedPortIDs;
+    for (const auto& [portID, _] : result.subsumedPorts) {
+      subsumedPortIDs.insert(portID);
+    }
+    utility::removePortsFromConfig(switchConfig, subsumedPortIDs);
+  }
+
+  // Only topology endpoints remain active. Clear any default-graph LLDP state
+  // before adding peer expectations for explicitly paired endpoints.
+  for (auto& port : *switchConfig.ports()) {
+    port.state() = cfg::PortState::DISABLED;
+    port.expectedLLDPValues()->clear();
+  }
+  for (const auto& [portID, endpoint] : endpoints) {
+    enableTopologyPort(switchConfig, portID, endpoint);
+  }
+}
 
 cfg::AsicConfigType parseAsicConfigType(std::string_view configType) {
   if (configType == "key_value") {
@@ -550,7 +666,8 @@ ResolvedAgentConfigInputs resolveAgentConfigInputs(
     std::string_view profile,
     const std::optional<fs::path>& asicConfigFile,
     const std::optional<cfg::AsicConfigType>& asicConfigType,
-    std::optional<std::string_view> asicConfigVariant) {
+    std::optional<std::string_view> asicConfigVariant,
+    std::optional<std::string_view> linkTopologyVariant) {
   const auto normalizedProfile = normalizeProfile(profile);
   const auto normalizedAsicConfigVariant =
       normalizeAsicConfigVariant(normalizedProfile, asicConfigVariant);
@@ -566,12 +683,18 @@ ResolvedAgentConfigInputs resolveAgentConfigInputs(
   auto platformMapping =
       std::make_unique<PlatformMapping>(reconstructPlatformMapping(
           readRawPlatformMapping(rawMappingPath), portAssignments));
+  std::optional<LinkTopology> linkTopology;
+  if (linkTopologyVariant) {
+    linkTopology =
+        loadLinkTopologyVariant(platformDirectory.path, *linkTopologyVariant);
+  }
 
   return {
       .profile = normalizedProfile,
       .platformDescriptor = std::move(descriptor),
       .portAssignments = std::move(portAssignments),
       .platformMapping = std::move(platformMapping),
+      .linkTopology = std::move(linkTopology),
       .chipConfig = loadAsicConfig(resolveGeneratedAsicConfig(
           platformDirectory,
           platform,
@@ -636,10 +759,14 @@ cfg::SwitchConfig generateSwitchConfig(
   cfg::SwitchConfig switchConfig;
   switchConfig.switchSettings() = std::move(switchSettings);
   utility::setupDefaultAclTableGroups(switchConfig, *asic);
-  if (inputs.profile == kDefaultProfileName) {
+  if (inputs.profile == kDefaultProfileName || inputs.linkTopology) {
     utility::addDefaultCpuQueueConfig(switchConfig, *asic);
     utility::addDefaultCpuTrafficPolicyConfig(switchConfig, *asic);
     addDefaultProfilePortGraph(switchConfig, *inputs.platformMapping, *asic);
+  }
+  if (inputs.linkTopology) {
+    applyLinkTopology(
+        switchConfig, *inputs.platformMapping, *inputs.linkTopology);
   }
   return switchConfig;
 }
@@ -657,14 +784,16 @@ std::string generateAgentConfigContents(
     const fs::path& fbossRoot,
     const std::optional<fs::path>& asicConfigFile,
     const std::optional<cfg::AsicConfigType>& asicConfigType,
-    std::optional<std::string_view> asicConfigVariant) {
+    std::optional<std::string_view> asicConfigVariant,
+    std::optional<std::string_view> linkTopologyVariant) {
   auto inputs = resolveAgentConfigInputs(
       fbossRoot,
       platform,
       profile,
       asicConfigFile,
       asicConfigType,
-      asicConfigVariant);
+      asicConfigVariant,
+      linkTopologyVariant);
   auto switchConfig = generateSwitchConfig(inputs);
   auto defaultCommandLineArgs = generateFeatureDefaultCommandArgs(
       fbossRoot,
@@ -699,7 +828,8 @@ fs::path generateAgentConfig(
           fbossRoot,
           asicConfigFile,
           asicConfigType,
-          asicConfigVariant));
+          asicConfigVariant,
+          std::nullopt));
   return outputPath;
 }
 
@@ -724,6 +854,9 @@ std::string generateAgentConfigForManifest(
       std::nullopt,
       request.asicConfigVariant
           ? std::optional<std::string_view>(*request.asicConfigVariant)
+          : std::nullopt,
+      request.linkTopologyVariant
+          ? std::optional<std::string_view>(*request.linkTopologyVariant)
           : std::nullopt);
 }
 

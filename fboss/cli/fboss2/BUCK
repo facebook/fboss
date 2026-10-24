@@ -1143,6 +1143,7 @@ cpp_library(
         "//fboss/agent:agent_config-cpp2-types",
         "//fboss/agent/platforms/common:platform_mapping",
         "//fboss/configs/platforms/generic/forwarding_stack:config_generation-cpp2-types",
+        "//fboss/configs/platforms/generic/forwarding_stack/utils:config_generation_utils",
         "//fboss/lib/if:fboss_common-cpp2-types",
         "//fboss/lib/platforms:platform_descriptor_thrift-cpp2-types",
     ],

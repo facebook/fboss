@@ -1336,6 +1336,178 @@ TEST(AgentConfigGenTest, GeneratesAndRefreshesManifestOutputs) {
   EXPECT_FALSE(fs::exists(obsoletePath));
 }
 
+TEST(AgentConfigGenTest, AppliesDeclaredLinkTopologyToDefaultPortGraph) {
+  folly::test::TemporaryDirectory sourceDirectory;
+  const auto fbossRoot = fs::path(sourceDirectory.path().string()) / "fboss";
+  const auto platformDirectory =
+      createTestPlatform(fbossRoot, "test_vendor", "wedge800bact");
+  const auto mappingDirectory = fbossRoot / "lib" / "platform_mapping_v2" /
+      "generated_platform_mappings" / "test_vendor" / "wedge800bact";
+  writeTwoPortGroupMapping(mappingDirectory);
+  writeTestFile(
+      platformDirectory / "forwarding_stack" / "link_topology" /
+          "paired_ports.csv",
+      "portA,portB,profile,hasTransceiver\n"
+      "eth1/1/1,eth1/1/2,PROFILE_100G_4_NRZ_NOFEC,true\n");
+  writeConfigGenerationTarget(
+      platformDirectory,
+      R"({"serviceToOptions":{"AGENT":[{"profile":"DEFAULT","linkTopologyVariant":"paired_ports"}]}})");
+
+  const auto outputPath = platformDirectory / "forwarding_stack" / "generated" /
+      "agent" / "default.conf";
+  EXPECT_EQ(
+      generateConfigsFromManifest(
+          fbossRoot,
+          ServiceType::AGENT,
+          generateAgentConfigForManifest,
+          "wedge800bact"),
+      std::vector<fs::path>{outputPath});
+
+  cfg::AgentConfig config;
+  apache::thrift::SimpleJSONSerializer::deserialize(
+      readFile(outputPath), config);
+  ASSERT_EQ(config.sw()->ports()->size(), 2);
+  const auto& controllingPort = config.sw()->ports()->at(0);
+  EXPECT_EQ(*controllingPort.name(), kPortName);
+  EXPECT_EQ(*controllingPort.profileID(), kPortProfile);
+  EXPECT_EQ(*controllingPort.state(), cfg::PortState::ENABLED);
+  EXPECT_EQ(
+      controllingPort.expectedLLDPValues()->at(cfg::LLDPTag::PORT), "eth1/1/2");
+  const auto& topologyPort = config.sw()->ports()->at(1);
+  EXPECT_EQ(*topologyPort.name(), "eth1/1/2");
+  EXPECT_EQ(*topologyPort.profileID(), kPortProfile);
+  EXPECT_EQ(*topologyPort.state(), cfg::PortState::ENABLED);
+  EXPECT_EQ(
+      topologyPort.expectedLLDPValues()->at(cfg::LLDPTag::PORT), kPortName);
+}
+
+TEST(AgentConfigGenTest, AppliesTopologyWithoutModeledPeer) {
+  folly::test::TemporaryDirectory sourceDirectory;
+  const auto fbossRoot = fs::path(sourceDirectory.path().string()) / "fboss";
+  const auto platformDirectory =
+      createTestPlatform(fbossRoot, "test_vendor", "wedge800bact");
+  const auto mappingDirectory = fbossRoot / "lib" / "platform_mapping_v2" /
+      "generated_platform_mappings" / "test_vendor" / "wedge800bact";
+  writeTwoPortGroupMapping(mappingDirectory);
+  writeTestFile(
+      platformDirectory / "forwarding_stack" / "link_topology" /
+          "external_peer.csv",
+      "portA,portB,profile,hasTransceiver\n"
+      "eth1/1/1,,PROFILE_100G_4_NRZ_NOFEC,true\n");
+  writeConfigGenerationTarget(
+      platformDirectory,
+      R"({"serviceToOptions":{"AGENT":[{"profile":"DEFAULT","linkTopologyVariant":"external_peer"}]}})");
+
+  const auto outputPath = platformDirectory / "forwarding_stack" / "generated" /
+      "agent" / "default.conf";
+  EXPECT_EQ(
+      generateConfigsFromManifest(
+          fbossRoot,
+          ServiceType::AGENT,
+          generateAgentConfigForManifest,
+          "wedge800bact"),
+      std::vector<fs::path>{outputPath});
+
+  cfg::AgentConfig config;
+  apache::thrift::SimpleJSONSerializer::deserialize(
+      readFile(outputPath), config);
+  ASSERT_EQ(config.sw()->ports()->size(), 1);
+  const auto& topologyPort = config.sw()->ports()->at(0);
+  EXPECT_EQ(*topologyPort.name(), kPortName);
+  EXPECT_EQ(*topologyPort.profileID(), kPortProfile);
+  EXPECT_EQ(*topologyPort.state(), cfg::PortState::ENABLED);
+  EXPECT_TRUE(topologyPort.expectedLLDPValues()->empty());
+}
+
+TEST(AgentConfigGenTest, DisablesPortsOutsideLinkTopology) {
+  folly::test::TemporaryDirectory sourceDirectory;
+  const auto fbossRoot = fs::path(sourceDirectory.path().string()) / "fboss";
+  createTestPlatform(fbossRoot, "test_vendor");
+  writeTwoPortGroupMapping(
+      fbossRoot / "lib" / "platform_mapping_v2" /
+      "generated_platform_mappings" / "test_vendor" / kPlatform);
+  const auto inputs = resolveAgentConfigInputs(fbossRoot, kPlatform, "default");
+
+  cfg::SwitchConfig switchConfig;
+  utility::addInterfacePortToConfig(
+      switchConfig,
+      inputs.platformMapping.get(),
+      PortID(1),
+      kPortProfile,
+      VlanID(2001));
+  utility::addInterfacePortToConfig(
+      switchConfig,
+      inputs.platformMapping.get(),
+      PortID(2),
+      kPortProfile,
+      VlanID(2002));
+  for (auto& port : *switchConfig.ports()) {
+    port.state() = cfg::PortState::ENABLED;
+    port.expectedLLDPValues()[cfg::LLDPTag::PORT] = "stale-peer";
+  }
+  const LinkTopology topology{
+      {.portA = std::string(kPortName),
+       .portB = std::nullopt,
+       .profile = kPortProfile,
+       .hasTransceiver = true}};
+
+  applyLinkTopology(switchConfig, *inputs.platformMapping, topology);
+
+  std::map<std::string, cfg::PortState> portStates;
+  for (const auto& port : *switchConfig.ports()) {
+    portStates.emplace(*port.name(), *port.state());
+    EXPECT_TRUE(port.expectedLLDPValues()->empty());
+  }
+  const std::map<std::string, cfg::PortState> expectedPortStates{
+      {std::string(kPortName), cfg::PortState::ENABLED},
+      {"eth1/1/2", cfg::PortState::DISABLED}};
+  EXPECT_EQ(portStates, expectedPortStates);
+}
+
+TEST(AgentConfigGenTest, RemovesPortsSubsumedByLinkTopologyProfile) {
+  folly::test::TemporaryDirectory sourceDirectory;
+  const auto fbossRoot = fs::path(sourceDirectory.path().string()) / "fboss";
+  createTestPlatform(fbossRoot, "test_vendor");
+  writeTwoPortGroupMapping(
+      fbossRoot / "lib" / "platform_mapping_v2" /
+      "generated_platform_mappings" / "test_vendor" / kPlatform);
+  const auto inputs = resolveAgentConfigInputs(fbossRoot, kPlatform, "default");
+
+  cfg::SwitchConfig switchConfig;
+  utility::addInterfacePortToConfig(
+      switchConfig,
+      inputs.platformMapping.get(),
+      PortID(1),
+      kPortProfile,
+      VlanID(2001));
+  utility::addInterfacePortToConfig(
+      switchConfig,
+      inputs.platformMapping.get(),
+      PortID(2),
+      kPortProfile,
+      VlanID(2002));
+  const LinkTopology topology{
+      {.portA = std::string(kPortName),
+       .portB = std::string(kPortName),
+       .profile = kWidePortProfile,
+       .hasTransceiver = true}};
+
+  applyLinkTopology(switchConfig, *inputs.platformMapping, topology);
+
+  ASSERT_EQ(switchConfig.ports()->size(), 1);
+  EXPECT_EQ(*switchConfig.ports()->front().name(), kPortName);
+  EXPECT_EQ(*switchConfig.ports()->front().profileID(), kWidePortProfile);
+  EXPECT_EQ(*switchConfig.ports()->front().state(), cfg::PortState::ENABLED);
+  EXPECT_EQ(
+      *switchConfig.vlanPorts(),
+      std::vector<cfg::VlanPort>{
+          utility::createVlanPortConfig(PortID(1), VlanID(2001))});
+  ASSERT_EQ(switchConfig.vlans()->size(), 1);
+  EXPECT_EQ(*switchConfig.vlans()->front().id(), 2001);
+  ASSERT_EQ(switchConfig.interfaces()->size(), 1);
+  EXPECT_EQ(*switchConfig.interfaces()->front().intfID(), 2001);
+}
+
 TEST(AgentConfigGenTest, GeneratesOnlySelectedPlatformDeclaration) {
   folly::test::TemporaryDirectory sourceDirectory;
   const auto fbossRoot = fs::path(sourceDirectory.path().string()) / "fboss";
