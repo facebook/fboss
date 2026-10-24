@@ -19,6 +19,7 @@
 #include <set>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include <CLI/App.hpp>
 #include <folly/FileUtil.h>
@@ -274,7 +275,8 @@ FeatureDefaultCommandArgs makeAutoFeature(
 
   FeatureDefaultCommandArgs feature;
   feature.args() = std::move(args);
-  feature.autoEnableWhen() = std::move(conditions);
+  feature.autoEnableWhen() =
+      std::vector<FeatureEnableConditions>{std::move(conditions)};
   return feature;
 }
 
@@ -555,7 +557,8 @@ TEST(FeatureDefaultCommandArgsTest, RejectsEmptyAutomaticConditions) {
   FeatureDefaultCommandArgsConfig config;
   FeatureDefaultCommandArgs feature;
   feature.args() = {{"unexpected", "true"}};
-  feature.autoEnableWhen() = FeatureEnableConditions{};
+  feature.autoEnableWhen() =
+      std::vector<FeatureEnableConditions>{FeatureEnableConditions{}};
   config.features()["empty_conditions"] = std::move(feature);
 
   EXPECT_THROW(
