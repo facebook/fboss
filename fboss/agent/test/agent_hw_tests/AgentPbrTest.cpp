@@ -228,10 +228,11 @@ class AgentPbrTest : public AgentHwTest {
 
   // Inject kNumPkts probes at the given DSCP, varying the L4 source port so
   // they spread across the egress group's members.
-  void sendPbrBurst(uint8_t dscp, PortID injectPort) {
+  uint64_t sendPbrBurst(uint8_t dscp, PortID injectPort) {
     auto intfMac =
         getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
+    uint64_t bytesSent = 0;
     for (int i = 0; i < kNumPkts; ++i) {
       auto pkt = utility::makeUDPTxPacket(
           getSw(),
@@ -244,18 +245,20 @@ class AgentPbrTest : public AgentHwTest {
           kL4DstPort,
           dscp << 2 /*trafficClass byte*/,
           255 /*hopLimit*/);
+      bytesSent += pkt->buf()->computeChainDataLength();
       getAgentEnsemble()->ensureSendPacketOutOfPort(std::move(pkt), injectPort);
     }
+    return bytesSent;
   }
 
-  void verifyBurst(
+  uint64_t verifyBurst(
       uint8_t dscp,
       PortID injectPort,
       const std::vector<PortID>& expect,
       const std::vector<PortID>& notExpect) {
     auto expectBefore = sumOutPkts(expect);
     auto notExpectBefore = sumOutPkts(notExpect);
-    sendPbrBurst(dscp, injectPort);
+    auto bytesSent = sendPbrBurst(dscp, injectPort);
     WITH_RETRIES({
       EXPECT_EVENTUALLY_GE(sumOutPkts(expect) - expectBefore, kNumPkts);
       // A redirect that only partly works leaks probes here in bulk, so the
@@ -263,6 +266,7 @@ class AgentPbrTest : public AgentHwTest {
       // control-plane traffic also egresses these ports.
       EXPECT_EVENTUALLY_LE(sumOutPkts(notExpect) - notExpectBefore, kVariance);
     });
+    return bytesSent;
   }
 
   void verifyRedirectAndCounter(
@@ -277,6 +281,7 @@ class AgentPbrTest : public AgentHwTest {
     int pbrEntries = 0;
     int entriesWithCounter = 0;
     std::optional<std::string> counterName;
+    std::vector<cfg::CounterType> counterTypes;
     for (const auto& [_, entry] : std::as_const(*aclMap)) {
       if (entry->getNextHopGroupId().has_value()) {
         ++pbrEntries;
@@ -285,6 +290,7 @@ class AgentPbrTest : public AgentHwTest {
           if (auto trafficCounter = matchAction.getTrafficCounter()) {
             ++entriesWithCounter;
             counterName = *trafficCounter->name();
+            counterTypes = *trafficCounter->types();
           }
         }
       }
@@ -299,20 +305,39 @@ class AgentPbrTest : public AgentHwTest {
     EXPECT_EQ(entriesWithCounter, pbrEntries);
     ASSERT_TRUE(counterName.has_value());
 
+    auto byteCounters =
+        isSupportedOnAllAsics(HwAsic::Feature::ACL_BYTE_COUNTER) ||
+        isSupportedOnAllAsics(HwAsic::Feature::PBR_ACL_BYTE_COUNTER);
+    EXPECT_EQ(
+        std::count(
+            counterTypes.begin(), counterTypes.end(), cfg::CounterType::BYTES),
+        1);
     // A counter whose entry was just programmed reports a garbage value on its
     // first stats poll, so only trust a baseline two successive ticks agree on.
     uint64_t pktsBefore = utility::getAclInOutPackets(getSw(), *counterName);
+    uint64_t bytesBefore =
+        utility::getAclInOutPackets(getSw(), *counterName, true /*bytes*/);
     WITH_RETRIES({
       getNextUpdatedPortStats(injectPort);
       auto pkts = utility::getAclInOutPackets(getSw(), *counterName);
+      auto bytes =
+          utility::getAclInOutPackets(getSw(), *counterName, true /*bytes*/);
       EXPECT_EVENTUALLY_EQ(pkts, pktsBefore);
+      EXPECT_EVENTUALLY_EQ(bytes, bytesBefore);
       pktsBefore = pkts;
+      bytesBefore = bytes;
     });
-    verifyBurst(kDscp, injectPort, classMembers, defaultMembers);
+    auto bytesSent =
+        verifyBurst(kDscp, injectPort, classMembers, defaultMembers);
     WITH_RETRIES({
       EXPECT_EVENTUALLY_GE(
           utility::getAclInOutPackets(getSw(), *counterName),
           pktsBefore + kNumPkts);
+      if (byteCounters) {
+        EXPECT_EVENTUALLY_GE(
+            utility::getAclInOutPackets(getSw(), *counterName, true /*bytes*/),
+            bytesBefore + bytesSent);
+      }
     });
   }
 };
@@ -340,16 +365,7 @@ TEST_F(AgentPbrTest, ProgramPolicyAcl) {
 
     // 4. Bind a route to the default NHG by name. Nothing is synthesized until
     // a route references the policy.
-    UnicastRoute route;
-    route.dest()->ip() =
-        facebook::network::toBinaryAddress(folly::IPAddress(kPbrRoutePrefix));
-    route.dest()->prefixLength() = 64;
-    NamedRouteDestination namedDest;
-    namedDest.nextHopGroup() = kDefaultNhg();
-    route.namedRouteDestination() = namedDest;
-    auto updater = getSw()->getRouteUpdater();
-    updater.addRoute(RouterID(0), ClientID::BGPD, route);
-    updater.program();
+    programPbrRoute(kDefaultNhg());
   };
 
   auto verify = [this]() {
