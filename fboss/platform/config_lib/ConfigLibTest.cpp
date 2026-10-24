@@ -35,6 +35,7 @@ TEST(ConfigLibTest, Basic) {
   EXPECT_NO_THROW(ConfigLib().getSensorServiceConfig(kJanga800bic));
   EXPECT_NO_THROW(ConfigLib().getSensorServiceConfig(kTahan800bc));
   EXPECT_NO_THROW(ConfigLib().getSensorServiceConfig(kBlackwolf800banw));
+  EXPECT_NO_THROW(ConfigLib().getSensorServiceConfig(kM4061nhp));
   EXPECT_THROW(
       ConfigLib().getSensorServiceConfig(kNonExistentPlatform),
       std::runtime_error);
@@ -48,6 +49,7 @@ TEST(ConfigLibTest, Basic) {
   EXPECT_NO_THROW(ConfigLib().getFanServiceConfig(kTahan800bc));
   EXPECT_NO_THROW(ConfigLib().getFanServiceConfig(kBlackwolf800banw));
   EXPECT_NO_THROW(ConfigLib().getFanServiceConfig(kSample));
+  EXPECT_NO_THROW(ConfigLib().getFanServiceConfig(kM4061nhp));
   EXPECT_THROW(
       ConfigLib().getFanServiceConfig(kNonExistentPlatform),
       std::runtime_error);
@@ -74,12 +76,14 @@ TEST(ConfigLibTest, Basic) {
   EXPECT_NO_THROW(ConfigLib().getFwUtilConfig(kMeru800bia));
   EXPECT_NO_THROW(ConfigLib().getFwUtilConfig(kJanga800bic));
   EXPECT_NO_THROW(ConfigLib().getFwUtilConfig(kTahan800bc));
+  EXPECT_NO_THROW(ConfigLib().getFwUtilConfig(kM4061nhp));
   EXPECT_THROW(
       ConfigLib().getFwUtilConfig(kNonExistentPlatform), std::runtime_error);
 
   // LedManager Configs
   EXPECT_NO_THROW(ConfigLib().getLedManagerConfig(kDarwin));
   EXPECT_NO_THROW(ConfigLib().getLedManagerConfig(kMorgan800cc));
+  EXPECT_NO_THROW(ConfigLib().getLedManagerConfig(kM4061nhp));
   EXPECT_THROW(
       ConfigLib().getLedManagerConfig(kNonExistentPlatform),
       std::runtime_error);
@@ -95,6 +99,7 @@ TEST(ConfigLibTest, Basic) {
   // Showtech Configs
   EXPECT_NO_THROW(ConfigLib().getShowtechConfig(kMorgan800cc));
   EXPECT_NO_THROW(ConfigLib().getShowtechConfig(kSample));
+  EXPECT_NO_THROW(ConfigLib().getShowtechConfig(kM4061nhp));
   EXPECT_THROW(
       ConfigLib().getShowtechConfig(kNonExistentPlatform), std::out_of_range);
 
