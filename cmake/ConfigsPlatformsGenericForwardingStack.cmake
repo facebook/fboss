@@ -17,6 +17,8 @@ add_library(config_generation_utils
   fboss/configs/platforms/generic/forwarding_stack/utils/ConfigGenerationSpecUtils.cpp
   fboss/configs/platforms/generic/forwarding_stack/utils/FeatureDefaultCommandArgsUtils.h
   fboss/configs/platforms/generic/forwarding_stack/utils/FeatureDefaultCommandArgsUtils.cpp
+  fboss/configs/platforms/generic/forwarding_stack/utils/LinkTopologyUtils.h
+  fboss/configs/platforms/generic/forwarding_stack/utils/LinkTopologyUtils.cpp
   fboss/configs/platforms/generic/forwarding_stack/utils/ThriftConfigUtils.h
   fboss/configs/platforms/generic/forwarding_stack/utils/ThriftConfigUtils.cpp
 )
@@ -43,6 +45,19 @@ target_link_libraries(config_generation_spec_utils_test
 )
 
 gtest_discover_tests(config_generation_spec_utils_test)
+
+add_executable(link_topology_utils_test
+  fboss/util/oss/TestMain.cpp
+  fboss/configs/platforms/generic/forwarding_stack/tests/LinkTopologyUtilsTest.cpp
+)
+
+target_link_libraries(link_topology_utils_test
+  config_generation_utils
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(link_topology_utils_test)
 
 add_executable(feature_default_command_args_config_test
   fboss/util/oss/TestMain.cpp

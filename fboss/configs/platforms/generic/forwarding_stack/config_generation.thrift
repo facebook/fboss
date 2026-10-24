@@ -37,6 +37,11 @@ struct ConfigOption {
   // Selects a named ASIC-v3 config variant for this output. When omitted, the
   // generator uses the profile name as the ASIC config variant.
   3: optional string asicConfigVariant;
+
+  // Selects the extensionless CSV filename under
+  // forwarding_stack/link_topology/. When set, the topology determines the
+  // enabled port graph, port profiles, and expected LLDP peers.
+  4: optional string linkTopologyVariant;
 }
 
 struct ConfigGenerationSpec {

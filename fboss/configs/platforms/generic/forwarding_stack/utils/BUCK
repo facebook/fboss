@@ -7,11 +7,13 @@ cpp_library(
     srcs = [
         "ConfigGenerationSpecUtils.cpp",
         "FeatureDefaultCommandArgsUtils.cpp",
+        "LinkTopologyUtils.cpp",
         "ThriftConfigUtils.cpp",
     ],
     headers = [
         "ConfigGenerationSpecUtils.h",
         "FeatureDefaultCommandArgsUtils.h",
+        "LinkTopologyUtils.h",
         "ThriftConfigUtils.h",
     ],
     visibility = ["PUBLIC"],
@@ -19,6 +21,7 @@ cpp_library(
         "fbsource//xplat/folly:file_util",
         "fbsource//xplat/folly:string",
         "fbsource//xplat/folly/json:dynamic",
+        "//folly:small_vector",
     ],
     exported_deps = [
         "//fboss/agent:fboss-error",
