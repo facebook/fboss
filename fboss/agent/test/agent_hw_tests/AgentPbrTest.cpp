@@ -10,6 +10,7 @@
 
 #include <fmt/core.h>
 #include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/ThriftHandler.h"
@@ -20,6 +21,7 @@
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/MatchAction.h"
+#include "fboss/agent/state/PbrUtils.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -72,6 +74,19 @@ NextHopT makeSrv6NextHop(PortID port, Args&&... args) {
       makeSidList(port),
       TunnelType::SRV6_ENCAP,
       std::string(kSrv6TunnelId));
+}
+
+std::shared_ptr<AclEntry> programmedPbrEntry(
+    const AclMap& aclMap,
+    const std::string& policyName,
+    ForwardingClass trafficClass) {
+  for (bool temporary : {false, true}) {
+    if (auto entry = aclMap.getEntryIf(
+            makePbrAclEntryName(policyName, trafficClass, temporary))) {
+      return entry;
+    }
+  }
+  return nullptr;
 }
 } // namespace
 
@@ -197,11 +212,13 @@ class AgentPbrTest : public AgentHwTest {
   }
 
   void addClassBasedPolicy(
+      const std::string& policyName,
+      const std::string& defaultNhg,
       const std::map<ForwardingClass, std::string>& class2Nhg) {
     ThriftHandler handler(getSw());
     ClassBasedPolicy cbfPolicy;
-    cbfPolicy.name() = kPolicy();
-    cbfPolicy.defaultNexthopGroup() = kDefaultNhg();
+    cbfPolicy.name() = policyName;
+    cbfPolicy.defaultNexthopGroup() = defaultNhg;
     for (const auto& [forwardingClass, nhgName] : class2Nhg) {
       NextHopGroup classGroup;
       classGroup.name() = nhgName;
@@ -212,6 +229,11 @@ class AgentPbrTest : public AgentHwTest {
     auto policies = std::make_unique<std::vector<Policy>>();
     policies->push_back(std::move(policy));
     handler.addPolicies(std::move(policies));
+  }
+
+  void addClassBasedPolicy(
+      const std::map<ForwardingClass, std::string>& class2Nhg) {
+    addClassBasedPolicy(kPolicy(), kDefaultNhg(), class2Nhg);
   }
 
   void addClassBasedPolicy() {
@@ -229,6 +251,11 @@ class AgentPbrTest : public AgentHwTest {
   // Inject kNumPkts probes at the given DSCP, varying the L4 source port so
   // they spread across the egress group's members.
   uint64_t sendPbrBurst(uint8_t dscp, PortID injectPort) {
+    return sendPbrBurst(dscp, injectPort, kPbrDstIp);
+  }
+
+  uint64_t
+  sendPbrBurst(uint8_t dscp, PortID injectPort, const std::string& dstIp) {
     auto intfMac =
         getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
@@ -240,7 +267,7 @@ class AgentPbrTest : public AgentHwTest {
           srcMac,
           intfMac,
           folly::IPAddressV6(kPbrSrcIp),
-          folly::IPAddressV6(kPbrDstIp),
+          folly::IPAddressV6(dstIp),
           kL4SrcPort + i,
           kL4DstPort,
           dscp << 2 /*trafficClass byte*/,
@@ -256,9 +283,18 @@ class AgentPbrTest : public AgentHwTest {
       PortID injectPort,
       const std::vector<PortID>& expect,
       const std::vector<PortID>& notExpect) {
+    return verifyBurst(dscp, injectPort, kPbrDstIp, expect, notExpect);
+  }
+
+  uint64_t verifyBurst(
+      uint8_t dscp,
+      PortID injectPort,
+      const std::string& dstIp,
+      const std::vector<PortID>& expect,
+      const std::vector<PortID>& notExpect) {
     auto expectBefore = sumOutPkts(expect);
     auto notExpectBefore = sumOutPkts(notExpect);
-    auto bytesSent = sendPbrBurst(dscp, injectPort);
+    auto bytesSent = sendPbrBurst(dscp, injectPort, dstIp);
     WITH_RETRIES({
       EXPECT_EVENTUALLY_GE(sumOutPkts(expect) - expectBefore, kNumPkts);
       // A redirect that only partly works leaks probes here in bulk, so the
@@ -499,6 +535,92 @@ TEST_F(AgentPbrTest, PbrRedirectNhgMemberChange) {
     // 5. CLASS_2 egresses the new members, and CLASS_3 is undisturbed.
     verifyBurst(kDscp2, injectPort, class2NewMembers, class2InitialMembers);
     verifyBurst(kDscp3, injectPort, class3Members, class2NewMembers);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// Two policies, so two ACL entries at the one shared PBR priority. They are
+// told apart in hardware only by the SAI ACL entry label, so this is the
+// real-SDK proof that a shared priority programs and survives warm boot.
+TEST_F(AgentPbrTest, TwoPoliciesShareOnePriority) {
+  const std::string kPolicyB = "pbrPolicyB";
+  const std::string kDefaultNhgB = "pbrDefaultNhgB";
+  const std::string kClassNhgB = "pbrClassNhgB";
+  constexpr auto kPbrRoutePrefixB = "4444::";
+  constexpr auto kPbrDstIpB = "4444::1";
+
+  auto setup = [&, this]() {
+    auto helper = ecmpHelper();
+    auto ports = helper.ecmpPortDescs(5);
+
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return helper.resolveNextHops(
+          in, {ports[0], ports[1], ports[2], ports[3]});
+    });
+
+    // A matches the NHG on {0,1} and redirects to {2,3}; B matches the NHG on
+    // {2,3} and redirects to {0,1}. Crossing them keeps both match NHGs
+    // multi-member (so each resolves to a SAI next-hop-group that the ACL's
+    // ROUTE_DST can equal) without needing more ports.
+    addOrUpdateNamedNhgs(
+        {{kDefaultNhg(), makeNamedNhgSet({ports[0], ports[1]})},
+         {kClassNhg(), makeNamedNhgSet({ports[2], ports[3]})},
+         {kDefaultNhgB, makeNamedNhgSet({ports[2], ports[3]})},
+         {kClassNhgB, makeNamedNhgSet({ports[0], ports[1]})}});
+
+    addClassBasedPolicy();
+    addClassBasedPolicy(
+        kPolicyB, kDefaultNhgB, {{ForwardingClass::CLASS_1, kClassNhgB}});
+
+    programPbrRoute(kDefaultNhg());
+    programPbrRoute(kDefaultNhgB, kPbrRoutePrefixB);
+  };
+
+  auto verify = [&, this]() {
+    auto aclMap = getProgrammedState()->getAclsForTable(
+        cfg::AclStage::INGRESS,
+        cfg::switch_config_constants::DEFAULT_PBR_ACL_TABLE());
+    ASSERT_NE(aclMap, nullptr);
+
+    // 1. Both rules are present, at one priority, distinguished by name.
+    auto entryA =
+        programmedPbrEntry(*aclMap, kPolicy(), ForwardingClass::CLASS_1);
+    auto entryB =
+        programmedPbrEntry(*aclMap, kPolicyB, ForwardingClass::CLASS_1);
+    ASSERT_NE(entryA, nullptr);
+    ASSERT_NE(entryB, nullptr);
+    EXPECT_EQ(entryA->getPriority(), FLAGS_pbr_acl_priority);
+    EXPECT_EQ(entryB->getPriority(), FLAGS_pbr_acl_priority);
+
+    if (!isSupportedOnAllAsics(HwAsic::Feature::PBR_ACL)) {
+      return;
+    }
+
+    auto helper = ecmpHelper();
+    auto ports = helper.ecmpPortDescs(5);
+    const std::vector<PortID> groupA = {
+        ports[0].phyPortID(), ports[1].phyPortID()};
+    const std::vector<PortID> groupB = {
+        ports[2].phyPortID(), ports[3].phyPortID()};
+    const auto injectPort = ports[4].phyPortID();
+
+    auto counterA = makePbrCounterName(ForwardingClass::CLASS_1, kClassNhg());
+    auto counterB = makePbrCounterName(ForwardingClass::CLASS_1, kClassNhgB);
+    auto pktsA = utility::getAclInOutPackets(getSw(), counterA);
+    auto pktsB = utility::getAclInOutPackets(getSw(), counterB);
+
+    // 2. Each rule redirects its own traffic to the other group's ports.
+    verifyBurst(kDscp, injectPort, kPbrDstIp, groupB, groupA);
+    verifyBurst(kDscp, injectPort, kPbrDstIpB, groupA, groupB);
+
+    // 3. Each rule counts its own traffic, so hardware kept them apart.
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_GE(
+          utility::getAclInOutPackets(getSw(), counterA), pktsA + kNumPkts);
+      EXPECT_EVENTUALLY_GE(
+          utility::getAclInOutPackets(getSw(), counterB), pktsB + kNumPkts);
+    });
   };
 
   verifyAcrossWarmBoots(setup, verify);
