@@ -36,7 +36,6 @@ bool CredoPhyAsic::isSupported(Feature feature) const {
     default:
       return false;
   }
-  return false;
 }
 
 std::set<cfg::StreamType> CredoPhyAsic::getQueueStreamTypes(
