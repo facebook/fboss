@@ -4,6 +4,7 @@
 
 #include <array>
 #include <cstdint>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -39,6 +40,14 @@ struct ChenabTacAggregate {
 
 using ChenabTacEvent = std::variant<ChenabTacNewEntry, ChenabTacAggregate>;
 
+struct ChenabTacPortMap {
+  std::vector<std::pair<uint16_t, uint16_t>> localToLabel;
+};
+
+using ChenabModPacket =
+    std::variant<ChenabTacNewEntry, ChenabTacAggregate, ChenabTacPortMap>;
+
 ChenabTacEvent parseChenabTacEvent(folly::io::Cursor& cursor);
+ChenabModPacket parseChenabModPacket(folly::io::Cursor& cursor);
 
 } // namespace facebook::fboss
