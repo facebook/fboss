@@ -287,3 +287,53 @@ class EscapeKeygenTest(unittest.TestCase):
         self.assertEqual(run.returncode, 0, run.stderr)
         leftovers = list((root / "root/.ssh").glob(".authorized_keys.*"))
         self.assertEqual(leftovers, [])
+
+    def test_disabled_flag_strips_trust_and_skips_keygen(self):
+        tmp, root, script, env = self._stage()
+        flag = root / "etc/login-containers/netadmin-root-disabled"
+        flag.parent.mkdir(parents=True)
+        flag.write_text("disabled by disable_netadmin_root\n")
+        auth = root / ROOT_AUTH.lstrip("/")
+        auth.parent.mkdir(parents=True)
+        auth.write_text(
+            "ssh-ed25519 OTHERKEY other\n"
+            "# fboss-netadmin-escape\n"
+            'from="127.0.0.1,::1" ssh-ed25519 OLDPUB fboss-netadmin-escape\n'
+        )
+        ssh_dir = root / MACHINE_SSH.lstrip("/")
+        ssh_dir.mkdir(parents=True)
+        (ssh_dir / "id_ed25519").write_text("PRIVATE-STUB\n")
+        (ssh_dir / "config").write_text("Host localhost 127.0.0.1 ::1\n")
+        run = self._run(script, root, env)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        # Complete artifacts would satisfy the guard; the flag wins over
+        # it: trust stripped, operator keys kept, nothing provisioned.
+        self.assertEqual(auth.read_text(), "ssh-ed25519 OTHERKEY other\n")
+        self.assertEqual(self._log(tmp), [])
+
+    def test_disabled_flag_without_auth_provisions_nothing(self):
+        tmp, root, script, env = self._stage()
+        flag = root / "etc/login-containers/netadmin-root-disabled"
+        flag.parent.mkdir(parents=True)
+        flag.write_text("disabled by disable_netadmin_root\n")
+        run = self._run(script, root, env)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        self.assertFalse((root / ROOT_AUTH.lstrip("/")).exists())
+        self.assertFalse((root / MACHINE_SSH.lstrip("/")).exists())
+        self.assertEqual(self._log(tmp), [])
+
+    def test_disabled_flag_with_only_escape_lines_empties_auth(self):
+        tmp, root, script, env = self._stage()
+        flag = root / "etc/login-containers/netadmin-root-disabled"
+        flag.parent.mkdir(parents=True)
+        flag.write_text("disabled by disable_netadmin_root\n")
+        auth = root / ROOT_AUTH.lstrip("/")
+        auth.parent.mkdir(parents=True)
+        auth.write_text(
+            "# fboss-netadmin-escape\n"
+            'from="127.0.0.1,::1" ssh-ed25519 OLDPUB fboss-netadmin-escape\n'
+        )
+        run = self._run(script, root, env)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        self.assertEqual(auth.read_text(), "")
+        self.assertEqual(self._log(tmp), [])

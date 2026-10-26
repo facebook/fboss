@@ -7,7 +7,8 @@ BuildArch: noarch
 %description
 nspawn login machines for the netops/netadmin roles: machine rootfs skeletons,
 nspawn settings, machine units, login-shell wrappers, the sudoers grant,
-and the first-boot netadmin escape-key provisioner.
+the first-boot netadmin escape-key provisioner, and the root-only
+on/off knob for netadmin root escalation.
 Shell assignment happens in the manifest execute hook (users exist only
 after the after_pkgs hooks run).
 %install
@@ -67,6 +68,8 @@ for f in /var/lib/machines/netops/etc/passwd \
     /usr/local/bin/session-recorder \
     /usr/local/bin/session-ancestors \
     /usr/local/sbin/escape-keygen \
+    /usr/local/sbin/enable_netadmin_root \
+    /usr/local/sbin/disable_netadmin_root \
     /usr/lib/systemd/system/escape-keygen.service \
     /etc/ssh/sshd_config.d/12-escape-localhost.conf \
     /etc/ssh/sshd_config.d/13-client-alive.conf \
@@ -91,6 +94,8 @@ done
 %attr(0755,root,root) /usr/local/bin/session-recorder
 %attr(0755,root,root) /usr/local/bin/session-ancestors
 %attr(0755,root,root) /usr/local/sbin/escape-keygen
+%attr(0755,root,root) /usr/local/sbin/enable_netadmin_root
+%attr(0755,root,root) /usr/local/sbin/disable_netadmin_root
 %attr(0440,root,root) /etc/sudoers.d/login-containers
 /etc/systemd/nspawn/netops.nspawn
 /etc/systemd/nspawn/netadmin.nspawn
