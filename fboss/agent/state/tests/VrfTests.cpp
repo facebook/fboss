@@ -1,6 +1,8 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 #include <gtest/gtest.h>
 
+#include "fboss/agent/state/DeltaFunctions.h"
+#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vrf.h"
 #include "fboss/agent/state/VrfMap.h"
@@ -58,4 +60,32 @@ TEST(Vrf, SerDeserSwitchState) {
   auto stateBack = SwitchState::fromThrift(state->toThrift());
 
   EXPECT_EQ(state->getVrfs()->toThrift(), stateBack->getVrfs()->toThrift());
+}
+
+TEST(Vrf, Delta) {
+  auto oldState = std::make_shared<SwitchState>();
+  auto oldVrfs = oldState->getVrfs()->modify(&oldState);
+  oldVrfs->addNode(makeVrf(RouterID(1001), "red"), scope());
+  oldVrfs->addNode(makeVrf(RouterID(1002), "blue"), scope());
+  oldState->publish();
+
+  auto newState = oldState->clone();
+  auto newVrfs = newState->getVrfs()->modify(&newState);
+  newVrfs->removeNode(RouterID(1001));
+  newVrfs->updateNode(makeVrf(RouterID(1002), "green"), scope());
+  newVrfs->addNode(makeVrf(RouterID(1003), "yellow"), scope());
+  newState->publish();
+
+  std::set<RouterID> added, removed, changed;
+  DeltaFunctions::forEachChanged(
+      StateDelta(oldState, newState).getVrfsDelta(),
+      [&](const auto& oldVrf, const auto& /*newVrf*/) {
+        changed.insert(oldVrf->getID());
+      },
+      [&](const auto& vrf) { added.insert(vrf->getID()); },
+      [&](const auto& vrf) { removed.insert(vrf->getID()); });
+
+  EXPECT_EQ(added, std::set<RouterID>{RouterID(1003)});
+  EXPECT_EQ(removed, std::set<RouterID>{RouterID(1001)});
+  EXPECT_EQ(changed, std::set<RouterID>{RouterID(1002)});
 }
