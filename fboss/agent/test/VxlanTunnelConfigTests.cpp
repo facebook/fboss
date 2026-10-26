@@ -60,16 +60,13 @@ TEST_F(VxlanTunnelConfigTest, CreateVxlanTunnel) {
   EXPECT_EQ(tunnel->getVniToVrf(), expectedVniToVrf);
 }
 
-TEST_F(VxlanTunnelConfigTest, CreateMultipleVxlanTunnels) {
+TEST_F(VxlanTunnelConfigTest, RejectsMultipleVxlanTunnels) {
   config_.vxlanTunnels() = {
       makeVxlanTunnelConfig("vxlantunnel0"),
       makeVxlanTunnelConfig("vxlantunnel1"),
   };
-  state_ = publishAndApplyConfig(state_, &config_, platform_.get());
-  ASSERT_NE(state_, nullptr);
-
-  EXPECT_NE(state_->getVxlanTunnels()->getNodeIf("vxlantunnel0"), nullptr);
-  EXPECT_NE(state_->getVxlanTunnels()->getNodeIf("vxlantunnel1"), nullptr);
+  EXPECT_THROW(
+      publishAndApplyConfig(state_, &config_, platform_.get()), FbossError);
 }
 
 TEST_F(VxlanTunnelConfigTest, UpdateVxlanTunnel) {
@@ -107,19 +104,15 @@ TEST_F(VxlanTunnelConfigTest, UpdateVxlanTunnelMaps) {
 }
 
 TEST_F(VxlanTunnelConfigTest, RemoveVxlanTunnel) {
-  config_.vxlanTunnels() = {
-      makeVxlanTunnelConfig("vxlantunnel0"),
-      makeVxlanTunnelConfig("vxlantunnel1"),
-  };
+  config_.vxlanTunnels() = {makeVxlanTunnelConfig("vxlantunnel0")};
   state_ = publishAndApplyConfig(state_, &config_, platform_.get());
   ASSERT_NE(state_, nullptr);
 
-  config_.vxlanTunnels() = {makeVxlanTunnelConfig("vxlantunnel1")};
+  config_.vxlanTunnels() = {};
   state_ = publishAndApplyConfig(state_, &config_, platform_.get());
   ASSERT_NE(state_, nullptr);
 
   EXPECT_EQ(state_->getVxlanTunnels()->getNodeIf("vxlantunnel0"), nullptr);
-  EXPECT_NE(state_->getVxlanTunnels()->getNodeIf("vxlantunnel1"), nullptr);
 }
 
 TEST_F(VxlanTunnelConfigTest, NoChangeVxlanTunnel) {

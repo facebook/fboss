@@ -7707,6 +7707,11 @@ std::shared_ptr<VxlanTunnelMap> ThriftConfigApplier::updateVxlanTunnels() {
   if (!cfg_->vxlanTunnels().has_value()) {
     return nullptr;
   }
+  if (cfg_->vxlanTunnels()->size() > 1) {
+    throw FbossError(
+        "Only a single VXLAN tunnel is supported, got ",
+        cfg_->vxlanTunnels()->size());
+  }
   for (const auto& tunnelCfg : cfg_->vxlanTunnels().value()) {
     auto origTunnel = origTunnels->getNodeIf(*tunnelCfg.vxlanTunnelId());
     std::shared_ptr<VxlanTunnel> newTunnel;
