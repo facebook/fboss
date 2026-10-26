@@ -486,6 +486,17 @@ cpp_library(
 )
 
 cpp_library(
+    name = "agent_mirror_on_drop_stateful_test_src",
+    srcs = ["AgentMirrorOnDropStatefulTests.cpp"],
+    # @lint-ignore BUCKLINT: retain gtest registrations from this library
+    link_whole = True,
+    deps = [
+        ":agent_hw_test_src",
+        "//fboss/agent/test/utils:packet_snooper",
+    ],
+)
+
+cpp_library(
     name = "agent_scale_test_src",
     srcs = [
         "AgentAclScaleTests.cpp",
@@ -585,6 +596,7 @@ cpp_binary(
         "fbsource//third-party/googletest:gtest",
         "fbsource//xplat/folly/logging:init",
         ":agent_hw_test_src",
+        ":agent_mirror_on_drop_stateful_test_src",
         "//fboss/agent:setup_thrift_prod",  # @manual
         "//fboss/agent/test:agent_hw_test",
         "//fboss/agent/test:multi_switch_agent_ensemble",
@@ -647,6 +659,7 @@ _sai_agent_hw_test_prefix = "sai_agent_hw_test"
         versions = to_versions(sai_impl),
         deps = [
             ":agent_hw_test_src",
+            ":agent_mirror_on_drop_stateful_test_src",
             "//fboss/agent:main-sai-{}".format(to_impl_lib_name(sai_impl)),
             "//fboss/agent/hw/sai/hw_test:sai_acl_utils{}".format(to_impl_suffix(sai_impl)),
             "//fboss/agent/hw/sai/hw_test:sai_copp_utils{}".format(to_impl_suffix(sai_impl)),
