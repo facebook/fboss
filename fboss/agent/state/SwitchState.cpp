@@ -317,6 +317,14 @@ SwitchState::getIsolationGroups() const {
   return safe_cref<switch_state_tags::isolationGroupMaps>();
 }
 
+void SwitchState::resetVrfs(std::shared_ptr<MultiSwitchVrfMap> vrfs) {
+  ref<switch_state_tags::vrfMaps>() = vrfs;
+}
+
+const std::shared_ptr<MultiSwitchVrfMap> SwitchState::getVrfs() const {
+  return safe_cref<switch_state_tags::vrfMaps>();
+}
+
 const std::shared_ptr<MultiSwitchLoadBalancerMap>&
 SwitchState::getLoadBalancers() const {
   return safe_cref<switch_state_tags::loadBalancerMaps>();
@@ -1219,6 +1227,8 @@ template MultiSwitchLlrConfigMap* SwitchState::modify<
     switch_state_tags::llrCfgMaps>(std::shared_ptr<SwitchState>*);
 template MultiSwitchIsolationGroupMap* SwitchState::modify<
     switch_state_tags::isolationGroupMaps>(std::shared_ptr<SwitchState>*);
+template MultiSwitchVrfMap* SwitchState::modify<switch_state_tags::vrfMaps>(
+    std::shared_ptr<SwitchState>*);
 template MultiSwitchDsfNodeMap* SwitchState::modify<
     switch_state_tags::dsfNodesMap>(std::shared_ptr<SwitchState>*);
 template MultiSwitchAclTableGroupMap* SwitchState::modify<
