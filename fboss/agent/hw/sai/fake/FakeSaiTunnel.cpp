@@ -351,6 +351,175 @@ sai_status_t get_tunnel_term_table_entry_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
+sai_status_t create_tunnel_map_fn(
+    sai_object_id_t* tunnel_map_id,
+    sai_object_id_t /* switch_id */,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+  sai_tunnel_map_type_t type{};
+  for (int i = 0; i < attr_count; i++) {
+    switch (attr_list[i].id) {
+      case SAI_TUNNEL_MAP_ATTR_TYPE:
+        type = static_cast<sai_tunnel_map_type_t>(attr_list[i].value.s32);
+        break;
+      default:
+        return SAI_STATUS_INVALID_PARAMETER;
+    }
+  }
+  *tunnel_map_id = fs->tunnelMapManager.create(type);
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t remove_tunnel_map_fn(sai_object_id_t tunnel_map_id) {
+  auto fs = FakeSai::getInstance();
+  fs->tunnelMapManager.remove(tunnel_map_id);
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t get_tunnel_map_attribute_fn(
+    sai_object_id_t tunnel_map_id,
+    uint32_t attr_count,
+    sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  auto& map = fs->tunnelMapManager.get(tunnel_map_id);
+  for (int i = 0; i < attr_count; i++) {
+    switch (attr[i].id) {
+      case SAI_TUNNEL_MAP_ATTR_TYPE:
+        attr[i].value.s32 = map.type;
+        break;
+      default:
+        return SAI_STATUS_INVALID_PARAMETER;
+    }
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t set_tunnel_map_attribute_fn(
+    sai_object_id_t tunnel_map_id,
+    const sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  auto& map = fs->tunnelMapManager.get(tunnel_map_id);
+  switch (attr->id) {
+    case SAI_TUNNEL_MAP_ATTR_TYPE:
+      map.type = static_cast<sai_tunnel_map_type_t>(attr->value.s32);
+      break;
+    default:
+      return SAI_STATUS_INVALID_PARAMETER;
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t create_tunnel_map_entry_fn(
+    sai_object_id_t* tunnel_map_entry_id,
+    sai_object_id_t /* switch_id */,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+  sai_tunnel_map_type_t type{};
+  sai_object_id_t mapId{};
+  sai_uint32_t vniKey{};
+  sai_uint32_t vniValue{};
+  sai_object_id_t vrKey{};
+  sai_object_id_t vrValue{};
+  for (int i = 0; i < attr_count; i++) {
+    switch (attr_list[i].id) {
+      case SAI_TUNNEL_MAP_ENTRY_ATTR_TUNNEL_MAP_TYPE:
+        type = static_cast<sai_tunnel_map_type_t>(attr_list[i].value.s32);
+        break;
+      case SAI_TUNNEL_MAP_ENTRY_ATTR_TUNNEL_MAP:
+        mapId = attr_list[i].value.oid;
+        break;
+      case SAI_TUNNEL_MAP_ENTRY_ATTR_VNI_ID_KEY:
+        vniKey = attr_list[i].value.u32;
+        break;
+      case SAI_TUNNEL_MAP_ENTRY_ATTR_VNI_ID_VALUE:
+        vniValue = attr_list[i].value.u32;
+        break;
+      case SAI_TUNNEL_MAP_ENTRY_ATTR_VIRTUAL_ROUTER_ID_KEY:
+        vrKey = attr_list[i].value.oid;
+        break;
+      case SAI_TUNNEL_MAP_ENTRY_ATTR_VIRTUAL_ROUTER_ID_VALUE:
+        vrValue = attr_list[i].value.oid;
+        break;
+      default:
+        return SAI_STATUS_INVALID_PARAMETER;
+    }
+  }
+  *tunnel_map_entry_id = fs->tunnelMapEntryManager.create(
+      type, mapId, vniKey, vniValue, vrKey, vrValue);
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t remove_tunnel_map_entry_fn(sai_object_id_t tunnel_map_entry_id) {
+  auto fs = FakeSai::getInstance();
+  fs->tunnelMapEntryManager.remove(tunnel_map_entry_id);
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t get_tunnel_map_entry_attribute_fn(
+    sai_object_id_t tunnel_map_entry_id,
+    uint32_t attr_count,
+    sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  auto& entry = fs->tunnelMapEntryManager.get(tunnel_map_entry_id);
+  for (int i = 0; i < attr_count; i++) {
+    switch (attr[i].id) {
+      case SAI_TUNNEL_MAP_ENTRY_ATTR_TUNNEL_MAP_TYPE:
+        attr[i].value.s32 = entry.type;
+        break;
+      case SAI_TUNNEL_MAP_ENTRY_ATTR_TUNNEL_MAP:
+        attr[i].value.oid = entry.mapId;
+        break;
+      case SAI_TUNNEL_MAP_ENTRY_ATTR_VNI_ID_KEY:
+        attr[i].value.u32 = entry.vniKey;
+        break;
+      case SAI_TUNNEL_MAP_ENTRY_ATTR_VNI_ID_VALUE:
+        attr[i].value.u32 = entry.vniValue;
+        break;
+      case SAI_TUNNEL_MAP_ENTRY_ATTR_VIRTUAL_ROUTER_ID_KEY:
+        attr[i].value.oid = entry.vrKey;
+        break;
+      case SAI_TUNNEL_MAP_ENTRY_ATTR_VIRTUAL_ROUTER_ID_VALUE:
+        attr[i].value.oid = entry.vrValue;
+        break;
+      default:
+        return SAI_STATUS_INVALID_PARAMETER;
+    }
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t set_tunnel_map_entry_attribute_fn(
+    sai_object_id_t tunnel_map_entry_id,
+    const sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  auto& entry = fs->tunnelMapEntryManager.get(tunnel_map_entry_id);
+  switch (attr->id) {
+    case SAI_TUNNEL_MAP_ENTRY_ATTR_TUNNEL_MAP_TYPE:
+      entry.type = static_cast<sai_tunnel_map_type_t>(attr->value.s32);
+      break;
+    case SAI_TUNNEL_MAP_ENTRY_ATTR_TUNNEL_MAP:
+      entry.mapId = attr->value.oid;
+      break;
+    case SAI_TUNNEL_MAP_ENTRY_ATTR_VNI_ID_KEY:
+      entry.vniKey = attr->value.u32;
+      break;
+    case SAI_TUNNEL_MAP_ENTRY_ATTR_VNI_ID_VALUE:
+      entry.vniValue = attr->value.u32;
+      break;
+    case SAI_TUNNEL_MAP_ENTRY_ATTR_VIRTUAL_ROUTER_ID_KEY:
+      entry.vrKey = attr->value.oid;
+      break;
+    case SAI_TUNNEL_MAP_ENTRY_ATTR_VIRTUAL_ROUTER_ID_VALUE:
+      entry.vrValue = attr->value.oid;
+      break;
+    default:
+      return SAI_STATUS_INVALID_PARAMETER;
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
 sai_status_t set_tunnel_term_table_entry_attribute_fn(
     sai_object_id_t tunnel_term_table_entry_id,
     const sai_attribute_t* attr) {
@@ -411,6 +580,18 @@ void populate_tunnel_api(sai_tunnel_api_t** tunnel_api) {
       &get_tunnel_term_table_entry_attribute_fn;
   _tunnel_api.set_tunnel_term_table_entry_attribute =
       &set_tunnel_term_table_entry_attribute_fn;
+
+  _tunnel_api.create_tunnel_map = &create_tunnel_map_fn;
+  _tunnel_api.remove_tunnel_map = &remove_tunnel_map_fn;
+  _tunnel_api.get_tunnel_map_attribute = &get_tunnel_map_attribute_fn;
+  _tunnel_api.set_tunnel_map_attribute = &set_tunnel_map_attribute_fn;
+
+  _tunnel_api.create_tunnel_map_entry = &create_tunnel_map_entry_fn;
+  _tunnel_api.remove_tunnel_map_entry = &remove_tunnel_map_entry_fn;
+  _tunnel_api.get_tunnel_map_entry_attribute =
+      &get_tunnel_map_entry_attribute_fn;
+  _tunnel_api.set_tunnel_map_entry_attribute =
+      &set_tunnel_map_entry_attribute_fn;
 
   *tunnel_api = &_tunnel_api;
 }
