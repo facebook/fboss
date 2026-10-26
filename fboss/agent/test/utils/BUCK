@@ -140,6 +140,7 @@ cpp_library(
     srcs = [
         "PacketSendUtils.cpp",
         "PacketTestUtils.cpp",
+        "facebook/ChenabPacketTestUtils.cpp",
     ],
     headers = [
         "PacketSendUtils.h",
@@ -152,6 +153,7 @@ cpp_library(
         "//fboss/agent:packet",
         "//fboss/agent/packet:ipproto",
         "//fboss/agent/packet:packet",
+        "//fboss/agent/packet/chenab:chenab_mod_header",
         "//fboss/agent/packet/tajo:tajo_punt_header",
         "//fboss/agent/test:test_ensemble_if",
     ],
