@@ -170,7 +170,7 @@ elseif (SAI_BRCM_PAI_IMPL)
     fboss/agent/hw/sai/api/oss/CounterApi.cpp
     fboss/agent/hw/sai/api/oss/DebugCounterApi.cpp
     fboss/agent/hw/sai/api/oss/NextHopGroupApi.cpp
-    fboss/agent/hw/sai/api/oss/PortApi.cpp
+    fboss/agent/hw/sai/api/brcm_pai/PortApi.cpp
     fboss/agent/hw/sai/api/oss/SwitchApi.cpp
     fboss/agent/hw/sai/api/oss/TamApi.cpp
     fboss/agent/hw/sai/api/oss/BufferApi.cpp
