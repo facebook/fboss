@@ -1186,6 +1186,12 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       false);
   processDefaultDataPlanePolicyDelta(delta, lockPolicy);
 
+  processRemovedDelta(
+      delta.getMirrorOnDropReportsDelta(),
+      managerTable_->tamManager(),
+      lockPolicy,
+      &SaiTamManager::removeMirrorOnDropReport);
+
   for (const auto& fibInfoDelta : delta.getFibsInfoDelta()) {
     for (const auto& routeDelta : fibInfoDelta.getFibsMapDelta()) {
       auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
@@ -1666,13 +1672,16 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       &SaiMirrorManager::addNode,
       &SaiMirrorManager::removeMirror);
 
-  processDelta(
+  processChangedDelta(
       delta.getMirrorOnDropReportsDelta(),
       managerTable_->tamManager(),
       lockPolicy,
-      &SaiTamManager::changeMirrorOnDropReport,
-      &SaiTamManager::addMirrorOnDropReport,
-      &SaiTamManager::removeMirrorOnDropReport);
+      &SaiTamManager::changeMirrorOnDropReport);
+  processAddedDelta(
+      delta.getMirrorOnDropReportsDelta(),
+      managerTable_->tamManager(),
+      lockPolicy,
+      &SaiTamManager::addMirrorOnDropReport);
 
   processDelta(
       delta.getIpTunnelsDelta(),

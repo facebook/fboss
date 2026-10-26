@@ -253,6 +253,12 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
       portManager_->setTamObject(portId, {});
     }
   }
+#elif defined(CHENAB_SAI_SDK)
+  // Chenab MoD binds only to the switch. Unbind before destroying its graph.
+  auto modPortIds = tamManager_->getAllMirrorOnDropPortIds();
+  if (!modPortIds.empty()) {
+    switchManager_->setTamObject({});
+  }
 #endif
   tamManager_.reset();
 
