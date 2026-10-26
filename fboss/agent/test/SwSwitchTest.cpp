@@ -312,6 +312,43 @@ TEST_F(SwSwitchTest, VerifyCbfcSenderChangeRejected) {
       StateDelta(cbfc, withCbfc(cbfc, "a", 56, 16, 16384))));
 }
 
+TEST_F(SwSwitchTest, VerifyDuplicateAclPriorityRejected) {
+  ON_CALL(*getMockHw(sw), isValidStateUpdate(_))
+      .WillByDefault(testing::Return(true));
+
+  // 1. Two acls at distinct priorities are fine.
+  auto stateV0 = std::make_shared<SwitchState>();
+  stateV0->publish();
+
+  auto withAcls = [](const std::shared_ptr<SwitchState>& base,
+                     int priorityA,
+                     int priorityB) {
+    auto state = base->clone();
+    auto acls = state->getAcls()->modify(&state);
+    auto aclA = std::make_shared<AclEntry>(priorityA, std::string("aclA"));
+    aclA->setDscp(0x24);
+    acls->addNode(aclA, scope());
+    auto aclB = std::make_shared<AclEntry>(priorityB, std::string("aclB"));
+    aclB->setDscp(0x28);
+    acls->addNode(aclB, scope());
+    state->publish();
+    return state;
+  };
+
+  EXPECT_TRUE(
+      sw->isValidStateUpdate(StateDelta(stateV0, withAcls(stateV0, 1, 2))));
+
+  // 2. Two acls at one priority are indistinguishable in hardware, so the
+  // update is rejected rather than silently collapsing onto one entry.
+  EXPECT_FALSE(
+      sw->isValidStateUpdate(StateDelta(stateV0, withAcls(stateV0, 1, 1))));
+
+  // 3. Only the PBR table may share the PBR priority.
+  EXPECT_FALSE(sw->isValidStateUpdate(StateDelta(
+      stateV0,
+      withAcls(stateV0, FLAGS_pbr_acl_priority, FLAGS_pbr_acl_priority))));
+}
+
 TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
   ON_CALL(*getMockHw(sw), isValidStateUpdate(_))
       .WillByDefault(testing::Return(true));
