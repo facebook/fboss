@@ -76,6 +76,7 @@ cpp_binary(
         "Main.cpp",
     ],
     deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//xplat/folly/logging:logging",
         ":config_validator",
         ":reboot_cause_finder_lib",

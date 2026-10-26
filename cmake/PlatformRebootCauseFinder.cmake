@@ -53,6 +53,7 @@ add_executable(reboot_cause_finder
 target_link_libraries(reboot_cause_finder
   reboot_cause_finder_lib
   fb303::fb303
+  fmt::fmt
 )
 
 install(TARGETS reboot_cause_finder)

@@ -1123,6 +1123,9 @@ void RebootCauseFinderImpl::determineRebootCause() {
         paths_.bootId);
     return;
   }
+  // Logged on every run, including the ones the guard below stops, so each run
+  // in the log file can be tied to the boot it ran in.
+  XLOG(INFO) << fmt::format("Running in boot {}", bootId);
   const auto alreadyHandled = recordExistsForBoot(paths_.historyDir, bootId);
   if (!alreadyHandled.has_value()) {
     XLOG(ERR) << "Doing nothing: cannot tell whether this boot was already "
@@ -1293,6 +1296,17 @@ void RebootCauseFinderImpl::determineRebootCause() {
   record.kernelRelease() = readKernelRelease(paths_.osRelease);
   record.providersAttempted() = attempts;
 
+  if (record.determinedCause().has_value()) {
+    XLOG(INFO) << fmt::format(
+        "Determined reboot cause: '{}' [Provider: {}]",
+        *record.determinedCause()->cause()->description(),
+        *record.determinedCause()->providerName());
+  } else {
+    XLOG(INFO) << fmt::format(
+        "No reboot cause determined. Providers attempted: {}",
+        summariseAttempts(attempts));
+  }
+
   // Writing the record is what arms the guard, so it has to succeed before
   // anything destructive happens. If it failed, the providers stay latched and
   // the next run retries this boot from scratch.
@@ -1304,17 +1318,6 @@ void RebootCauseFinderImpl::determineRebootCause() {
           "Clearing provider '{}'", *providerConfig.name());
       clearProvider(providerConfig);
     }
-  }
-
-  if (record.determinedCause().has_value()) {
-    XLOG(INFO) << fmt::format(
-        "Determined reboot cause: '{}' [Provider: {}]",
-        *record.determinedCause()->cause()->description(),
-        *record.determinedCause()->providerName());
-  } else {
-    XLOG(INFO) << fmt::format(
-        "No reboot cause determined. Providers attempted: {}",
-        summariseAttempts(attempts));
   }
 }
 
@@ -1348,6 +1351,10 @@ bool RebootCauseFinderImpl::persistResult(
     XLOG(ERR) << fmt::format("Failed to write history file '{}'", filePath);
     return false;
   }
+  XLOG(INFO) << fmt::format(
+      "Wrote the reboot cause record for boot {} to '{}'",
+      *record.bootId(),
+      filePath);
   return true;
 }
 
