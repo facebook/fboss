@@ -11,7 +11,10 @@ cpp_library(
         "//fboss/agent/packet:ipproto",
         "//fboss/agent/packet:packet",
     ],
-    exported_deps = ["//folly/io:iobuf"],
+    exported_deps = [
+        "//folly:network_address",
+        "//folly/io:iobuf",
+    ],
 )
 
 cpp_library(
@@ -19,5 +22,8 @@ cpp_library(
     srcs = ["oss/ChenabModHeader.cpp"],
     headers = ["ChenabModHeader.h"],
     deps = ["//fboss/agent/packet:hdr_parse_error"],
-    exported_deps = ["//folly/io:iobuf"],
+    exported_deps = [
+        "//folly:network_address",
+        "//folly/io:iobuf",
+    ],
 )
