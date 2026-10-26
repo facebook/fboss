@@ -27,6 +27,17 @@ reboot_cause_config::RebootCauseProviderAttempt readProvider(
 // is in the future, which disables both readers below.
 std::optional<int64_t> readBootTimeSec(const std::string& procStatPath);
 
+// The window to search before btimeSec, cut so it starts no earlier than the
+// previous boot did. Nothing that happened before the previous boot started
+// can have caused this one, yet a fixed window can still select it: an unclean
+// reset leaves no line of its own, so an older clean reboot's line is the only
+// one in range. std::nullopt, or a start at or after btimeSec, leaves
+// windowSec unchanged.
+int64_t boundWindowByPreviousBoot(
+    int64_t btimeSec,
+    int64_t windowSec,
+    std::optional<int64_t> previousBootStartSec);
+
 // Causes inside [btimeSec - windowSec, btimeSec). At most one each; the match
 // nearest btimeSec wins. Empty when the source is absent.
 // The returned attempt's status is READ_FAILED when a source is present but

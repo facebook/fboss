@@ -55,6 +55,7 @@ cpp_library(
         "fbsource//xplat/folly:file_util",
         "fbsource//xplat/folly:string",
         "fbsource//xplat/folly/logging:logging",
+        ":reboot_history_lib",
         "//fboss/lib:rest-client",
         "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2/protocol:protocol",
