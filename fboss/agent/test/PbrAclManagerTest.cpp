@@ -646,6 +646,42 @@ TEST(PbrAclManagerTest, ReconstructReturnsOneDelta) {
   EXPECT_EQ(pbrAcls(deltas.back().newState())->numEntries(), 3);
 }
 
+TEST(PbrAclManagerTest, TwoPoliciesShareThePbrPriorityAcrossGetAclsDelta) {
+  // 1. Two policies, four rules, all synthesized at the one PBR priority.
+  auto a = makePolicy(
+      "qzk1",
+      100,
+      {{ForwardingClass::CLASS_1, 201}, {ForwardingClass::CLASS_2, 202}});
+  auto b = makePolicy(
+      "qzk2",
+      300,
+      {{ForwardingClass::CLASS_1, 203}, {ForwardingClass::CLASS_3, 204}});
+  PbrAclManager mgr;
+  auto programmed = runManager(mgr, makeState({a, b}, true /*withPbrTable*/));
+
+  auto acls = pbrAcls(programmed);
+  ASSERT_EQ(acls->numEntries(), 4);
+  for (const auto& [_, entry] : std::as_const(*acls)) {
+    EXPECT_EQ(entry->getPriority(), FLAGS_pbr_acl_priority);
+  }
+
+  // 2. getAclsDelta builds a PrioAclMap over the table on every state update,
+  // so all four must key apart. On a priority-only key this threw duplicate
+  // node ID, which SwSwitch turns into XLOG(FATAL).
+  auto empty = std::make_shared<SwitchState>();
+  empty->publish();
+  StateDelta delta(empty, programmed);
+  int added = 0;
+  for (const auto& entry :
+       delta.getAclsDelta(cfg::AclStage::INGRESS, kPbrTable())) {
+    EXPECT_EQ(entry.getOld(), nullptr);
+    ASSERT_NE(entry.getNew(), nullptr);
+    EXPECT_EQ(entry.getNew()->getPriority(), FLAGS_pbr_acl_priority);
+    ++added;
+  }
+  EXPECT_EQ(added, 4);
+}
+
 TEST(PbrAclManagerTest, UpdateFailedThenReapplySucceeds) {
   auto a = makePolicy("qzk1", 100, {{ForwardingClass::CLASS_1, 201}});
   auto b = makePolicy("qzk2", 300, {{ForwardingClass::CLASS_2, 202}});
