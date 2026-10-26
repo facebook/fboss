@@ -6,4 +6,14 @@ cpp_library(
     name = "chenab_mod_header",
     srcs = ["facebook/ChenabModHeader.cpp"],
     headers = ["ChenabModHeader.h"],
+    deps = ["//fboss/agent/packet:hdr_parse_error"],
+    exported_deps = ["//folly/io:iobuf"],
+)
+
+cpp_library(
+    name = "chenab_mod_header_oss",
+    srcs = ["oss/ChenabModHeader.cpp"],
+    headers = ["ChenabModHeader.h"],
+    deps = ["//fboss/agent/packet:hdr_parse_error"],
+    exported_deps = ["//folly/io:iobuf"],
 )

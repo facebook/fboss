@@ -7,6 +7,8 @@
 #include <variant>
 #include <vector>
 
+#include <folly/io/Cursor.h>
+
 namespace facebook::fboss {
 
 struct ChenabTacMetadata {
@@ -36,5 +38,7 @@ struct ChenabTacAggregate {
 };
 
 using ChenabTacEvent = std::variant<ChenabTacNewEntry, ChenabTacAggregate>;
+
+ChenabTacEvent parseChenabTacEvent(folly::io::Cursor& cursor);
 
 } // namespace facebook::fboss
