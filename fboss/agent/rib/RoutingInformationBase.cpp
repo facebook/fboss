@@ -84,7 +84,8 @@ class RibIpRouteUpdate {
       ++stats.v6RoutesAdded;
     }
 
-    if (route.namedRouteDestination().has_value()) {
+    if (apache::thrift::is_non_optional_field_set_manually_or_by_serializer(
+            route.namedRouteDestination())) {
       const auto& namedDest = *route.namedRouteDestination();
       const auto destType = namedDest.getType();
       if (destType == NamedRouteDestination::Type::nextHopGroup ||

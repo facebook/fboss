@@ -7,6 +7,7 @@
 #include <gtest/gtest.h>
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -166,9 +167,19 @@ class AgentHwMirrorTest : public AgentHwTest {
     return getAgentEnsemble()->getHwAgentTestClient(getSwitchId());
   }
 
+  std::shared_ptr<Mirror> getMirrorOnSwitchUnderTest(
+      const std::string& mirrorName) {
+    auto mirrors = this->getProgrammedState()->getMirrors()->getMapNodeIf(
+        HwSwitchMatcher(std::unordered_set<SwitchID>({getSwitchId()})));
+    return mirrors ? mirrors->getNodeIf(mirrorName) : nullptr;
+  }
+
   std::optional<HwResourceStats> getMirrorStats() {
     try {
-      auto stats = getSw()->getHwSwitchStatsExpensive(getSwitchId());
+      auto switchIndex =
+          getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(
+              getSwitchId());
+      auto stats = getSw()->getHwSwitchStatsExpensive(switchIndex);
       return *(stats.hwResourceStats());
     } catch (const std::exception&) {
       return std::nullopt;
@@ -511,11 +522,9 @@ TYPED_TEST(AgentHwSflowMirrorTest, HwResolvedMirrorStat) {
   };
   auto verify = [=, this]() {
     WITH_RETRIES({
-      auto span = this->getProgrammedState()->getMirrors()->getNodeIf(kSpan);
-      auto erspan =
-          this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
-      auto sflowMirror =
-          this->getProgrammedState()->getMirrors()->getNodeIf(kSflow);
+      auto span = this->getMirrorOnSwitchUnderTest(kSpan);
+      auto erspan = this->getMirrorOnSwitchUnderTest(kErspan);
+      auto sflowMirror = this->getMirrorOnSwitchUnderTest(kSflow);
       ASSERT_EVENTUALLY_NE(span, nullptr);
       ASSERT_EVENTUALLY_NE(erspan, nullptr);
       ASSERT_EVENTUALLY_NE(sflowMirror, nullptr);
@@ -551,11 +560,9 @@ TYPED_TEST(AgentHwSflowMirrorTest, HwUnresolvedMirrorStat) {
   };
   auto verify = [=, this]() {
     WITH_RETRIES({
-      auto span = this->getProgrammedState()->getMirrors()->getNodeIf(kSpan);
-      auto erspan =
-          this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
-      auto sflowMirror =
-          this->getProgrammedState()->getMirrors()->getNodeIf(kSflow);
+      auto span = this->getMirrorOnSwitchUnderTest(kSpan);
+      auto erspan = this->getMirrorOnSwitchUnderTest(kErspan);
+      auto sflowMirror = this->getMirrorOnSwitchUnderTest(kSflow);
       EXPECT_EVENTUALLY_TRUE(span && span->isResolved());
       EXPECT_EVENTUALLY_TRUE(erspan && !erspan->isResolved());
       EXPECT_EVENTUALLY_TRUE(sflowMirror && !sflowMirror->isResolved());

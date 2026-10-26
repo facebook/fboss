@@ -118,6 +118,8 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
   cfg::MySidConfig makeAdjacencyMySidConfig() const {
     cfg::MySidConfig mySidConfig;
     mySidConfig.locatorPrefix() = kLocatorPrefix;
+    mySidConfig.locatorPrefixes() = {
+        kLocatorPrefix, utility::kSrv6PlaneLocatorPrefix};
     for (int i = 0; i < kNumLags; ++i) {
       cfg::MySidEntryConfig entry;
       cfg::AdjacencyMySidConfig adjacency;

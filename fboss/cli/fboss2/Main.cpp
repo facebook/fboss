@@ -21,7 +21,7 @@ namespace facebook::fboss {
 
 int cliMain(int argc, char* argv[]) {
   int one = 1;
-  folly::init(&one, &argv, /* removeFlags = */ false);
+  const folly::Init init(&one, &argv, /* removeFlags = */ false);
 
   CLI::App app{"FBOSS CLI"};
 

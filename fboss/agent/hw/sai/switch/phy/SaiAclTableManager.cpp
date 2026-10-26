@@ -127,6 +127,9 @@ std::
       std::nullopt, // UserDefinedFieldGroupMin3
       std::nullopt, // UserDefinedFieldGroupMin4
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      std::nullopt, // FieldRouteDestination
+#endif
       std::nullopt, // port meta
   };
 

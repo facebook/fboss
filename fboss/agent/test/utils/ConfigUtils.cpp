@@ -13,7 +13,9 @@
 #include <array>
 #include <filesystem>
 #include <memory>
+#include <set>
 
+#include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
@@ -44,19 +46,30 @@ namespace {
 // Discover them by vendor/device ID rather than assuming either layout.
 std::vector<std::string> discoverTomahawk6PciAddrs() {
   constexpr folly::StringPiece kBroadcomVendorId{"0x14e4"};
-  constexpr folly::StringPiece kTomahawk6DeviceId{"0xf914"};
+  // BCM78914 (Tomahawk6C) and BCM78910 (Tomahawk6P), per the SDK's
+  // include/soc/devids.h. Matching only one part discovers nothing on the
+  // other and silently leaves the configured handle in place.
+  constexpr std::array<folly::StringPiece, 2> kTomahawk6DeviceIds{
+      "0xf914", "0xf910"};
 
   std::vector<std::string> pciAddrs;
   std::error_code ec;
-  for (const auto& entry :
-       std::filesystem::directory_iterator("/sys/bus/pci/devices", ec)) {
+  std::filesystem::directory_iterator pciDevices("/sys/bus/pci/devices", ec);
+  if (ec) {
+    XLOG(WARN) << "Cannot enumerate /sys/bus/pci/devices: " << ec.message();
+    return pciAddrs;
+  }
+  for (const auto& entry : pciDevices) {
     std::string vendor, device;
     if (!folly::readFile((entry.path() / "vendor").c_str(), vendor) ||
         !folly::readFile((entry.path() / "device").c_str(), device)) {
       continue;
     }
     if (folly::trimWhitespace(vendor) != kBroadcomVendorId ||
-        folly::trimWhitespace(device) != kTomahawk6DeviceId) {
+        std::find(
+            kTomahawk6DeviceIds.begin(),
+            kTomahawk6DeviceIds.end(),
+            folly::trimWhitespace(device)) == kTomahawk6DeviceIds.end()) {
       continue;
     }
     // Drop the function suffix: 0000:03:00.0 -> 0000:03:00
@@ -64,6 +77,9 @@ std::vector<std::string> discoverTomahawk6PciAddrs() {
     pciAddrs.push_back(bdf.substr(0, bdf.find_last_of('.')));
   }
   std::sort(pciAddrs.begin(), pciAddrs.end());
+  // /sys/bus/pci/devices has one entry per PCI function, so a multi-function
+  // ASIC repeats an address; callers match addresses to switches by count.
+  pciAddrs.erase(std::unique(pciAddrs.begin(), pciAddrs.end()), pciAddrs.end());
   return pciAddrs;
 }
 
@@ -126,7 +142,8 @@ int getSysPortIdsAllocated(
 
 cfg::InterfaceType getInterfaceType(const HwAsic& asic) {
   if (asic.getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB ||
-      asic.getAsicType() == cfg::AsicType::ASIC_TYPE_P200) {
+      asic.getAsicType() == cfg::AsicType::ASIC_TYPE_P200 ||
+      asic.getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) {
     return cfg::InterfaceType::PORT;
   }
   return cfg::InterfaceType::VLAN;
@@ -164,6 +181,62 @@ void populateHyperPortAggregates(
   }
 }
 } // namespace
+
+void applyTomahawk6PciAddrs(
+    const std::vector<std::string>& pciAddrs,
+    std::map<SwitchID, cfg::SwitchInfo>& switchIdToSwitchInfo) {
+  if (pciAddrs.empty()) {
+    // /sys/bus/pci/devices is populated by the kernel and does not depend on
+    // the SAI kmod, so on a Ladakh/Leh box an empty result means the ASICs are
+    // not on the bus at all. Proceeding would keep handles we cannot vouch for
+    // and fail later in switch create with an opaque abort.
+    throw FbossError(
+        "No Tomahawk6 PCI devices found; cannot derive connection handles");
+  }
+  if (pciAddrs.size() != switchIdToSwitchInfo.size()) {
+    // Tomahawk6 is on the bus but the count disagrees with the config, so we
+    // cannot say which address belongs to which switch.
+    throw FbossError(
+        "Found ",
+        pciAddrs.size(),
+        " Tomahawk6 PCI devices but the config has ",
+        switchIdToSwitchInfo.size(),
+        " switches; cannot map discovered PCI addresses to switch ids");
+  }
+  std::set<std::string> discoveredHandles;
+  for (const auto& pciAddr : pciAddrs) {
+    discoveredHandles.insert(pciAddr + "=0");
+  }
+  std::set<std::string> configuredHandles;
+  for (const auto& [_, switchInfo] : switchIdToSwitchInfo) {
+    if (auto handle = switchInfo.connectionHandle()) {
+      configuredHandles.insert(*handle);
+    }
+  }
+  if (configuredHandles == discoveredHandles) {
+    // Every configured handle is on the bus, so this is the COM-E variant the
+    // config was written for. Keep the existing assignment instead of
+    // re-deriving it: a config that pairs switch ids with addresses in some
+    // other order than ascending BDF is then left alone rather than silently
+    // reordered.
+    return;
+  }
+  // The configured handles name addresses that are not on this box. Both maps
+  // are ordered by switch id and the addresses are sorted by BDF, so pair them
+  // positionally.
+  auto pciAddrItr = pciAddrs.begin();
+  for (auto& [switchId, switchInfo] : switchIdToSwitchInfo) {
+    auto handle = *pciAddrItr++ + "=0";
+    if (switchInfo.connectionHandle() == handle) {
+      continue;
+    }
+    XLOG(INFO) << "Switch " << switchId << " connection handle "
+               << switchInfo.connectionHandle().value_or("<unset>")
+               << " -> discovered " << handle;
+    switchInfo.connectionHandle() = handle;
+  }
+}
+
 folly::MacAddress kLocalCpuMac() {
   static const folly::MacAddress kLocalMac(
       FLAGS_nodeZ ? "02:00:00:00:00:02" : "02:00:00:00:00:01");
@@ -773,6 +846,14 @@ std::string getConnectionHandle(int64_t switchId, cfg::AsicType asicType) {
   }
 }
 
+bool deployedConfigIsSai() {
+  try {
+    return isSaiConfig(*AgentConfig::fromDefaultFile()->thrift.sw());
+  } catch (const FbossError&) {
+    return false;
+  }
+}
+
 cfg::SwitchConfig genPortVlanCfg(
     const PlatformMapping* platformMapping,
     const HwAsic* asic,
@@ -789,11 +870,16 @@ cfg::SwitchConfig genPortVlanCfg(
     const std::optional<PlatformType> platformType) {
   cfg::SwitchConfig config;
   if (switchIdToSwitchInfo.has_value() && hwAsicTable.has_value()) {
-    populateSwitchInfo(
-        config,
-        switchIdToSwitchInfo.value(),
-        hwAsicTable.value(),
-        platformType);
+    std::map<SwitchID, cfg::SwitchInfo> overriddenSwitchInfo;
+    const auto* switchInfo = &switchIdToSwitchInfo.value();
+    if (platformType.has_value() &&
+        (platformType.value() == PlatformType::PLATFORM_LADAKH800BCLS ||
+         platformType.value() == PlatformType::PLATFORM_LEH800BCLS)) {
+      overriddenSwitchInfo = switchIdToSwitchInfo.value();
+      applyTomahawk6PciAddrs(discoverTomahawk6PciAddrs(), overriddenSwitchInfo);
+      switchInfo = &overriddenSwitchInfo;
+    }
+    populateSwitchInfo(config, *switchInfo, hwAsicTable.value(), platformType);
   } else {
     std::map<SwitchID, cfg::SwitchInfo> defaultSwitchIdToSwitchInfo;
     std::map<SwitchID, const HwAsic*> defaultHwAsicTable;
@@ -814,17 +900,16 @@ cfg::SwitchConfig genPortVlanCfg(
          platformType.value() == PlatformType::PLATFORM_LEH800BCLS)) {
       portIdRange.maximum() =
           cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX();
-      std::array<std::string, 2> pciAddrs{"0000:15:00", "0000:18:00"};
-      auto discoveredPciAddrs = discoverTomahawk6PciAddrs();
-      if (discoveredPciAddrs.size() == pciAddrs.size()) {
-        std::copy(
-            discoveredPciAddrs.begin(),
-            discoveredPciAddrs.end(),
-            pciAddrs.begin());
-      } else if (!discoveredPciAddrs.empty()) {
-        XLOG(WARN) << "Found " << discoveredPciAddrs.size()
-                   << " Tomahawk6 PCI devices, expected " << pciAddrs.size()
-                   << "; falling back to default connection handles";
+      auto pciAddrs = discoverTomahawk6PciAddrs();
+      if (pciAddrs.size() != 2) {
+        // Same reasoning as applyTomahawk6PciAddrs(): falling back to a
+        // hardcoded pair here would hand SAI an address that may name an empty
+        // slot on this COM-E variant.
+        throw FbossError(
+            "Found ",
+            pciAddrs.size(),
+            " Tomahawk6 PCI devices, expected 2; cannot derive default "
+            "Ladakh/Leh connection handles");
       }
       defaultSwitchIdToSwitchInfo.insert(
           {SwitchID(0),
@@ -966,6 +1051,9 @@ cfg::SwitchConfig genPortVlanCfg(
   }
 
   if (switchType == cfg::SwitchType::NPU) {
+    // RIF id for the Chenab default-VLAN interface created below.
+    constexpr int32_t kDefaultVlanIntfID = 10;
+
     // Vlan config
     for (const auto& vlanID : vlans) {
       config.vlans()->push_back(createVlanConfig(vlanID));
@@ -978,7 +1066,13 @@ cfg::SwitchConfig genPortVlanCfg(
         ? kDefaultVlanId4094
         : kDefaultVlanId1;
     auto defaultVlan = createVlanConfig(VlanID(defaultVlanId));
-    defaultVlan.intfID() = 10;
+    if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
+      // Only Chenab adds a RIF on the default VLAN (below). Setting intfID
+      // without that interface leaves the portless default VLAN claiming a
+      // RIF that does not exist, and SwitchIdScopeResolver then has no way to
+      // pick an owning ASIC on a multi-NPU platform.
+      defaultVlan.intfID() = kDefaultVlanIntfID;
+    }
     config.vlans()->push_back(defaultVlan);
     config.defaultVlan() = defaultVlanId;
 
@@ -987,13 +1081,14 @@ cfg::SwitchConfig genPortVlanCfg(
       config.vlanPorts()->push_back(
           createVlanPortConfig(vlanPortPair.first, vlanPortPair.second));
     }
-    if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
+    if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB ||
+        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_P200) {
       /*
        * TODO(pshaikh): Chenab-Hack pipeline lookup for traffic injected by cpu
        * requires vlan rif in default vlan.
        */
       auto intf1 = createVlanInterfaceConfig(
-          InterfaceID(*defaultVlan.intfID()), VlanID(kDefaultVlanId1));
+          InterfaceID(kDefaultVlanIntfID), VlanID(defaultVlanId));
       intf1.name() = "default_vlan_rif";
       intf1.mac() = getLocalCpuMacStr();
       intf1.isVirtual() = true;
@@ -1005,6 +1100,11 @@ cfg::SwitchConfig genPortVlanCfg(
       config.interfaces()->push_back(intf1);
     }
   }
+
+  if (deployedConfigIsSai()) {
+    config.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
+  }
+
   return config;
 }
 

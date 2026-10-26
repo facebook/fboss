@@ -40,6 +40,7 @@ add_executable(api_test
     fboss/agent/hw/sai/api/tests/TamApiTest.cpp
     fboss/agent/hw/sai/api/tests/Srv6ApiTest.cpp
     fboss/agent/hw/sai/api/tests/TunnelApiTest.cpp
+    fboss/agent/hw/sai/api/tests/TunnelMapApiTest.cpp
     fboss/agent/hw/sai/api/tests/UdfApiTest.cpp
     fboss/agent/hw/sai/api/tests/VirtualChannelApiTest.cpp
     fboss/agent/hw/sai/api/tests/VirtualRouterApiTest.cpp

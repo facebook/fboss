@@ -12,11 +12,11 @@ cpp_unittest(
     network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/googletest:gmock",
+        "fbsource//xplat/folly:file_util",
+        "fbsource//xplat/folly/testing:test_util",
         "//fb303:service_data",
         "//fboss/lib:common_file_utils",
         "//fboss/platform/data_corral_service:led_management",
-        "//folly:file_util",
-        "//folly/testing:test_util",
     ],
 )
 
@@ -27,9 +27,9 @@ cpp_unittest(
     ],
     network_access = network_access_utils.none(),
     deps = [
+        "fbsource//xplat/folly/logging:logging",
         "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/data_corral_service:config_validator",
-        "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
 )

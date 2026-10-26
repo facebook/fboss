@@ -699,6 +699,15 @@ void fillHwPortStats(
         hwPortStats.fabricControlTxPackets_() = value;
         break;
 #endif
+// 13.3+: see collection site for why GTE_13_0 is the operative gate.
+#if defined(BRCM_SAI_SDK_XGS_GTE_13_0)
+      case SAI_PORT_STAT_IF_IN_HW_PROTECTION_SWITCHOVER_EVENTS:
+        hwPortStats.hwProtectionSwitchoverEvents_() = value;
+        break;
+      case SAI_PORT_STAT_IF_IN_HW_PROTECTION_SWITCHOVER_DROP_PKTS:
+        hwPortStats.hwProtectionSwitchoverDropPkts_() = value;
+        break;
+#endif
 #if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
       case SAI_PORT_STAT_PFC_0_XOFF_TOTAL_DURATION:
       case SAI_PORT_STAT_PFC_1_XOFF_TOTAL_DURATION:
@@ -1483,6 +1492,21 @@ void SaiPortManager::setClm(PortID portId, bool clmEnabled) {
              << " CLM set to : " << (clmEnabled ? "enabled" : "disabled");
 }
 
+void SaiPortManager::programSwitchWideLinkUpDebounceTimeout(
+    const std::shared_ptr<Port>& swPort) {
+  const uint32_t holdoffTimeMs = swPort->getPortUpHoldoffTimeMs().value_or(0);
+  constexpr uint32_t kLinkUpDebounceUsPerMs = 1000;
+  const uint32_t wantedTimeoutUs = holdoffTimeMs * kLinkUpDebounceUsPerMs;
+  auto& switchManager = managerTable_->switchManager();
+  if (switchManager.getLinkUpDebounceTimeout() == wantedTimeoutUs) {
+    return;
+  }
+  XLOG(DBG2) << "Port " << swPort->getID()
+             << " moves the switch wide link up debounce timeout to "
+             << wantedTimeoutUs << "us";
+  switchManager.setLinkUpDebounceTimeout(wantedTimeoutUs);
+}
+
 bool SaiPortManager::isClmEnabled(PortID portId) const {
   auto pitr = port2ClmEnabled_.find(portId);
   if (pitr != port2ClmEnabled_.end()) {
@@ -1713,6 +1737,10 @@ void SaiPortManager::initAsicPrbsStats(const std::shared_ptr<Port>& swPort) {
 PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   setPortType(swPort->getID(), swPort->getPortType());
   setClm(swPort->getID(), swPort->getClmEnable().value_or(false));
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SWITCH_WIDE_LINK_UP_DEBOUNCE)) {
+    programSwitchWideLinkUpDebounceTimeout(swPort);
+  }
   auto portSaiId = addPortImpl(swPort);
   concurrentIndices_->portSaiId2PortInfo.emplace(
       portSaiId,
@@ -1753,6 +1781,11 @@ void SaiPortManager::changePort(
   }
   if (oldPort->getClmEnable() != newPort->getClmEnable()) {
     setClm(newPort->getID(), newPort->getClmEnable().value_or(false));
+  }
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SWITCH_WIDE_LINK_UP_DEBOUNCE) &&
+      oldPort->getPortUpHoldoffTimeMs() != newPort->getPortUpHoldoffTimeMs()) {
+    programSwitchWideLinkUpDebounceTimeout(newPort);
   }
   changePortImpl(oldPort, newPort);
 }
@@ -3394,7 +3427,8 @@ void SaiPortManager::setQosMapsOnPort(
   auto portHandle = getPortHandle(portID);
   auto portType = getPortType(portID);
   auto& port = portHandle->port;
-  auto isPfcSupported =
+  // Ports that carry flow-control maps: the PFC maps and CBFC's QUEUE_TO_VC.
+  auto isFlowControlPort =
       (portType != cfg::PortType::RECYCLE_PORT &&
        portType != cfg::PortType::EVENTOR_PORT &&
        portType != cfg::PortType::MANAGEMENT_PORT);
@@ -3414,13 +3448,18 @@ void SaiPortManager::setQosMapsOnPort(
             SaiPortTraits::Attributes::QosTcAndColorToDot1pMap{mapping});
         break;
 #if defined(SAI_CBFC_SUPPORTED)
+      // On every port: brcm-sai folds TC_TO_VC into the port's DSCP_TO_TC
+      // map, and every port sharing that map must carry the same TC_TO_VC.
       case SAI_QOS_MAP_TYPE_TC_TO_VC:
         port->setOptionalAttribute(
             SaiPortTraits::Attributes::QosTcToVcMap{mapping});
         break;
+      // The TU1 management port rejects it with INVALID PORT NUMBER.
       case SAI_QOS_MAP_TYPE_QUEUE_TO_VC:
-        port->setOptionalAttribute(
-            SaiPortTraits::Attributes::QosQueueToVcMap{mapping});
+        if (isFlowControlPort) {
+          port->setOptionalAttribute(
+              SaiPortTraits::Attributes::QosQueueToVcMap{mapping});
+        }
         break;
 #endif
       case SAI_QOS_MAP_TYPE_TC_TO_QUEUE:
@@ -3439,19 +3478,19 @@ void SaiPortManager::setQosMapsOnPort(
         }
         break;
       case SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP:
-        if (isPfcSupported) {
+        if (isFlowControlPort) {
           port->setOptionalAttribute(
               SaiPortTraits::Attributes::QosTcToPriorityGroupMap{mapping});
         }
         break;
       case SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_QUEUE:
-        if (isPfcSupported) {
+        if (isFlowControlPort) {
           port->setOptionalAttribute(
               SaiPortTraits::Attributes::QosPfcPriorityToQueueMap{mapping});
         }
         break;
       case SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_PRIORITY_GROUP:
-        if (isPfcSupported && FLAGS_enable_pfc_priority_to_pg_map) {
+        if (isFlowControlPort && FLAGS_enable_pfc_priority_to_pg_map) {
           port->setOptionalAttribute(
               SaiPortTraits::Attributes::QosPfcPriorityToPriorityGroupMap{
                   mapping});
@@ -3503,6 +3542,15 @@ SaiPortManager::getNullSaiIdsForQosMaps() {
 std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>>
 SaiPortManager::getSaiIdsForQosMaps(const SaiQosMapHandle* qosMapHandle) {
   std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>> qosMaps{};
+#if defined(SAI_CBFC_SUPPORTED)
+  // Bound before DSCP_TO_TC. brcm-sai stores TC_TO_VC inside the DSCP_TO_TC
+  // map, and fails a DSCP_TO_TC bind with OBJECT IN USE if another port on
+  // that map has a different TC_TO_VC (_brcm_sai_port_dscp_tc_map_set).
+  if (qosMapHandle->tcToVcMap) {
+    qosMaps.emplace_back(
+        SAI_QOS_MAP_TYPE_TC_TO_VC, qosMapHandle->tcToVcMap->adapterKey());
+  }
+#endif
   if (!globalQosMapSupported_) {
     qosMaps.emplace_back(
         SAI_QOS_MAP_TYPE_DSCP_TO_TC, qosMapHandle->dscpToTcMap->adapterKey());
@@ -3526,10 +3574,6 @@ SaiPortManager::getSaiIdsForQosMaps(const SaiQosMapHandle* qosMapHandle) {
         qosMapHandle->tcToPgMap->adapterKey());
   }
 #if defined(SAI_CBFC_SUPPORTED)
-  if (qosMapHandle->tcToVcMap) {
-    qosMaps.emplace_back(
-        SAI_QOS_MAP_TYPE_TC_TO_VC, qosMapHandle->tcToVcMap->adapterKey());
-  }
   if (qosMapHandle->queueToVcMap) {
     qosMaps.emplace_back(
         SAI_QOS_MAP_TYPE_QUEUE_TO_VC, qosMapHandle->queueToVcMap->adapterKey());

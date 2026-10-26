@@ -15,12 +15,11 @@
 #include <utility>
 
 #include <folly/FileUtil.h>
-#include <folly/String.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.h"
-#include "fboss/configs/platforms/generic/forwarding_stack/utils/ConfigGenerationManifestUtils.h"
+#include "fboss/configs/platforms/generic/forwarding_stack/utils/ConfigGenerationSpecUtils.h"
 
 namespace facebook::fboss::configgen {
 namespace fs = std::filesystem;
@@ -31,16 +30,13 @@ struct PendingConfig {
   std::string contents;
 };
 
-std::string getPlatformName(PlatformType platform) {
-  auto name = std::string(apache::thrift::util::enumNameSafe(platform));
-  constexpr std::string_view kPlatformPrefix = "PLATFORM_";
-  if (!name.starts_with(kPlatformPrefix)) {
-    throw FbossError("Invalid PlatformType name: ", name);
-  }
-  name.erase(0, kPlatformPrefix.size());
-  folly::toLowerAscii(name);
-  return name;
-}
+struct ConfigGenerationPlan {
+  std::string serviceName;
+  std::optional<PlatformType> platformTypeScope;
+  std::optional<fs::path> platformDirectoryScope;
+  std::vector<PendingConfig> configs;
+  std::set<fs::path> outputPaths;
+};
 
 std::string getProfileName(ConfigProfileType profile) {
   switch (profile) {
@@ -48,6 +44,10 @@ std::string getProfileName(ConfigProfileType profile) {
       return "default";
     case ConfigProfileType::HW_TEST:
       return "hw_test";
+    case ConfigProfileType::BENCHMARK:
+      return "benchmark";
+    case ConfigProfileType::LINK_TEST:
+      return "link_test";
   }
   throw FbossError(
       "Unsupported config generation profile: ",
@@ -64,14 +64,16 @@ std::string getServiceName(ServiceType service) {
       apache::thrift::util::enumNameSafe(service));
 }
 
-void validateVariant(const std::optional<std::string>& variant) {
-  if (!variant) {
+void validatePathComponent(
+    const std::optional<std::string>& value,
+    std::string_view field) {
+  if (!value) {
     return;
   }
-  const fs::path component{*variant};
+  const fs::path component{*value};
   if (component.empty() || component.has_parent_path() || component == "." ||
       component == "..") {
-    throw FbossError("Invalid config generation variant: ", *variant);
+    throw FbossError("Invalid config generation ", field, ": ", *value);
   }
 }
 
@@ -86,27 +88,37 @@ std::string getOutputFileName(
   return fileName;
 }
 
-} // namespace
-
-std::vector<fs::path> generateConfigsFromManifest(
+ConfigGenerationPlan createConfigGenerationPlan(
     const fs::path& fbossRoot,
     ServiceType service,
-    const ConfigContentsGenerator& generateContents) {
-  const auto manifest = loadConfigGenerationManifest(fbossRoot);
-  const auto serviceName = getServiceName(service);
-  std::vector<PendingConfig> pendingConfigs;
-  std::set<fs::path> outputPaths;
+    const ConfigContentsGenerator& generateContents,
+    std::optional<std::string_view> selectedPlatform) {
+  std::vector<ConfigGenerationTarget> targets;
+  std::optional<PlatformType> platformTypeScope;
+  std::optional<fs::path> platformDirectoryScope;
+  if (selectedPlatform) {
+    platformDirectoryScope =
+        findPlatformConfigDirectory(fbossRoot, *selectedPlatform).path;
+    auto target = loadConfigGenerationTarget(*platformDirectoryScope);
+    platformTypeScope = target.platform;
+    targets.push_back(std::move(target));
+  } else {
+    targets = loadConfigGenerationTargets(fbossRoot);
+  }
+  ConfigGenerationPlan plan{
+      .serviceName = getServiceName(service),
+      .platformTypeScope = platformTypeScope,
+      .platformDirectoryScope = platformDirectoryScope};
 
-  for (const auto& target : *manifest.targets()) {
-    const auto optionsIt = target.serviceToOptions()->find(service);
-    if (optionsIt == target.serviceToOptions()->end()) {
+  for (const auto& target : targets) {
+    const auto optionsIt = target.spec.serviceToOptions()->find(service);
+    if (optionsIt == target.spec.serviceToOptions()->end()) {
       continue;
     }
 
-    const auto platformType = *target.platform();
+    const auto platformType = target.platform;
     const auto platform = getPlatformName(platformType);
-    const auto platformDirectory =
-        findPlatformConfigDirectory(fbossRoot, platform).path;
+    const auto& platformDirectory = target.platformDirectory;
     for (const auto& option : optionsIt->second) {
       const auto profileType = *option.profile();
       const auto profile = getProfileName(profileType);
@@ -114,13 +126,23 @@ std::vector<fs::path> generateConfigsFromManifest(
       if (option.variant()) {
         variant = *option.variant();
       }
-      validateVariant(variant);
+      validatePathComponent(variant, "variant");
+      std::optional<std::string> asicConfigVariant;
+      if (option.asicConfigVariant()) {
+        asicConfigVariant = *option.asicConfigVariant();
+      }
+      validatePathComponent(asicConfigVariant, "asicConfigVariant");
+      std::optional<std::string> linkTopologyVariant;
+      if (option.linkTopologyVariant()) {
+        linkTopologyVariant = *option.linkTopologyVariant();
+      }
+      validatePathComponent(linkTopologyVariant, "linkTopologyVariant");
 
       auto outputPath = platformDirectory / "forwarding_stack" / "generated" /
-          serviceName / getOutputFileName(profile, variant);
-      if (!outputPaths.insert(outputPath).second) {
+          plan.serviceName / getOutputFileName(profile, variant);
+      if (!plan.outputPaths.insert(outputPath).second) {
         throw FbossError(
-            "Config generation manifest contains duplicate output ",
+            "Config generation declarations contain duplicate output ",
             outputPath.string());
       }
 
@@ -131,39 +153,146 @@ std::vector<fs::path> generateConfigsFromManifest(
           .profileType = profileType,
           .profile = profile,
           .variant = std::move(variant),
+          .asicConfigVariant = std::move(asicConfigVariant),
+          .linkTopologyVariant = std::move(linkTopologyVariant),
           .service = service,
-          .serviceName = serviceName,
+          .serviceName = plan.serviceName,
           .platformDirectory = platformDirectory,
           .outputPath = outputPath,
       };
-      pendingConfigs.push_back(
+      plan.configs.push_back(
           {.outputPath = std::move(outputPath),
            .contents = generateContents(request)});
     }
   }
 
-  if (pendingConfigs.empty()) {
+  if (plan.configs.empty()) {
     throw FbossError(
-        "Config generation manifest has no ", serviceName, " targets");
+        "Config generation declarations have no ",
+        plan.serviceName,
+        " targets");
+  }
+  return plan;
+}
+
+std::set<fs::path> findGeneratedConfigPaths(
+    const fs::path& fbossRoot,
+    std::string_view serviceName,
+    const std::optional<fs::path>& platformDirectoryScope) {
+  const auto addPlatformOutputs = [&](const fs::path& platformDirectory,
+                                      std::set<fs::path>& paths) {
+    const auto serviceDirectory =
+        platformDirectory / "forwarding_stack" / "generated" / serviceName;
+    if (!fs::is_directory(serviceDirectory)) {
+      return;
+    }
+    for (const auto& outputEntry : fs::directory_iterator(serviceDirectory)) {
+      if (!outputEntry.is_regular_file()) {
+        throw FbossError(
+            "Unexpected entry in generated config directory: ",
+            outputEntry.path().string());
+      }
+      paths.insert(outputEntry.path());
+    }
+  };
+
+  std::set<fs::path> paths;
+  if (platformDirectoryScope) {
+    addPlatformOutputs(*platformDirectoryScope, paths);
+    return paths;
   }
 
+  const auto platformsDirectory = fbossRoot / "configs" / "platforms";
+  if (!fs::is_directory(platformsDirectory)) {
+    throw FbossError(
+        "Platform config directory does not exist: ",
+        platformsDirectory.string());
+  }
+
+  for (const auto& vendorEntry : fs::directory_iterator(platformsDirectory)) {
+    if (!vendorEntry.is_directory() ||
+        vendorEntry.path().filename() == "generic") {
+      continue;
+    }
+    for (const auto& platformEntry :
+         fs::directory_iterator(vendorEntry.path())) {
+      if (!platformEntry.is_directory()) {
+        continue;
+      }
+      addPlatformOutputs(platformEntry.path(), paths);
+    }
+  }
+  return paths;
+}
+
+std::string readGeneratedConfig(const fs::path& path) {
+  std::string contents;
+  if (!folly::readFile(path.c_str(), contents)) {
+    throw FbossError("Unable to read generated config ", path.string());
+  }
+  return contents;
+}
+
+} // namespace
+
+std::vector<fs::path> generateConfigsFromManifest(
+    const fs::path& fbossRoot,
+    ServiceType service,
+    const ConfigContentsGenerator& generateContents,
+    std::optional<std::string_view> platform) {
+  auto plan = createConfigGenerationPlan(
+      fbossRoot, service, generateContents, platform);
+  const auto existingPaths = findGeneratedConfigPaths(
+      fbossRoot, plan.serviceName, plan.platformDirectoryScope);
+
   // Do not create or update outputs until every target has generated
-  // successfully. This prevents a bad manifest target from leaving a partial
+  // successfully. This prevents a bad declaration from leaving a partial
   // regeneration behind.
-  for (const auto& pendingConfig : pendingConfigs) {
+  for (const auto& pendingConfig : plan.configs) {
     fs::create_directories(pendingConfig.outputPath.parent_path());
   }
-  for (const auto& pendingConfig : pendingConfigs) {
+  for (const auto& pendingConfig : plan.configs) {
     folly::writeFileAtomic(
         pendingConfig.outputPath.c_str(), pendingConfig.contents, 0644);
   }
+  for (const auto& existingPath : existingPaths) {
+    if (!plan.outputPaths.contains(existingPath)) {
+      fs::remove(existingPath);
+    }
+  }
 
   std::vector<fs::path> generatedPaths;
-  generatedPaths.reserve(pendingConfigs.size());
-  for (auto& pendingConfig : pendingConfigs) {
+  generatedPaths.reserve(plan.configs.size());
+  for (auto& pendingConfig : plan.configs) {
     generatedPaths.push_back(std::move(pendingConfig.outputPath));
   }
   return generatedPaths;
+}
+
+ConfigVerificationResult verifyConfigsFromManifest(
+    const fs::path& fbossRoot,
+    ServiceType service,
+    const ConfigContentsGenerator& generateContents,
+    std::optional<std::string_view> platform) {
+  const auto plan = createConfigGenerationPlan(
+      fbossRoot, service, generateContents, platform);
+  const auto existingPaths = findGeneratedConfigPaths(
+      fbossRoot, plan.serviceName, plan.platformDirectoryScope);
+  ConfigVerificationResult result{.platform = plan.platformTypeScope};
+
+  for (const auto& expected : plan.configs) {
+    if (!existingPaths.contains(expected.outputPath)) {
+      result.missing.push_back(expected.outputPath);
+    } else if (readGeneratedConfig(expected.outputPath) != expected.contents) {
+      result.stale.push_back(expected.outputPath);
+    }
+  }
+  for (const auto& existingPath : existingPaths) {
+    if (!plan.outputPaths.contains(existingPath)) {
+      result.obsolete.push_back(existingPath);
+    }
+  }
+  return result;
 }
 
 } // namespace facebook::fboss::configgen

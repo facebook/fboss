@@ -1053,7 +1053,10 @@ TYPED_TEST(AgentCoppTest, CpuPortIpv6LinkLocalUcastIp) {
     std::optional<folly::MacAddress> dstMac;
     bool skipTtlDecrement;
     utility::PacketComparatorFn packetComparatorFn = std::nullopt;
-    if (!this->needL3EcmpLoop()) {
+    auto asic =
+        checkSameAndGetAsicForTesting(this->getAgentEnsemble()->getL3Asics());
+    if (!this->needL3EcmpLoop() &&
+        asic->getAsicType() != cfg::AsicType::ASIC_TYPE_P200) {
       // use random mac, packets would be flooded and loopback
       dstMac = folly::MacAddress("00:00:00:00:00:01");
       skipTtlDecrement = true;
@@ -1066,9 +1069,8 @@ TYPED_TEST(AgentCoppTest, CpuPortIpv6LinkLocalUcastIp) {
       packetComparatorFn = utility::makePacketComparator(fields);
     }
     bool outOfPort = false; /* route link local packet */
-    auto asic =
-        checkSameAndGetAsicForTesting(this->getAgentEnsemble()->getL3Asics());
-    if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
+    if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB ||
+        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_P200) {
       outOfPort = true; /* routing link local packet is not supported */
       skipTtlDecrement =
           true; /* ttl will not decrement because packet is not routed */
@@ -1249,13 +1251,17 @@ TYPED_TEST(AgentCoppTest, NdpSolicitNeighbor) {
     // do not snoop when L2 is not supported, e.g. J3, where NDP packets goes
     // through L3 pipeline and might change ttl and dst mac
     bool expectRxPacket = !this->needL3EcmpLoop();
+    auto asic =
+        checkSameAndGetAsicForTesting(this->getAgentEnsemble()->getL3Asics());
+    // P200 uses port (routed) interfaces: there is no vlan to flood the
+    // solicitation injected from cpu, so send it out of port instead
+    bool outOfPort = asic->getAsicType() == cfg::AsicType::ASIC_TYPE_P200;
     this->sendPktAndVerifyNdpPacketsCpuQueue(
-        utility::getCoppHighPriQueueId(checkSameAndGetAsicForTesting(
-            this->getAgentEnsemble()->getL3Asics())),
+        utility::getCoppHighPriQueueId(asic),
         folly::IPAddressV6("1::1"), // sender of solicitation
         ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
         false,
-        false,
+        outOfPort,
         1,
         1,
         expectRxPacket);

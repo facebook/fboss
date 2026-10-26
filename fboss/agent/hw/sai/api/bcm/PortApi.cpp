@@ -629,10 +629,8 @@ SaiPortTraits::Attributes::AttributeLinkUpDebouncePeriodMs::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeLinkDownDebouncePeriodMs::operator()() {
-// TODO ruinanhu once SDK can properly support linkdowndebouncingtimeout add
-// attribute back
 #if defined(BRCM_SAI_SDK_GTE_15_4)
-  return std::nullopt;
+  return SAI_PORT_ATTR_LINK_DOWN_DEBOUNCE_TIMEOUT;
 #else
   return std::nullopt;
 #endif
@@ -655,6 +653,16 @@ SaiPortTraits::Attributes::AttributeLinkScanMode::operator()() {
 #else
   return std::nullopt;
 #endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeCsigTagActionWrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeCsigLinkLocatorWrapper::operator()() {
+  return std::nullopt;
 }
 
 const std::vector<sai_stat_id_t>&

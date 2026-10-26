@@ -1289,6 +1289,44 @@ TEST(RouteNextHopEntry, ClientNextHopSetIDInEquality) {
   EXPECT_NE(a, b);
 }
 
+TEST(RouteNextHopEntry, OverrideNextHopSetID) {
+  RouteNextHopEntry a(RouteNextHopEntry::Action::DROP, kDefaultAdminDistance);
+  RouteNextHopEntry b(RouteNextHopEntry::Action::DROP, kDefaultAdminDistance);
+  EXPECT_FALSE(a.getOverrideNextHopSetID().has_value());
+
+  a.setOverrideNextHopSetID(NextHopSetID(7));
+  EXPECT_EQ(a.getOverrideNextHopSetID(), NextHopSetID(7));
+  EXPECT_FALSE(a.getClientNextHopSetID().has_value());
+  EXPECT_NE(a, b);
+
+  RouteNextHopEntry roundTripped(
+      RouteNextHopEntry::Action::DROP, kDefaultAdminDistance);
+  roundTripped.fromThrift(a.toThrift());
+  EXPECT_EQ(roundTripped.getOverrideNextHopSetID(), NextHopSetID(7));
+  validateThriftStructNodeSerialization<RouteNextHopEntry>(roundTripped);
+
+  RouteNextHopEntry fromCtor(
+      RouteNextHopEntry::Action::DROP,
+      kDefaultAdminDistance,
+      std::optional<RouteCounterID>(),
+      std::optional<RouteNextHopEntry::AclLookupClass>(),
+      std::optional<cfg::SwitchingMode>(),
+      std::optional<RouteNextHopEntry::NextHopSet>(),
+      std::optional<NextHopSetID>(),
+      std::optional<NextHopSetID>(),
+      std::optional<NextHopSetID>(),
+      std::optional<NextHopSetID>(7));
+  EXPECT_EQ(fromCtor, a);
+
+  b.setOverrideNextHopSetID(NextHopSetID(7));
+  EXPECT_EQ(a, b);
+  b.setOverrideNextHopSetID(NextHopSetID(8));
+  EXPECT_NE(a, b);
+
+  a.setOverrideNextHopSetID(std::nullopt);
+  EXPECT_FALSE(a.getOverrideNextHopSetID().has_value());
+}
+
 namespace {
 
 NextHopThrift makeNextHopThrift(const folly::IPAddress& addr, int32_t weight) {

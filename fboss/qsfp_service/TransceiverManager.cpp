@@ -2733,6 +2733,16 @@ std::pair<bool, std::vector<std::string>> TransceiverManager::areAllPortsDown(
 }
 
 bool TransceiverManager::isRunningAsicPrbs(TransceiverID tcvr) const {
+  if (FLAGS_port_manager_mode) {
+    // npuPortStatusCache_ is only populated in legacy mode
+    for (const auto& [_, portInfo] : getProgrammedIphyPortToPortInfo(tcvr)) {
+      if (portInfo.status.has_value() && portInfo.status->asicPrbsEnabled) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   auto ports = getAllPlatformPorts(tcvr);
   // Hold a single locked view for the whole scan so the cache can't be
   // wholesale-swapped out (see updateNpuPortStatusCache()) between the

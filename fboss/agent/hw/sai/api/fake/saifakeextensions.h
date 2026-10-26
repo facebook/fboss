@@ -124,6 +124,7 @@ typedef enum _sai_switch_extensions_attr_t {
   SAI_SWITCH_ATTR_SDK_DUMP_SUPPRESSED_COUNT,
   SAI_SWITCH_ATTR_EXT_PACKET_DROP_TYPE_INGRESS_LIST,
   SAI_SWITCH_ATTR_EXT_PACKET_DROP_TYPE_EGRESS_LIST,
+  SAI_SWITCH_ATTR_ACL_DROP_SNOOP_DISABLED,
 } sai_switch_extensions_attr_t;
 
 typedef enum _sai_tam_event_extensions_attr_t {
@@ -217,6 +218,10 @@ typedef enum _sai_acl_entry_extensions_attr_t {
       SAI_ACL_ENTRY_ATTR_CUSTOM_RANGE_START,
   SAI_ACL_ENTRY_ATTR_FIELD_ROUTE_DST,
 } sai_acl_entry_extensions_attr_t;
+
+typedef enum _sai_acl_table_extensions_attr_t {
+  SAI_ACL_TABLE_ATTR_FIELD_ROUTE_DST = SAI_ACL_TABLE_ATTR_CUSTOM_RANGE_START,
+} sai_acl_table_extensions_attr_t;
 
 #define SAI_ACL_ACTION_TYPE_L3_SWITCH_CANCEL \
   SAI_ACL_ENTRY_ATTR_ACTION_L3_SWITCH_CANCEL

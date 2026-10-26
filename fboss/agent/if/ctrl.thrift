@@ -124,6 +124,16 @@ struct MySidEntry {
   # Must not be set in addMySidEntries. These are populated
   # when reporting nexthops back to the client
   5: list<common.NextHopThrift> resolvedNextHops;
+  # Backup next hops for SRv6 midpoint FRR, as requested via
+  # addAdjacencyFrr. Symmetric to nextHops (field 3).
+  # Must not be set in addMySidEntries. These are populated
+  # when reporting nexthops back to the client
+  6: list<common.NextHopThrift> backupUnresolvedNextHops;
+  # Backup next hops post resolution. Symmetric to
+  # resolvedNextHops (field 5). Must not be set in
+  # addMySidEntries. These are populated when reporting
+  # nexthops back to the client
+  7: list<common.NextHopThrift> backupResolvedNextHops;
 }
 
 struct ClientAndNextHops {
@@ -433,6 +443,16 @@ struct PfcConfig {
   3: bool watchdog;
 }
 
+// CBFC profile bound to a port. The sender values are the configured ones;
+// on Tomahawk Ultra 1 the hardware credit limit differs (CS00012481990).
+struct CbfcInfo {
+  1: string configName;
+  2: list<i16> virtualChannels;
+  3: optional i16 senderCreditSize;
+  4: optional i16 senderPacketOverhead;
+  5: optional i64 senderCreditLimit;
+}
+
 struct PortInfoThrift {
   1: i32 portId;
   2: i64 speedMbps;
@@ -478,6 +498,9 @@ struct PortInfoThrift {
   // Ingress ACL table bound directly to this port. Mirrors
   // switch_config.Port.ingressAclTableName. Unset when no table is bound.
   38: optional string ingressAclTableName;
+
+  // Unset when the port has no cbfcConfigName.
+  39: optional CbfcInfo cbfc;
 }
 
 // Port queueing configuration
@@ -788,6 +811,7 @@ enum HwObjectType {
   NEXT_HOP_GROUP_MEMBER = 28,
   SAMPLE_PACKET = 29,
   MY_MAC = 30,
+  VXLAN = 31,
 }
 
 exception FbossFibUpdateError {

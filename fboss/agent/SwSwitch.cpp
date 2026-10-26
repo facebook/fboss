@@ -874,7 +874,8 @@ state::SwitchState SwSwitch::updateOverrideEcmpSwitchingMode(
           fwd.getOverrideNextHops(),
           fwd.getNormalizedResolvedNextHopSetID(),
           fwd.getResolvedNextHopSetID(),
-          fwd.getClientNextHopSetID());
+          fwd.getClientNextHopSetID(),
+          fwd.getOverrideNextHopSetID());
       fib.value().at(routeName).fwd() = newFwd.toThrift();
     }
   };
@@ -886,7 +887,8 @@ state::SwitchState SwSwitch::updateOverrideEcmpSwitchingMode(
     auto& fibInfoFields = it->second;
     const auto& idToNextHopIdSet = *fibInfoFields.idToNextHopIdSet();
     auto fibs = fibInfoFields.fibsMap();
-    if (fibs.has_value()) {
+    if (apache::thrift::is_non_optional_field_set_manually_or_by_serializer(
+            fibs)) {
       for (auto& [_, fib] : *fibs) {
         auto fibV4 = fib.fibV4();
         for (auto& [name, thriftRoute] : *fibV4) {
@@ -1073,6 +1075,9 @@ AgentStats SwSwitch::fillFsdbStats() {
     }
   }
   stats()->fillAgentStats(agentStats);
+  if (auto* manager = getFabricLinkMonitoringManager()) {
+    manager->fillAgentFabricLinkMonitoringStats(agentStats);
+  }
   getHwSwitchHandler()->fillHwAgentConnectionStatus(agentStats);
   // fill old fields using first switch values for backward compatibility
   if (!agentStats.hwResourceStatsMap()->empty()) {
@@ -1756,10 +1761,20 @@ void SwSwitch::logRouteUpdates(
       RoutePrefix<folly::IPAddress>{folly::IPAddress{addr}, mask},
       identifier,
       false};
+  if (isExiting()) {
+    XLOG(DBG2) << "Skipping route update logging for " << identifier
+               << ": switch is exiting";
+    return;
+  }
   routeUpdateLogger_->startLoggingForPrefix(r);
 }
 
 void SwSwitch::stopLoggingRouteUpdates(const std::string& identifier) {
+  if (isExiting()) {
+    XLOG(DBG2) << "Skipping stop of route update logging for " << identifier
+               << ": switch is exiting";
+    return;
+  }
   routeUpdateLogger_->stopLoggingForIdentifier(identifier);
 }
 
@@ -3849,7 +3864,7 @@ void SwSwitch::applyConfigImpl(
             aclNexthopHandler_.get());
 
         if (newState &&
-            !isValidStateUpdate(StateDelta(state, newState), stats())) {
+            !isValidStateUpdateDryRun(StateDelta(state, newState), stats())) {
           throw FbossError("Invalid config passed in, skipping");
         }
 
@@ -3915,6 +3930,12 @@ void SwSwitch::updateConfigAppliedInfo() {
 bool SwSwitch::isValidStateUpdate(const StateDelta& delta, SwitchStats* stats)
     const {
   return stateUpdateValidator_->isValidUpdate(delta, stats);
+}
+
+bool SwSwitch::isValidStateUpdateDryRun(
+    const StateDelta& delta,
+    SwitchStats* stats) const {
+  return stateUpdateValidator_->isValidUpdateDryRun(delta, stats);
 }
 
 AdminDistance SwSwitch::clientIdToAdminDistance(int clientId) const {

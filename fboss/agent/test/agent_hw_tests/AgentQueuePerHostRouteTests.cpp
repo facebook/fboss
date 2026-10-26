@@ -41,6 +41,12 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
         ensemble.getSw()->getPlatformType());
     utility::addQueuePerHostQueueConfig(&cfg);
     utility::addQueuePerHostAcls(&cfg, ensemble.isSai());
+    // Disabled so warm boot doesn't bring up an L2 loop with the first port.
+    for (auto& port : *cfg.ports()) {
+      if (PortID(*port.logicalID()) == ensemble.masterLogicalPortIds()[1]) {
+        port.state() = cfg::PortState::DISABLED;
+      }
+    }
     return cfg;
   }
 
@@ -232,6 +238,17 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
         std::nullopt); /* dscp */
   }
 
+  void setFrontPanelPortAdminState(cfg::PortState state) {
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      auto newState = in->clone();
+      newState->getPorts()
+          ->getNodeIf(masterLogicalPortIds()[1])
+          ->modify(&newState)
+          ->setAdminState(state);
+      return newState;
+    });
+  }
+
   void verifyAllFamilies(bool useFrontPanel, bool blockNeighbor) {
     {
       SCOPED_TRACE("v4");
@@ -247,9 +264,13 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
 TEST_F(AgentQueuePerHostRouteTest, VerifyHostToQueueMappingClassID) {
   auto setup = [=, this]() { setupHelper(false /* blockNeighbor */); };
   auto verify = [=, this]() {
+    // No ARP/NDP broadcasts while both looped ports are up.
+    FLAGS_disable_neighbor_updates = true;
+    setFrontPanelPortAdminState(cfg::PortState::ENABLED);
     getAgentEnsemble()->bringUpPort(masterLogicalPortIds()[1]);
     verifyAllFamilies(true /* front panel port */, false /* block neighbor */);
     getAgentEnsemble()->bringDownPort(masterLogicalPortIds()[1]);
+    setFrontPanelPortAdminState(cfg::PortState::DISABLED);
     verifyAllFamilies(false /* cpu port */, false /* block neighbor */);
   };
 
@@ -259,9 +280,13 @@ TEST_F(AgentQueuePerHostRouteTest, VerifyHostToQueueMappingClassID) {
 TEST_F(AgentQueuePerHostRouteTest, VerifyHostToQueueMappingClassIDBlock) {
   auto setup = [=, this]() { setupHelper(true /* blockNeighbor */); };
   auto verify = [=, this]() {
+    // No ARP/NDP broadcasts while both looped ports are up.
+    FLAGS_disable_neighbor_updates = true;
+    setFrontPanelPortAdminState(cfg::PortState::ENABLED);
     getAgentEnsemble()->bringUpPort(masterLogicalPortIds()[1]);
     verifyAllFamilies(true /* front panel port */, true /* block neighbor */);
     getAgentEnsemble()->bringDownPort(masterLogicalPortIds()[1]);
+    setFrontPanelPortAdminState(cfg::PortState::DISABLED);
     verifyAllFamilies(false /* cpu port */, true /* block neighbor */);
   };
 

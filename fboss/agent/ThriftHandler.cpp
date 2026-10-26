@@ -47,6 +47,8 @@
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/ArpTable.h"
+#include "fboss/agent/state/ClassBasedPolicyMap.h"
+#include "fboss/agent/state/ClassBasedPolicyNode.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/FibInfoMap.h"
@@ -55,9 +57,11 @@
 #include "fboss/agent/state/LabelForwardingEntry.h"
 #include "fboss/agent/state/NdpEntry.h"
 #include "fboss/agent/state/NdpTable.h"
+#include "fboss/agent/state/PbrUtils.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/Route.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Transceiver.h"
@@ -484,6 +488,21 @@ void getPortInfoHelper(
     pc.watchdog() = pfc->watchdog().has_value();
     portInfo.pfc() = pc;
   }
+  if (auto cbfcConfigName = port->getCbfcConfigName()) {
+    CbfcInfo cbfc;
+    cbfc.configName() = *cbfcConfigName;
+    if (const auto& virtualChannels = port->getVirtualChannels()) {
+      for (const auto& virtualChannel : *virtualChannels) {
+        cbfc.virtualChannels()->push_back(
+            virtualChannel->cref<switch_state_tags::id>()->cref());
+      }
+    }
+    cbfc.senderCreditSize().from_optional(port->getCbfcSenderCreditSize());
+    cbfc.senderPacketOverhead().from_optional(
+        port->getCbfcSenderPacketOverhead());
+    cbfc.senderCreditLimit().from_optional(port->getCbfcSenderCreditLimit());
+    portInfo.cbfc() = std::move(cbfc);
+  }
   try {
     portInfo.transceiverIdx() = sw.getTransceiverIdxThrift(port->getID());
   } catch (const facebook::fboss::FbossError&) {
@@ -854,6 +873,53 @@ void ensureFrrProtectedObjectIsMySid(
       static_cast<int>(protectedObject.getType()));
 }
 
+Policy toThriftPolicy(const std::shared_ptr<ClassBasedPolicyNode>& node) {
+  ClassBasedPolicy cbf;
+  cbf.name() = node->getID();
+  cbf.defaultNexthopGroup() = *node->getDefaultNextHopGroup().name();
+  for (const auto& [fc, named] : node->getClass2NextHopGroup()) {
+    NextHopGroup nhg;
+    nhg.name() = *named.name();
+    cbf.class2NextHopGroup()[fc] = std::move(nhg);
+  }
+  Policy policy;
+  policy.cbfPolicy() = std::move(cbf);
+  return policy;
+}
+
+void validateClassBasedPolicies(
+    const SwSwitch* sw,
+    const std::vector<ClassBasedPolicy>& policies) {
+  if (sw->getScopeResolver()->hasMultipleSwitches()) {
+    throw FbossError(
+        "Class-based policies are not supported on a multi-ASIC switch");
+  }
+  if (!sw->getHwAsicTable()->isFeatureSupportedOnAllAsic(
+          HwAsic::Feature::PBR_ACL)) {
+    throw FbossError("Class-based policies are not supported on this platform");
+  }
+
+  for (const auto& policy : policies) {
+    if (policy.name()->starts_with(kPbrTempAclEntryPrefix)) {
+      throw FbossError(
+          "Class-based policy name '",
+          *policy.name(),
+          "' cannot start with '",
+          kPbrTempAclEntryPrefix,
+          "'");
+    }
+    for (const auto& [forwardingClass, nhg] : *policy.class2NextHopGroup()) {
+      if (!nhg.nexthops()->empty()) {
+        throw FbossError(
+            "Class-based policy '",
+            *policy.name(),
+            "' supplies inline next hops for traffic class ",
+            apache::thrift::util::enumNameSafe(forwardingClass),
+            "; a policy references a named next-hop group by name only");
+      }
+    }
+  }
+}
 } // namespace
 
 namespace facebook::fboss {
@@ -1166,6 +1232,28 @@ void ThriftHandler::getMySidEntries(std::vector<MySidEntry>& entries) {
         RouteNextHopSet nhopSet;
         nhopSet.insert(nhops.begin(), nhops.end());
         entry.resolvedNextHops() = util::fromRouteNextHopSet(nhopSet);
+      }
+
+      // Populate backup unresolved next hops (FRR backups as requested via
+      // addAdjacencyFrr).
+      if (auto backupUnresolvedId = mySid->getBackupUnresolveNextHopsId()) {
+        auto nhops = getNextHops(
+            state,
+            static_cast<NextHopSetId>(
+                static_cast<int64_t>(*backupUnresolvedId)));
+        RouteNextHopSet nhopSet;
+        nhopSet.insert(nhops.begin(), nhops.end());
+        entry.backupUnresolvedNextHops() = util::fromRouteNextHopSet(nhopSet);
+      }
+
+      // Populate backup resolved next hops (FRR backups post resolution).
+      if (auto backupResolvedId = mySid->getBackupResolvedNextHopsId()) {
+        auto nhops = getNextHops(
+            state,
+            static_cast<NextHopSetId>(static_cast<int64_t>(*backupResolvedId)));
+        RouteNextHopSet nhopSet;
+        nhopSet.insert(nhops.begin(), nhops.end());
+        entry.backupResolvedNextHops() = util::fromRouteNextHopSet(nhopSet);
       }
 
       entries.emplace_back(std::move(entry));
@@ -2974,7 +3062,8 @@ void ThriftHandler::addMplsRoutes(
     auto newState = state->clone();
 
     addMplsRoutesImpl(&newState, ClientID(clientId), routes);
-    if (!sw_->isValidStateUpdate(StateDelta(state, newState), sw_->stats())) {
+    if (!sw_->isValidStateUpdateDryRun(
+            StateDelta(state, newState), sw_->stats())) {
       throw FbossError("Invalid MPLS routes");
     }
     return newState;
@@ -3174,7 +3263,8 @@ void ThriftHandler::syncMplsFib(
     auto newState = purgeEntriesForClient(
         *(sw_->getScopeResolver()), state, ClientID(clientId));
     addMplsRoutesImpl(&newState, ClientID(clientId), routes);
-    if (!sw_->isValidStateUpdate(StateDelta(state, newState), sw_->stats())) {
+    if (!sw_->isValidStateUpdateDryRun(
+            StateDelta(state, newState), sw_->stats())) {
       throw FbossError("Invalid MPLS routes");
     }
     return newState;
@@ -3515,12 +3605,17 @@ void ThriftHandler::addNamedNextHopGroupsImpl(
     }
     validateAndDefaultSrv6NextHops(*group.nexthops(), defaultSrv6TunnelId);
     validateLinkLocalNextHopInterfaces(*group.nexthops(), state);
-    groups.emplace_back(
-        *group.name(),
-        util::toRouteNextHopSet(
-            *group.nexthops(),
-            true /* allowV6NonLinkLocal */,
-            combineDuplicatedNextHops));
+    auto nextHops = util::toRouteNextHopSet(
+        *group.nexthops(),
+        true /* allowV6NonLinkLocal */,
+        combineDuplicatedNextHops);
+    if (hasSrv6AndNonSrv6NextHops(nextHops)) {
+      throw FbossError(
+          "Named next-hop group ",
+          *group.name(),
+          " contains mixed SRv6 and non-SRv6 next hops, which are unsupported");
+    }
+    groups.emplace_back(*group.name(), std::move(nextHops));
   }
 
   // RIB handles allocation + route reprogramming on the RIB thread.
@@ -3549,6 +3644,84 @@ void ThriftHandler::deleteNamedNextHopGroups(
           return updater(state);
         });
   });
+}
+
+void ThriftHandler::addPolicies(std::unique_ptr<std::vector<Policy>> policies) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+
+  auto* rib = sw_->getRib();
+  if (!rib) {
+    throw FbossError("RIB not initialized");
+  }
+
+  std::vector<ClassBasedPolicy> classBasedPolicies;
+  classBasedPolicies.reserve(policies->size());
+  for (auto& policy : *policies) {
+    if (policy.getType() != Policy::Type::cbfPolicy) {
+      throw FbossError("Only class-based (cbf) policies are supported");
+    }
+    classBasedPolicies.push_back(std::move(*policy.cbfPolicy()));
+  }
+  validateClassBasedPolicies(sw_, classBasedPolicies);
+
+  rib->addOrUpdatePolicies(
+      classBasedPolicies, createNextHopIdStateUpdate(sw_, "addPolicies"));
+}
+
+void ThriftHandler::deletePolicies(
+    std::unique_ptr<std::vector<std::string>> policyNames) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+
+  auto* rib = sw_->getRib();
+  if (!rib) {
+    throw FbossError("RIB not initialized");
+  }
+
+  rib->removePolicies(
+      *policyNames, createNextHopIdStateUpdate(sw_, "deletePolicies"));
+}
+
+void ThriftHandler::getAllPolicies(std::vector<Policy>& result) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+  auto state = sw_->getState();
+  std::set<std::string> seen;
+  for (const auto& [_, policyMap] :
+       std::as_const(*state->getClassBasedPolicies())) {
+    for (const auto& [name, node] : std::as_const(*policyMap)) {
+      if (seen.insert(name).second) {
+        result.push_back(toThriftPolicy(node));
+      }
+    }
+  }
+}
+
+void ThriftHandler::getPolicies(
+    std::vector<Policy>& result,
+    std::unique_ptr<std::vector<std::string>> policyNames) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+  auto state = sw_->getState();
+  std::set<std::string> requested(policyNames->begin(), policyNames->end());
+  std::vector<Policy> found;
+  found.reserve(requested.size());
+  for (const auto& name : requested) {
+    std::shared_ptr<ClassBasedPolicyNode> node;
+    for (const auto& [_matcher, policyMap] :
+         std::as_const(*state->getClassBasedPolicies())) {
+      node = policyMap->getPolicyIf(name);
+      if (node) {
+        break;
+      }
+    }
+    if (!node) {
+      throw FbossError("Class-based policy not found: ", name);
+    }
+    found.push_back(toThriftPolicy(node));
+  }
+  result = std::move(found);
 }
 
 namespace {

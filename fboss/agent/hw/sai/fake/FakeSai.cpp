@@ -68,6 +68,8 @@ void FakeSai::clear() {
   fs->tamCollectorManager.clear();
   fs->tunnelManager.clear();
   fs->tunnelTermManager.clear();
+  fs->tunnelMapManager.clear();
+  fs->tunnelMapEntryManager.clear();
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   fs->srv6SidListManager.clear();
   fs->mySidEntryManager.clear();

@@ -67,6 +67,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   "lane": 3
                 }
               }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                  "lane": 7
+                }
+              }
             }
           ],
           "portType": 0,
@@ -269,6 +317,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core34",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -453,7 +614,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 4,
           "name": "eth1/1/4",
-          "controllingPort": 3,
+          "controllingPort": 1,
           "pins": [
             {
               "a": {
@@ -518,7 +679,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 5,
           "name": "eth1/1/5",
-          "controllingPort": 5,
+          "controllingPort": 1,
           "pins": [
             {
               "a": {
@@ -776,7 +937,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 6,
           "name": "eth1/1/6",
-          "controllingPort": 5,
+          "controllingPort": 1,
           "pins": [
             {
               "a": {
@@ -841,7 +1002,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 7,
           "name": "eth1/1/7",
-          "controllingPort": 5,
+          "controllingPort": 1,
           "pins": [
             {
               "a": {
@@ -953,7 +1114,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 8,
           "name": "eth1/1/8",
-          "controllingPort": 7,
+          "controllingPort": 1,
           "pins": [
             {
               "a": {
@@ -1065,6 +1226,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip2",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip2",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip2",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip2",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip2",
+                  "lane": 7
                 }
               }
             }
@@ -1269,6 +1478,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                10,
+                11,
+                12,
+                13,
+                14,
+                15,
+                16
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core35",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -1453,7 +1775,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 12,
           "name": "eth1/2/4",
-          "controllingPort": 11,
+          "controllingPort": 9,
           "pins": [
             {
               "a": {
@@ -1518,7 +1840,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 13,
           "name": "eth1/2/5",
-          "controllingPort": 13,
+          "controllingPort": 9,
           "pins": [
             {
               "a": {
@@ -1776,7 +2098,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 14,
           "name": "eth1/2/6",
-          "controllingPort": 13,
+          "controllingPort": 9,
           "pins": [
             {
               "a": {
@@ -1841,7 +2163,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 15,
           "name": "eth1/2/7",
-          "controllingPort": 13,
+          "controllingPort": 9,
           "pins": [
             {
               "a": {
@@ -1953,7 +2275,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 16,
           "name": "eth1/2/8",
-          "controllingPort": 15,
+          "controllingPort": 9,
           "pins": [
             {
               "a": {
@@ -2065,6 +2387,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip3",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                  "lane": 7
                 }
               }
             }
@@ -2269,6 +2639,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                18,
+                19,
+                20,
+                21,
+                22,
+                23,
+                24
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core32",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -2453,7 +2936,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 20,
           "name": "eth1/3/4",
-          "controllingPort": 19,
+          "controllingPort": 17,
           "pins": [
             {
               "a": {
@@ -2518,7 +3001,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 21,
           "name": "eth1/3/5",
-          "controllingPort": 21,
+          "controllingPort": 17,
           "pins": [
             {
               "a": {
@@ -2776,7 +3259,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 22,
           "name": "eth1/3/6",
-          "controllingPort": 21,
+          "controllingPort": 17,
           "pins": [
             {
               "a": {
@@ -2841,7 +3324,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 23,
           "name": "eth1/3/7",
-          "controllingPort": 21,
+          "controllingPort": 17,
           "pins": [
             {
               "a": {
@@ -2953,7 +3436,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 24,
           "name": "eth1/3/8",
-          "controllingPort": 23,
+          "controllingPort": 17,
           "pins": [
             {
               "a": {
@@ -3065,6 +3548,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip4",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                  "lane": 7
                 }
               }
             }
@@ -3269,6 +3800,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                26,
+                27,
+                28,
+                29,
+                30,
+                31,
+                32
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core33",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -3453,7 +4097,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 28,
           "name": "eth1/4/4",
-          "controllingPort": 27,
+          "controllingPort": 25,
           "pins": [
             {
               "a": {
@@ -3518,7 +4162,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 29,
           "name": "eth1/4/5",
-          "controllingPort": 29,
+          "controllingPort": 25,
           "pins": [
             {
               "a": {
@@ -3776,7 +4420,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 30,
           "name": "eth1/4/6",
-          "controllingPort": 29,
+          "controllingPort": 25,
           "pins": [
             {
               "a": {
@@ -3841,7 +4485,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 31,
           "name": "eth1/4/7",
-          "controllingPort": 29,
+          "controllingPort": 25,
           "pins": [
             {
               "a": {
@@ -3953,7 +4597,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 32,
           "name": "eth1/4/8",
-          "controllingPort": 31,
+          "controllingPort": 25,
           "pins": [
             {
               "a": {
@@ -4065,6 +4709,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip5",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                  "lane": 7
                 }
               }
             }
@@ -4269,6 +4961,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                34,
+                35,
+                36,
+                37,
+                38,
+                39,
+                40
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core37",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -4453,7 +5258,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 36,
           "name": "eth1/5/4",
-          "controllingPort": 35,
+          "controllingPort": 33,
           "pins": [
             {
               "a": {
@@ -4518,7 +5323,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 37,
           "name": "eth1/5/5",
-          "controllingPort": 37,
+          "controllingPort": 33,
           "pins": [
             {
               "a": {
@@ -4776,7 +5581,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 38,
           "name": "eth1/5/6",
-          "controllingPort": 37,
+          "controllingPort": 33,
           "pins": [
             {
               "a": {
@@ -4841,7 +5646,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 39,
           "name": "eth1/5/7",
-          "controllingPort": 37,
+          "controllingPort": 33,
           "pins": [
             {
               "a": {
@@ -4953,7 +5758,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 40,
           "name": "eth1/5/8",
-          "controllingPort": 39,
+          "controllingPort": 33,
           "pins": [
             {
               "a": {
@@ -5065,6 +5870,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip6",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                  "lane": 7
                 }
               }
             }
@@ -5269,6 +6122,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                42,
+                43,
+                44,
+                45,
+                46,
+                47,
+                48
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core36",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -5453,7 +6419,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 44,
           "name": "eth1/6/4",
-          "controllingPort": 43,
+          "controllingPort": 41,
           "pins": [
             {
               "a": {
@@ -5518,7 +6484,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 45,
           "name": "eth1/6/5",
-          "controllingPort": 45,
+          "controllingPort": 41,
           "pins": [
             {
               "a": {
@@ -5776,7 +6742,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 46,
           "name": "eth1/6/6",
-          "controllingPort": 45,
+          "controllingPort": 41,
           "pins": [
             {
               "a": {
@@ -5841,7 +6807,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 47,
           "name": "eth1/6/7",
-          "controllingPort": 45,
+          "controllingPort": 41,
           "pins": [
             {
               "a": {
@@ -5953,7 +6919,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 48,
           "name": "eth1/6/8",
-          "controllingPort": 47,
+          "controllingPort": 41,
           "pins": [
             {
               "a": {
@@ -6065,6 +7031,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip7",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                  "lane": 7
                 }
               }
             }
@@ -6269,6 +7283,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                50,
+                51,
+                52,
+                53,
+                54,
+                55,
+                56
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core39",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -6453,7 +7580,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 52,
           "name": "eth1/7/4",
-          "controllingPort": 51,
+          "controllingPort": 49,
           "pins": [
             {
               "a": {
@@ -6518,7 +7645,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 53,
           "name": "eth1/7/5",
-          "controllingPort": 53,
+          "controllingPort": 49,
           "pins": [
             {
               "a": {
@@ -6776,7 +7903,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 54,
           "name": "eth1/7/6",
-          "controllingPort": 53,
+          "controllingPort": 49,
           "pins": [
             {
               "a": {
@@ -6841,7 +7968,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 55,
           "name": "eth1/7/7",
-          "controllingPort": 53,
+          "controllingPort": 49,
           "pins": [
             {
               "a": {
@@ -6953,7 +8080,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 56,
           "name": "eth1/7/8",
-          "controllingPort": 55,
+          "controllingPort": 49,
           "pins": [
             {
               "a": {
@@ -7065,6 +8192,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip8",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                  "lane": 7
                 }
               }
             }
@@ -7269,6 +8444,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                58,
+                59,
+                60,
+                61,
+                62,
+                63,
+                64
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core38",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -7453,7 +8741,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 60,
           "name": "eth1/8/4",
-          "controllingPort": 59,
+          "controllingPort": 57,
           "pins": [
             {
               "a": {
@@ -7518,7 +8806,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 61,
           "name": "eth1/8/5",
-          "controllingPort": 61,
+          "controllingPort": 57,
           "pins": [
             {
               "a": {
@@ -7776,7 +9064,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 62,
           "name": "eth1/8/6",
-          "controllingPort": 61,
+          "controllingPort": 57,
           "pins": [
             {
               "a": {
@@ -7841,7 +9129,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 63,
           "name": "eth1/8/7",
-          "controllingPort": 61,
+          "controllingPort": 57,
           "pins": [
             {
               "a": {
@@ -7953,7 +9241,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 64,
           "name": "eth1/8/8",
-          "controllingPort": 63,
+          "controllingPort": 57,
           "pins": [
             {
               "a": {
@@ -8065,6 +9353,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip9",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                  "lane": 7
                 }
               }
             }
@@ -8269,6 +9605,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                66,
+                67,
+                68,
+                69,
+                70,
+                71,
+                72
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core42",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -8453,7 +9902,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 68,
           "name": "eth1/9/4",
-          "controllingPort": 67,
+          "controllingPort": 65,
           "pins": [
             {
               "a": {
@@ -8518,7 +9967,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 69,
           "name": "eth1/9/5",
-          "controllingPort": 69,
+          "controllingPort": 65,
           "pins": [
             {
               "a": {
@@ -8776,7 +10225,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 70,
           "name": "eth1/9/6",
-          "controllingPort": 69,
+          "controllingPort": 65,
           "pins": [
             {
               "a": {
@@ -8841,7 +10290,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 71,
           "name": "eth1/9/7",
-          "controllingPort": 69,
+          "controllingPort": 65,
           "pins": [
             {
               "a": {
@@ -8953,7 +10402,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 72,
           "name": "eth1/9/8",
-          "controllingPort": 71,
+          "controllingPort": 65,
           "pins": [
             {
               "a": {
@@ -9065,6 +10514,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip10",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip10",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip10",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip10",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip10",
+                  "lane": 7
                 }
               }
             }
@@ -9269,6 +10766,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                74,
+                75,
+                76,
+                77,
+                78,
+                79,
+                80
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core43",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip10",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip10",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip10",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip10",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip10",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip10",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip10",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip10",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -9453,7 +11063,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 76,
           "name": "eth1/10/4",
-          "controllingPort": 75,
+          "controllingPort": 73,
           "pins": [
             {
               "a": {
@@ -9518,7 +11128,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 77,
           "name": "eth1/10/5",
-          "controllingPort": 77,
+          "controllingPort": 73,
           "pins": [
             {
               "a": {
@@ -9776,7 +11386,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 78,
           "name": "eth1/10/6",
-          "controllingPort": 77,
+          "controllingPort": 73,
           "pins": [
             {
               "a": {
@@ -9841,7 +11451,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 79,
           "name": "eth1/10/7",
-          "controllingPort": 77,
+          "controllingPort": 73,
           "pins": [
             {
               "a": {
@@ -9953,7 +11563,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 80,
           "name": "eth1/10/8",
-          "controllingPort": 79,
+          "controllingPort": 73,
           "pins": [
             {
               "a": {
@@ -10065,6 +11675,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip11",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                  "lane": 7
                 }
               }
             }
@@ -10269,6 +11927,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                82,
+                83,
+                84,
+                85,
+                86,
+                87,
+                88
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core40",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -10453,7 +12224,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 84,
           "name": "eth1/11/4",
-          "controllingPort": 83,
+          "controllingPort": 81,
           "pins": [
             {
               "a": {
@@ -10518,7 +12289,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 85,
           "name": "eth1/11/5",
-          "controllingPort": 85,
+          "controllingPort": 81,
           "pins": [
             {
               "a": {
@@ -10776,7 +12547,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 86,
           "name": "eth1/11/6",
-          "controllingPort": 85,
+          "controllingPort": 81,
           "pins": [
             {
               "a": {
@@ -10841,7 +12612,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 87,
           "name": "eth1/11/7",
-          "controllingPort": 85,
+          "controllingPort": 81,
           "pins": [
             {
               "a": {
@@ -10953,7 +12724,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 88,
           "name": "eth1/11/8",
-          "controllingPort": 87,
+          "controllingPort": 81,
           "pins": [
             {
               "a": {
@@ -11065,6 +12836,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip12",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                  "lane": 7
                 }
               }
             }
@@ -11269,6 +13088,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                90,
+                91,
+                92,
+                93,
+                94,
+                95,
+                96
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core41",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -11453,7 +13385,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 92,
           "name": "eth1/12/4",
-          "controllingPort": 91,
+          "controllingPort": 89,
           "pins": [
             {
               "a": {
@@ -11518,7 +13450,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 93,
           "name": "eth1/12/5",
-          "controllingPort": 93,
+          "controllingPort": 89,
           "pins": [
             {
               "a": {
@@ -11776,7 +13708,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 94,
           "name": "eth1/12/6",
-          "controllingPort": 93,
+          "controllingPort": 89,
           "pins": [
             {
               "a": {
@@ -11841,7 +13773,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 95,
           "name": "eth1/12/7",
-          "controllingPort": 93,
+          "controllingPort": 89,
           "pins": [
             {
               "a": {
@@ -11953,7 +13885,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 96,
           "name": "eth1/12/8",
-          "controllingPort": 95,
+          "controllingPort": 89,
           "pins": [
             {
               "a": {
@@ -12065,6 +13997,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip13",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                  "lane": 7
                 }
               }
             }
@@ -12269,6 +14249,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                98,
+                99,
+                100,
+                101,
+                102,
+                103,
+                104
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core45",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -12453,7 +14546,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 100,
           "name": "eth1/13/4",
-          "controllingPort": 99,
+          "controllingPort": 97,
           "pins": [
             {
               "a": {
@@ -12518,7 +14611,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 101,
           "name": "eth1/13/5",
-          "controllingPort": 101,
+          "controllingPort": 97,
           "pins": [
             {
               "a": {
@@ -12776,7 +14869,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 102,
           "name": "eth1/13/6",
-          "controllingPort": 101,
+          "controllingPort": 97,
           "pins": [
             {
               "a": {
@@ -12841,7 +14934,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 103,
           "name": "eth1/13/7",
-          "controllingPort": 101,
+          "controllingPort": 97,
           "pins": [
             {
               "a": {
@@ -12953,7 +15046,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 104,
           "name": "eth1/13/8",
-          "controllingPort": 103,
+          "controllingPort": 97,
           "pins": [
             {
               "a": {
@@ -13065,6 +15158,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip14",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip14",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip14",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip14",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip14",
+                  "lane": 7
                 }
               }
             }
@@ -13269,6 +15410,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                106,
+                107,
+                108,
+                109,
+                110,
+                111,
+                112
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core44",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip14",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip14",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip14",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip14",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip14",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip14",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip14",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip14",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -13453,7 +15707,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 108,
           "name": "eth1/14/4",
-          "controllingPort": 107,
+          "controllingPort": 105,
           "pins": [
             {
               "a": {
@@ -13518,7 +15772,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 109,
           "name": "eth1/14/5",
-          "controllingPort": 109,
+          "controllingPort": 105,
           "pins": [
             {
               "a": {
@@ -13776,7 +16030,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 110,
           "name": "eth1/14/6",
-          "controllingPort": 109,
+          "controllingPort": 105,
           "pins": [
             {
               "a": {
@@ -13841,7 +16095,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 111,
           "name": "eth1/14/7",
-          "controllingPort": 109,
+          "controllingPort": 105,
           "pins": [
             {
               "a": {
@@ -13953,7 +16207,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 112,
           "name": "eth1/14/8",
-          "controllingPort": 111,
+          "controllingPort": 105,
           "pins": [
             {
               "a": {
@@ -14065,6 +16319,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip15",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                  "lane": 7
                 }
               }
             }
@@ -14269,6 +16571,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                114,
+                115,
+                116,
+                117,
+                118,
+                119,
+                120
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core47",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -14453,7 +16868,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 116,
           "name": "eth1/15/4",
-          "controllingPort": 115,
+          "controllingPort": 113,
           "pins": [
             {
               "a": {
@@ -14518,7 +16933,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 117,
           "name": "eth1/15/5",
-          "controllingPort": 117,
+          "controllingPort": 113,
           "pins": [
             {
               "a": {
@@ -14776,7 +17191,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 118,
           "name": "eth1/15/6",
-          "controllingPort": 117,
+          "controllingPort": 113,
           "pins": [
             {
               "a": {
@@ -14841,7 +17256,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 119,
           "name": "eth1/15/7",
-          "controllingPort": 117,
+          "controllingPort": 113,
           "pins": [
             {
               "a": {
@@ -14953,7 +17368,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 120,
           "name": "eth1/15/8",
-          "controllingPort": 119,
+          "controllingPort": 113,
           "pins": [
             {
               "a": {
@@ -15065,6 +17480,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip16",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                  "lane": 7
                 }
               }
             }
@@ -15269,6 +17732,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                122,
+                123,
+                124,
+                125,
+                126,
+                127,
+                128
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core46",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -15453,7 +18029,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 124,
           "name": "eth1/16/4",
-          "controllingPort": 123,
+          "controllingPort": 121,
           "pins": [
             {
               "a": {
@@ -15518,7 +18094,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 125,
           "name": "eth1/16/5",
-          "controllingPort": 125,
+          "controllingPort": 121,
           "pins": [
             {
               "a": {
@@ -15776,7 +18352,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 126,
           "name": "eth1/16/6",
-          "controllingPort": 125,
+          "controllingPort": 121,
           "pins": [
             {
               "a": {
@@ -15841,7 +18417,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 127,
           "name": "eth1/16/7",
-          "controllingPort": 125,
+          "controllingPort": 121,
           "pins": [
             {
               "a": {
@@ -15953,7 +18529,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 128,
           "name": "eth1/16/8",
-          "controllingPort": 127,
+          "controllingPort": 121,
           "pins": [
             {
               "a": {
@@ -16065,6 +18641,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip17",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core50",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core50",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core50",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core50",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                  "lane": 7
                 }
               }
             }
@@ -16269,6 +18893,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                130,
+                131,
+                132,
+                133,
+                134,
+                135,
+                136
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core50",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core50",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core50",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core50",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core50",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core50",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core50",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core50",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -16453,7 +19190,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 132,
           "name": "eth1/17/4",
-          "controllingPort": 131,
+          "controllingPort": 129,
           "pins": [
             {
               "a": {
@@ -16518,7 +19255,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 133,
           "name": "eth1/17/5",
-          "controllingPort": 133,
+          "controllingPort": 129,
           "pins": [
             {
               "a": {
@@ -16776,7 +19513,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 134,
           "name": "eth1/17/6",
-          "controllingPort": 133,
+          "controllingPort": 129,
           "pins": [
             {
               "a": {
@@ -16841,7 +19578,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 135,
           "name": "eth1/17/7",
-          "controllingPort": 133,
+          "controllingPort": 129,
           "pins": [
             {
               "a": {
@@ -16953,7 +19690,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 136,
           "name": "eth1/17/8",
-          "controllingPort": 135,
+          "controllingPort": 129,
           "pins": [
             {
               "a": {
@@ -17065,6 +19802,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip18",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core51",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core51",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core51",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core51",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                  "lane": 7
                 }
               }
             }
@@ -17269,6 +20054,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                138,
+                139,
+                140,
+                141,
+                142,
+                143,
+                144
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core51",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core51",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core51",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core51",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core51",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core51",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core51",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core51",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -17453,7 +20351,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 140,
           "name": "eth1/18/4",
-          "controllingPort": 139,
+          "controllingPort": 137,
           "pins": [
             {
               "a": {
@@ -17518,7 +20416,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 141,
           "name": "eth1/18/5",
-          "controllingPort": 141,
+          "controllingPort": 137,
           "pins": [
             {
               "a": {
@@ -17776,7 +20674,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 142,
           "name": "eth1/18/6",
-          "controllingPort": 141,
+          "controllingPort": 137,
           "pins": [
             {
               "a": {
@@ -17841,7 +20739,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 143,
           "name": "eth1/18/7",
-          "controllingPort": 141,
+          "controllingPort": 137,
           "pins": [
             {
               "a": {
@@ -17953,7 +20851,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 144,
           "name": "eth1/18/8",
-          "controllingPort": 143,
+          "controllingPort": 137,
           "pins": [
             {
               "a": {
@@ -18065,6 +20963,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip19",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core48",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core48",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core48",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core48",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                  "lane": 7
                 }
               }
             }
@@ -18269,6 +21215,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                146,
+                147,
+                148,
+                149,
+                150,
+                151,
+                152
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core48",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core48",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core48",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core48",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core48",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core48",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core48",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core48",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -18453,7 +21512,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 148,
           "name": "eth1/19/4",
-          "controllingPort": 147,
+          "controllingPort": 145,
           "pins": [
             {
               "a": {
@@ -18518,7 +21577,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 149,
           "name": "eth1/19/5",
-          "controllingPort": 149,
+          "controllingPort": 145,
           "pins": [
             {
               "a": {
@@ -18776,7 +21835,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 150,
           "name": "eth1/19/6",
-          "controllingPort": 149,
+          "controllingPort": 145,
           "pins": [
             {
               "a": {
@@ -18841,7 +21900,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 151,
           "name": "eth1/19/7",
-          "controllingPort": 149,
+          "controllingPort": 145,
           "pins": [
             {
               "a": {
@@ -18953,7 +22012,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 152,
           "name": "eth1/19/8",
-          "controllingPort": 151,
+          "controllingPort": 145,
           "pins": [
             {
               "a": {
@@ -19065,6 +22124,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip20",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core49",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core49",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core49",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core49",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                  "lane": 7
                 }
               }
             }
@@ -19269,6 +22376,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                154,
+                155,
+                156,
+                157,
+                158,
+                159,
+                160
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core49",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core49",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core49",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core49",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core49",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core49",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core49",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core49",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -19453,7 +22673,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 156,
           "name": "eth1/20/4",
-          "controllingPort": 155,
+          "controllingPort": 153,
           "pins": [
             {
               "a": {
@@ -19518,7 +22738,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 157,
           "name": "eth1/20/5",
-          "controllingPort": 157,
+          "controllingPort": 153,
           "pins": [
             {
               "a": {
@@ -19776,7 +22996,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 158,
           "name": "eth1/20/6",
-          "controllingPort": 157,
+          "controllingPort": 153,
           "pins": [
             {
               "a": {
@@ -19841,7 +23061,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 159,
           "name": "eth1/20/7",
-          "controllingPort": 157,
+          "controllingPort": 153,
           "pins": [
             {
               "a": {
@@ -19953,7 +23173,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 160,
           "name": "eth1/20/8",
-          "controllingPort": 159,
+          "controllingPort": 153,
           "pins": [
             {
               "a": {
@@ -20065,6 +23285,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip21",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core53",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core53",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core53",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core53",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                  "lane": 7
                 }
               }
             }
@@ -20269,6 +23537,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                162,
+                163,
+                164,
+                165,
+                166,
+                167,
+                168
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core53",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core53",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core53",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core53",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core53",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core53",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core53",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core53",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -20453,7 +23834,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 164,
           "name": "eth1/21/4",
-          "controllingPort": 163,
+          "controllingPort": 161,
           "pins": [
             {
               "a": {
@@ -20518,7 +23899,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 165,
           "name": "eth1/21/5",
-          "controllingPort": 165,
+          "controllingPort": 161,
           "pins": [
             {
               "a": {
@@ -20776,7 +24157,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 166,
           "name": "eth1/21/6",
-          "controllingPort": 165,
+          "controllingPort": 161,
           "pins": [
             {
               "a": {
@@ -20841,7 +24222,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 167,
           "name": "eth1/21/7",
-          "controllingPort": 165,
+          "controllingPort": 161,
           "pins": [
             {
               "a": {
@@ -20953,7 +24334,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 168,
           "name": "eth1/21/8",
-          "controllingPort": 167,
+          "controllingPort": 161,
           "pins": [
             {
               "a": {
@@ -21065,6 +24446,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip22",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core52",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core52",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core52",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core52",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                  "lane": 7
                 }
               }
             }
@@ -21269,6 +24698,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                170,
+                171,
+                172,
+                173,
+                174,
+                175,
+                176
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core52",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core52",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core52",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core52",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core52",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core52",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core52",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core52",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -21453,7 +24995,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 172,
           "name": "eth1/22/4",
-          "controllingPort": 171,
+          "controllingPort": 169,
           "pins": [
             {
               "a": {
@@ -21518,7 +25060,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 173,
           "name": "eth1/22/5",
-          "controllingPort": 173,
+          "controllingPort": 169,
           "pins": [
             {
               "a": {
@@ -21776,7 +25318,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 174,
           "name": "eth1/22/6",
-          "controllingPort": 173,
+          "controllingPort": 169,
           "pins": [
             {
               "a": {
@@ -21841,7 +25383,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 175,
           "name": "eth1/22/7",
-          "controllingPort": 173,
+          "controllingPort": 169,
           "pins": [
             {
               "a": {
@@ -21953,7 +25495,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 176,
           "name": "eth1/22/8",
-          "controllingPort": 175,
+          "controllingPort": 169,
           "pins": [
             {
               "a": {
@@ -22065,6 +25607,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip23",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core55",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core55",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core55",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core55",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                  "lane": 7
                 }
               }
             }
@@ -22269,6 +25859,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                178,
+                179,
+                180,
+                181,
+                182,
+                183,
+                184
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core55",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core55",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core55",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core55",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core55",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core55",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core55",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core55",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -22453,7 +26156,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 180,
           "name": "eth1/23/4",
-          "controllingPort": 179,
+          "controllingPort": 177,
           "pins": [
             {
               "a": {
@@ -22518,7 +26221,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 181,
           "name": "eth1/23/5",
-          "controllingPort": 181,
+          "controllingPort": 177,
           "pins": [
             {
               "a": {
@@ -22776,7 +26479,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 182,
           "name": "eth1/23/6",
-          "controllingPort": 181,
+          "controllingPort": 177,
           "pins": [
             {
               "a": {
@@ -22841,7 +26544,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 183,
           "name": "eth1/23/7",
-          "controllingPort": 181,
+          "controllingPort": 177,
           "pins": [
             {
               "a": {
@@ -22953,7 +26656,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 184,
           "name": "eth1/23/8",
-          "controllingPort": 183,
+          "controllingPort": 177,
           "pins": [
             {
               "a": {
@@ -23065,6 +26768,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip24",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core54",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core54",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core54",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core54",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                  "lane": 7
                 }
               }
             }
@@ -23269,6 +27020,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                186,
+                187,
+                188,
+                189,
+                190,
+                191,
+                192
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core54",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core54",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core54",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core54",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core54",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core54",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core54",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core54",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -23453,7 +27317,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 188,
           "name": "eth1/24/4",
-          "controllingPort": 187,
+          "controllingPort": 185,
           "pins": [
             {
               "a": {
@@ -23518,7 +27382,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 189,
           "name": "eth1/24/5",
-          "controllingPort": 189,
+          "controllingPort": 185,
           "pins": [
             {
               "a": {
@@ -23776,7 +27640,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 190,
           "name": "eth1/24/6",
-          "controllingPort": 189,
+          "controllingPort": 185,
           "pins": [
             {
               "a": {
@@ -23841,7 +27705,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 191,
           "name": "eth1/24/7",
-          "controllingPort": 189,
+          "controllingPort": 185,
           "pins": [
             {
               "a": {
@@ -23953,7 +27817,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 192,
           "name": "eth1/24/8",
-          "controllingPort": 191,
+          "controllingPort": 185,
           "pins": [
             {
               "a": {
@@ -24065,6 +27929,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip25",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core58",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core58",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core58",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core58",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                  "lane": 7
                 }
               }
             }
@@ -24269,6 +28181,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                194,
+                195,
+                196,
+                197,
+                198,
+                199,
+                200
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core58",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core58",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core58",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core58",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core58",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core58",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core58",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core58",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -24453,7 +28478,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 196,
           "name": "eth1/25/4",
-          "controllingPort": 195,
+          "controllingPort": 193,
           "pins": [
             {
               "a": {
@@ -24518,7 +28543,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 197,
           "name": "eth1/25/5",
-          "controllingPort": 197,
+          "controllingPort": 193,
           "pins": [
             {
               "a": {
@@ -24776,7 +28801,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 198,
           "name": "eth1/25/6",
-          "controllingPort": 197,
+          "controllingPort": 193,
           "pins": [
             {
               "a": {
@@ -24841,7 +28866,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 199,
           "name": "eth1/25/7",
-          "controllingPort": 197,
+          "controllingPort": 193,
           "pins": [
             {
               "a": {
@@ -24953,7 +28978,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 200,
           "name": "eth1/25/8",
-          "controllingPort": 199,
+          "controllingPort": 193,
           "pins": [
             {
               "a": {
@@ -25065,6 +29090,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip26",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core59",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip26",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core59",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip26",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core59",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip26",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core59",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip26",
+                  "lane": 7
                 }
               }
             }
@@ -25269,6 +29342,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                202,
+                203,
+                204,
+                205,
+                206,
+                207,
+                208
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core59",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core59",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core59",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core59",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core59",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core59",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core59",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core59",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip26",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip26",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip26",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip26",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip26",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip26",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip26",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip26",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -25453,7 +29639,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 204,
           "name": "eth1/26/4",
-          "controllingPort": 203,
+          "controllingPort": 201,
           "pins": [
             {
               "a": {
@@ -25518,7 +29704,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 205,
           "name": "eth1/26/5",
-          "controllingPort": 205,
+          "controllingPort": 201,
           "pins": [
             {
               "a": {
@@ -25776,7 +29962,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 206,
           "name": "eth1/26/6",
-          "controllingPort": 205,
+          "controllingPort": 201,
           "pins": [
             {
               "a": {
@@ -25841,7 +30027,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 207,
           "name": "eth1/26/7",
-          "controllingPort": 205,
+          "controllingPort": 201,
           "pins": [
             {
               "a": {
@@ -25953,7 +30139,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 208,
           "name": "eth1/26/8",
-          "controllingPort": 207,
+          "controllingPort": 201,
           "pins": [
             {
               "a": {
@@ -26065,6 +30251,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip27",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core56",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core56",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core56",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core56",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                  "lane": 7
                 }
               }
             }
@@ -26269,6 +30503,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                210,
+                211,
+                212,
+                213,
+                214,
+                215,
+                216
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core56",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core56",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core56",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core56",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core56",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core56",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core56",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core56",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -26453,7 +30800,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 212,
           "name": "eth1/27/4",
-          "controllingPort": 211,
+          "controllingPort": 209,
           "pins": [
             {
               "a": {
@@ -26518,7 +30865,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 213,
           "name": "eth1/27/5",
-          "controllingPort": 213,
+          "controllingPort": 209,
           "pins": [
             {
               "a": {
@@ -26776,7 +31123,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 214,
           "name": "eth1/27/6",
-          "controllingPort": 213,
+          "controllingPort": 209,
           "pins": [
             {
               "a": {
@@ -26841,7 +31188,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 215,
           "name": "eth1/27/7",
-          "controllingPort": 213,
+          "controllingPort": 209,
           "pins": [
             {
               "a": {
@@ -26953,7 +31300,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 216,
           "name": "eth1/27/8",
-          "controllingPort": 215,
+          "controllingPort": 209,
           "pins": [
             {
               "a": {
@@ -27065,6 +31412,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip28",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core57",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core57",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core57",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core57",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                  "lane": 7
                 }
               }
             }
@@ -27269,6 +31664,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                218,
+                219,
+                220,
+                221,
+                222,
+                223,
+                224
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core57",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core57",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core57",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core57",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core57",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core57",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core57",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core57",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -27453,7 +31961,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 220,
           "name": "eth1/28/4",
-          "controllingPort": 219,
+          "controllingPort": 217,
           "pins": [
             {
               "a": {
@@ -27518,7 +32026,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 221,
           "name": "eth1/28/5",
-          "controllingPort": 221,
+          "controllingPort": 217,
           "pins": [
             {
               "a": {
@@ -27776,7 +32284,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 222,
           "name": "eth1/28/6",
-          "controllingPort": 221,
+          "controllingPort": 217,
           "pins": [
             {
               "a": {
@@ -27841,7 +32349,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 223,
           "name": "eth1/28/7",
-          "controllingPort": 221,
+          "controllingPort": 217,
           "pins": [
             {
               "a": {
@@ -27953,7 +32461,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 224,
           "name": "eth1/28/8",
-          "controllingPort": 223,
+          "controllingPort": 217,
           "pins": [
             {
               "a": {
@@ -28065,6 +32573,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip29",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core61",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip29",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core61",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip29",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core61",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip29",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core61",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip29",
+                  "lane": 7
                 }
               }
             }
@@ -28269,6 +32825,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                226,
+                227,
+                228,
+                229,
+                230,
+                231,
+                232
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core61",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core61",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core61",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core61",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core61",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core61",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core61",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core61",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip29",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip29",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip29",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip29",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip29",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip29",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip29",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip29",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -28453,7 +33122,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 228,
           "name": "eth1/29/4",
-          "controllingPort": 227,
+          "controllingPort": 225,
           "pins": [
             {
               "a": {
@@ -28518,7 +33187,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 229,
           "name": "eth1/29/5",
-          "controllingPort": 229,
+          "controllingPort": 225,
           "pins": [
             {
               "a": {
@@ -28776,7 +33445,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 230,
           "name": "eth1/29/6",
-          "controllingPort": 229,
+          "controllingPort": 225,
           "pins": [
             {
               "a": {
@@ -28841,7 +33510,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 231,
           "name": "eth1/29/7",
-          "controllingPort": 229,
+          "controllingPort": 225,
           "pins": [
             {
               "a": {
@@ -28953,7 +33622,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 232,
           "name": "eth1/29/8",
-          "controllingPort": 231,
+          "controllingPort": 225,
           "pins": [
             {
               "a": {
@@ -29065,6 +33734,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip30",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core60",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip30",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core60",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip30",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core60",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip30",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core60",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip30",
+                  "lane": 7
                 }
               }
             }
@@ -29269,6 +33986,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                234,
+                235,
+                236,
+                237,
+                238,
+                239,
+                240
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core60",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core60",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core60",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core60",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core60",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core60",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core60",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core60",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip30",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip30",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip30",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip30",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip30",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip30",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip30",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip30",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -29453,7 +34283,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 236,
           "name": "eth1/30/4",
-          "controllingPort": 235,
+          "controllingPort": 233,
           "pins": [
             {
               "a": {
@@ -29518,7 +34348,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 237,
           "name": "eth1/30/5",
-          "controllingPort": 237,
+          "controllingPort": 233,
           "pins": [
             {
               "a": {
@@ -29776,7 +34606,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 238,
           "name": "eth1/30/6",
-          "controllingPort": 237,
+          "controllingPort": 233,
           "pins": [
             {
               "a": {
@@ -29841,7 +34671,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 239,
           "name": "eth1/30/7",
-          "controllingPort": 237,
+          "controllingPort": 233,
           "pins": [
             {
               "a": {
@@ -29953,7 +34783,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 240,
           "name": "eth1/30/8",
-          "controllingPort": 239,
+          "controllingPort": 233,
           "pins": [
             {
               "a": {
@@ -30065,6 +34895,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip31",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core63",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core63",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core63",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core63",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                  "lane": 7
                 }
               }
             }
@@ -30269,6 +35147,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                242,
+                243,
+                244,
+                245,
+                246,
+                247,
+                248
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core63",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core63",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core63",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core63",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core63",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core63",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core63",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core63",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -30453,7 +35444,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 244,
           "name": "eth1/31/4",
-          "controllingPort": 243,
+          "controllingPort": 241,
           "pins": [
             {
               "a": {
@@ -30518,7 +35509,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 245,
           "name": "eth1/31/5",
-          "controllingPort": 245,
+          "controllingPort": 241,
           "pins": [
             {
               "a": {
@@ -30776,7 +35767,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 246,
           "name": "eth1/31/6",
-          "controllingPort": 245,
+          "controllingPort": 241,
           "pins": [
             {
               "a": {
@@ -30841,7 +35832,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 247,
           "name": "eth1/31/7",
-          "controllingPort": 245,
+          "controllingPort": 241,
           "pins": [
             {
               "a": {
@@ -30953,7 +35944,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 248,
           "name": "eth1/31/8",
-          "controllingPort": 247,
+          "controllingPort": 241,
           "pins": [
             {
               "a": {
@@ -31065,6 +36056,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip32",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core62",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip32",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core62",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip32",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core62",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip32",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core62",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip32",
+                  "lane": 7
                 }
               }
             }
@@ -31269,6 +36308,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                250,
+                251,
+                252,
+                253,
+                254,
+                255,
+                256
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core62",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core62",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core62",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core62",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core62",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core62",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core62",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core62",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip32",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip32",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip32",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip32",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip32",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip32",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip32",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip32",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -31453,7 +36605,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 252,
           "name": "eth1/32/4",
-          "controllingPort": 251,
+          "controllingPort": 249,
           "pins": [
             {
               "a": {
@@ -31518,7 +36670,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 253,
           "name": "eth1/32/5",
-          "controllingPort": 253,
+          "controllingPort": 249,
           "pins": [
             {
               "a": {
@@ -31776,7 +36928,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 254,
           "name": "eth1/32/6",
-          "controllingPort": 253,
+          "controllingPort": 249,
           "pins": [
             {
               "a": {
@@ -31841,7 +36993,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 255,
           "name": "eth1/32/7",
-          "controllingPort": 253,
+          "controllingPort": 249,
           "pins": [
             {
               "a": {
@@ -31953,7 +37105,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 256,
           "name": "eth1/32/8",
-          "controllingPort": 255,
+          "controllingPort": 249,
           "pins": [
             {
               "a": {
@@ -32065,6 +37217,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip33",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core2",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip33",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core2",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip33",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core2",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip33",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core2",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip33",
+                  "lane": 7
                 }
               }
             }
@@ -32269,6 +37469,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                258,
+                259,
+                260,
+                261,
+                262,
+                263,
+                264
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core2",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core2",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core2",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core2",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core2",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core2",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core2",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core2",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip33",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip33",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip33",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip33",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip33",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip33",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip33",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip33",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -32453,7 +37766,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 260,
           "name": "eth1/33/4",
-          "controllingPort": 259,
+          "controllingPort": 257,
           "pins": [
             {
               "a": {
@@ -32518,7 +37831,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 261,
           "name": "eth1/33/5",
-          "controllingPort": 261,
+          "controllingPort": 257,
           "pins": [
             {
               "a": {
@@ -32776,7 +38089,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 262,
           "name": "eth1/33/6",
-          "controllingPort": 261,
+          "controllingPort": 257,
           "pins": [
             {
               "a": {
@@ -32841,7 +38154,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 263,
           "name": "eth1/33/7",
-          "controllingPort": 261,
+          "controllingPort": 257,
           "pins": [
             {
               "a": {
@@ -32953,7 +38266,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 264,
           "name": "eth1/33/8",
-          "controllingPort": 263,
+          "controllingPort": 257,
           "pins": [
             {
               "a": {
@@ -33065,6 +38378,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip34",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core3",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip34",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core3",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip34",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core3",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip34",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core3",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip34",
+                  "lane": 7
                 }
               }
             }
@@ -33269,6 +38630,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                266,
+                267,
+                268,
+                269,
+                270,
+                271,
+                272
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core3",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core3",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core3",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core3",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core3",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core3",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core3",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core3",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip34",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip34",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip34",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip34",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip34",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip34",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip34",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip34",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -33453,7 +38927,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 268,
           "name": "eth1/34/4",
-          "controllingPort": 267,
+          "controllingPort": 265,
           "pins": [
             {
               "a": {
@@ -33518,7 +38992,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 269,
           "name": "eth1/34/5",
-          "controllingPort": 269,
+          "controllingPort": 265,
           "pins": [
             {
               "a": {
@@ -33776,7 +39250,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 270,
           "name": "eth1/34/6",
-          "controllingPort": 269,
+          "controllingPort": 265,
           "pins": [
             {
               "a": {
@@ -33841,7 +39315,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 271,
           "name": "eth1/34/7",
-          "controllingPort": 269,
+          "controllingPort": 265,
           "pins": [
             {
               "a": {
@@ -33953,7 +39427,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 272,
           "name": "eth1/34/8",
-          "controllingPort": 271,
+          "controllingPort": 265,
           "pins": [
             {
               "a": {
@@ -34065,6 +39539,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip35",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core0",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip35",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core0",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip35",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core0",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip35",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core0",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip35",
+                  "lane": 7
                 }
               }
             }
@@ -34269,6 +39791,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                274,
+                275,
+                276,
+                277,
+                278,
+                279,
+                280
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core0",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core0",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core0",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core0",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core0",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core0",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core0",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core0",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip35",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip35",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip35",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip35",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip35",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip35",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip35",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip35",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -34453,7 +40088,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 276,
           "name": "eth1/35/4",
-          "controllingPort": 275,
+          "controllingPort": 273,
           "pins": [
             {
               "a": {
@@ -34518,7 +40153,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 277,
           "name": "eth1/35/5",
-          "controllingPort": 277,
+          "controllingPort": 273,
           "pins": [
             {
               "a": {
@@ -34776,7 +40411,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 278,
           "name": "eth1/35/6",
-          "controllingPort": 277,
+          "controllingPort": 273,
           "pins": [
             {
               "a": {
@@ -34841,7 +40476,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 279,
           "name": "eth1/35/7",
-          "controllingPort": 277,
+          "controllingPort": 273,
           "pins": [
             {
               "a": {
@@ -34953,7 +40588,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 280,
           "name": "eth1/35/8",
-          "controllingPort": 279,
+          "controllingPort": 273,
           "pins": [
             {
               "a": {
@@ -35065,6 +40700,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip36",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core1",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip36",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core1",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip36",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core1",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip36",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core1",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip36",
+                  "lane": 7
                 }
               }
             }
@@ -35269,6 +40952,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                282,
+                283,
+                284,
+                285,
+                286,
+                287,
+                288
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core1",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core1",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core1",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core1",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core1",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core1",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core1",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core1",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip36",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip36",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip36",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip36",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip36",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip36",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip36",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip36",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -35453,7 +41249,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 284,
           "name": "eth1/36/4",
-          "controllingPort": 283,
+          "controllingPort": 281,
           "pins": [
             {
               "a": {
@@ -35518,7 +41314,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 285,
           "name": "eth1/36/5",
-          "controllingPort": 285,
+          "controllingPort": 281,
           "pins": [
             {
               "a": {
@@ -35776,7 +41572,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 286,
           "name": "eth1/36/6",
-          "controllingPort": 285,
+          "controllingPort": 281,
           "pins": [
             {
               "a": {
@@ -35841,7 +41637,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 287,
           "name": "eth1/36/7",
-          "controllingPort": 285,
+          "controllingPort": 281,
           "pins": [
             {
               "a": {
@@ -35953,7 +41749,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 288,
           "name": "eth1/36/8",
-          "controllingPort": 287,
+          "controllingPort": 281,
           "pins": [
             {
               "a": {
@@ -36065,6 +41861,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip37",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core5",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip37",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core5",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip37",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core5",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip37",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core5",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip37",
+                  "lane": 7
                 }
               }
             }
@@ -36269,6 +42113,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                290,
+                291,
+                292,
+                293,
+                294,
+                295,
+                296
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core5",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core5",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core5",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core5",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core5",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core5",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core5",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core5",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip37",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip37",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip37",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip37",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip37",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip37",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip37",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip37",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -36453,7 +42410,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 292,
           "name": "eth1/37/4",
-          "controllingPort": 291,
+          "controllingPort": 289,
           "pins": [
             {
               "a": {
@@ -36518,7 +42475,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 293,
           "name": "eth1/37/5",
-          "controllingPort": 293,
+          "controllingPort": 289,
           "pins": [
             {
               "a": {
@@ -36776,7 +42733,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 294,
           "name": "eth1/37/6",
-          "controllingPort": 293,
+          "controllingPort": 289,
           "pins": [
             {
               "a": {
@@ -36841,7 +42798,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 295,
           "name": "eth1/37/7",
-          "controllingPort": 293,
+          "controllingPort": 289,
           "pins": [
             {
               "a": {
@@ -36953,7 +42910,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 296,
           "name": "eth1/37/8",
-          "controllingPort": 295,
+          "controllingPort": 289,
           "pins": [
             {
               "a": {
@@ -37065,6 +43022,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip38",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core4",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip38",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core4",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip38",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core4",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip38",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core4",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip38",
+                  "lane": 7
                 }
               }
             }
@@ -37269,6 +43274,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                298,
+                299,
+                300,
+                301,
+                302,
+                303,
+                304
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core4",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core4",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core4",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core4",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core4",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core4",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core4",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core4",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip38",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip38",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip38",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip38",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip38",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip38",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip38",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip38",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -37453,7 +43571,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 300,
           "name": "eth1/38/4",
-          "controllingPort": 299,
+          "controllingPort": 297,
           "pins": [
             {
               "a": {
@@ -37518,7 +43636,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 301,
           "name": "eth1/38/5",
-          "controllingPort": 301,
+          "controllingPort": 297,
           "pins": [
             {
               "a": {
@@ -37776,7 +43894,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 302,
           "name": "eth1/38/6",
-          "controllingPort": 301,
+          "controllingPort": 297,
           "pins": [
             {
               "a": {
@@ -37841,7 +43959,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 303,
           "name": "eth1/38/7",
-          "controllingPort": 301,
+          "controllingPort": 297,
           "pins": [
             {
               "a": {
@@ -37953,7 +44071,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 304,
           "name": "eth1/38/8",
-          "controllingPort": 303,
+          "controllingPort": 297,
           "pins": [
             {
               "a": {
@@ -38065,6 +44183,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip39",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core7",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip39",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core7",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip39",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core7",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip39",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core7",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip39",
+                  "lane": 7
                 }
               }
             }
@@ -38269,6 +44435,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                306,
+                307,
+                308,
+                309,
+                310,
+                311,
+                312
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core7",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core7",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core7",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core7",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core7",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core7",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core7",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core7",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip39",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip39",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip39",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip39",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip39",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip39",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip39",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip39",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -38453,7 +44732,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 308,
           "name": "eth1/39/4",
-          "controllingPort": 307,
+          "controllingPort": 305,
           "pins": [
             {
               "a": {
@@ -38518,7 +44797,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 309,
           "name": "eth1/39/5",
-          "controllingPort": 309,
+          "controllingPort": 305,
           "pins": [
             {
               "a": {
@@ -38776,7 +45055,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 310,
           "name": "eth1/39/6",
-          "controllingPort": 309,
+          "controllingPort": 305,
           "pins": [
             {
               "a": {
@@ -38841,7 +45120,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 311,
           "name": "eth1/39/7",
-          "controllingPort": 309,
+          "controllingPort": 305,
           "pins": [
             {
               "a": {
@@ -38953,7 +45232,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 312,
           "name": "eth1/39/8",
-          "controllingPort": 311,
+          "controllingPort": 305,
           "pins": [
             {
               "a": {
@@ -39065,6 +45344,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip40",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core6",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip40",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core6",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip40",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core6",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip40",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core6",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip40",
+                  "lane": 7
                 }
               }
             }
@@ -39269,6 +45596,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                314,
+                315,
+                316,
+                317,
+                318,
+                319,
+                320
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core6",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core6",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core6",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core6",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core6",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core6",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core6",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core6",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip40",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip40",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip40",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip40",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip40",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip40",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip40",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip40",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -39453,7 +45893,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 316,
           "name": "eth1/40/4",
-          "controllingPort": 315,
+          "controllingPort": 313,
           "pins": [
             {
               "a": {
@@ -39518,7 +45958,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 317,
           "name": "eth1/40/5",
-          "controllingPort": 317,
+          "controllingPort": 313,
           "pins": [
             {
               "a": {
@@ -39776,7 +46216,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 318,
           "name": "eth1/40/6",
-          "controllingPort": 317,
+          "controllingPort": 313,
           "pins": [
             {
               "a": {
@@ -39841,7 +46281,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 319,
           "name": "eth1/40/7",
-          "controllingPort": 317,
+          "controllingPort": 313,
           "pins": [
             {
               "a": {
@@ -39953,7 +46393,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 320,
           "name": "eth1/40/8",
-          "controllingPort": 319,
+          "controllingPort": 313,
           "pins": [
             {
               "a": {
@@ -40065,6 +46505,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip41",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core10",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip41",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core10",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip41",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core10",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip41",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core10",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip41",
+                  "lane": 7
                 }
               }
             }
@@ -40269,6 +46757,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                322,
+                323,
+                324,
+                325,
+                326,
+                327,
+                328
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core10",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core10",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core10",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core10",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core10",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core10",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core10",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core10",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip41",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip41",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip41",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip41",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip41",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip41",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip41",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip41",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -40453,7 +47054,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 324,
           "name": "eth1/41/4",
-          "controllingPort": 323,
+          "controllingPort": 321,
           "pins": [
             {
               "a": {
@@ -40518,7 +47119,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 325,
           "name": "eth1/41/5",
-          "controllingPort": 325,
+          "controllingPort": 321,
           "pins": [
             {
               "a": {
@@ -40776,7 +47377,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 326,
           "name": "eth1/41/6",
-          "controllingPort": 325,
+          "controllingPort": 321,
           "pins": [
             {
               "a": {
@@ -40841,7 +47442,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 327,
           "name": "eth1/41/7",
-          "controllingPort": 325,
+          "controllingPort": 321,
           "pins": [
             {
               "a": {
@@ -40953,7 +47554,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 328,
           "name": "eth1/41/8",
-          "controllingPort": 327,
+          "controllingPort": 321,
           "pins": [
             {
               "a": {
@@ -41065,6 +47666,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip42",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core11",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip42",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core11",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip42",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core11",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip42",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core11",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip42",
+                  "lane": 7
                 }
               }
             }
@@ -41269,6 +47918,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                330,
+                331,
+                332,
+                333,
+                334,
+                335,
+                336
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core11",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core11",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core11",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core11",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core11",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core11",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core11",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core11",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip42",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip42",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip42",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip42",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip42",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip42",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip42",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip42",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -41453,7 +48215,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 332,
           "name": "eth1/42/4",
-          "controllingPort": 331,
+          "controllingPort": 329,
           "pins": [
             {
               "a": {
@@ -41518,7 +48280,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 333,
           "name": "eth1/42/5",
-          "controllingPort": 333,
+          "controllingPort": 329,
           "pins": [
             {
               "a": {
@@ -41776,7 +48538,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 334,
           "name": "eth1/42/6",
-          "controllingPort": 333,
+          "controllingPort": 329,
           "pins": [
             {
               "a": {
@@ -41841,7 +48603,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 335,
           "name": "eth1/42/7",
-          "controllingPort": 333,
+          "controllingPort": 329,
           "pins": [
             {
               "a": {
@@ -41953,7 +48715,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 336,
           "name": "eth1/42/8",
-          "controllingPort": 335,
+          "controllingPort": 329,
           "pins": [
             {
               "a": {
@@ -42065,6 +48827,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip43",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core8",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip43",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core8",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip43",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core8",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip43",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core8",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip43",
+                  "lane": 7
                 }
               }
             }
@@ -42269,6 +49079,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                338,
+                339,
+                340,
+                341,
+                342,
+                343,
+                344
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core8",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core8",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core8",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core8",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core8",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core8",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core8",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core8",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip43",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip43",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip43",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip43",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip43",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip43",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip43",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip43",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -42453,7 +49376,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 340,
           "name": "eth1/43/4",
-          "controllingPort": 339,
+          "controllingPort": 337,
           "pins": [
             {
               "a": {
@@ -42518,7 +49441,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 341,
           "name": "eth1/43/5",
-          "controllingPort": 341,
+          "controllingPort": 337,
           "pins": [
             {
               "a": {
@@ -42776,7 +49699,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 342,
           "name": "eth1/43/6",
-          "controllingPort": 341,
+          "controllingPort": 337,
           "pins": [
             {
               "a": {
@@ -42841,7 +49764,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 343,
           "name": "eth1/43/7",
-          "controllingPort": 341,
+          "controllingPort": 337,
           "pins": [
             {
               "a": {
@@ -42953,7 +49876,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 344,
           "name": "eth1/43/8",
-          "controllingPort": 343,
+          "controllingPort": 337,
           "pins": [
             {
               "a": {
@@ -43065,6 +49988,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip44",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core9",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip44",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core9",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip44",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core9",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip44",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core9",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip44",
+                  "lane": 7
                 }
               }
             }
@@ -43269,6 +50240,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                346,
+                347,
+                348,
+                349,
+                350,
+                351,
+                352
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core9",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core9",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core9",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core9",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core9",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core9",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core9",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core9",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip44",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip44",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip44",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip44",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip44",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip44",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip44",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip44",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -43453,7 +50537,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 348,
           "name": "eth1/44/4",
-          "controllingPort": 347,
+          "controllingPort": 345,
           "pins": [
             {
               "a": {
@@ -43518,7 +50602,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 349,
           "name": "eth1/44/5",
-          "controllingPort": 349,
+          "controllingPort": 345,
           "pins": [
             {
               "a": {
@@ -43776,7 +50860,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 350,
           "name": "eth1/44/6",
-          "controllingPort": 349,
+          "controllingPort": 345,
           "pins": [
             {
               "a": {
@@ -43841,7 +50925,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 351,
           "name": "eth1/44/7",
-          "controllingPort": 349,
+          "controllingPort": 345,
           "pins": [
             {
               "a": {
@@ -43953,7 +51037,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 352,
           "name": "eth1/44/8",
-          "controllingPort": 351,
+          "controllingPort": 345,
           "pins": [
             {
               "a": {
@@ -44065,6 +51149,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip45",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core13",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip45",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core13",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip45",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core13",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip45",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core13",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip45",
+                  "lane": 7
                 }
               }
             }
@@ -44269,6 +51401,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                354,
+                355,
+                356,
+                357,
+                358,
+                359,
+                360
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core13",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core13",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core13",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core13",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core13",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core13",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core13",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core13",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip45",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip45",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip45",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip45",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip45",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip45",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip45",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip45",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -44453,7 +51698,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 356,
           "name": "eth1/45/4",
-          "controllingPort": 355,
+          "controllingPort": 353,
           "pins": [
             {
               "a": {
@@ -44518,7 +51763,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 357,
           "name": "eth1/45/5",
-          "controllingPort": 357,
+          "controllingPort": 353,
           "pins": [
             {
               "a": {
@@ -44776,7 +52021,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 358,
           "name": "eth1/45/6",
-          "controllingPort": 357,
+          "controllingPort": 353,
           "pins": [
             {
               "a": {
@@ -44841,7 +52086,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 359,
           "name": "eth1/45/7",
-          "controllingPort": 357,
+          "controllingPort": 353,
           "pins": [
             {
               "a": {
@@ -44953,7 +52198,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 360,
           "name": "eth1/45/8",
-          "controllingPort": 359,
+          "controllingPort": 353,
           "pins": [
             {
               "a": {
@@ -45065,6 +52310,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip46",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core12",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip46",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core12",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip46",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core12",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip46",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core12",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip46",
+                  "lane": 7
                 }
               }
             }
@@ -45269,6 +52562,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                362,
+                363,
+                364,
+                365,
+                366,
+                367,
+                368
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core12",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core12",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core12",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core12",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core12",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core12",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core12",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core12",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip46",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip46",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip46",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip46",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip46",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip46",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip46",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip46",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -45453,7 +52859,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 364,
           "name": "eth1/46/4",
-          "controllingPort": 363,
+          "controllingPort": 361,
           "pins": [
             {
               "a": {
@@ -45518,7 +52924,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 365,
           "name": "eth1/46/5",
-          "controllingPort": 365,
+          "controllingPort": 361,
           "pins": [
             {
               "a": {
@@ -45776,7 +53182,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 366,
           "name": "eth1/46/6",
-          "controllingPort": 365,
+          "controllingPort": 361,
           "pins": [
             {
               "a": {
@@ -45841,7 +53247,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 367,
           "name": "eth1/46/7",
-          "controllingPort": 365,
+          "controllingPort": 361,
           "pins": [
             {
               "a": {
@@ -45953,7 +53359,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 368,
           "name": "eth1/46/8",
-          "controllingPort": 367,
+          "controllingPort": 361,
           "pins": [
             {
               "a": {
@@ -46065,6 +53471,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip47",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core15",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip47",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core15",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip47",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core15",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip47",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core15",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip47",
+                  "lane": 7
                 }
               }
             }
@@ -46269,6 +53723,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                370,
+                371,
+                372,
+                373,
+                374,
+                375,
+                376
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core15",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core15",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core15",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core15",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core15",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core15",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core15",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core15",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip47",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip47",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip47",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip47",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip47",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip47",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip47",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip47",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -46453,7 +54020,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 372,
           "name": "eth1/47/4",
-          "controllingPort": 371,
+          "controllingPort": 369,
           "pins": [
             {
               "a": {
@@ -46518,7 +54085,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 373,
           "name": "eth1/47/5",
-          "controllingPort": 373,
+          "controllingPort": 369,
           "pins": [
             {
               "a": {
@@ -46776,7 +54343,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 374,
           "name": "eth1/47/6",
-          "controllingPort": 373,
+          "controllingPort": 369,
           "pins": [
             {
               "a": {
@@ -46841,7 +54408,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 375,
           "name": "eth1/47/7",
-          "controllingPort": 373,
+          "controllingPort": 369,
           "pins": [
             {
               "a": {
@@ -46953,7 +54520,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 376,
           "name": "eth1/47/8",
-          "controllingPort": 375,
+          "controllingPort": 369,
           "pins": [
             {
               "a": {
@@ -47065,6 +54632,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip48",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core14",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip48",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core14",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip48",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core14",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip48",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core14",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip48",
+                  "lane": 7
                 }
               }
             }
@@ -47269,6 +54884,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                378,
+                379,
+                380,
+                381,
+                382,
+                383,
+                384
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core14",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core14",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core14",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core14",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core14",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core14",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core14",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core14",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip48",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip48",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip48",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip48",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip48",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip48",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip48",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip48",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -47453,7 +55181,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 380,
           "name": "eth1/48/4",
-          "controllingPort": 379,
+          "controllingPort": 377,
           "pins": [
             {
               "a": {
@@ -47518,7 +55246,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 381,
           "name": "eth1/48/5",
-          "controllingPort": 381,
+          "controllingPort": 377,
           "pins": [
             {
               "a": {
@@ -47776,7 +55504,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 382,
           "name": "eth1/48/6",
-          "controllingPort": 381,
+          "controllingPort": 377,
           "pins": [
             {
               "a": {
@@ -47841,7 +55569,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 383,
           "name": "eth1/48/7",
-          "controllingPort": 381,
+          "controllingPort": 377,
           "pins": [
             {
               "a": {
@@ -47953,7 +55681,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 384,
           "name": "eth1/48/8",
-          "controllingPort": 383,
+          "controllingPort": 377,
           "pins": [
             {
               "a": {
@@ -48065,6 +55793,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip49",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip49",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip49",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip49",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip49",
+                  "lane": 7
                 }
               }
             }
@@ -48269,6 +56045,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                386,
+                387,
+                388,
+                389,
+                390,
+                391,
+                392
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core18",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -48453,7 +56342,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 388,
           "name": "eth1/49/4",
-          "controllingPort": 387,
+          "controllingPort": 385,
           "pins": [
             {
               "a": {
@@ -48518,7 +56407,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 389,
           "name": "eth1/49/5",
-          "controllingPort": 389,
+          "controllingPort": 385,
           "pins": [
             {
               "a": {
@@ -48776,7 +56665,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 390,
           "name": "eth1/49/6",
-          "controllingPort": 389,
+          "controllingPort": 385,
           "pins": [
             {
               "a": {
@@ -48841,7 +56730,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 391,
           "name": "eth1/49/7",
-          "controllingPort": 389,
+          "controllingPort": 385,
           "pins": [
             {
               "a": {
@@ -48953,7 +56842,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 392,
           "name": "eth1/49/8",
-          "controllingPort": 391,
+          "controllingPort": 385,
           "pins": [
             {
               "a": {
@@ -49065,6 +56954,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip50",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                  "lane": 7
                 }
               }
             }
@@ -49269,6 +57206,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                394,
+                395,
+                396,
+                397,
+                398,
+                399,
+                400
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core19",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -49453,7 +57503,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 396,
           "name": "eth1/50/4",
-          "controllingPort": 395,
+          "controllingPort": 393,
           "pins": [
             {
               "a": {
@@ -49518,7 +57568,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 397,
           "name": "eth1/50/5",
-          "controllingPort": 397,
+          "controllingPort": 393,
           "pins": [
             {
               "a": {
@@ -49776,7 +57826,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 398,
           "name": "eth1/50/6",
-          "controllingPort": 397,
+          "controllingPort": 393,
           "pins": [
             {
               "a": {
@@ -49841,7 +57891,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 399,
           "name": "eth1/50/7",
-          "controllingPort": 397,
+          "controllingPort": 393,
           "pins": [
             {
               "a": {
@@ -49953,7 +58003,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 400,
           "name": "eth1/50/8",
-          "controllingPort": 399,
+          "controllingPort": 393,
           "pins": [
             {
               "a": {
@@ -50065,6 +58115,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip51",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                  "lane": 7
                 }
               }
             }
@@ -50269,6 +58367,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                402,
+                403,
+                404,
+                405,
+                406,
+                407,
+                408
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core16",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -50453,7 +58664,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 404,
           "name": "eth1/51/4",
-          "controllingPort": 403,
+          "controllingPort": 401,
           "pins": [
             {
               "a": {
@@ -50518,7 +58729,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 405,
           "name": "eth1/51/5",
-          "controllingPort": 405,
+          "controllingPort": 401,
           "pins": [
             {
               "a": {
@@ -50776,7 +58987,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 406,
           "name": "eth1/51/6",
-          "controllingPort": 405,
+          "controllingPort": 401,
           "pins": [
             {
               "a": {
@@ -50841,7 +59052,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 407,
           "name": "eth1/51/7",
-          "controllingPort": 405,
+          "controllingPort": 401,
           "pins": [
             {
               "a": {
@@ -50953,7 +59164,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 408,
           "name": "eth1/51/8",
-          "controllingPort": 407,
+          "controllingPort": 401,
           "pins": [
             {
               "a": {
@@ -51065,6 +59276,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip52",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                  "lane": 7
                 }
               }
             }
@@ -51269,6 +59528,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                410,
+                411,
+                412,
+                413,
+                414,
+                415,
+                416
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core17",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -51453,7 +59825,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 412,
           "name": "eth1/52/4",
-          "controllingPort": 411,
+          "controllingPort": 409,
           "pins": [
             {
               "a": {
@@ -51518,7 +59890,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 413,
           "name": "eth1/52/5",
-          "controllingPort": 413,
+          "controllingPort": 409,
           "pins": [
             {
               "a": {
@@ -51776,7 +60148,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 414,
           "name": "eth1/52/6",
-          "controllingPort": 413,
+          "controllingPort": 409,
           "pins": [
             {
               "a": {
@@ -51841,7 +60213,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 415,
           "name": "eth1/52/7",
-          "controllingPort": 413,
+          "controllingPort": 409,
           "pins": [
             {
               "a": {
@@ -51953,7 +60325,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 416,
           "name": "eth1/52/8",
-          "controllingPort": 415,
+          "controllingPort": 409,
           "pins": [
             {
               "a": {
@@ -52065,6 +60437,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip53",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                  "lane": 7
                 }
               }
             }
@@ -52269,6 +60689,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                418,
+                419,
+                420,
+                421,
+                422,
+                423,
+                424
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core21",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -52453,7 +60986,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 420,
           "name": "eth1/53/4",
-          "controllingPort": 419,
+          "controllingPort": 417,
           "pins": [
             {
               "a": {
@@ -52518,7 +61051,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 421,
           "name": "eth1/53/5",
-          "controllingPort": 421,
+          "controllingPort": 417,
           "pins": [
             {
               "a": {
@@ -52776,7 +61309,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 422,
           "name": "eth1/53/6",
-          "controllingPort": 421,
+          "controllingPort": 417,
           "pins": [
             {
               "a": {
@@ -52841,7 +61374,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 423,
           "name": "eth1/53/7",
-          "controllingPort": 421,
+          "controllingPort": 417,
           "pins": [
             {
               "a": {
@@ -52953,7 +61486,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 424,
           "name": "eth1/53/8",
-          "controllingPort": 423,
+          "controllingPort": 417,
           "pins": [
             {
               "a": {
@@ -53065,6 +61598,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip54",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                  "lane": 7
                 }
               }
             }
@@ -53269,6 +61850,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                426,
+                427,
+                428,
+                429,
+                430,
+                431,
+                432
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core20",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -53453,7 +62147,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 428,
           "name": "eth1/54/4",
-          "controllingPort": 427,
+          "controllingPort": 425,
           "pins": [
             {
               "a": {
@@ -53518,7 +62212,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 429,
           "name": "eth1/54/5",
-          "controllingPort": 429,
+          "controllingPort": 425,
           "pins": [
             {
               "a": {
@@ -53776,7 +62470,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 430,
           "name": "eth1/54/6",
-          "controllingPort": 429,
+          "controllingPort": 425,
           "pins": [
             {
               "a": {
@@ -53841,7 +62535,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 431,
           "name": "eth1/54/7",
-          "controllingPort": 429,
+          "controllingPort": 425,
           "pins": [
             {
               "a": {
@@ -53953,7 +62647,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 432,
           "name": "eth1/54/8",
-          "controllingPort": 431,
+          "controllingPort": 425,
           "pins": [
             {
               "a": {
@@ -54065,6 +62759,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip55",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                  "lane": 7
                 }
               }
             }
@@ -54269,6 +63011,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                434,
+                435,
+                436,
+                437,
+                438,
+                439,
+                440
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core23",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -54453,7 +63308,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 436,
           "name": "eth1/55/4",
-          "controllingPort": 435,
+          "controllingPort": 433,
           "pins": [
             {
               "a": {
@@ -54518,7 +63373,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 437,
           "name": "eth1/55/5",
-          "controllingPort": 437,
+          "controllingPort": 433,
           "pins": [
             {
               "a": {
@@ -54776,7 +63631,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 438,
           "name": "eth1/55/6",
-          "controllingPort": 437,
+          "controllingPort": 433,
           "pins": [
             {
               "a": {
@@ -54841,7 +63696,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 439,
           "name": "eth1/55/7",
-          "controllingPort": 437,
+          "controllingPort": 433,
           "pins": [
             {
               "a": {
@@ -54953,7 +63808,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 440,
           "name": "eth1/55/8",
-          "controllingPort": 439,
+          "controllingPort": 433,
           "pins": [
             {
               "a": {
@@ -55065,6 +63920,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip56",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                  "lane": 7
                 }
               }
             }
@@ -55269,6 +64172,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                442,
+                443,
+                444,
+                445,
+                446,
+                447,
+                448
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core22",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip56",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -55453,7 +64469,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 444,
           "name": "eth1/56/4",
-          "controllingPort": 443,
+          "controllingPort": 441,
           "pins": [
             {
               "a": {
@@ -55518,7 +64534,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 445,
           "name": "eth1/56/5",
-          "controllingPort": 445,
+          "controllingPort": 441,
           "pins": [
             {
               "a": {
@@ -55776,7 +64792,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 446,
           "name": "eth1/56/6",
-          "controllingPort": 445,
+          "controllingPort": 441,
           "pins": [
             {
               "a": {
@@ -55841,7 +64857,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 447,
           "name": "eth1/56/7",
-          "controllingPort": 445,
+          "controllingPort": 441,
           "pins": [
             {
               "a": {
@@ -55953,7 +64969,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 448,
           "name": "eth1/56/8",
-          "controllingPort": 447,
+          "controllingPort": 441,
           "pins": [
             {
               "a": {
@@ -56065,6 +65081,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip57",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip57",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip57",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip57",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip57",
+                  "lane": 7
                 }
               }
             }
@@ -56269,6 +65333,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                450,
+                451,
+                452,
+                453,
+                454,
+                455,
+                456
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core26",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip57",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip57",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip57",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip57",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip57",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip57",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip57",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip57",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -56453,7 +65630,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 452,
           "name": "eth1/57/4",
-          "controllingPort": 451,
+          "controllingPort": 449,
           "pins": [
             {
               "a": {
@@ -56518,7 +65695,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 453,
           "name": "eth1/57/5",
-          "controllingPort": 453,
+          "controllingPort": 449,
           "pins": [
             {
               "a": {
@@ -56776,7 +65953,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 454,
           "name": "eth1/57/6",
-          "controllingPort": 453,
+          "controllingPort": 449,
           "pins": [
             {
               "a": {
@@ -56841,7 +66018,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 455,
           "name": "eth1/57/7",
-          "controllingPort": 453,
+          "controllingPort": 449,
           "pins": [
             {
               "a": {
@@ -56953,7 +66130,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 456,
           "name": "eth1/57/8",
-          "controllingPort": 455,
+          "controllingPort": 449,
           "pins": [
             {
               "a": {
@@ -57065,6 +66242,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip58",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip58",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip58",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip58",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip58",
+                  "lane": 7
                 }
               }
             }
@@ -57269,6 +66494,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                458,
+                459,
+                460,
+                461,
+                462,
+                463,
+                464
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core27",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip58",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip58",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip58",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip58",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip58",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip58",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip58",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip58",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -57453,7 +66791,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 460,
           "name": "eth1/58/4",
-          "controllingPort": 459,
+          "controllingPort": 457,
           "pins": [
             {
               "a": {
@@ -57518,7 +66856,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 461,
           "name": "eth1/58/5",
-          "controllingPort": 461,
+          "controllingPort": 457,
           "pins": [
             {
               "a": {
@@ -57776,7 +67114,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 462,
           "name": "eth1/58/6",
-          "controllingPort": 461,
+          "controllingPort": 457,
           "pins": [
             {
               "a": {
@@ -57841,7 +67179,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 463,
           "name": "eth1/58/7",
-          "controllingPort": 461,
+          "controllingPort": 457,
           "pins": [
             {
               "a": {
@@ -57953,7 +67291,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 464,
           "name": "eth1/58/8",
-          "controllingPort": 463,
+          "controllingPort": 457,
           "pins": [
             {
               "a": {
@@ -58065,6 +67403,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip59",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip59",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip59",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip59",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip59",
+                  "lane": 7
                 }
               }
             }
@@ -58269,6 +67655,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                466,
+                467,
+                468,
+                469,
+                470,
+                471,
+                472
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core24",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip59",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip59",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip59",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip59",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip59",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip59",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip59",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip59",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -58453,7 +67952,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 468,
           "name": "eth1/59/4",
-          "controllingPort": 467,
+          "controllingPort": 465,
           "pins": [
             {
               "a": {
@@ -58518,7 +68017,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 469,
           "name": "eth1/59/5",
-          "controllingPort": 469,
+          "controllingPort": 465,
           "pins": [
             {
               "a": {
@@ -58776,7 +68275,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 470,
           "name": "eth1/59/6",
-          "controllingPort": 469,
+          "controllingPort": 465,
           "pins": [
             {
               "a": {
@@ -58841,7 +68340,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 471,
           "name": "eth1/59/7",
-          "controllingPort": 469,
+          "controllingPort": 465,
           "pins": [
             {
               "a": {
@@ -58953,7 +68452,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 472,
           "name": "eth1/59/8",
-          "controllingPort": 471,
+          "controllingPort": 465,
           "pins": [
             {
               "a": {
@@ -59065,6 +68564,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip60",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip60",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip60",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip60",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip60",
+                  "lane": 7
                 }
               }
             }
@@ -59269,6 +68816,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                474,
+                475,
+                476,
+                477,
+                478,
+                479,
+                480
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core25",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip60",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip60",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip60",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip60",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip60",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip60",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip60",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip60",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -59453,7 +69113,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 476,
           "name": "eth1/60/4",
-          "controllingPort": 475,
+          "controllingPort": 473,
           "pins": [
             {
               "a": {
@@ -59518,7 +69178,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 477,
           "name": "eth1/60/5",
-          "controllingPort": 477,
+          "controllingPort": 473,
           "pins": [
             {
               "a": {
@@ -59776,7 +69436,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 478,
           "name": "eth1/60/6",
-          "controllingPort": 477,
+          "controllingPort": 473,
           "pins": [
             {
               "a": {
@@ -59841,7 +69501,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 479,
           "name": "eth1/60/7",
-          "controllingPort": 477,
+          "controllingPort": 473,
           "pins": [
             {
               "a": {
@@ -59953,7 +69613,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 480,
           "name": "eth1/60/8",
-          "controllingPort": 479,
+          "controllingPort": 473,
           "pins": [
             {
               "a": {
@@ -60065,6 +69725,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip61",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip61",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip61",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip61",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip61",
+                  "lane": 7
                 }
               }
             }
@@ -60269,6 +69977,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                482,
+                483,
+                484,
+                485,
+                486,
+                487,
+                488
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core29",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip61",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip61",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip61",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip61",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip61",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip61",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip61",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip61",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -60453,7 +70274,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 484,
           "name": "eth1/61/4",
-          "controllingPort": 483,
+          "controllingPort": 481,
           "pins": [
             {
               "a": {
@@ -60518,7 +70339,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 485,
           "name": "eth1/61/5",
-          "controllingPort": 485,
+          "controllingPort": 481,
           "pins": [
             {
               "a": {
@@ -60776,7 +70597,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 486,
           "name": "eth1/61/6",
-          "controllingPort": 485,
+          "controllingPort": 481,
           "pins": [
             {
               "a": {
@@ -60841,7 +70662,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 487,
           "name": "eth1/61/7",
-          "controllingPort": 485,
+          "controllingPort": 481,
           "pins": [
             {
               "a": {
@@ -60953,7 +70774,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 488,
           "name": "eth1/61/8",
-          "controllingPort": 487,
+          "controllingPort": 481,
           "pins": [
             {
               "a": {
@@ -61065,6 +70886,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip62",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip62",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip62",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip62",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip62",
+                  "lane": 7
                 }
               }
             }
@@ -61269,6 +71138,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                490,
+                491,
+                492,
+                493,
+                494,
+                495,
+                496
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core28",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip62",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip62",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip62",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip62",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip62",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip62",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip62",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip62",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -61453,7 +71435,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 492,
           "name": "eth1/62/4",
-          "controllingPort": 491,
+          "controllingPort": 489,
           "pins": [
             {
               "a": {
@@ -61518,7 +71500,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 493,
           "name": "eth1/62/5",
-          "controllingPort": 493,
+          "controllingPort": 489,
           "pins": [
             {
               "a": {
@@ -61776,7 +71758,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 494,
           "name": "eth1/62/6",
-          "controllingPort": 493,
+          "controllingPort": 489,
           "pins": [
             {
               "a": {
@@ -61841,7 +71823,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 495,
           "name": "eth1/62/7",
-          "controllingPort": 493,
+          "controllingPort": 489,
           "pins": [
             {
               "a": {
@@ -61953,7 +71935,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 496,
           "name": "eth1/62/8",
-          "controllingPort": 495,
+          "controllingPort": 489,
           "pins": [
             {
               "a": {
@@ -62065,6 +72047,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip63",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip63",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip63",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip63",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip63",
+                  "lane": 7
                 }
               }
             }
@@ -62269,6 +72299,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                498,
+                499,
+                500,
+                501,
+                502,
+                503,
+                504
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core31",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip63",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip63",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip63",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip63",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip63",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip63",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip63",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip63",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -62453,7 +72596,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 500,
           "name": "eth1/63/4",
-          "controllingPort": 499,
+          "controllingPort": 497,
           "pins": [
             {
               "a": {
@@ -62518,7 +72661,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 501,
           "name": "eth1/63/5",
-          "controllingPort": 501,
+          "controllingPort": 497,
           "pins": [
             {
               "a": {
@@ -62776,7 +72919,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 502,
           "name": "eth1/63/6",
-          "controllingPort": 501,
+          "controllingPort": 497,
           "pins": [
             {
               "a": {
@@ -62841,7 +72984,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 503,
           "name": "eth1/63/7",
-          "controllingPort": 501,
+          "controllingPort": 497,
           "pins": [
             {
               "a": {
@@ -62953,7 +73096,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 504,
           "name": "eth1/63/8",
-          "controllingPort": 503,
+          "controllingPort": 497,
           "pins": [
             {
               "a": {
@@ -63065,6 +73208,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "end": {
                   "chip": "TRANSCEIVER-OSFP-slot1/chip64",
                   "lane": 3
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip64",
+                  "lane": 4
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip64",
+                  "lane": 5
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip64",
+                  "lane": 6
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-OSFP-slot1/chip64",
+                  "lane": 7
                 }
               }
             }
@@ -63269,6 +73460,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "63": {
+              "subsumedPorts": [
+                506,
+                507,
+                508,
+                509,
+                510,
+                511,
+                512
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core30",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip64",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip64",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip64",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip64",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip64",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip64",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip64",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip64",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -63453,7 +73757,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 508,
           "name": "eth1/64/4",
-          "controllingPort": 507,
+          "controllingPort": 505,
           "pins": [
             {
               "a": {
@@ -63518,7 +73822,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 509,
           "name": "eth1/64/5",
-          "controllingPort": 509,
+          "controllingPort": 505,
           "pins": [
             {
               "a": {
@@ -63776,7 +74080,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 510,
           "name": "eth1/64/6",
-          "controllingPort": 509,
+          "controllingPort": 505,
           "pins": [
             {
               "a": {
@@ -63841,7 +74145,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 511,
           "name": "eth1/64/7",
-          "controllingPort": 509,
+          "controllingPort": 505,
           "pins": [
             {
               "a": {
@@ -63953,7 +74257,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 512,
           "name": "eth1/64/8",
-          "controllingPort": 511,
+          "controllingPort": 505,
           "pins": [
             {
               "a": {
@@ -64943,6 +75247,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "fec": 528,
           "medium": 2,
           "interfaceType": 21
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 63
+      },
+      "profile": {
+        "speed": 1600000,
+        "iphy": {
+          "numLanes": 8,
+          "modulation": 2,
+          "fec": 11,
+          "medium": 3,
+          "interfaceType": 4
         }
       }
     }

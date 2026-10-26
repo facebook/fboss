@@ -19,8 +19,8 @@ output format:
 
 | Family | Generator | Output format | Output file |
 |---|---|---|---|
-| [Broadcom XGS](./broadcom_xgs.md) | `BroadcomXgsGenerator` | Multi-document YAML with typed tables such as `PC_PM_CORE`, `PC_PORT`, and `global` | `<platform>_<variant>.yml` |
-| [Broadcom DNX](./broadcom_dnx.md) | `BroadcomDnxGenerator` | Flat SOC property key/value pairs in the JSON representation of the thrift `AsicConfig` struct | `<platform>_<variant>.json` |
+| [Broadcom XGS](./broadcom_xgs.md) | `BroadcomXgsGenerator` | Multi-document YAML with typed tables such as `PC_PM_CORE`, `PC_PORT`, and `global` | `<variant>.yml` |
+| [Broadcom DNX](./broadcom_dnx.md) | `BroadcomDnxGenerator` | Flat SOC property key/value pairs in the JSON representation of the thrift `AsicConfig` struct | `<variant>.json` |
 
 The two ASIC families share the same framework. Platform discovery, variants,
 schema validation, wiring data from `platform_mapping_v2`, and conditional
@@ -280,7 +280,9 @@ and `asic`), which selects both the per-ASIC data file and the generator to
 use. It then declares a `defaults` block together with one or more named
 `variants`. A variant represents one deliverable configuration for the
 platform, and the generator produces one output file per variant, named
-`generated/<platform>_<variant>.<extension>` beside the platform input.
+`generated/<variant>.<extension>` beside the platform input. The enclosing
+platform directory provides the platform identity, so every variant name must
+be non-empty.
 
 The effective configuration for a variant is formed by merging the variant's
 settings on top of the `defaults` block. The merge is recursive for nested
@@ -292,12 +294,12 @@ variant declare only what makes it different. A platform with a single variant
 typically keeps all of its settings in `defaults` and leaves the variant
 entry empty.
 
-A variant name is a free-form label chosen by the platform author; it is not
-drawn from a fixed set and the generator does not interpret it. The names in
-use today (`base`, `default`, `internal`, `rack`, `chassis`, `test_fixture`,
-and so on) are identifiers only, and the name determines nothing beyond the
-suffix of the output file. There is no need to reuse a name from another
-platform, and adding a variant never requires a code change.
+A variant name is a non-empty, free-form label chosen by the platform author;
+it is not drawn from a fixed set and the generator does not interpret it. The
+names in use today (`default`, `rack`, `chassis`, `test_fixture`, and so on) are
+identifiers only, and the name determines the generated filename. There is no
+need to reuse a name from another platform, and adding a variant never requires
+a code change.
 
 ### Variant fields
 

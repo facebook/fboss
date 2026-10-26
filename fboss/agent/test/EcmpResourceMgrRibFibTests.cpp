@@ -11,6 +11,7 @@
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/EcmpResourceManager.h"
 #include "fboss/agent/FibHelpers.h"
+#include "fboss/agent/FileBasedWarmbootUtils.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/state/Route.h"
@@ -177,6 +178,58 @@ TEST_F(EcmpResourceManagerRibFibTest, addRoutesAboveEcmpLimit) {
     fib6->addNode(route);
   }
   updateRoutes(newState);
+}
+
+// Warm boot into a binary that reads two persisted NextHops as one, e.g. a
+// rollback to a binary that does not know a NextHopThrift field the previous
+// binary set. ERM must still reconstruct from the warm boot switch state.
+TEST_F(EcmpResourceManagerRibFibTest, ermReconstructsAfterNextHopCollapse) {
+  // Warm boot state as persisted on graceful exit.
+  auto wb = sw_->gracefulExitState();
+  auto& fibInfos = *wb.swSwitchState()->fibsInfoMap();
+  const auto& anyFibInfo = fibInfos.begin()->second;
+  const auto persistedSets = *anyFibInfo.idToNextHopIdSet();
+
+  // A collapse needs one NextHop under two ids, each used by a different
+  // route, so the RIB must renumber one route's set when it merges them.
+  // `sharedNhId` is a NextHopID used by both route 0 (nh1..nh20) and route 1
+  // (nh2..nh20); `setToMove` is route 1's resolved set, which is moved onto a
+  // duplicate of `sharedNhId` below while route 0 keeps the original.
+  const auto& fib6 = *anyFibInfo.fibsMap()->at(0).fibV6();
+  auto setToMove = *fib6.at(makePrefix(1).str()).fwd()->resolvedNextHopSetID();
+  auto sharedNhId = *persistedSets.at(setToMove).begin();
+
+  // Mimic the collapse: persist a second NextHopID with the same
+  // NextHopThrift and move only route 1's set onto it, e.g.
+  //   idToNextHop:      2 -> nh2, 1020 -> nh2
+  //   idToNextHopIdSet: route 0 {1, 2, ...}, route 1 {1020, 3, ...}
+  auto duplicateNhId = anyFibInfo.idToNextHop()->rbegin()->first + 1000;
+  for (auto& [_, fibInfo] : fibInfos) {
+    (*fibInfo.idToNextHop())[duplicateNhId] =
+        fibInfo.idToNextHop()->at(sharedNhId);
+    auto& members = fibInfo.idToNextHopIdSet()->at(setToMove);
+    members.erase(sharedNhId);
+    members.insert(duplicateNhId);
+  }
+
+  // Rebuild as warm boot does; the RIB keeps one of the two NextHopIDs and
+  // gives an affected route a new NextHopSetID.
+  auto [state, rib] = reconstructStateAndRib(wb, true /*hasL3*/);
+
+  // Precondition: the RIB minted a NextHopSetID that was not persisted.
+  auto ribMintedSetId = false;
+  for (const auto& [_, route] : std::as_const(*cfib(state))) {
+    auto ribRoute = rib->longestMatch(route->prefix().network(), RouterID(0));
+    auto setId = ribRoute->getForwardInfo().getResolvedNextHopSetID();
+    ribMintedSetId |= setId && !persistedSets.contains(*setId);
+  }
+  ASSERT_TRUE(ribMintedSetId);
+
+  // ERM resolves routes by NextHopSetID; it throws if the switch state names
+  // a set id its own maps do not have.
+  auto erm = makeEcmpResourceManager(
+      state, sw_->getHwAsicTable()->getL3Asics().front());
+  EXPECT_NO_THROW(erm->reconstructFromSwitchState(state));
 }
 
 } // namespace facebook::fboss

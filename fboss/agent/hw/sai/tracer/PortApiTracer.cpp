@@ -74,6 +74,8 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap{
 #if defined(SAI_CBFC_SUPPORTED)
     SAI_ATTR_MAP(Port, QosTcToVcMap),
     SAI_ATTR_MAP(Port, CbfcSenderCreditLimit),
+    SAI_ATTR_MAP(Port, CbfcSenderCreditSize),
+    SAI_ATTR_MAP(Port, CbfcSenderPacketOverhead),
     SAI_ATTR_MAP(Port, QosQueueToVcMap),
     SAI_ATTR_MAP(Port, CbfcReceiverNativeCreditSize),
     SAI_ATTR_MAP(Port, CbfcReceiverNativePacketOverhead),
@@ -224,6 +226,8 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(PortSerdes, RxEnableScanSelection)
   SAI_EXT_ATTR_MAP(PortSerdes, RxInstgScanUseSrSettings)
   SAI_EXT_ATTR_MAP(Port, LinkScanMode)
+  SAI_EXT_ATTR_MAP(Port, CsigTagAction)
+  SAI_EXT_ATTR_MAP(Port, CsigLinkLocator)
   SAI_EXT_ATTR_MAP(PortSerdes, RxCdrCfgOvEn)
   SAI_EXT_ATTR_MAP(PortSerdes, RxCdrTdet1stOrdStepOvVal)
   SAI_EXT_ATTR_MAP(PortSerdes, RxCdrTdet2ndOrdStepOvVal)
@@ -276,6 +280,9 @@ void handleExtensionAttributes() {
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
   SAI_EXT_ATTR_MAP(Port, ArsLinkState)
+#endif
+#if defined(SAI_BRCM_PAI_IMPL)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxReach)
 #endif
   SAI_EXT_ATTR_MAP(Port, IsHyperPortMember)
   SAI_EXT_ATTR_MAP(Port, HyperPortMemberList)

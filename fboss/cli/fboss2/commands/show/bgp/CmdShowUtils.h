@@ -13,6 +13,7 @@
 #include "folly/json/dynamic.h"
 
 #include "configerator/structs/neteng/bgp_policy/thrift/gen-cpp2/bgp_policy_types.h"
+#include "configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h"
 #include "configerator/structs/neteng/fboss/bgp/if/gen-cpp2/bgp_attr_types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
@@ -23,6 +24,15 @@ inline constexpr auto kGar = "--decode-gar-lbw-ext-comm";
 }
 
 namespace facebook::fboss {
+
+enum class BgpPolicySource { POLICY_ARTIFACT, BGP_CONFIG };
+
+struct LoadedBgpPolicy {
+  BgpPolicySource source;
+  facebook::bgp::thrift::BgpPolicyConfig config;
+};
+
+LoadedBgpPolicy getLoadedBgpPolicy(const HostInfo& hostInfo);
 std::optional<facebook::bgp::bgp_policy::BgpPolicies> getRunningBgpPolicies(
     const HostInfo& hostInfo);
 std::optional<facebook::bgp::nsf_policy::NsfTeWeightEncoding>

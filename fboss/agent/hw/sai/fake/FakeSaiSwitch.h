@@ -320,6 +320,14 @@ class FakeSwitch {
     return portCl72RetryEnable_;
   }
 
+  void setAclDropSnoopDisabled(bool disabled) {
+    aclDropSnoopDisabled_ = disabled;
+  }
+
+  bool getAclDropSnoopDisabled() {
+    return aclDropSnoopDisabled_;
+  }
+
   void setLinkUpDebounceTimeout(sai_uint32_t timeoutUs) {
     linkUpDebounceTimeoutUs_ = timeoutUs;
   }
@@ -409,6 +417,7 @@ class FakeSwitch {
   bool pfcMonitorEnable_{false};
   bool cablePropagationDelayMeasurement_{false};
   bool portCl72RetryEnable_{false};
+  bool aclDropSnoopDisabled_{false};
   sai_uint32_t linkUpDebounceTimeoutUs_{0};
   sai_int32_t switchingMode_{SAI_SWITCH_SWITCHING_MODE_STORE_AND_FORWARD};
   std::vector<sai_int32_t> packetDropTypeIngressList_;

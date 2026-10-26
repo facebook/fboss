@@ -111,6 +111,23 @@ std::string getTransceiverStr(
   return "Absent";
 }
 
+std::string getCbfcStr(const CbfcInfo& cbfc) {
+  auto cbfcStr = fmt::format(
+      "{}, VC {}",
+      *cbfc.configName(),
+      folly::join(" ", *cbfc.virtualChannels()));
+  if (cbfc.senderCreditSize() && cbfc.senderPacketOverhead()) {
+    cbfcStr += fmt::format(
+        ", sender {} B / {} B",
+        *cbfc.senderCreditSize(),
+        *cbfc.senderPacketOverhead());
+  }
+  if (cbfc.senderCreditLimit()) {
+    cbfcStr += fmt::format(", limit {}", *cbfc.senderCreditLimit());
+  }
+  return cbfcStr;
+}
+
 Table::StyledCell getStyledErrors(std::string errors) {
   if (errors == "--") {
     return Table::StyledCell(errors, Table::Style::NONE);
@@ -428,6 +445,9 @@ RetType CmdShowPort::createModel(
         portDetails.llrRxStatus() =
             apache::thrift::util::enumNameSafe(*llrRxStatus);
       }
+      if (auto cbfc = apache::thrift::get_pointer(portInfo.cbfc())) {
+        portDetails.cbfc() = getCbfcStr(*cbfc);
+      }
       portDetails.userMetaData() = utils::getAclLookupClassPortStr(
           portInfo.userMetaData().to_optional());
       portDetails.ingressAclTable() =
@@ -541,6 +561,12 @@ RetType CmdShowPort::createModel(
             folly::copy(portHwStatsEntry.inBytes_().value());
         cliPortStats.egressBytes() =
             folly::copy(portHwStatsEntry.outBytes_().value());
+        cliPortStats.cbfcCfUpdateTx().from_optional(
+            portHwStatsEntry.cbfcCfUpdateTx_().to_optional());
+        cliPortStats.cbfcCfUpdateRx().from_optional(
+            portHwStatsEntry.cbfcCfUpdateRx_().to_optional());
+        cliPortStats.cbfcCcUpdateTx().from_optional(
+            portHwStatsEntry.cbfcCcUpdateTx_().to_optional());
         portDetails.hwPortStats() = cliPortStats;
       }
       model.portEntries()->push_back(portDetails);
@@ -623,6 +649,12 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
             fmt::format(
                 "LLR RX status:  \t\t {}",
                 *apache::thrift::get_pointer(portInfo.llrRxStatus())));
+      }
+      if (apache::thrift::get_pointer(portInfo.cbfc())) {
+        detailedOutput.emplace_back(
+            fmt::format(
+                "CBFC:           \t\t {}",
+                *apache::thrift::get_pointer(portInfo.cbfc())));
       }
       detailedOutput.emplace_back(
           fmt::format(
@@ -745,6 +777,24 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
             fmt::format(
                 "    Pause Input (pkts)            \t\t {}",
                 *apache::thrift::get_pointer(portHwStats.inPausePackets())));
+      }
+      if (apache::thrift::get_pointer(portHwStats.cbfcCfUpdateTx())) {
+        detailedOutput.emplace_back(
+            fmt::format(
+                "    CBFC CF Update Output         \t\t {}",
+                *apache::thrift::get_pointer(portHwStats.cbfcCfUpdateTx())));
+      }
+      if (apache::thrift::get_pointer(portHwStats.cbfcCfUpdateRx())) {
+        detailedOutput.emplace_back(
+            fmt::format(
+                "    CBFC CF Update Input          \t\t {}",
+                *apache::thrift::get_pointer(portHwStats.cbfcCfUpdateRx())));
+      }
+      if (apache::thrift::get_pointer(portHwStats.cbfcCcUpdateTx())) {
+        detailedOutput.emplace_back(
+            fmt::format(
+                "    CBFC CC Update Output         \t\t {}",
+                *apache::thrift::get_pointer(portHwStats.cbfcCcUpdateTx())));
       }
     }
     out << folly::join("\n", detailedOutput) << std::endl;

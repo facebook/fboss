@@ -23,6 +23,7 @@
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
+#include "fboss/agent/test/utils/TrapPacketUtils.h"
 
 namespace facebook::fboss {
 
@@ -87,6 +88,22 @@ void AgentMirrorOnDropTestBase::addDropPacketAcl(
       config, fmt::format("drop-packet-{}", portId), cfg::AclActionType::DENY);
   acl->etherType() = cfg::EtherType::IPv6;
   acl->srcPort() = portId;
+}
+
+void AgentMirrorOnDropTestBase::applyMirrorOnDropConfig(
+    cfg::SwitchConfig& config,
+    cfg::MirrorOnDropReport report,
+    const PortID& collectorPort) {
+  config.mirrorOnDropReports()->push_back(std::move(report));
+  auto* asic = checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
+  utility::addTrapPacketAcl(
+      asic,
+      &config,
+      folly::CIDRNetwork{folly::IPAddress{kCollectorIp_}, 128},
+      cfg::ToCpuAction::TRAP);
+  applyNewConfig(config);
+  setupEcmpTraffic(collectorPort, kCollectorIp_, kCollectorNextHopMac_);
+  waitForStateUpdates(getSw());
 }
 
 std::unique_ptr<TxPacket> AgentMirrorOnDropTestBase::makePacket(

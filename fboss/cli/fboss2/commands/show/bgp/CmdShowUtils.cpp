@@ -8,6 +8,7 @@
  *
  */
 
+#include <stdexcept>
 #include <utility>
 
 #include "configerator/structs/neteng/fboss/bgp/if/gen-cpp2/bgp_attr_types.h"
@@ -67,6 +68,31 @@ using facebook::neteng::fboss::bgp::thrift::TBgpService;
 using facebook::neteng::fboss::bgp::thrift::TBgpSessionDetail;
 using neteng::fboss::bgp::thrift::TBgpPeerState;
 
+LoadedBgpPolicy getLoadedBgpPolicy(const HostInfo& hostInfo) {
+  auto client = utils::createClient<Client<TBgpService>>(hostInfo);
+  if (client->sync_hasPolicySymlink()) {
+    std::string policyConfigJson;
+    client->sync_getPolicyConfig(policyConfigJson);
+    if (policyConfigJson.empty()) {
+      throw std::runtime_error(
+          "BGP reports a standalone policy artifact, but getPolicyConfig returned empty");
+    }
+    return {
+        BgpPolicySource::POLICY_ARTIFACT,
+        apache::thrift::SimpleJSONSerializer::deserialize<
+            facebook::bgp::thrift::BgpPolicyConfig>(policyConfigJson)};
+  }
+
+  facebook::bgp::thrift::BgpConfig bgpConfig;
+  client->sync_getRunningConfigStruct(bgpConfig);
+  facebook::bgp::thrift::BgpPolicyConfig policyConfig;
+  policyConfig.communities().copy_from(bgpConfig.communities());
+  policyConfig.localprefs().copy_from(bgpConfig.localprefs());
+  policyConfig.policies().copy_from(bgpConfig.policies());
+  return {BgpPolicySource::BGP_CONFIG, std::move(policyConfig)};
+}
+
+// Route-detail views remain best-effort when the artifact RPC is unavailable.
 std::optional<facebook::bgp::bgp_policy::BgpPolicies> getRunningBgpPolicies(
     const HostInfo& hostInfo) {
   auto client = utils::createClient<Client<TBgpService>>(hostInfo);

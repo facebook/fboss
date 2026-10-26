@@ -356,6 +356,8 @@ class SaiPortManager {
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
   cfg::PortType getPortType(PortID portId) const;
+  void programSwitchWideLinkUpDebounceTimeout(
+      const std::shared_ptr<Port>& swPort);
   void setClm(PortID portId, bool clmEnabled);
   bool isClmEnabled(PortID portId) const;
   bool fecCorrectedBitsSupported(PortID portID) const;

@@ -1,0 +1,44 @@
+#!/bin/bash
+# Disable netadmin root escalation (runtime knob, persists across reboot).
+# Root-only: refuses non-root (tests stub id). Closes both gates: the machine sudo grant
+# (moved aside byte-identical for re-enable; sudo fails closed without
+# it) and the escape-key trust in host root's authorized_keys (operator
+# keys preserved). Writes the disabled flag last, so a failure exits
+# loud before anything claims the disabled state; re-running is safe.
+# Idempotent.
+# Usage: disable_netadmin_root [ROOT] (ROOT is a test seam, default /).
+set -euo pipefail
+ROOT="${1:-}"
+if [ -n "$ROOT" ]; then
+    ROOT="${ROOT%/}"
+fi
+if [ "$(id -u)" != "0" ]; then
+    echo "disable_netadmin_root: must run as root" >&2
+    exit 1
+fi
+MARKER="# fboss-netadmin-escape"
+FLAG="$ROOT/etc/login-containers/netadmin-root-disabled"
+SUDOERS="$ROOT/var/lib/machines/netadmin/etc/sudoers"
+AUTH="$ROOT/root/.ssh/authorized_keys"
+if [ -f "$SUDOERS" ]; then
+    mv "$SUDOERS" "$SUDOERS.disabled"
+elif [ ! -f "$SUDOERS.disabled" ]; then
+    echo "disable_netadmin_root: no sudoers file to disable" >&2
+    exit 1
+fi
+auth_tmp=""
+rc=0
+trap 'rc=$?; set +e; rm -f "$auth_tmp"; exit $rc' EXIT
+for sig in 1 2 3 13 15; do eval "trap 'exit $((sig + 128))' $sig"; done
+if [ -f "$AUTH" ]; then
+    auth_tmp="$(mktemp "$ROOT/root/.ssh/.authorized_keys.XXXXXX")"
+    grep -v -e "^$MARKER$" \
+        -e "^from=\"127\.0\.0\.1,::1\" .* fboss-netadmin-escape$" \
+        -e "^from=\"127\.0\.0\.1,::1\" .* fake-netadmin-escape$" \
+        "$AUTH" > "$auth_tmp" || test $? -eq 1
+    chmod 600 "$auth_tmp"
+    mv "$auth_tmp" "$AUTH"
+fi
+mkdir -p "$ROOT/etc/login-containers"
+printf 'disabled by disable_netadmin_root\n' > "$FLAG"
+logger -t disable_netadmin_root "netadmin root escalation disabled" 2>/dev/null || true

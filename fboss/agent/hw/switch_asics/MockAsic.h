@@ -161,6 +161,9 @@ class MockAsic : public HwAsic {
   std::optional<uint32_t> getMaxSrv6SingleNextHops() const override {
     return 8;
   }
+  std::optional<uint32_t> getMaxSrv6UcmpDistinctWeights() const override {
+    return 8;
+  }
   std::optional<uint32_t> getMaxNdpTableSize() const override {
     return 8;
   }
@@ -247,6 +250,12 @@ class MockAsic : public HwAsic {
   }
   std::optional<uint32_t> getMaxArsWidth() const override {
     return 64;
+  }
+  std::vector<int16_t> getCbfcSenderCreditSizes() const override {
+    return {32, 56};
+  }
+  std::vector<int16_t> getCbfcSenderPacketOverheads() const override {
+    return {0, 16, 32, 48, 64, 80};
   }
   const std::set<uint16_t>& getL1FabricPortsToConnectToL2() const override {
     static const std::set<uint16_t> l1FabricPortsToConnectToL2{};

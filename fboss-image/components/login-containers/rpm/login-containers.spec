@@ -6,11 +6,16 @@ License: GPL
 BuildArch: noarch
 %description
 nspawn login machines for the netops/netadmin roles: machine rootfs skeletons,
-nspawn settings, machine units, login-shell wrappers, and the sudoers grant.
+nspawn settings, machine units, login-shell wrappers, the sudoers grant,
+the first-boot netadmin escape-key provisioner, and the root-only
+on/off knob for netadmin root escalation.
 Shell assignment happens in the manifest execute hook (users exist only
 after the after_pkgs hooks run).
 %install
 cp -a %{_payload}/* %{buildroot}/
+# Build-system shims (BUCK export_files for tests) live next to the scripts
+# they export but must not ship in the RPM: drop them from the buildroot.
+find %{buildroot} -name BUCK -delete
 # Skeleton dirs: empty dirs are not tracked in the repo, so create them here.
 # (%files owns them with %dir; home dirs get numeric ownership via %attr.)
 for m in netops netadmin; do
@@ -23,8 +28,10 @@ mkdir -p "%{buildroot}/var/lib/machines/netadmin/home/netadmin"
 # An un-enabled unit is exactly the dead-login image this spec refuses
 # to ship, and nothing below inspects enablement.
 systemctl enable netops-machine.service netadmin-machine.service \
+    escape-keygen.service \
   || { echo "login-containers: systemctl enable failed" >&2; exit 1; }
 systemctl is-enabled --quiet netops-machine.service netadmin-machine.service \
+    escape-keygen.service \
   || { echo "login-containers: units not enabled" >&2; exit 1; }
 for sh in /usr/local/bin/netops-shell /usr/local/bin/netadmin-shell; do
   grep -qxF "$sh" /etc/shells || echo "$sh" >> /etc/shells
@@ -48,6 +55,9 @@ for f in /var/lib/machines/netops/etc/passwd \
     /var/lib/machines/netadmin/etc/machine-id \
     /var/lib/machines/netadmin/etc/os-release \
     /var/lib/machines/netadmin/etc/systemd/system/login-shell.target \
+    /var/lib/machines/netadmin/etc/sudoers \
+    /var/lib/machines/netadmin/etc/sysusers.d/netadmin.conf \
+    /var/lib/machines/netadmin/etc/pam.d/sudo \
     /etc/systemd/nspawn/netops.nspawn \
     /etc/systemd/nspawn/netadmin.nspawn \
     /usr/lib/systemd/system/netops-machine.service \
@@ -55,11 +65,21 @@ for f in /var/lib/machines/netops/etc/passwd \
     /usr/local/bin/netops-shell \
     /usr/local/bin/netadmin-shell \
     /usr/local/bin/role-entry \
+    /usr/local/bin/session-recorder \
+    /usr/local/bin/session-ancestors \
+    /usr/local/sbin/escape-keygen \
+    /usr/local/sbin/enable_netadmin_root \
+    /usr/local/sbin/disable_netadmin_root \
+    /usr/lib/systemd/system/escape-keygen.service \
+    /etc/ssh/sshd_config.d/12-escape-localhost.conf \
+    /etc/ssh/sshd_config.d/13-client-alive.conf \
     /etc/sudoers.d/login-containers; do
   [ -s "$f" ] || { echo "login-containers: missing $f" >&2; exit 1; }
 done
 [ "$(stat -c %a /etc/sudoers.d/login-containers)" = "440" ] || { echo "login-containers: bad sudoers mode" >&2; exit 1; }
 visudo -c -f /etc/sudoers.d/login-containers || { echo "login-containers: bad sudoers syntax" >&2; exit 1; }
+[ "$(stat -c %a /var/lib/machines/netadmin/etc/sudoers)" = "440" ] || { echo "login-containers: bad machine sudoers mode" >&2; exit 1; }
+visudo -c -f /var/lib/machines/netadmin/etc/sudoers || { echo "login-containers: bad machine sudoers syntax" >&2; exit 1; }
 for d in /var/lib/machines/netops/home/netops \
     /var/lib/machines/netadmin/home/netadmin; do
   [ -d "$d" ] || { echo "login-containers: missing $d" >&2; exit 1; }
@@ -71,11 +91,19 @@ done
 %attr(0755,root,root) /usr/local/bin/netops-shell
 %attr(0755,root,root) /usr/local/bin/netadmin-shell
 %attr(0755,root,root) /usr/local/bin/role-entry
+%attr(0755,root,root) /usr/local/bin/session-recorder
+%attr(0755,root,root) /usr/local/bin/session-ancestors
+%attr(0755,root,root) /usr/local/sbin/escape-keygen
+%attr(0755,root,root) /usr/local/sbin/enable_netadmin_root
+%attr(0755,root,root) /usr/local/sbin/disable_netadmin_root
 %attr(0440,root,root) /etc/sudoers.d/login-containers
 /etc/systemd/nspawn/netops.nspawn
 /etc/systemd/nspawn/netadmin.nspawn
 /usr/lib/systemd/system/netops-machine.service
 /usr/lib/systemd/system/netadmin-machine.service
+/usr/lib/systemd/system/escape-keygen.service
+/etc/ssh/sshd_config.d/12-escape-localhost.conf
+/etc/ssh/sshd_config.d/13-client-alive.conf
 /var/lib/machines/netops/etc/passwd
 /var/lib/machines/netops/etc/group
 /var/lib/machines/netops/etc/shadow
@@ -101,6 +129,9 @@ done
 /var/lib/machines/netadmin/etc/hostname
 /var/lib/machines/netadmin/etc/machine-id
 /var/lib/machines/netadmin/etc/os-release
+%attr(0440,root,root) /var/lib/machines/netadmin/etc/sudoers
+/var/lib/machines/netadmin/etc/sysusers.d/netadmin.conf
+/var/lib/machines/netadmin/etc/pam.d/sudo
 /var/lib/machines/netadmin/etc/systemd/system/login-shell.target
 /var/lib/machines/netadmin/etc/systemd/system/dbus.service
 /var/lib/machines/netadmin/etc/systemd/system/default.target
