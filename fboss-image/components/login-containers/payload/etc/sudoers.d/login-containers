@@ -6,3 +6,6 @@ netops ALL=(root) NOPASSWD: /usr/local/bin/netops-shell
 netops ALL=(root) NOPASSWD: /usr/local/bin/netops-shell *
 netadmin ALL=(root) NOPASSWD: /usr/local/bin/netadmin-shell
 netadmin ALL=(root) NOPASSWD: /usr/local/bin/netadmin-shell *
+# No session attribution crosses sudo: the wrapper mints it fresh after
+# escalation (stage 2), so no env_keep is granted and no caller
+# environment is trusted.

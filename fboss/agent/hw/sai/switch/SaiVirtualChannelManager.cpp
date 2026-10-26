@@ -61,25 +61,6 @@ void SaiVirtualChannelManager::programVirtualChannels(
     return;
   }
 
-  // Below the guard because brcm-sai 16.0_ea_odp answers INVALID PARAMETER for
-  // this set on a port with no CBFC, and the throw unwinds through
-  // ~SaiPortHandle, whose own remove is NOT SUPPORTED for a port -- so it
-  // terminates the agent rather than failing the port.
-  //
-  // Nothing is written to clear a dropped limit: SAI documents the default as
-  // 0, while brcm-sai writes the value into BUFFER_CREDITS, where 0 is a port
-  // holding no credit. A CBFC change needs a cold boot, which restores the
-  // default anyway.
-  //
-  // Not in the port's CreateAttributes: SaiStore reads every attribute in that
-  // tuple back at init, and this one's GET is rejected.
-  if (auto senderCreditLimit = swPort->getCbfcSenderCreditLimit()) {
-    SaiApiTable::getInstance()->portApi().setAttribute(
-        portSaiId,
-        SaiPortTraits::Attributes::CbfcSenderCreditLimit{
-            static_cast<sai_uint32_t>(*senderCreditLimit)});
-  }
-
   for (const auto& virtualChannel : *virtualChannels) {
     // THRIFT_COPY
     auto vc = virtualChannel->toThrift();

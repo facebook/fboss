@@ -35,7 +35,8 @@ RibToSwitchStateUpdater::RibToSwitchStateUpdater(
           labelToRoute,
           nextHopIDManager),
       mySidUpdater_(resolver, mySidTable),
-      nhopStateUpdater_(nextHopIDManager) {}
+      nhopStateUpdater_(nextHopIDManager),
+      classBasedPolicyUpdater_(nextHopIDManager) {}
 
 std::shared_ptr<SwitchState> RibToSwitchStateUpdater::operator()(
     const std::shared_ptr<SwitchState>& state) {
@@ -47,6 +48,7 @@ std::shared_ptr<SwitchState> RibToSwitchStateUpdater::operator()(
     nextState = mySidUpdater_(nextState);
   }
   nextState = nhopStateUpdater_(nextState);
+  nextState = classBasedPolicyUpdater_(nextState);
   StateDelta delta(state, nextState);
   /*
    * We validate nhops here and not in fibUpdater_ as

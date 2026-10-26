@@ -209,6 +209,13 @@ HwPortStats getInitedStats() {
       {}, // cbfcVcSenderCreditsFreed
       {}, // cbfcVcReceiverCreditsConsumed
       {}, // cbfcVcReceiverCreditsFreed
+      0, // hwProtectionSwitchoverEvents
+      0, // hwProtectionSwitchoverDropPkts
+      {}, // fabricLinkMonitoringTxPackets_
+      {}, // fabricLinkMonitoringRxPackets_
+      {}, // fabricLinkMonitoringDroppedPackets_
+      {}, // fabricLinkMonitoringInvalidPayloadPackets_
+      {}, // fabricLinkMonitoringNoPendingSeqNumPackets_
   };
 }
 
@@ -543,6 +550,34 @@ TEST(HwPortFb303StatsTest, PhyChangedCountersClearedOnPortRename) {
   // The new name starts clean and picks up subsequent samples
   portStats.updatePhyChanged(kLineRxSignalDetectChanged(), true);
   EXPECT_EQ(publishedSum(kLineRxSignalDetectChanged(), newPortName), 1);
+}
+
+// HW protection switchover counters are optional: only ports that report them
+// (TH5/TH6 on XGS 13.3+) update the timeseries.
+TEST(HwPortFb303StatsTest, HwProtectionSwitchoverCounters) {
+  const std::string portName = "eth1/1/7";
+  HwPortFb303Stats portStats(portName);
+  auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+
+  HwPortStats baseline{};
+  baseline.hwProtectionSwitchoverEvents_() = 0;
+  baseline.hwProtectionSwitchoverDropPkts_() = 0;
+  HwPortStats inited = baseline;
+  inited.hwProtectionSwitchoverEvents_() = 5;
+  inited.hwProtectionSwitchoverDropPkts_() = 7;
+  portStats.updateStats(baseline, now);
+  portStats.updateStats(inited, now);
+
+  EXPECT_EQ(
+      portStats.getCounterLastIncrement(
+          HwPortFb303Stats::statName(
+              kHwProtectionSwitchoverEvents(), portName)),
+      5);
+  EXPECT_EQ(
+      portStats.getCounterLastIncrement(
+          HwPortFb303Stats::statName(
+              kHwProtectionSwitchoverDropPkts(), portName)),
+      7);
 }
 
 TEST(HwPortFb303StatsTest, StatName) {

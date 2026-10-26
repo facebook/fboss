@@ -92,6 +92,7 @@ class ResourceAccountant {
   bool checkMySidResource(bool intermediateState);
 
   size_t countSrv6NextHops(const RouteNextHopSet& nhSet) const;
+  bool checkSrv6UcmpDistinctWeights(const RouteNextHopSet& nhSet) const;
 
   template <typename AddrT>
   bool checkAndUpdateSrv6NextHopResource(
@@ -152,6 +153,7 @@ class ResourceAccountant {
   // group members. Other asics keep them in hw reserved space, so they are not
   // charged as members.
   bool countBackupNextHopMembers_{false};
+  std::optional<uint32_t> maxSrv6UcmpDistinctWeights_;
   bool checkRouteUpdate_;
   uint32_t l2Entries_{0};
   uint32_t ecmpMemberUsage_{0};
@@ -212,8 +214,11 @@ class ResourceAccountant {
   FRIEND_TEST(ResourceAccountantTest, mySidResourceExceeded);
   FRIEND_TEST(ResourceAccountantTest, checkAndUpdateSrv6NextHopResource);
   FRIEND_TEST(ResourceAccountantTest, srv6NextHopResourceExceeded);
+  FRIEND_TEST(ResourceAccountantTest, srv6UcmpDistinctWeights);
   FRIEND_TEST(ResourceAccountantTest, checkAndUpdateRouteCounterResource);
   FRIEND_TEST(ResourceAccountantTest, routeCounterResourceExceeded);
   FRIEND_TEST(MacTableManagerTest, MacLearnedBulkCb);
+  FRIEND_TEST(StaticMacConfigTest, ApplyConfigAccountsStaticMacsOnce);
+  FRIEND_TEST(StaticMacConfigTest, IsValidStateUpdateDryRun);
 };
 } // namespace facebook::fboss

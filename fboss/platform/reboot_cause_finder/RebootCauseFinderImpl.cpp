@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/platform/reboot_cause_finder/RebootCauseFinderImpl.h"
+#include "fboss/platform/reboot_cause_finder/if/gen-cpp2/reboot_cause_config_constants.h"
 
 #include "fboss/lib/RestClient.h"
 
@@ -11,6 +12,7 @@
 #include <filesystem>
 #include <optional>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include <fmt/format.h>
@@ -24,6 +26,18 @@
 #include <re2/re2.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
+
+DEFINE_int32(
+    bmc_logfile_poll_timeout_s,
+    180,
+    "How long to keep retrying the BMC logfile endpoint before giving up.");
+
+DEFINE_bool(
+    redo_current_boot,
+    false,
+    "Discard this boot's existing record and determine the cause again. For "
+    "debugging: the service is a oneshot and normally refuses to run twice "
+    "for one boot.");
 
 DEFINE_bool(
     clear_reboot_causes,
@@ -49,8 +63,10 @@ namespace facebook::fboss::platform::reboot_cause_finder {
 
 namespace {
 
-constexpr auto kHistoryDir = "/var/facebook/fboss/reboot_history";
+constexpr auto kHistoryDir =
+    reboot_cause_config::reboot_cause_config_constants::REBOOT_HISTORY_DIR();
 constexpr auto kProcBootIdPath = "/proc/sys/kernel/random/boot_id";
+constexpr auto kProcOsReleasePath = "/proc/sys/kernel/osrelease";
 
 // These three come from the kernel, systemd and the crash dump tooling,
 // and are the same on
@@ -90,6 +106,7 @@ constexpr auto kBmcLogfilePath = "/api/sys/logfile";
 // Content-Type: application/json, only when postData is non-empty.
 constexpr auto kBmcLogfileBody = R"({"lines": 200, "include_rotated": true})";
 constexpr std::chrono::milliseconds kBmcTimeout{2000};
+constexpr std::chrono::seconds kBmcLogfilePollInterval{10};
 
 constexpr auto kSuddenPowerLossProvider = "SuddenPowerLoss";
 // The BMC reports its own uptime here, both as the `uptime` command's output
@@ -136,6 +153,16 @@ constexpr auto kX86ResetPattern = R"(Power reset x86 \(userver\) .*\.\.\.)";
 std::string readBootId(const std::string& bootIdPath) {
   std::string contents;
   if (!folly::readFile(bootIdPath.c_str(), contents)) {
+    return {};
+  }
+  return folly::trimWhitespace(contents).str();
+}
+
+// The binary runs in the boot it records, so the running kernel is that
+// boot's kernel. Empty when unreadable; the record is still worth writing.
+std::string readKernelRelease(const std::string& osReleasePath) {
+  std::string contents;
+  if (!folly::readFile(osReleasePath.c_str(), contents)) {
     return {};
   }
   return folly::trimWhitespace(contents).str();
@@ -188,6 +215,52 @@ std::optional<bool> recordExistsForBoot(
     }
   }
   return false;
+}
+
+// Deletes this boot's record so the cause can be determined again. False if
+// anything could not be removed, which must stop the caller: writing a
+// second record for one boot would leave two answers and no way to tell
+// which is current.
+bool removeRecordForBoot(
+    const std::string& historyDir,
+    const std::string& bootId) {
+  std::error_code ec;
+  std::filesystem::directory_iterator it(historyDir, ec);
+  if (ec == std::errc::no_such_file_or_directory) {
+    return true;
+  }
+  if (ec) {
+    XLOG(ERR) << fmt::format(
+        "Failed to read history dir '{}': {}", historyDir, ec.message());
+    return false;
+  }
+
+  const std::filesystem::directory_iterator end;
+  const auto suffix = recordFilenameSuffix(bootId);
+  bool removedAll = true;
+  while (it != end) {
+    const auto path = it->path();
+    if (path.filename().string().ends_with(suffix)) {
+      std::error_code removeEc;
+      std::filesystem::remove(path, removeEc);
+      if (removeEc) {
+        XLOG(ERR) << fmt::format(
+            "Failed to remove '{}': {}", path.string(), removeEc.message());
+        removedAll = false;
+      } else {
+        XLOG(INFO) << fmt::format("Removed '{}'", path.string());
+      }
+    }
+    it.increment(ec);
+    if (ec) {
+      XLOG(ERR) << fmt::format(
+          "Failed while scanning history dir '{}': {}",
+          historyDir,
+          ec.message());
+      return false;
+    }
+  }
+  return removedAll;
 }
 
 // Clearing a provider is destructive and unrecoverable, so it only runs once
@@ -731,23 +804,77 @@ folly::StringPiece bmcHostSourceAddress() {
   return kHostSourceAddress;
 }
 
+bool bmcFailureIsRetryable(std::optional<long> responseCode) {
+  // No status at all means the request never reached a response: the BMC is
+  // still booting, or the sideband address is not assignable yet. Both clear
+  // on their own.
+  if (!responseCode) {
+    return true;
+  }
+  // 403 is the ACL that a BMC reboot wipes; it comes back when the BMC is
+  // reconfigured. 404 is an image without the endpoint, which no amount of
+  // waiting changes. Anything else is not known to be transient, and
+  // retrying it would just delay the record.
+  return *responseCode == 403;
+}
+
+namespace {
+
+struct BmcLogfileRead {
+  std::string body;
+  std::string failure;
+  std::optional<long> responseCode;
+  bool retryable{false};
+};
+
+BmcLogfileRead readBmcLogfileOnce() {
+  BmcLogfileRead read;
+  // Declared outside the try so the status survives into the catch.
+  RestClient client(folly::IPAddress(kBmcAddress), kBmcPort);
+  try {
+    client.setSourceAddress(folly::IPAddressV6(kHostSourceAddress));
+    client.setTimeout(kBmcTimeout);
+    read.body = client.requestWithOutput(kBmcLogfilePath, kBmcLogfileBody);
+  } catch (const std::exception& ex) {
+    read.failure = ex.what();
+  }
+  // Settled on one path for both outcomes, so a read that returns without
+  // throwing cannot skip the decision.
+  read.responseCode = client.lastResponseCode();
+  read.retryable = bmcFailureIsRetryable(read.responseCode);
+  return read;
+}
+
+} // namespace
+
 reboot_cause_config::RebootCauseProviderAttempt readBmcWedgePower(
     int64_t btimeSec,
     int64_t windowSec) {
-  std::string body;
-  std::string failure;
-  try {
-    RestClient client(folly::IPAddress(kBmcAddress), kBmcPort);
-    client.setSourceAddress(folly::IPAddressV6(kHostSourceAddress));
-    client.setTimeout(kBmcTimeout);
-    body = client.requestWithOutput(kBmcLogfilePath, kBmcLogfileBody);
-  } catch (const std::exception& ex) {
-    failure = ex.what();
-    XLOG(ERR) << fmt::format(
-        "Failed to reach the BMC logfile API: {}", failure);
-    body.clear();
+  // One attempt up front, then one per interval until the timeout is spent.
+  // Each attempt is itself bounded by kBmcTimeout, so the elapsed time runs
+  // slightly past the nominal timeout; the flag sizes the wait, it is not a
+  // hard deadline.
+  const int maxAttempts = 1 +
+      std::max(0, FLAGS_bmc_logfile_poll_timeout_s) /
+          static_cast<int>(kBmcLogfilePollInterval.count());
+
+  BmcLogfileRead read;
+  for (int attempt = 1; attempt <= maxAttempts; ++attempt) {
+    read = readBmcLogfileOnce();
+    XLOG(INFO) << fmt::format(
+        "BMC logfile attempt {} of {}: status={} retryable={} {}",
+        attempt,
+        maxAttempts,
+        read.responseCode ? std::to_string(*read.responseCode) : "none",
+        read.retryable,
+        read.body.empty() ? read.failure : "ok");
+    if (!read.body.empty() || !read.retryable || attempt == maxAttempts) {
+      break;
+    }
+    std::this_thread::sleep_for(kBmcLogfilePollInterval);
   }
-  if (body.empty()) {
+
+  if (read.body.empty()) {
     // The BMC is unreachable, the source address could not be bound, the
     // image has no logfile endpoint, or its ACL does not admit us.
     // All are a failed read, not an absence of causes.
@@ -755,10 +882,11 @@ reboot_cause_config::RebootCauseProviderAttempt readBmcWedgePower(
         kBmcWedgePowerProvider,
         reboot_cause_config::RebootCauseProviderStatus::READ_FAILED,
         detailWithReason(
-            kBmcLogfilePath, failure.empty() ? "empty response" : failure),
+            kBmcLogfilePath,
+            read.failure.empty() ? "empty response" : read.failure),
         {});
   }
-  return parseBmcWedgePower(body, btimeSec, windowSec);
+  return parseBmcWedgePower(read.body, btimeSec, windowSec);
 }
 
 // Sudden power loss leaves no log line anywhere by definition: nothing had a
@@ -917,6 +1045,7 @@ RebootCauseFinderImpl::Paths RebootCauseFinderImpl::defaultPaths() {
       kHistoryDir,
       kProcStatPath,
       kProcBootIdPath,
+      kProcOsReleasePath,
       detail::kernelPanicCrashDirs(),
       detail::x86RebootCommandLogPaths()};
 }
@@ -960,10 +1089,30 @@ void RebootCauseFinderImpl::determineRebootCause() {
     return;
   }
   if (*alreadyHandled) {
-    XLOG(INFO) << fmt::format(
-        "Reboot causes were already determined during boot {}. Nothing to do.",
+    if (!FLAGS_redo_current_boot) {
+      XLOG(INFO) << fmt::format(
+          "Reboot causes were already determined during boot {}. Nothing to "
+          "do.",
+          bootId);
+      return;
+    }
+    if (!removeRecordForBoot(paths_.historyDir, bootId)) {
+      XLOG(ERR) << "Doing nothing: asked to redo this boot, but the existing "
+                   "record could not be removed and a second record for one "
+                   "boot would leave two answers with no way to tell which "
+                   "is current.";
+      return;
+    }
+    XLOG(WARNING) << fmt::format(
+        "Discarded the record for boot {} and re-reading every provider, "
+        "because --redo_current_boot was set.",
         bootId);
-    return;
+    if (FLAGS_clear_reboot_causes) {
+      XLOG(WARNING)
+          << "--clear_reboot_causes is also set. If an earlier run this boot "
+             "already cleared the hardware providers, they have nothing left "
+             "to report and this run will find less than that one did.";
+    }
   }
 
   XLOG(INFO) << "Reading reboot causes from all providers";
@@ -1089,6 +1238,7 @@ void RebootCauseFinderImpl::determineRebootCause() {
   }
   record.bootId() = bootId;
   record.bootTimeMs() = bootTimeMs;
+  record.kernelRelease() = readKernelRelease(paths_.osRelease);
   record.providersAttempted() = attempts;
 
   // Writing the record is what arms the guard, so it has to succeed before
@@ -1128,14 +1278,16 @@ bool RebootCauseFinderImpl::persistResult(
     return false;
   }
 
-  // The boot id suffix is what recordExistsForBoot() matches on; the stamp is
-  // only there to keep the directory readable.
+  // The boot id suffix is what recordExistsForBoot() matches on. The stamp is
+  // the boot time, so the directory lists boots in boot order; it falls back
+  // to now only when btime could not be read.
+  const auto stampTime = *record.bootTimeMs() > 0
+      ? static_cast<std::time_t>(*record.bootTimeMs() / 1000)
+      : std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
   auto filePath = fmt::format(
       "{}/reboot-cause-{}{}",
       paths_.historyDir,
-      filenameStamp(
-          std::chrono::system_clock::to_time_t(
-              std::chrono::system_clock::now())),
+      filenameStamp(stampTime),
       recordFilenameSuffix(*record.bootId()));
 
   auto json = folly::parseJson(

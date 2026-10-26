@@ -400,6 +400,7 @@ class FakeAclTable {
   sai_object_id_t userDefinedFieldGroupMin2;
   sai_object_id_t userDefinedFieldGroupMin3;
   sai_object_id_t userDefinedFieldGroupMin4;
+  bool fieldRouteDestination{false};
 };
 
 class FakeAclCounter {

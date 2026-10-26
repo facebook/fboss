@@ -58,6 +58,9 @@ constexpr int kUsecDiagSelectLatchWaitPrbs = 350000; // 350 ms
 constexpr int kUsecAfterAppProgramming = 500000;
 constexpr int kUsecDatapathStateUpdateTime = 10000000; // 10 seconds
 constexpr int kUsecDatapathStatePollTime = 500000; // 500 ms
+// Application Advertising: ApSel 1-8 in Lower Page 00h, 9-15 in Page 01h
+constexpr uint8_t kNumLowerPageApplications = 8;
+constexpr uint8_t kMaxNumApplications = 15;
 constexpr double kU16TypeLsbDivisor = 256.0;
 constexpr int kVdmDescriptorLength = 2;
 
@@ -1347,10 +1350,14 @@ std::vector<uint8_t> CmisModule::configuredMediaLanes(
     }
 
     const auto index = std::distance(hostStartLanes.begin(), it);
+    const auto& mediaStartLanes = applicationAdvertisingField->mediaStartLanes;
     uint8_t mediaStartLane = 0;
-    if (index < applicationAdvertisingField->mediaStartLanes.size()) {
-      mediaStartLane =
-          globalLane(bank, applicationAdvertisingField->mediaStartLanes[index]);
+    if (index < mediaStartLanes.size()) {
+      mediaStartLane = globalLane(bank, mediaStartLanes[index]);
+    } else if (mediaStartLanes.size() == 1) {
+      // Multiple host datapaths multiplexed onto a single media datapath (e.g.
+      // 3x200G ZR on one coherent media lane) all share that media lane
+      mediaStartLane = globalLane(bank, mediaStartLanes[0]);
     } else {
       QSFP_LOG(ERR, this) << "Index " << index << " out of range for "
                           << folly::join(
@@ -1506,17 +1513,27 @@ void CmisModule::getApplicationCapabilities() {
   int dataAddress;
 
   moduleCapabilities_.clear();
-  for (uint8_t i = 0; i < 8; i++) {
-    getQsfpFieldAddress(
-        CmisField::APPLICATION_ADVERTISING1, dataAddress, offset, length);
-    data = getQsfpValuePtr(dataAddress, offset + i * length, length);
+  // Flat memory modules don't have page 01h, so only advertise ApSel 1-8
+  const uint8_t maxApplications =
+      flatMem_ ? kNumLowerPageApplications : kMaxNumApplications;
+  for (uint8_t i = 0; i < maxApplications; i++) {
+    if (i < kNumLowerPageApplications) {
+      getQsfpFieldAddress(
+          CmisField::APPLICATION_ADVERTISING1, dataAddress, offset, length);
+      data = getQsfpValuePtr(dataAddress, offset + i * length, length);
+    } else {
+      getQsfpFieldAddress(
+          CmisField::APPLICATION_ADVERTISING2, dataAddress, offset, length);
+      data = getQsfpValuePtr(
+          dataAddress,
+          offset + (i - kNumLowerPageApplications) * length,
+          length);
+    }
 
     if (data[0] == 0xff) {
       break;
     }
 
-    QSFP_LOG(DBG3, this) << fmt::format(
-        "Adding module capability: {:#x} at position {:d}", data[1], i + 1);
     ApplicationAdvertisingField applicationAdvertisingField;
     applicationAdvertisingField.ApSelCode = (i + 1);
     // For Active cables, we use the Host Interface Code as the designated
@@ -1528,6 +1545,13 @@ void CmisModule::getApplicationCapabilities() {
     } else {
       applicationAdvertisingField.moduleMediaInterface = data[1];
     }
+    if (i >= kNumLowerPageApplications &&
+        applicationAdvertisingField.moduleMediaInterface == 0) {
+      // Unused Page 01h entry that wasn't terminated with 0xFF
+      continue;
+    }
+    QSFP_LOG(DBG3, this) << fmt::format(
+        "Adding module capability: {:#x} at position {:d}", data[1], i + 1);
     applicationAdvertisingField.moduleHostInterface = data[0];
     applicationAdvertisingField.hostLaneCount =
         (data[2] & FieldMasks::UPPER_FOUR_BITS_MASK) >> 4;
@@ -3092,18 +3116,16 @@ void CmisModule::setApplicationSelectCode(
 }
 
 /*
- * setApplicationSelectCodeAllPorts
+ * getAllPortsStageSet0Config
  *
- * This function programs the application select code on all the software port
- * for a given optics. This is required when the optics has to transition to a
- * valid configuration for all the lanes
+ * Returns the stage set 0 AppSel bytes setApplicationSelectCodeAllPorts
+ * programs on all lanes of the port's bank for a valid speed combo matching the
+ * port's request, or nullopt if there is none
  */
-void CmisModule::setApplicationSelectCodeAllPorts(
+std::optional<CmisModule::AllLaneConfig> CmisModule::getAllPortsStageSet0Config(
     const TransceiverPortState& state,
     uint8_t numHostLanes) {
-  // This programs the whole 8-lane bank that the port lives in. Speed-combo
-  // lookups and stage-0 config are bank-relative (intra-bank lane indices).
-  const uint8_t bank = laneToBank(state.startHostLane);
+  // Speed-combo lookups are bank-relative (intra-bank lane indices).
   const uint8_t intraStartHostLane = laneInBank(state.startHostLane);
   std::vector<uint8_t> laneProgramValues;
   if (isAecModule()) {
@@ -3145,12 +3167,7 @@ void CmisModule::setApplicationSelectCodeAllPorts(
                                   : configMapping);
   }
   if (laneProgramValues.size() != kMaxOsfpNumLanes) {
-    XLOG(WARNING) << "Transceiver " << getNameString() << " port "
-                  << state.startHostLane << ": "
-                  << "Failed to find valid speed combo for speed "
-                  << apache::thrift::util::enumNameSafe(state.speed)
-                  << ", module will not be reprogrammed";
-    return;
+    return std::nullopt;
   }
   AllLaneConfig stageSet0Config;
   for (auto lane = 0; lane < kMaxOsfpNumLanes;) {
@@ -3172,8 +3189,66 @@ void CmisModule::setApplicationSelectCodeAllPorts(
       stageSet0Config[lane++] = 0;
     }
   }
+  return stageSet0Config;
+}
+
+/*
+ * getAllPortsResetLaneMasks
+ *
+ * Returns the {deinit, init} lane masks for programming the AppSel on all lanes
+ * for a port's request
+ */
+std::pair<uint8_t, uint8_t> CmisModule::getAllPortsResetLaneMasks(
+    const TransceiverPortState& state,
+    uint8_t numHostLanes) {
+  // Programming all lanes changes the application on lanes outside this port,
+  // so deinit every lane in the current and new configs and init every lane the
+  // new config puts in an application
+  const uint8_t bank = laneToBank(state.startHostLane);
+  const uint8_t portLaneMask =
+      laneMask(laneInBank(state.startHostLane), numHostLanes);
+  uint8_t allPortsInitLaneMask = 0;
+  if (auto stageSet0Config = getAllPortsStageSet0Config(state, numHostLanes)) {
+    for (int lane = 0; lane < kMaxOsfpNumLanes; lane++) {
+      if (((*stageSet0Config)[lane] & APP_SEL_MASK) >> APP_SEL_BITSHIFT) {
+        allPortsInitLaneMask |= (1 << lane);
+      }
+    }
+  }
+  if (allPortsInitLaneMask == 0) {
+    // No valid speed combo, so setApplicationSelectCodeAllPorts won't touch
+    // other lanes. Limit the reset to this port.
+    return {portLaneMask, portLaneMask};
+  }
+  const uint8_t initLaneMask = allPortsInitLaneMask | portLaneMask;
+  const uint8_t deinitLaneMask = getActiveAppSelLaneMask(bank) | initLaneMask;
+  return {deinitLaneMask, initLaneMask};
+}
+
+/*
+ * setApplicationSelectCodeAllPorts
+ *
+ * This function programs the application select code on all the software port
+ * for a given optics. This is required when the optics has to transition to a
+ * valid configuration for all the lanes
+ */
+void CmisModule::setApplicationSelectCodeAllPorts(
+    const TransceiverPortState& state,
+    uint8_t numHostLanes) {
+  // This programs the whole 8-lane bank that the port lives in. Stage-0 config
+  // is bank-relative (intra-bank lane indices).
+  const uint8_t bank = laneToBank(state.startHostLane);
+  auto stageSet0Config = getAllPortsStageSet0Config(state, numHostLanes);
+  if (!stageSet0Config) {
+    XLOG(WARNING) << "Transceiver " << getNameString() << " port "
+                  << state.startHostLane << ": "
+                  << "Failed to find valid speed combo for speed "
+                  << apache::thrift::util::enumNameSafe(state.speed)
+                  << ", module will not be reprogrammed";
+    return;
+  }
   writeCmisField(
-      CmisField::APP_SEL_LANE_1_8, stageSet0Config.data(), false, bank);
+      CmisField::APP_SEL_LANE_1_8, stageSet0Config->data(), false, bank);
 
   // Trigger the Set 0 application code setting to be applied on data
   // path init for all the lanes. The actual data-path init will be
@@ -3223,12 +3298,15 @@ void CmisModule::programApplicationSelectCode(
     uint8_t moduleMediaInterfaceCode,
     const TransceiverPortState& state,
     uint8_t numHostLanes,
-    std::optional<std::function<void()>> appSelectFunc) {
+    std::optional<std::function<void()>> appSelectFunc,
+    std::optional<uint8_t> deinitLaneMask,
+    std::optional<uint8_t> initLaneMask) {
   // A port's lanes live in one bank; program with an intra-bank lane mask and
   // select that bank for the datapath reset.
   const uint8_t bank = laneToBank(state.startHostLane);
   uint8_t hostLaneMask =
       laneMask(laneInBank(state.startHostLane), numHostLanes);
+  const uint8_t resetLaneMask = deinitLaneMask.value_or(hostLaneMask);
 
   // Use provided function or create default one
   if (!appSelectFunc) {
@@ -3245,9 +3323,10 @@ void CmisModule::programApplicationSelectCode(
         hostLaneMask);
   }
 
-  resetDataPathWithFunc(state.portName, appSelectFunc, hostLaneMask, bank);
+  resetDataPathWithFunc(
+      state.portName, appSelectFunc, resetLaneMask, bank, initLaneMask);
 
-  datapathResetPendingMask_[bank] &= ~hostLaneMask;
+  datapathResetPendingMask_[bank] &= ~resetLaneMask;
 
   // Certain OSFP Modules require a long time to finish application
   // programming. The modules say config is accepted and applied, but
@@ -3501,7 +3580,7 @@ void CmisModule::setApplicationCodeLocked(
     uint8_t moduleMediaInterfaceCode =
         getInterfaceCodeForAppSel(newAppSelCode, kMediaInterfaceCodeOffset);
 
-    programApplicationSelectCode(
+    programPortApplicationSelectCode(
         newAppSelCode, moduleMediaInterfaceCode, state, state.numHostLanes);
     return;
   }
@@ -3519,20 +3598,40 @@ void CmisModule::setApplicationCodeLocked(
   uint8_t moduleMediaInterfaceCode = capability->moduleMediaInterface;
   uint8_t numHostLanes = capability->hostLaneCount;
 
-  // Handle special OSFP multiport case
-  // In 400G-FR4 case we will have 8 host lanes instead of 4. Further more,
-  // we need to deactivate all the lanes when we switch to an application with
-  // a different lane count. CMIS4.0-8.8.4
-  std::optional<std::function<void()>> appSelectFunc = std::nullopt;
+  programPortApplicationSelectCode(
+      appSelCode, moduleMediaInterfaceCode, state, numHostLanes);
+}
 
-  if (getIdentifier() == TransceiverModuleIdentifier::OSFP &&
-      !isRequestValidMultiportSpeedConfig(
+/*
+ * programPortApplicationSelectCode
+ *
+ * Programs the AppSel code for a port. Handles the OSFP multiport case: in
+ * 400G-FR4 case we will have 8 host lanes instead of 4. Further more, we need
+ * to deactivate all the lanes when we switch to an application with a different
+ * lane count (CMIS4.0-8.8.4). When the requested config is not a valid
+ * multiport config on its own, the AppSel is programmed on all lanes in one
+ * datapath cycle.
+ */
+void CmisModule::programPortApplicationSelectCode(
+    uint8_t appSelCode,
+    uint8_t moduleMediaInterfaceCode,
+    const TransceiverPortState& state,
+    uint8_t numHostLanes) {
+  std::optional<std::function<void()>> appSelectFunc = std::nullopt;
+  std::optional<uint8_t> deinitLaneMask = std::nullopt;
+  std::optional<uint8_t> initLaneMask = std::nullopt;
+
+  if (!isRequestValidMultiportSpeedConfig(
           state.speed, state.startHostLane, numHostLanes)) {
+    std::tie(deinitLaneMask, initLaneMask) =
+        getAllPortsResetLaneMasks(state, numHostLanes);
     QSFP_LOG(INFO, this) << fmt::format(
-        "Programming App sel on ALL lanes: speed={}, startHostLane={}, numHostLanes={}",
+        "Programming App sel on ALL lanes: speed={}, startHostLane={}, numHostLanes={}, deinitLaneMask={:#x}, initLaneMask={:#x}",
         apache::thrift::util::enumNameSafe(state.speed),
         state.startHostLane,
-        numHostLanes);
+        numHostLanes,
+        *deinitLaneMask,
+        *initLaneMask);
     appSelectFunc = std::bind(
         &CmisModule::setApplicationSelectCodeAllPorts,
         this,
@@ -3540,9 +3639,14 @@ void CmisModule::setApplicationCodeLocked(
         numHostLanes);
   }
 
-  // Use programApplicationSelectCode for both cases
   programApplicationSelectCode(
-      appSelCode, moduleMediaInterfaceCode, state, numHostLanes, appSelectFunc);
+      appSelCode,
+      moduleMediaInterfaceCode,
+      state,
+      numHostLanes,
+      appSelectFunc,
+      deinitLaneMask,
+      initLaneMask);
 }
 
 /*
@@ -5438,8 +5542,46 @@ bool CmisModule::isDatapathUpdated(
   return true;
 }
 
+uint8_t CmisModule::getActiveAppSelLaneMask(uint8_t bank) {
+  AllLaneConfig activeCtrl;
+  readCmisField(
+      CmisField::ACTIVE_CTRL_ALL_LANES, activeCtrl.data(), false, bank);
+  uint8_t mask = 0;
+  for (int lane = 0; lane < kMaxOsfpNumLanes; lane++) {
+    if ((activeCtrl[lane] & APP_SEL_MASK) >> APP_SEL_BITSHIFT) {
+      mask |= (1 << lane);
+    }
+  }
+  return mask;
+}
+
 void CmisModule::resetDataPath(const std::string& portName) {
-  resetDataPathWithFunc(portName);
+  if (flatMem_) {
+    return;
+  }
+  // Only reset lanes that are part of an active application. Lanes left unused
+  // by the current application (e.g. lanes 6-7 in 3x200G ZR) never reach
+  // DPActivated, so including them would make datapath init never complete.
+  uint8_t hostLaneMask = getActiveAppSelLaneMask(/*bank=*/0);
+  if (hostLaneMask == 0) {
+    hostLaneMask = 0xFF;
+  }
+  const uint8_t skippedLaneMask =
+      hostLaneMask & datapathInitDoneInProgramMask_[0];
+  hostLaneMask &= ~skippedLaneMask;
+  if (hostLaneMask == 0) {
+    QSFP_LOG(INFO, this) << fmt::format(
+        "Port {} skipping datapath reset, lanes {:#x} were initialized in this programming cycle",
+        portName,
+        skippedLaneMask);
+    return;
+  }
+  QSFP_LOG(INFO, this) << fmt::format(
+      "Port {} resetting datapath on host lane mask {:#x}, skipping lanes {:#x} initialized in this programming cycle",
+      portName,
+      hostLaneMask,
+      skippedLaneMask);
+  resetDataPathWithFunc(portName, std::nullopt, hostLaneMask);
 }
 
 void CmisModule::resetDatapathProgrammingStateLocked() {
@@ -5582,7 +5724,9 @@ void CmisModule::resetDataPathForTunableOptics(
     const std::string& portName,
     std::optional<std::function<void()>> afterDataPathDeinitFunc,
     uint8_t hostLaneMask,
-    uint8_t bank) {
+    uint8_t bank,
+    std::optional<uint8_t> initLaneMask) {
+  const uint8_t initMask = initLaneMask.value_or(hostLaneMask);
   // Step 1: De-initialize data path
   if (!dataPathProgram(portName, hostLaneMask, false, bank)) {
     throw FbossError(
@@ -5603,11 +5747,20 @@ void CmisModule::resetDataPathForTunableOptics(
     }
   }
 
-  // Step 3: Initialize data path
-  if (!dataPathProgram(portName, hostLaneMask, true, bank)) {
+  // Step 3: Initialize data path. Retries keep checking the lanes the init was
+  // started on, even if the caller now passes a narrower mask.
+  auto& dpState = portDatapathStates_[portName];
+  if (dpState.initTimers.progStartTimer.time_since_epoch().count() == 0) {
+    dpState.initLaneMask = initMask;
+  }
+  const uint8_t waitInitMask = dpState.initLaneMask.value_or(initMask);
+  if (!dataPathProgram(portName, waitInitMask, true, bank)) {
     throw FbossError(
         "Data path initialize not yet completed for port ", portName);
   }
+
+  dpState.initLaneMask.reset();
+  datapathInitDoneInProgramMask_[bank] |= waitInitMask;
 
   // Step 4: Workaround to set PCS to AM Transparent: T289920421
   setPcsToAmTransparent();
@@ -5624,15 +5777,19 @@ void CmisModule::resetDataPathWithFunc(
     const std::string& portName,
     std::optional<std::function<void()>> afterDataPathDeinitFunc,
     uint8_t hostLaneMask,
-    uint8_t bank) {
+    uint8_t bank,
+    std::optional<uint8_t> initLaneMask) {
   if (flatMem_) {
     return;
   }
 
+  // Lanes deinitialized (hostLaneMask) may be a superset of the lanes to
+  // initialize: lanes left without an application stay in deinit
+  const uint8_t initMask = initLaneMask.value_or(hostLaneMask);
   if (isTunableOptics()) {
     // For tunable optics (ZR modules), use dataPathProgram for deinit/init
     resetDataPathForTunableOptics(
-        portName, afterDataPathDeinitFunc, hostLaneMask, bank);
+        portName, afterDataPathDeinitFunc, hostLaneMask, bank, initMask);
   } else {
     // For non-tunable optics, use inline deinit/init logic
     uint8_t dataPathDeInitReg;
@@ -5664,7 +5821,7 @@ void CmisModule::resetDataPathWithFunc(
     }
 
     // Release the lanes from DeInit.
-    dataPathDeInit = dataPathDeInitReg & ~(hostLaneMask);
+    dataPathDeInit = (dataPathDeInitReg | hostLaneMask) & ~initMask;
     writeCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInit, false, bank);
 
     // Wait for the datapath to come out of deactivated state
@@ -5674,7 +5831,7 @@ void CmisModule::resetDataPathWithFunc(
       /* sleep override */
       usleep(kUsecDatapathStatePollTime);
       if (isDatapathUpdated(
-              hostLaneMask,
+              initMask,
               {CmisLaneState::ACTIVATED, CmisLaneState::DATAPATH_INITIALIZED},
               bank)) {
         break;
@@ -5684,6 +5841,8 @@ void CmisModule::resetDataPathWithFunc(
       QSFP_LOG(ERR, this) << fmt::format(
           "Datapath didn't come out of deactivated state even after waiting {:d} uSec",
           kUsecDatapathStateUpdateTime);
+    } else {
+      datapathInitDoneInProgramMask_[bank] |= initMask;
     }
 
     // Update the last datapath reset time for all the lanes in hostLaneMask

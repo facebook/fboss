@@ -13,6 +13,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/rib/ClassBasedPolicyUpdater.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/rib/RibToSwitchStateUpdater.h"
 #include "fboss/agent/rib/RouteUpdater.h"
@@ -71,9 +72,10 @@ std::function<void(const NextHopIDManager*)> createNextHopIdStateUpdate(
   return
       [sw, name = std::move(name)](const NextHopIDManager* nextHopIDManager) {
         SwitchStateNextHopIdUpdater nhopUpdater(nextHopIDManager);
+        ClassBasedPolicyUpdater policyUpdater(nextHopIDManager);
         sw->updateStateWithHwFailureProtection(
-            name, [&nhopUpdater](const std::shared_ptr<SwitchState>& state) {
-              return nhopUpdater(state);
+            name, [&](const std::shared_ptr<SwitchState>& state) {
+              return policyUpdater(nhopUpdater(state));
             });
       };
 }

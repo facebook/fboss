@@ -223,10 +223,10 @@ TEST_F(AgentMplsTtlAclTest, VerifyMplsTtlAclCounter) {
   auto setup = [this]() { setupMplsRouteAndAcl(); };
 
   auto verify = [this]() {
-    // Warm boot preserves the hardware counter but starts with an empty stat
-    // cache, so pull stats once before snapshotting or the baseline reads zero
-    // and every later delta is inflated by the pre-boot count.
-    getAgentEnsemble()->updateStats();
+    // HW stats reach SwSwitch asynchronously, so wait for a fresh push before
+    // snapshotting. Otherwise a warm boot baseline can miss the counter
+    // preserved across the boot and inflate every later delta.
+    getNextUpdatedPortStats(ingressPort());
     auto pktsBefore = getAclPacketCounter();
     auto bytesBefore = getAclByteCounter();
     auto ttlExceededBefore =

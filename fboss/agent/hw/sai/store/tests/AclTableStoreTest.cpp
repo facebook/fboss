@@ -300,6 +300,9 @@ class AclTableStoreTest : public SaiStoreTest {
             kUdfGroupId() + 2, // udf group 2
             kUdfGroupId() + 3, // udf group 3
             kUdfGroupId() + 4, // udf group 4
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+            true, // route destination
+#endif
             true, // port meta
         },
         0);
@@ -507,6 +510,9 @@ TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
       kUdfGroupId() + 2, // udf group 2
       kUdfGroupId() + 3, // udf group 3
       kUdfGroupId() + 4, // udf group 4
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      true, // route destination
+#endif
       true, // port meta
   };
 

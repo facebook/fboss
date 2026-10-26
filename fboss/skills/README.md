@@ -26,6 +26,7 @@ In an open-source FBOSS checkout, the exported skills are expected under:
 ```text
 fboss/skills/
   build-fboss-oss-local/
+  add-config-cli-oss/
   debug-agent-hw-test/
   debug-link-test/
   debug-qsfp-hw-test/
@@ -71,6 +72,13 @@ reference files to read for the task, so users do not need to know the full
 directory structure.
 
 ## Skills
+
+### `add-config-cli-oss`
+
+Use this skill to add a `fboss2-dev config` command or a related command
+family that updates `SwitchConfig`. It covers field mapping, config action
+levels, handlers, command registration, build files, unit tests, and device
+integration tests.
 
 ### `debug-agent-hw-test`
 

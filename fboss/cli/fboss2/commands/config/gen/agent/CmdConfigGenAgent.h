@@ -22,11 +22,14 @@ inline constexpr std::string_view kConfigGenAgentCommand = "config_gen_agent";
 inline const std::string kConfigGenAgentPlatform = "--platform";
 inline const std::string kConfigGenAgentProfile = "--profile";
 inline const std::string kConfigGenAgentFbossRoot = "--fboss-root";
+inline const std::string kConfigGenAgentAsicConfigVariant =
+    "--asic-config-variant";
 inline const std::string kConfigGenAgentAsicConfigFile = "--asic-config-file";
 inline const std::string kConfigGenAgentAsicConfigType = "--asic-config-type";
 inline const std::string kConfigGenAgentReferenceConfigFile =
     "--reference-config-file";
 inline const std::string kConfigGenAgentOutputDirectory = "--output-dir";
+inline const std::string kConfigGenAgentVerify = "--verify";
 
 struct CmdConfigGenAgentTraits : public WriteCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
@@ -36,9 +39,12 @@ struct CmdConfigGenAgentTraits : public WriteCommandTraits {
   using RetType = std::string;
   std::vector<utils::LocalOption> LocalOptions = {
       {kConfigGenAgentPlatform,
-       "Target platform; omit to generate every manifest target"},
-      {kConfigGenAgentProfile, "ASIC configuration profile [default: default]"},
+       "Target platform; omit to generate every platform declaration"},
+      {kConfigGenAgentProfile,
+       "Generate one profile; omit to generate the platform declaration"},
       {kConfigGenAgentFbossRoot, "Path to the fboss source root [required]"},
+      {kConfigGenAgentAsicConfigVariant,
+       "ASIC configuration variant; defaults to --profile"},
       {kConfigGenAgentAsicConfigFile,
        "ASIC configuration file overriding the generated profile artifact"},
       {kConfigGenAgentAsicConfigType,
@@ -47,6 +53,10 @@ struct CmdConfigGenAgentTraits : public WriteCommandTraits {
        "Agent configuration to compare with the generated output"},
       {kConfigGenAgentOutputDirectory,
        "Directory in which to create agent.conf"},
+      {kConfigGenAgentVerify,
+       "Verify declaration-generated configs without modifying them",
+       std::nullopt,
+       /*isFlag=*/true},
   };
 };
 

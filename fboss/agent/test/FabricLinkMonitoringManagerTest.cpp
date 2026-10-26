@@ -128,7 +128,8 @@ cfg::SwitchConfig createVoqConfig() {
 }
 
 // Setup for VOQ switch with fabric ports
-unique_ptr<HwTestHandle> setupTestHandle() {
+unique_ptr<HwTestHandle> setupTestHandle(
+    SwitchFlags flags = SwitchFlags::DEFAULT) {
   auto state = testStateAWithPortsUp();
   addSwitchInfo(
       state,
@@ -149,7 +150,7 @@ unique_ptr<HwTestHandle> setupTestHandle() {
     }
   }
 
-  return createTestHandle(state);
+  return createTestHandle(state, flags);
 }
 
 void setupL1FabricSwitch(
@@ -391,6 +392,24 @@ TEST(FabricLinkMonitoringManagerTest, CreateManager) {
   EXPECT_NE(manager, nullptr);
 }
 
+TEST(FabricLinkMonitoringManagerTest, FsdbStatsWithoutMonitoring) {
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+  ASSERT_EQ(sw->getFabricLinkMonitoringManager(), nullptr);
+  multiswitch::HwSwitchStats hwStats;
+  hwStats.hwPortStats()["port1"] = HwPortStats{};
+  sw->updateHwSwitchStats(0, hwStats);
+  const auto agentStats = sw->fillFsdbStats();
+  const auto& portStats = agentStats.hwPortStats()->at("port1");
+  EXPECT_FALSE(portStats.fabricLinkMonitoringTxPackets_().has_value());
+  EXPECT_FALSE(portStats.fabricLinkMonitoringRxPackets_().has_value());
+  EXPECT_FALSE(portStats.fabricLinkMonitoringDroppedPackets_().has_value());
+  EXPECT_FALSE(
+      portStats.fabricLinkMonitoringInvalidPayloadPackets_().has_value());
+  EXPECT_FALSE(
+      portStats.fabricLinkMonitoringNoPendingSeqNumPackets_().has_value());
+}
+
 TEST(FabricLinkMonitoringManagerTest, SendPacketsOnFabricPorts) {
   auto handle = setupTestHandle();
   auto sw = handle->getSw();
@@ -414,10 +433,11 @@ TEST(FabricLinkMonitoringManagerTest, SendPacketsOnFabricPorts) {
 }
 
 TEST(FabricLinkMonitoringManagerTest, PacketPayloadValidation) {
-  auto handle = setupTestHandle();
+  auto handle = setupTestHandle(SwitchFlags::ENABLE_FABRIC_LINK_MONITORING);
   auto sw = handle->getSw();
 
-  auto manager = std::make_unique<FabricLinkMonitoringManager>(sw);
+  auto* manager = sw->getFabricLinkMonitoringManager();
+  ASSERT_NE(manager, nullptr);
   manager->start();
 
   waitForStateUpdates(sw);
@@ -440,6 +460,22 @@ TEST(FabricLinkMonitoringManagerTest, PacketPayloadValidation) {
       *statsAfter.invalidPayloadCount(), *statsBefore.invalidPayloadCount());
 
   manager->stop();
+
+  const auto& portName =
+      sw->getState()->getPorts()->getNode(testPort)->getName();
+  multiswitch::HwSwitchStats hwStats;
+  hwStats.hwPortStats()[portName] = HwPortStats{};
+  sw->updateHwSwitchStats(0, hwStats);
+  const auto agentStats = sw->fillFsdbStats();
+  const auto& portStats = agentStats.hwPortStats()->at(portName);
+  // Make sure the fabric link monitoring stats are populated in FSDB.
+  EXPECT_TRUE(portStats.fabricLinkMonitoringTxPackets_().has_value());
+  EXPECT_TRUE(portStats.fabricLinkMonitoringRxPackets_().has_value());
+  EXPECT_TRUE(portStats.fabricLinkMonitoringDroppedPackets_().has_value());
+  EXPECT_TRUE(
+      portStats.fabricLinkMonitoringInvalidPayloadPackets_().has_value());
+  EXPECT_TRUE(
+      portStats.fabricLinkMonitoringNoPendingSeqNumPackets_().has_value());
 }
 
 TEST(FabricLinkMonitoringManagerTest, PacketSizeValidation) {

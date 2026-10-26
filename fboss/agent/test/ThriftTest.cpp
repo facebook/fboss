@@ -93,6 +93,33 @@ IpPrefix ipPrefix(StringPiece prefixStr) {
   return ipPrefix(IPAddress::createNetwork(prefixStr));
 }
 
+Policy makeCbfPolicy(
+    const std::string& name,
+    const std::string& defaultNhg,
+    const std::map<ForwardingClass, NextHopGroup>& class2Nhg = {}) {
+  ClassBasedPolicy cbfPolicy;
+  cbfPolicy.name() = name;
+  cbfPolicy.defaultNexthopGroup() = defaultNhg;
+  for (const auto& [forwardingClass, nhg] : class2Nhg) {
+    cbfPolicy.class2NextHopGroup()[forwardingClass] = nhg;
+  }
+  Policy policy;
+  policy.cbfPolicy() = std::move(cbfPolicy);
+  return policy;
+}
+
+NextHopGroup namedNhgRef(const std::string& name) {
+  NextHopGroup nhg;
+  nhg.name() = name;
+  return nhg;
+}
+
+std::unique_ptr<std::vector<Policy>> onePolicy(Policy policy) {
+  auto policies = std::make_unique<std::vector<Policy>>();
+  policies->push_back(std::move(policy));
+  return policies;
+}
+
 } // unnamed namespace
 
 class ThriftTest : public ::testing::Test {
@@ -191,6 +218,52 @@ TEST_F(ThriftTest, getPortInfoUserMetaData) {
   EXPECT_EQ(
       allPortInfo[kTestPortId].userMetaData(),
       cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED);
+}
+
+TEST_F(ThriftTest, getPortInfoCbfc) {
+  ThriftHandler handler(sw_);
+  constexpr int32_t kTestPortId = 1;
+
+  PortInfoThrift before;
+  handler.getPortInfo(before, kTestPortId);
+  EXPECT_FALSE(before.cbfc().has_value());
+
+  cfg::PortVcConfig rdma;
+  rdma.id() = 2;
+  rdma.senderEnable() = true;
+  rdma.receiverEnable() = true;
+  cfg::PortVcConfig monitoring;
+  monitoring.id() = 6;
+  monitoring.senderEnable() = true;
+  monitoring.receiverEnable() = true;
+  cfg::CbfcConfig cbfcConfig;
+  cbfcConfig.virtualChannels() = {rdma, monitoring};
+  cbfcConfig.senderCreditLimit() = 8192;
+  cbfcConfig.senderCreditSize() = 56;
+  cbfcConfig.senderPacketOverhead() = 16;
+
+  auto config = testConfigA();
+  config.cbfcConfigs() = {{"cbfc", cbfcConfig}};
+  for (auto& port : *config.ports()) {
+    if (*port.logicalID() == kTestPortId) {
+      port.cbfcConfigName() = "cbfc";
+    }
+  }
+  sw_->applyConfig("bind cbfc profile to port", config);
+
+  PortInfoThrift after;
+  handler.getPortInfo(after, kTestPortId);
+  ASSERT_TRUE(after.cbfc().has_value());
+  EXPECT_EQ(*after.cbfc()->configName(), "cbfc");
+  EXPECT_EQ(*after.cbfc()->virtualChannels(), (std::vector<int16_t>{2, 6}));
+  EXPECT_EQ(after.cbfc()->senderCreditSize(), 56);
+  EXPECT_EQ(after.cbfc()->senderPacketOverhead(), 16);
+  EXPECT_EQ(after.cbfc()->senderCreditLimit(), 8192);
+
+  std::map<int32_t, PortInfoThrift> allPortInfo;
+  handler.getAllPortInfo(allPortInfo);
+  ASSERT_TRUE(allPortInfo.contains(kTestPortId));
+  EXPECT_EQ(allPortInfo[kTestPortId].cbfc(), after.cbfc());
 }
 
 TEST_F(ThriftTest, getPortInfoIngressAclTableName) {
@@ -3764,6 +3837,57 @@ TEST_F(ThriftTest, getMySidEntriesReflectsDelete) {
       "2001:db8::2/64");
 }
 
+TEST_F(ThriftTestWithNhopIdMgr, getMySidEntriesReportsBackupNextHops) {
+  // Add an ADJACENCY MySid directly via the RIB (bypassing ThriftHandler
+  // validation), then protect it via addAdjacencyFrr. The backup resolves
+  // against connected routes configured in testConfigA().
+  auto ribMySidToSwitchStateFunc =
+      createRibMySidToSwitchStateFunction(std::nullopt);
+  state::MySidFields fields;
+  fields.type() = MySidType::ADJACENCY_MICRO_SID;
+  fields.mySid() = toFrrMySidIpPrefix("2001:db8::1", 64);
+  fields.adjacencyInterfaceId() = static_cast<int32_t>(kInterfaceA);
+  fields.isV6() = true;
+  fields.clientId() = ClientID::STATIC_ROUTE;
+  auto mySid = std::make_shared<MySid>(fields);
+  const RouteNextHopSet nextHops{
+      ResolvedNextHop(folly::IPAddress(kNhopAddrA), kInterfaceA, ECMP_WEIGHT)};
+  sw_->getRib()->update(
+      sw_->getScopeResolver(),
+      std::vector<MySidWithNextHops>{{mySid, nextHops, std::nullopt}},
+      {},
+      {},
+      "add adjacency mysid via rib",
+      ribMySidToSwitchStateFunc,
+      sw_);
+
+  ThriftHandler handler(sw_);
+  auto protectedObject = std::make_unique<FrrProtectedObject>();
+  protectedObject->mySid() = toFrrMySidIpPrefix("2001:db8::1", 64);
+  NextHopThrift backupNextHop;
+  backupNextHop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6(kNhopAddrB));
+  auto backupNextHops = std::make_unique<std::vector<NextHopThrift>>();
+  backupNextHops->push_back(std::move(backupNextHop));
+  handler.addAdjacencyFrr(
+      std::move(protectedObject), std::move(backupNextHops));
+
+  std::vector<MySidEntry> result;
+  handler.getMySidEntries(result);
+  ASSERT_EQ(result.size(), 1);
+  const auto& entry = result[0];
+  ASSERT_EQ(entry.backupUnresolvedNextHops()->size(), 1);
+  EXPECT_EQ(
+      facebook::network::toIPAddress(
+          *entry.backupUnresolvedNextHops()[0].address()),
+      folly::IPAddress(kNhopAddrB));
+  ASSERT_EQ(entry.backupResolvedNextHops()->size(), 1);
+  EXPECT_EQ(
+      facebook::network::toIPAddress(
+          *entry.backupResolvedNextHops()[0].address()),
+      folly::IPAddress(kNhopAddrB));
+}
+
 TEST_F(ThriftTestWithNhopIdMgr, getMySidEntriesNodeAndAdjacencyTypesViaRib) {
   // Add NODE and ADJACENCY MySid entries directly via the RIB (bypassing
   // ThriftHandler validation). Their nexthops resolve against connected routes
@@ -4016,6 +4140,27 @@ TEST_F(NamedNextHopGroupThriftTest, addAndGetNextHopGroup) {
   ASSERT_EQ(result.size(), 1);
   EXPECT_EQ(*result[0].name(), "group1");
   EXPECT_EQ(result[0].nexthops()->size(), 2);
+}
+
+TEST_F(NamedNextHopGroupThriftTest, rejectMixedSrv6AndPlainNextHops) {
+  ThriftHandler handler(sw_);
+
+  NextHopGroup group;
+  group.name() = "mixed_group";
+  group.nexthops() = {
+      makeLinkLocalNextHopThrift("fe80:face:b00c::1"),
+      makeLinkLocalSrv6NextHopThrift("fe80:face:b00c::2", "2001:db8::2")};
+  auto groups = std::make_unique<std::vector<NextHopGroup>>();
+  groups->push_back(std::move(group));
+
+  EXPECT_THROW(
+      handler.addOrUpdateNamedNextHopGroups(std::move(groups)), FbossError);
+
+  std::vector<NextHopGroup> result;
+  auto nameFilter = std::make_unique<std::vector<std::string>>();
+  nameFilter->push_back("mixed_group");
+  handler.getNamedNextHopGroups(result, std::move(nameFilter));
+  EXPECT_TRUE(result.empty());
 }
 
 namespace {
@@ -5457,4 +5602,47 @@ TEST_F(ThriftTest, routeCounterUpdatedWhenNamedNhgChanges) {
       RouterID(0), IPAddress::createNetwork("2401::70/128"), state);
   ASSERT_NE(nullptr, rt);
   EXPECT_EQ(rt->getForwardInfo().getCounterID(), "nhg_two");
+}
+
+TEST_F(NamedNextHopGroupThriftTest, addPoliciesRejectsInlineNexthopsInPolicy) {
+  ThriftHandler handler(sw_);
+  auto inlineNhops = makeGroup("classNhg", {"2401:db00:2110:3001::2"});
+  EXPECT_THAT(
+      [&] {
+        handler.addPolicies(onePolicy(makeCbfPolicy(
+            "pol1", "defaultNhg", {{ForwardingClass::CLASS_1, inlineNhops}})));
+      },
+      ::testing::ThrowsMessage<FbossError>(
+          ::testing::HasSubstr("supplies inline next hops")));
+}
+
+TEST_F(NamedNextHopGroupThriftTest, addPoliciesRejectsTheTemporaryEntryPrefix) {
+  ThriftHandler handler(sw_);
+  auto groups = std::make_unique<std::vector<NextHopGroup>>();
+  groups->push_back(makeGroup("defaultNhg", {"2401:db00:2110:3001::2"}));
+  handler.addOrUpdateNamedNextHopGroups(std::move(groups));
+
+  EXPECT_THAT(
+      [&] {
+        handler.addPolicies(onePolicy(makeCbfPolicy("#pol1", "defaultNhg")));
+      },
+      ::testing::ThrowsMessage<FbossError>(
+          ::testing::HasSubstr("cannot start with")));
+}
+
+// testConfigA has no PBR ACL table, so a policy that passes validation fails
+// the HW update.
+TEST_F(NamedNextHopGroupThriftTest, addPoliciesPassesValidationWhenWellFormed) {
+  ThriftHandler handler(sw_);
+  auto groups = std::make_unique<std::vector<NextHopGroup>>();
+  groups->push_back(makeGroup("defaultNhg", {"2401:db00:2110:3001::2"}));
+  groups->push_back(makeGroup("classNhg", {"2401:db00:2110:3001::3"}));
+  handler.addOrUpdateNamedNextHopGroups(std::move(groups));
+
+  EXPECT_THROW(
+      handler.addPolicies(onePolicy(makeCbfPolicy(
+          "pol1",
+          "defaultNhg",
+          {{ForwardingClass::CLASS_1, namedNhgRef("classNhg")}}))),
+      FbossHwUpdateError);
 }

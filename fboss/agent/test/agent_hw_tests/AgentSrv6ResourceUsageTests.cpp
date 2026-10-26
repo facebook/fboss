@@ -121,4 +121,49 @@ TEST_F(AgentSrv6ResourceUsageTest, verifyMySidResourceUsage) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(AgentSrv6ResourceUsageTest, verifyDualLocatorMySidResourceUsage) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    const auto mySidFreeBaseline = getMySidEntriesFree();
+    auto config = initialConfig(*getAgentEnsemble());
+
+    // 1. The decap SID under the legacy locator alone gives the per-SID cost,
+    // which differs by ASIC.
+    config.mySidConfig() =
+        utility::makeDecapMySidConfig({utility::kSrv6LegacyLocatorPrefix});
+    applyNewConfig(config);
+    int32_t decapSlotCost{0};
+    WITH_RETRIES({
+      decapSlotCost = mySidFreeBaseline - getMySidEntriesFree();
+      EXPECT_EVENTUALLY_GT(decapSlotCost, 0);
+    });
+
+    // 2. Adding the plane locator costs one more decap SID's slots.
+    config.mySidConfig() = utility::makeDecapMySidConfig(
+        {utility::kSrv6LegacyLocatorPrefix, utility::kSrv6PlaneLocatorPrefix});
+    applyNewConfig(config);
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_EQ(
+          getMySidEntriesFree(), mySidFreeBaseline - 2 * decapSlotCost);
+    });
+
+    // 3. Dropping the plane locator frees them again.
+    config.mySidConfig() =
+        utility::makeDecapMySidConfig({utility::kSrv6LegacyLocatorPrefix});
+    applyNewConfig(config);
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_EQ(
+          getMySidEntriesFree(), mySidFreeBaseline - decapSlotCost);
+    });
+
+    // 4. Removing mySidConfig returns the pool to baseline.
+    config.mySidConfig().reset();
+    applyNewConfig(config);
+    WITH_RETRIES(
+        { EXPECT_EVENTUALLY_EQ(getMySidEntriesFree(), mySidFreeBaseline); });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss

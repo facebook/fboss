@@ -45,8 +45,11 @@
         },
         "variants": {
             "type": "object",
-            "description": "Named configuration variants for this platform. Each variant produces a separate output config file. An empty variant name produces filename <platform>.yml, with no variant suffix.",
+            "description": "Named configuration variants for this platform. Each variant produces a separate output config file named <variant>.<extension>.",
             "minProperties": 1,
+            "propertyNames": {
+                "minLength": 1
+            },
             "additionalProperties": {
                 "$ref": "#/$defs/variant"
             }

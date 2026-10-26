@@ -42,6 +42,15 @@ class RestClient {
    */
   void setSourceAddress(folly::IPAddressV6 source);
 
+  /*
+   * HTTP status of the most recent request. std::nullopt when it produced no
+   * response, such as a refused connection or a timeout. Both of those throw,
+   * so read this from the catch block.
+   */
+  std::optional<long> lastResponseCode() const {
+    return lastResponseCode_;
+  }
+
  private:
   // Forbidden copy contructor and assignment operator
   RestClient(RestClient const&) = delete;
@@ -62,6 +71,7 @@ class RestClient {
   std::string cert_, key_;
   bool verifyHostname_ = true;
   std::optional<folly::IPAddressV6> sourceAddress_;
+  std::optional<long> lastResponseCode_;
 };
 
 } // namespace facebook::fboss

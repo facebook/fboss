@@ -48,6 +48,7 @@ target_link_libraries(copp_test_utils
 add_library(pkt_test_utils
   fboss/agent/test/utils/PacketSendUtils.cpp
   fboss/agent/test/utils/PacketTestUtils.cpp
+  fboss/agent/test/utils/oss/ChenabPacketTestUtils.cpp
 )
 
 target_link_libraries(pkt_test_utils

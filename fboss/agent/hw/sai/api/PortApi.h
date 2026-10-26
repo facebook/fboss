@@ -347,17 +347,24 @@ struct SaiPortTraits {
         SaiObjectIdDefault>;
     // CBFC S_P_CL, the cap on credits the sender may hold across all of the
     // port's virtual channels. Range 0..2^20-1.
-    //
-    // Deliberately NOT in CreateAttributes. brcm-sai 16.0_ea_odp rejects a GET
-    // of this attribute with INVALID PARAMETER, and SaiStore::reload() reads
-    // back every attribute in the tuple for every port at init -- so including
-    // it aborts the HW agent on boot, on every port, even with no CBFC
-    // configured. Set it directly through the port api instead.
     using CbfcSenderCreditLimit = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_CBFC_SENDER_CREDIT_LIMIT,
         sai_uint32_t,
         SaiIntDefault<sai_uint32_t>>;
+    // Bytes per credit the sender charges; must suit the peer's receiver.
+    using CbfcSenderCreditSize = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_CBFC_SENDER_CREDIT_SIZE,
+        sai_uint16_t,
+        SaiIntDefault<sai_uint16_t>>;
+    // Per-packet overhead in bytes the sender charges. Signed: the SAI range
+    // is -16..127.
+    using CbfcSenderPacketOverhead = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_CBFC_SENDER_PACKET_OVERHEAD,
+        sai_int16_t,
+        SaiIntDefault<sai_int16_t>>;
     // Egress classification: which virtual channel a queue drains into, and
     // so whose credit the sender must hold before transmitting from it.
     using QosQueueToVcMap = SaiAttribute<
@@ -691,6 +698,22 @@ struct SaiPortTraits {
         sai_int32_t,
         AttributeLinkScanMode,
         SaiIntDefault<sai_int32_t>>;
+    // Cisco CSIG tag action (sai_port_csig_tag_action_t). The SDK default is
+    // PASSTHROUGH (0), not the STRIP the SAI header documents.
+    struct AttributeCsigTagActionWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using CsigTagAction = SaiExtensionAttribute<
+        sai_int32_t,
+        AttributeCsigTagActionWrapper,
+        SaiIntDefault<sai_int32_t>>;
+    struct AttributeCsigLinkLocatorWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using CsigLinkLocator = SaiExtensionAttribute<
+        sai_uint8_t,
+        AttributeCsigLinkLocatorWrapper,
+        SaiIntDefault<sai_uint8_t>>;
     // Read-only counts of how many times a link up/down debounce was
     // retriggered by an additional flap while a debounce timeout was already
     // active.
@@ -838,6 +861,11 @@ struct SaiPortTraits {
 #if defined(SAI_CBFC_SUPPORTED)
       std::optional<Attributes::QosTcToVcMap>,
       std::optional<Attributes::QosQueueToVcMap>,
+      // In this order: brcm-sai recomputes the credit limit on a credit size
+      // or packet overhead set, so the limit must be written after both.
+      std::optional<Attributes::CbfcSenderCreditSize>,
+      std::optional<Attributes::CbfcSenderPacketOverhead>,
+      std::optional<Attributes::CbfcSenderCreditLimit>,
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
       std::optional<Attributes::InterFrameGap>,
@@ -897,7 +925,9 @@ struct SaiPortTraits {
       std::optional<Attributes::PfcPauseDurationOverride>,
       std::optional<Attributes::IngressAcl>,
       std::optional<Attributes::IsolationGroup>,
-      std::optional<Attributes::Metadata>>;
+      std::optional<Attributes::Metadata>,
+      std::optional<Attributes::CsigTagAction>,
+      std::optional<Attributes::CsigLinkLocator>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
@@ -1079,6 +1109,8 @@ SAI_ATTRIBUTE_NAME(Port, QosTcToPriorityGroupMap)
 #if defined(SAI_CBFC_SUPPORTED)
 SAI_ATTRIBUTE_NAME(Port, QosTcToVcMap)
 SAI_ATTRIBUTE_NAME(Port, CbfcSenderCreditLimit)
+SAI_ATTRIBUTE_NAME(Port, CbfcSenderCreditSize)
+SAI_ATTRIBUTE_NAME(Port, CbfcSenderPacketOverhead)
 SAI_ATTRIBUTE_NAME(Port, QosQueueToVcMap)
 SAI_ATTRIBUTE_NAME(Port, CbfcReceiverNativeCreditSize)
 SAI_ATTRIBUTE_NAME(Port, CbfcReceiverNativePacketOverhead)
@@ -1114,6 +1146,8 @@ SAI_ATTRIBUTE_NAME(Port, FabricAttachedSwitchType);
 SAI_ATTRIBUTE_NAME(Port, FabricReachability);
 SAI_ATTRIBUTE_NAME(Port, RxLaneSquelchEnable);
 SAI_ATTRIBUTE_NAME(Port, LinkScanMode);
+SAI_ATTRIBUTE_NAME(Port, CsigTagAction);
+SAI_ATTRIBUTE_NAME(Port, CsigLinkLocator);
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
 SAI_ATTRIBUTE_NAME(Port, PfcTcDldInterval);
 SAI_ATTRIBUTE_NAME(Port, PfcTcDlrInterval);
@@ -1665,7 +1699,7 @@ struct SaiPortSerdesTraits {
       ,
       std::optional<Attributes::CustomCollection>
 #endif
-#if defined(BRCM_SAI_SDK_GTE_13_0)
+#if defined(BRCM_SAI_SDK_GTE_13_0) || defined(SAI_BRCM_PAI_IMPL)
       ,
       std::optional<Attributes::RxReach>
 #endif

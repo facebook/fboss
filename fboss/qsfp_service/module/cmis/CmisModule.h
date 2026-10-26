@@ -392,6 +392,9 @@ class CmisModule : public QsfpModule {
     bool dpInitDone{false};
     uint64_t dpDeinitFailureCounter{0};
     uint64_t dpInitFailureCounter{0};
+    // Lanes whose activation the in-progress datapath init waits for. Kept so
+    // retries check the same lanes the init was started on.
+    std::optional<uint8_t> initLaneMask;
   };
 
   /*
@@ -505,7 +508,31 @@ class CmisModule : public QsfpModule {
       uint8_t moduleMediaInterfaceCode,
       const TransceiverPortState& state,
       uint8_t numHostLanes,
-      std::optional<std::function<void()>> appSelectFunc = std::nullopt);
+      std::optional<std::function<void()>> appSelectFunc = std::nullopt,
+      std::optional<uint8_t> deinitLaneMask = std::nullopt,
+      std::optional<uint8_t> initLaneMask = std::nullopt);
+
+  /*
+   * Program the AppSel code for a port, programming all lanes in one datapath
+   * cycle when the requested config is not a valid multiport config on its own
+   */
+  void programPortApplicationSelectCode(
+      uint8_t appSelCode,
+      uint8_t moduleMediaInterfaceCode,
+      const TransceiverPortState& state,
+      uint8_t numHostLanes);
+
+  // Stage set 0 AppSel bytes setApplicationSelectCodeAllPorts programs for the
+  // port's bank, or nullopt if there is no valid speed combo
+  std::optional<AllLaneConfig> getAllPortsStageSet0Config(
+      const TransceiverPortState& state,
+      uint8_t numHostLanes);
+  // {deinit, init} intra-bank lane masks for programming all ports: deinit
+  // covers lanes in the current and new configs, init covers lanes the new
+  // config puts in an application
+  std::pair<uint8_t, uint8_t> getAllPortsResetLaneMasks(
+      const TransceiverPortState& state,
+      uint8_t numHostLanes);
 
   /*
    * Helper function to read an interface code (host or media) for a given
@@ -761,6 +788,8 @@ class CmisModule : public QsfpModule {
   bool supportRemediate() override;
 
   void resetDataPath(const std::string& portName) override;
+  // Intra-bank mask of lanes with a non-zero active AppSel code
+  uint8_t getActiveAppSelLaneMask(uint8_t bank);
 
   void resetDatapathProgrammingStateLocked() override;
 
@@ -1064,7 +1093,8 @@ class CmisModule : public QsfpModule {
       std::optional<std::function<void()>> afterDataPathDeinitFunc =
           std::nullopt,
       uint8_t hostLaneMask = 0xFF,
-      uint8_t bank = 0);
+      uint8_t bank = 0,
+      std::optional<uint8_t> initLaneMask = std::nullopt);
 
   /*
    * Helper function to reset data path for tunable optics (ZR modules)
@@ -1074,7 +1104,8 @@ class CmisModule : public QsfpModule {
       const std::string& portName,
       std::optional<std::function<void()>> afterDataPathDeinitFunc,
       uint8_t hostLaneMask,
-      uint8_t bank = 0);
+      uint8_t bank = 0,
+      std::optional<uint8_t> initLaneMask = std::nullopt);
 
   /*
    * Set the PRBS Generator and Checker on a module for the desired side (Line

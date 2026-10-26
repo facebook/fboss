@@ -449,7 +449,8 @@ void BaseEcmpResourceManagerTest::SetUp() {
   // Backup ecmp group type will come from default flowlet confg
   std::optional<cfg::SwitchingMode> expectedBackupSwitchingMode;
   if (cfg.flowletSwitchingConfig() &&
-      cfg.flowletSwitchingConfig()->backupSwitchingMode().has_value()) {
+      apache::thrift::is_non_optional_field_set_manually_or_by_serializer(
+          cfg.flowletSwitchingConfig()->backupSwitchingMode())) {
     expectedBackupSwitchingMode =
         *cfg.flowletSwitchingConfig()->backupSwitchingMode();
   }

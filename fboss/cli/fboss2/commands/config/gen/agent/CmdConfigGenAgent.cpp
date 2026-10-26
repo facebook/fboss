@@ -17,6 +17,7 @@
 #include <vector>
 
 #include <folly/FileUtil.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/cli/fboss2/CmdHandler.cpp"
@@ -65,8 +66,9 @@ std::string formatComparisonResult(
   return output;
 }
 
-void rejectManifestModeOptions(
-    const std::vector<std::pair<std::string_view, std::string_view>>& options) {
+void rejectBatchModeOptions(
+    const std::vector<std::pair<std::string_view, std::string_view>>& options,
+    std::string_view requiredOption) {
   std::string invalidOptions;
   for (const auto& [name, value] : options) {
     if (value.empty()) {
@@ -79,7 +81,7 @@ void rejectManifestModeOptions(
   }
   if (!invalidOptions.empty()) {
     throw FbossError(
-        "The following options require --platform: ", invalidOptions);
+        "The following options require ", requiredOption, ": ", invalidOptions);
   }
 }
 
@@ -88,6 +90,41 @@ std::string formatGeneratedPaths(
   std::string output = "Generated Agent configurations:";
   for (const auto& outputPath : outputPaths) {
     output += "\n  " + outputPath.string();
+  }
+  return output;
+}
+
+void appendPaths(
+    std::string& output,
+    std::string_view label,
+    const std::vector<std::filesystem::path>& paths) {
+  if (paths.empty()) {
+    return;
+  }
+  output += "\n";
+  output += label;
+  for (const auto& path : paths) {
+    output += "\n  " + path.string();
+  }
+}
+
+std::string formatVerificationFailure(
+    const configgen::ConfigVerificationResult& result,
+    const std::filesystem::path& fbossRoot,
+    std::optional<std::string_view> platform) {
+  std::string output = "Agent generated configurations";
+  if (result.platform) {
+    output += " for " +
+        std::string(apache::thrift::util::enumNameSafe(*result.platform));
+  }
+  output += " are out of date:";
+  appendPaths(output, "Missing:", result.missing);
+  appendPaths(output, "Stale:", result.stale);
+  appendPaths(output, "Obsolete:", result.obsolete);
+  output += "\nRegenerate with:\n  fboss2 config gen agent --fboss-root " +
+      fbossRoot.string();
+  if (platform) {
+    output += " --platform " + std::string(*platform);
   }
   return output;
 }
@@ -103,6 +140,8 @@ CmdConfigGenAgent::RetType CmdConfigGenAgent::queryClient(
       std::string(kConfigGenAgentCommand), kConfigGenAgentProfile);
   auto fbossRoot = options->getLocalOption(
       std::string(kConfigGenAgentCommand), kConfigGenAgentFbossRoot);
+  auto asicConfigVariant = options->getLocalOption(
+      std::string(kConfigGenAgentCommand), kConfigGenAgentAsicConfigVariant);
   auto asicConfigFile = options->getLocalOption(
       std::string(kConfigGenAgentCommand), kConfigGenAgentAsicConfigFile);
   auto asicConfigType = options->getLocalOption(
@@ -111,21 +150,60 @@ CmdConfigGenAgent::RetType CmdConfigGenAgent::queryClient(
       std::string(kConfigGenAgentCommand), kConfigGenAgentReferenceConfigFile);
   auto outputDirectory = options->getLocalOption(
       std::string(kConfigGenAgentCommand), kConfigGenAgentOutputDirectory);
+  const auto verify =
+      options->getLocalOption(
+          std::string(kConfigGenAgentCommand), kConfigGenAgentVerify) == "true";
 
-  if (platform.empty()) {
-    // Manifest entries own target selection and canonical output paths. Reject
-    // single-target overrides instead of silently ignoring them.
-    rejectManifestModeOptions(
-        {{kConfigGenAgentProfile, profile},
-         {kConfigGenAgentAsicConfigFile, asicConfigFile},
-         {kConfigGenAgentAsicConfigType, asicConfigType},
-         {kConfigGenAgentReferenceConfigFile, referenceConfigFile},
-         {kConfigGenAgentOutputDirectory, outputDirectory}});
+  if (platform.empty() || profile.empty()) {
+    // Platform declarations own profile selection and canonical output paths.
+    // Explicit profile generation retains the single-output override options.
+    if (platform.empty()) {
+      rejectBatchModeOptions(
+          {{kConfigGenAgentProfile, profile},
+           {kConfigGenAgentAsicConfigVariant, asicConfigVariant},
+           {kConfigGenAgentAsicConfigFile, asicConfigFile},
+           {kConfigGenAgentAsicConfigType, asicConfigType},
+           {kConfigGenAgentReferenceConfigFile, referenceConfigFile},
+           {kConfigGenAgentOutputDirectory, outputDirectory}},
+          kConfigGenAgentPlatform);
+    } else {
+      rejectBatchModeOptions(
+          {{kConfigGenAgentAsicConfigVariant, asicConfigVariant},
+           {kConfigGenAgentAsicConfigFile, asicConfigFile},
+           {kConfigGenAgentAsicConfigType, asicConfigType},
+           {kConfigGenAgentReferenceConfigFile, referenceConfigFile},
+           {kConfigGenAgentOutputDirectory, outputDirectory}},
+          kConfigGenAgentProfile);
+    }
+    const auto selectedPlatform = platform.empty()
+        ? std::nullopt
+        : std::optional<std::string_view>(platform);
+    if (verify) {
+      const auto result = configgen::verifyConfigsFromManifest(
+          fbossRoot,
+          configgen::ServiceType::AGENT,
+          configgen::generateAgentConfigForManifest,
+          selectedPlatform);
+      if (!result.isFresh()) {
+        throw FbossError(
+            formatVerificationFailure(result, fbossRoot, selectedPlatform));
+      }
+      return "Agent generated configurations are up to date.";
+    }
     return formatGeneratedPaths(
         configgen::generateConfigsFromManifest(
             fbossRoot,
             configgen::ServiceType::AGENT,
-            configgen::generateAgentConfigForManifest));
+            configgen::generateAgentConfigForManifest,
+            selectedPlatform));
+  }
+
+  if (verify) {
+    throw FbossError("--verify cannot be combined with --profile");
+  }
+  if (!asicConfigVariant.empty() && !asicConfigFile.empty()) {
+    throw FbossError(
+        "--asic-config-variant cannot be combined with --asic-config-file");
   }
 
   std::optional<std::filesystem::path> asicConfigFilePath;
@@ -140,13 +218,17 @@ CmdConfigGenAgent::RetType CmdConfigGenAgent::queryClient(
   if (!outputDirectory.empty()) {
     outputDirectoryPath = outputDirectory;
   }
+  const auto parsedAsicConfigVariant = asicConfigVariant.empty()
+      ? std::nullopt
+      : std::optional<std::string_view>(asicConfigVariant);
   const auto outputPath = configgen::generateAgentConfig(
       platform,
       profile,
       fbossRoot,
       outputDirectoryPath,
       asicConfigFilePath,
-      parsedAsicConfigType);
+      parsedAsicConfigType,
+      parsedAsicConfigVariant);
   if (referenceConfigFile.empty()) {
     return "Generated Agent configuration at " + outputPath.string();
   }

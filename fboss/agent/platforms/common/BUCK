@@ -15,9 +15,9 @@ cpp_library(
     ],
     deps = [
         "fbsource//third-party/re2:re2",
+        "fbsource//xplat/folly/logging:logging",
         "//fboss/agent:fboss-error",
         "//fboss/lib/config:fboss_config_utils",
-        "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
@@ -38,6 +38,8 @@ cpp_library(
         "PlatformMappingUtils.h",
     ],
     deps = [
+        "fbsource//xplat/folly:file_util",
+        "fbsource//xplat/folly/logging:logging",
         "//fboss/agent:fboss-error",
         "//fboss/agent:load_agent_config",
         "//fboss/agent/platforms/common/blackwolf800banw:blackwolf800banw_platform_mapping",
@@ -69,8 +71,6 @@ cpp_library(
         "//fboss/agent/platforms/common/yamp:yamp_platform_mapping",
         "//fboss/agent/platforms/common/yangra:yangra_platform_mapping",
         "//fboss/agent/platforms/common/yangra2:yangra2_platform_mapping",
-        "//folly:file_util",
-        "//folly/logging:logging",
     ],
     exported_deps = [
         ":platform_mapping",

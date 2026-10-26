@@ -29,6 +29,15 @@ credentials, and non-public paths.
 | `../components/login-containers/payload/usr/local/bin/*-shell` | same paths | RPM (login shells; assigned in the execute hook; self-escalate, resolve the leader, `nsenter` all namespaces as the role user) |
 | `../components/login-containers/payload/usr/local/bin/role-entry` | same path | RPM (container-side cert-login entry; refuses host; sets `LOGIN_IDENTITY`) |
 | `../components/login-containers/payload/etc/sudoers.d/login-containers` | same path | RPM (each account may run exactly its attach) |
+| `../components/login-containers/payload/usr/local/bin/session-recorder` | same path | RPM (PAM open/close hook; tag `session-recorder`) |
+| `../components/login-containers/payload/usr/local/bin/session-ancestors` | same path | RPM (ancestor-chain helper for attribution) |
+| `../components/login-containers/payload/var/lib/machines/netadmin/etc/{sudoers,pam.d/sudo,sysusers.d/}` | same paths | RPM (container-local netadmin sudo) |
+| `../components/login-containers/payload/usr/local/sbin/escape-keygen` | same path | RPM (first-boot escape-key provisioner) |
+| `../components/login-containers/payload/usr/local/sbin/{enable,disable}_netadmin_root` | same paths | RPM (root-only on/off knob for netadmin root escalation) |
+| `../components/login-containers/payload/usr/lib/systemd/system/escape-keygen.service` | same path | RPM (oneshot unit, enabled in `%post`) |
+| `../components/login-containers/payload/etc/ssh/sshd_config.d/` | same path | RPM (localhost root scoping + client-alive drop-ins) |
+| `../components/admin-broker/payload/usr/local/sbin/admin-broker` | same path | RPM (host-context broker daemon) |
+| `../components/admin-broker/payload/usr/local/bin/host-ctl` | same path | RPM (exec-only broker client) |
 | `../manifests/fake_after_pkgs_*.json` | (build input only, deleted after use) | manifest `image_build_hooks` (users + `systemd-container` + shell assignment) |
 
 ## Login machines (fixed at build, recorded here)
@@ -59,6 +68,31 @@ only the fake manifest wires it until proven, then other manifests plug in.
   line (tag `role-entry`), prints one banner line when stdin is not a TTY,
   and execs `bash`. Banner/record format (frozen for collectors):
   `login-context role=<role> identity=<user> user=<role> machine-id=<mid>`.
+- Session records: PAM runs `session-recorder` (optional hook) on session
+  open/close, logging `open/close user=<role> service=sshd
+  sshdpid=<sshd-pid> boot=<boot-id>` (tag `session-recorder`). The wrapper
+  mints attribution fresh after escalation (stage 2, still host context):
+  `SESSION_SSHD_PID` (nearest ancestor whose exe is an sshd binary),
+  the `SESSION_ANCESTORS` chain from `session-ancestors` (starting at
+  sudo), and host `FBOSS_BOOT_ID` — no caller environment is trusted and
+  nothing crosses sudo (no `env_keep`); `role-entry` inherits the values
+  through nsenter and adds a second journal line `login-session
+  role=<role> identity=<user> sshdpid=<pid|unset>
+  ancestors=<chain|unset> boot=<boot-id>`. The join rule is membership:
+  the PAM sshdpid (priv-monitor sshd) appears in the wrapper/container
+  ancestor chain — it is never the shell's immediate parent, and the
+  container virtualizes boot_id, so both are handed down from stage 2,
+  never re-observed below. The frozen banner line is unchanged.
+- Netadmin escalation: the netadmin machine binds `/etc/coop`,
+  `/var/facebook`, `/dev/shm` writable (permissions stay root-owned) and
+  ships a container-local sudoers file granting `netadmin` a root shell
+  with `LOGIN_IDENTITY` + session vars preserved. Unprivileged reads
+  work; group-writable `/etc/coop` is also writable unprivileged
+  (container `netadmin` belongs to `switching`, applied via setpriv
+  since nsenter sets no supplementary groups), while root-only paths
+  require the escape. Container root is host root
+  (`PrivateUsers=no`), so the escape is documented as host-root access,
+  not containment. Netops gets neither binds nor sudoers.
 
 `agent.conf` is generated once from the in-repo sim seed and committed as
 plain JSON. Regenerate with:

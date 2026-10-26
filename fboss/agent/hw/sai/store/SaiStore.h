@@ -20,6 +20,7 @@
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/SaiObjectApi.h"
 #include "fboss/agent/hw/sai/api/Traits.h"
+#include "fboss/agent/hw/sai/api/TunnelMapApi.h"
 #include "fboss/agent/hw/sai/store/LoggingUtil.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
@@ -750,6 +751,7 @@ class SaiStore {
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
       SaiObjectStore<SaiSrv6TunnelTraits>,
 #endif
+      SaiObjectStore<SaiVxlanTunnelTraits>,
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
       SaiObjectStore<SaiMySidEntryTraits>,
       SaiObjectStore<SaiSrv6SidListTraits>,
@@ -759,6 +761,9 @@ class SaiStore {
 #endif
       SaiObjectStore<SaiP2MPTunnelTermTraits>,
       SaiObjectStore<SaiP2PTunnelTermTraits>,
+      SaiObjectStore<SaiTunnelMapTraits>,
+      SaiObjectStore<SaiVniToVrTunnelMapEntryTraits>,
+      SaiObjectStore<SaiVrToVniTunnelMapEntryTraits>,
       SaiObjectStore<SaiLagTraits>,
       SaiObjectStore<SaiLagMemberTraits>,
       SaiObjectStore<SaiMacsecTraits>,

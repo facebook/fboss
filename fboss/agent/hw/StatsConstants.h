@@ -512,4 +512,14 @@ inline folly::StringPiece constexpr kLlrTxTimerReplayEvent() {
 inline folly::StringPiece constexpr kLlrTxError() {
   return "llr_tx_error";
 }
+
+// HW protection (FRR) switchover counters. Populated only on Broadcom
+// Tomahawk 5/6 with XGS SDK 13.3+.
+inline folly::StringPiece constexpr kHwProtectionSwitchoverEvents() {
+  return "hw_protection_switchover_events";
+}
+
+inline folly::StringPiece constexpr kHwProtectionSwitchoverDropPkts() {
+  return "hw_protection_switchover_drop_pkts";
+}
 } // namespace facebook::fboss

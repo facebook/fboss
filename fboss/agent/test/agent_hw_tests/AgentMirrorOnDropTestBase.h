@@ -72,6 +72,11 @@ class AgentMirrorOnDropTestBase : public AgentHwTest {
 
   void addDropPacketAcl(cfg::SwitchConfig* config, const PortID& portId);
 
+  void applyMirrorOnDropConfig(
+      cfg::SwitchConfig& config,
+      cfg::MirrorOnDropReport report,
+      const PortID& collectorPort);
+
   // Create a packet that will be dropped. The entire packet is expected to be
   // copied to the MoD payload. However note that if the test involves looping
   // traffic before they are dropped (e.g. by triggering buffer exhaustion), the

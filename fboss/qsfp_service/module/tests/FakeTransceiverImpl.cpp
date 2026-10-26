@@ -44,17 +44,34 @@ bool isFakeBankedPage(int page) {
 // behavior. This is needed for tests that use polling-based datapath
 // programming. targetPages is the upper-page map for the bank being written
 // (the bank-agnostic map for bank 0, the per-bank map otherwise).
+// With appSelGated, applying stage set 0 (Page 10h byte 143) copies the staged
+// AppSel bytes into the active control set (Page 11h bytes 206-213), and a lane
+// released from deinit only activates if it has an active application.
 void simulateDataPathStateTransition(
     int page,
     int offset,
     int len,
     const uint8_t* fieldValue,
-    std::map<int, std::array<uint8_t, 128>>& targetPages) {
+    std::map<int, std::array<uint8_t, 128>>& targetPages,
+    bool appSelGated) {
   constexpr int kPage10h = 0x10;
   constexpr int kPage11h = 0x11;
   constexpr int kDataPathDeinitOffset = 0; // Offset 128 - 128 = 0
+  constexpr int kStageCtrlSet0Offset = 143 - 128;
+  constexpr int kStagedAppSelOffset = 145 - 128;
+  constexpr int kActiveAppSelOffset = 206 - 128;
   constexpr uint8_t kDeactivatedState = 0x1;
   constexpr uint8_t kActivatedState = 0x4;
+
+  if (appSelGated && page == kPage10h && offset == kStageCtrlSet0Offset &&
+      len >= 1 && targetPages.find(kPage11h) != targetPages.end()) {
+    for (int lane = 0; lane < 8; ++lane) {
+      if ((*fieldValue >> lane) & 0x1) {
+        targetPages[kPage11h][kActiveAppSelOffset + lane] =
+            targetPages[kPage10h][kStagedAppSelOffset + lane];
+      }
+    }
+  }
 
   if (page == kPage10h && offset == kDataPathDeinitOffset && len >= 1) {
     uint8_t dataPathDeinit = *fieldValue;
@@ -65,7 +82,10 @@ void simulateDataPathStateTransition(
       // Lane states are packed: 2 lanes per byte, low nibble = even lane
       for (int lane = 0; lane < 8; ++lane) {
         bool isLaneDeinit = (dataPathDeinit >> lane) & 0x1;
-        uint8_t newState = isLaneDeinit ? kDeactivatedState : kActivatedState;
+        bool hasApplication = !appSelGated ||
+            (targetPages[kPage11h][kActiveAppSelOffset + lane] >> 4) != 0;
+        uint8_t newState = isLaneDeinit || !hasApplication ? kDeactivatedState
+                                                           : kActivatedState;
         int byteIdx = lane / 2;
         int laneBitOffset = (lane % 2) * 4;
 
@@ -173,14 +193,19 @@ int FakeTransceiverImpl::writeTransceiver(
       std::copy(
           fieldValue, fieldValue + len, bankPages[page_].begin() + offset);
       simulateDataPathStateTransition(
-          page_, offset, len, fieldValue, bankPages);
+          page_, offset, len, fieldValue, bankPages, appSelGatedDatapath_);
     } else {
       std::copy(
           fieldValue,
           fieldValue + len,
           upperPages_[dataAddress][page_].begin() + offset);
       simulateDataPathStateTransition(
-          page_, offset, len, fieldValue, upperPages_[dataAddress]);
+          page_,
+          offset,
+          len,
+          fieldValue,
+          upperPages_[dataAddress],
+          appSelGatedDatapath_);
     }
   }
 
@@ -3832,6 +3857,24 @@ Cmis800GZrTransceiver::Cmis800GZrTransceiver(
           kCmis800GZrLower,
           kCmis800GZrUpperPages,
           mgr) {}
+
+Cmis800GZr3x200GTransceiver::Cmis800GZr3x200GTransceiver(
+    int module,
+    TransceiverManager* mgr)
+    : Cmis800GZrTransceiver(module, mgr) {
+  // Advertise the 3x200G FlexO-6e-DPO application as AppSel 9 (Page 01h bytes
+  // 223-226): host 200GAUI-2 (0x4E), media 0x6A, 2 host lanes and 1 media lane,
+  // host datapaths starting at lanes 0, 2 and 4
+  TransceiverAccessParameter pageParam(
+      TransceiverAccessParameter::ADDR_QSFP, 127, 1);
+  uint8_t page01 = 0x01;
+  writeTransceiver(pageParam, &page01, 0, 0);
+  TransceiverAccessParameter appParam(
+      TransceiverAccessParameter::ADDR_QSFP, 223, 4);
+  std::array<uint8_t, 4> app9 = {0x4E, 0x6A, 0x21, 0x15};
+  writeTransceiver(appParam, app9.data(), 0, 0);
+  setAppSelGatedDatapath();
+}
 
 Cmis800GZrNoHoldOffTmrTransceiver::Cmis800GZrNoHoldOffTmrTransceiver(
     int module,

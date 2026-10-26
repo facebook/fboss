@@ -1420,6 +1420,208 @@ enum ClearBgpNeighborDirection {
   ROUTE_REFRESH_OUT = 3,
 }
 
+/**
+ * Filters for the getRejectedNetworks* calls. Every filter is optional; an
+ * empty/unset filter matches everything. `direction` is the one exception: it
+ * defaults to EGRESS rather than to "both", because rejection resolves against
+ * a single Adj-RIB per walk and BOTH cannot be served.
+ */
+struct TRejectedNetworksRequest {
+  /**
+   * EGRESS reports routes we would send to the peer (pre-out present, post-out
+   * denied); INGRESS reports routes we received from the peer. BOTH is not
+   * supported -- rejection is resolved against one Adj-RIB per walk -- and is
+   * refused rather than served as one side.
+   *
+   * EGRESS caveats on a peer in an update group (see getRejectedNetworksSummary
+   * for why these are properties of the RIB-OUT, not of this API):
+   *   - CRF rejections are not reported. The group-level egress path applies
+   *     no route filter, so "Denied by CRF" never appears on a group entry.
+   *     Egress *policy* rejections are reported normally.
+   *   - For a peer detached from its group, only rejections recorded at or
+   *     below its detach version are visible.
+   */
+  1: TDirectionFilter direction = TDirectionFilter.EGRESS;
+
+  /**
+   * RE2 pattern, partial match against the BGP session description (the
+   * neighbor name). Empty matches every neighbor.
+   * Example: "eb.*" matches description "eb001.f01.atn2".
+   */
+  2: string neighbor_name_regex = "";
+
+  /**
+   * Explicit peer addresses. Empty means "every neighbor matching
+   * neighbor_name_regex". Example: ["fc00::1", "10.0.0.1"].
+   */
+  3: list<string> peers = [];
+
+  /**
+   * RE2 pattern, partial match against the name of the policy that rejected
+   * the route. Empty matches every rejection reason. This is the server-side
+   * equivalent of the CLI's "crf" subcommand.
+   * Example: "^Denied by CRF$".
+   */
+  4: string policy_name_regex = "";
+
+  /** Restrict to these prefixes. Empty means every rejected prefix. */
+  5: list<bgp_attr.TIpPrefix> prefixes = [];
+
+  /** Restrict to one address family. Unset means both. */
+  6: optional bgp_attr.TBgpAfi afi;
+
+  /**
+   * Cap on the number of returned `groups`, used only by
+   * getRejectedNetworksDetails. Capping here trims the returned list only; the
+   * by_policy rollup and total_rejected_paths still cover everything walked.
+   * 0 means unlimited, subject to a server-side hard cap that bounds handler
+   * memory -- that one does bound prefix_count, see TRejectedPolicyStats.
+   */
+  7: i32 max_groups = 0;
+}
+
+/**
+ * A neighbor that rejected a given prefix.
+ */
+struct TRejectedNeighbor {
+  1: string peer_addr;
+  /** BGP session description, e.g. "fsw001.p001.f01". */
+  2: string description;
+}
+
+/**
+ * One (prefix, rejecting policy) pair and the neighbors it applies to.
+ */
+struct TRejectedPrefixGroup {
+  1: bgp_attr.TIpPrefix prefix;
+
+  /**
+   * Name of the policy that denied the route, verbatim from the policy
+   * engine, e.g. "Denied by CRF" or "Denied by PROPAGATE_FSW_SSW_OUT term 2".
+   * Empty when the Adj-RIB entry records no policy term for the rejection;
+   * such rejections roll up under the "" key in by_policy.
+   */
+  2: string policy_name;
+
+  /**
+   * May be incomplete when the response's `truncated` is set: the device caps
+   * the total neighbor entries across all groups, because each group can
+   * otherwise name every walked neighbor.
+   */
+  3: list<TRejectedNeighbor> neighbors;
+}
+
+/**
+ * Per-policy rollup, computed on the device.
+ */
+struct TRejectedPolicyStats {
+  /**
+   * Distinct prefixes this policy rejected. Exact while the response's
+   * `truncated` is false. Once it is true the device has stopped tracking new
+   * (prefix, policy) keys -- holding them just to keep this exact would grow
+   * with RIB size, which is the allocation the cap exists to bound -- so this
+   * becomes a lower bound. path_count and neighbor_count need no per-key
+   * state and are exact either way.
+   */
+  1: i64 prefix_count;
+  /** Individual (peer, prefix, path) rejections attributed to this policy. */
+  2: i64 path_count;
+  /** Distinct neighbors with at least one rejection by this policy. */
+  3: i64 neighbor_count;
+}
+
+/** Rollup only, sized by the number of rejecting policies. */
+struct TRejectedNetworksSummaryResponse {
+  /** Policy name -> rollup. Covers every rejection walked. */
+  1: map<string, TRejectedPolicyStats> by_policy;
+
+  /** Total rejections walked. */
+  2: i64 total_rejected_paths;
+
+  /**
+   * Neighbors the request filters selected, i.e. the neighbors this walk was
+   * supposed to cover. A neighbor the filters did not select is not counted
+   * here at all, so 0 means "the filters matched no neighbor", not "no
+   * neighbor rejected anything".
+   */
+  3: i32 neighbors_matched;
+
+  /**
+   * True when the walk hit the server-side cap on tracked (prefix, policy)
+   * keys, either overall or within a single neighbor's walk. Only
+   * prefix_count is affected by it; total_rejected_paths, path_count and
+   * neighbor_count still cover everything walked.
+   */
+  4: bool truncated;
+
+  /**
+   * Of the `neighbors_matched` above, how many the device could not finish
+   * walking, and so contributed nothing to `by_policy` or
+   * `total_rejected_paths`.
+   *
+   * Counts exactly one thing: the per-neighbor Adj-RIB walk raised or hit its
+   * internal event-base timeout -- e.g. the PeerManager event base is wedged
+   * under load, or the session was torn down between peer resolution and the
+   * walk. A timeout also abandons the neighbors not yet walked, since work
+   * already queued on a wedged event base cannot be cancelled and queuing
+   * more behind it would only prolong the stall; those are counted here too.
+   * It is NOT a filter miss (those never reach `neighbors_matched`) and it is
+   * NOT a transport or connection error between client and device -- those
+   * fail the RPC itself and you get no response at all, so they can never
+   * show up here.
+   *
+   * Reading a result with neighbors_matched = X and peers_failed = Y: the
+   * rollup describes exactly X - Y neighbors.
+   *   - Y == 0: the answer is complete for all X.
+   *   - Y > 0 and rejections found: the counts are a lower bound.
+   *   - Y > 0 and no rejections found: inconclusive, NOT "nothing is being
+   *     rejected". A fleet sweep should retry or narrow the request rather
+   *     than record a clean result. Without this field that case is
+   *     indistinguishable from a genuine zero -- the only evidence is an XLOG
+   *     on the device, which a sweep never sees.
+   */
+  5: i32 peers_failed;
+}
+
+/** The same rollup plus the per-prefix breakdown, sized by rejection count. */
+struct TRejectedNetworksDetailsResponse {
+  /** One entry per (prefix, policy) pair. */
+  1: list<TRejectedPrefixGroup> groups;
+
+  /** Policy name -> rollup. Covers every rejection walked. */
+  2: map<string, TRejectedPolicyStats> by_policy;
+
+  /** Total rejections walked. Exact even when `groups` is truncated. */
+  3: i64 total_rejected_paths;
+
+  /**
+   * Neighbors the request filters selected. Same meaning as on
+   * TRejectedNetworksSummaryResponse.
+   */
+  4: i32 neighbors_matched;
+
+  /**
+   * True when `groups` is incomplete. Either the list was trimmed to
+   * max_groups, the walk hit the server-side cap on tracked keys, or some
+   * group's `neighbors` hit the server-side cap on neighbor entries.
+   * total_rejected_paths, path_count and neighbor_count are exact in every
+   * case; prefix_count is a lower bound only when the tracked-key cap was
+   * hit, see TRejectedPolicyStats.
+   */
+  5: bool truncated;
+
+  /**
+   * Of the `neighbors_matched` above, how many the device could not finish
+   * walking. Same meaning as on TRejectedNetworksSummaryResponse: a per-
+   * neighbor Adj-RIB walk that raised or timed out on the device, or was
+   * abandoned after an earlier one timed out -- never a filter miss and never
+   * a client/device transport error. Non-zero means
+   * `groups` and the rollup are both missing those neighbors' rejections, so a
+   * zero result is inconclusive rather than "nothing rejected".
+   */
+  6: i32 peers_failed;
+}
+
 // @lint-ignore THRIFTCHECKS facebook-service-deprecated existing service inheritance is out of scope for this API addition
 service TBgpService extends fb303.FacebookService {
   /**
@@ -1709,6 +1911,52 @@ service TBgpService extends fb303.FacebookService {
     bgp_attr.TIpPrefix,
     list<bgp_route_types.TBgpPath>
   > getPrefilterAdvertisedNetworks2(1: string peer);
+
+  /**
+   * Routes the ingress/egress policy denied, aggregated on the device.
+   *
+   * Server-side equivalent of
+   *   "show bgp neighbors-by-name <regex> {advertised,received} rejected [crf]".
+   *
+   * The prefilter/postfilter pair above returns both full pre- and
+   * post-policy tables and leaves the caller to diff them, so the payload
+   * scales with RIB size. This walks each matching neighbor's Adj-RIB once and
+   * emits only the denied routes plus the name of the policy that denied them,
+   * so the response scales with the number of rejections instead. Intended for
+   * fleet-wide collection.
+   *
+   * This returns counts only: one by_policy entry per rejecting policy, so the
+   * payload is the same whether a policy denied two prefixes or two million.
+   * Use getRejectedNetworksDetails when you need to know which prefixes.
+   *
+   * Note: rejection is evaluated per Adj-RIB entry, so with add-path a prefix
+   * with one accepted and one denied path IS reported. The CLI diffs
+   * prefix-keyed maps and reports nothing in that case.
+   *
+   * Note: with update groups enabled, a peer's RIB-OUT entries live under the
+   * group owner key and are shared across the group's members, so an EGRESS
+   * rejection recorded once for the group is reported once per member. Two
+   * consequences, both properties of how the RIB-OUT is built rather than of
+   * this walk: the group egress path applies no route filter, so CRF
+   * rejections do not exist to report; and a detached peer only shares group
+   * entries at or below its detach version. See the `direction` field.
+   */
+  TRejectedNetworksSummaryResponse getRejectedNetworksSummary(
+    1: TRejectedNetworksRequest request,
+  );
+
+  /**
+   * Same walk, filters and rollup as getRejectedNetworksSummary, plus one
+   * `groups` entry per (prefix, policy) pair naming the neighbors it applies
+   * to. A superset of the summary, so there is no need to call both.
+   *
+   * The payload grows with the number of rejections rather than the number of
+   * policies, so prefer the summary for wide sweeps and use this once the scope
+   * is narrowed. Bound it with max_groups; `truncated` reports completeness.
+   */
+  TRejectedNetworksDetailsResponse getRejectedNetworksDetails(
+    1: TRejectedNetworksRequest request,
+  );
 
   /**
    * Get post-policy network information for stream subscribers

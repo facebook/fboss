@@ -492,6 +492,9 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     }
     tcvrStats.sensor() = sensorInfo;
     tcvrState.vendor() = getVendorInfo();
+    if (tcvrConfig_ && tcvrConfig_->vendorOverrides_) {
+      tcvrState.vendorOverrides() = *tcvrConfig_->vendorOverrides_;
+    }
     tcvrState.cable() = getCableInfo();
     if (auto threshold = getThresholdInfo()) {
       tcvrState.thresholds() = *threshold;
@@ -1552,6 +1555,7 @@ void QsfpModule::programTransceiver(
             getNameString(),
             " - Cache is not valid, so cannot program the transceiver");
       }
+      datapathInitDoneInProgramMask_.clear();
       // Make sure customize xcvr first so that we can set the application code
       // correctly and then call configureModule() later to program serdes like
       // Rx equalizer setting based on QSFP config

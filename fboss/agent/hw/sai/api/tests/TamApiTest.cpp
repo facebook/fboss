@@ -66,6 +66,18 @@ TEST_F(TamApiTest, TamCollectorV6) {
       transportSaiObjectId;
   std::get<std::optional<SaiTamCollectorTraits::Attributes::DscpValue>>(
       collectorAttr) = 0;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  std::get<std::optional<SaiTamCollectorTraits::Attributes::SrcMacAddress>>(
+      collectorAttr) = folly::MacAddress{"00:00:00:00:00:01"};
+  std::get<std::optional<SaiTamCollectorTraits::Attributes::DstMacAddress>>(
+      collectorAttr) = folly::MacAddress{"00:00:00:00:00:02"};
+  std::get<std::optional<SaiTamCollectorTraits::Attributes::Destination>>(
+      collectorAttr) = sai_object_id_t{42};
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  std::get<std::optional<SaiTamCollectorTraits::Attributes::Localhost>>(
+      collectorAttr) = false;
+#endif
 
   auto collectorSaiId =
       tamApi->create<SaiTamCollectorTraits>(collectorAttr, switchId);
@@ -84,9 +96,12 @@ TEST_F(TamApiTest, TamTransport) {
   SaiTamTransportTraits::CreateAttributes transportAttr;
   std::get<SaiTamTransportTraits::Attributes::Type>(transportAttr) =
       SAI_TAM_TRANSPORT_TYPE_UDP;
-  std::get<SaiTamTransportTraits::Attributes::SrcPort>(transportAttr) = 10001;
-  std::get<SaiTamTransportTraits::Attributes::DstPort>(transportAttr) = 10002;
-  std::get<SaiTamTransportTraits::Attributes::Mtu>(transportAttr) = 1500;
+  std::get<std::optional<SaiTamTransportTraits::Attributes::SrcPort>>(
+      transportAttr) = 10001;
+  std::get<std::optional<SaiTamTransportTraits::Attributes::DstPort>>(
+      transportAttr) = 10002;
+  std::get<std::optional<SaiTamTransportTraits::Attributes::Mtu>>(
+      transportAttr) = 1500;
   std::get<std::optional<SaiTamTransportTraits::Attributes::SrcMacAddress>>(
       transportAttr) = folly::MacAddress("00:00:00:00:00:01");
   std::get<std::optional<SaiTamTransportTraits::Attributes::DstMacAddress>>(
@@ -104,6 +119,29 @@ TEST_F(TamApiTest, TamTransport) {
           transportSaiId, SaiTamTransportTraits::CreateAttributes{}),
       std::exception);
 }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+TEST_F(TamApiTest, TamGreTransport) {
+  SaiTamTransportTraits::CreateAttributes attributes;
+  std::get<SaiTamTransportTraits::Attributes::Type>(attributes) =
+      SAI_TAM_TRANSPORT_TYPE_GRE;
+  std::get<std::optional<SaiTamTransportTraits::Attributes::GreProtocolType>>(
+      attributes) = sai_uint16_t{0x6558};
+  const auto transport =
+      tamApi->create<SaiTamTransportTraits>(attributes, switchId);
+  EXPECT_EQ(
+      tamApi->getAttribute(
+          transport, SaiTamTransportTraits::CreateAttributes{}),
+      attributes);
+  tamApi->setAttribute(
+      transport, SaiTamTransportTraits::Attributes::GreProtocolType{0x0800});
+  EXPECT_EQ(
+      tamApi->getAttribute(
+          transport, SaiTamTransportTraits::Attributes::GreProtocolType{}),
+      0x0800);
+  tamApi->remove(transport);
+}
+#endif
 
 TEST_F(TamApiTest, TamReport) {
   SaiTamReportTraits::CreateAttributes reportAttr;

@@ -18,6 +18,7 @@ bool CredoPhyAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PCS_RX_LINK_STATUS:
     case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::OBJECT_KEY_CACHE:
+    case HwAsic::Feature::XPHY_SERDES_TX_FIR_POST3:
       return true;
     case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
     case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:

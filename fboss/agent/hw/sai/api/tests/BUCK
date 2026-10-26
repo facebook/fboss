@@ -222,6 +222,13 @@ api_unittest(
 )
 
 api_unittest(
+    name = "tunnel_map_api_test",
+    srcs = [
+        "TunnelMapApiTest.cpp",
+    ],
+)
+
+api_unittest(
     name = "srv6_api_test",
     srcs = [
         "Srv6ApiTest.cpp",

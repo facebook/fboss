@@ -19,6 +19,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/SystemPort.h"
 #include "fboss/agent/state/Vlan.h"
+#include "fboss/agent/state/VxlanTunnel.h"
 
 namespace {
 
@@ -556,6 +557,40 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
   }
   throw FbossError(
       "No interface found for Srv6Tunnel underlay interface: ", intfId);
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const cfg::VxLanTunnel& tunnel,
+    const cfg::SwitchConfig& cfg) const {
+  auto intfId = InterfaceID(*tunnel.underlayIntfID());
+  for (const auto& intf : *cfg.interfaces()) {
+    if (InterfaceID(*intf.intfID()) == intfId) {
+      return scope(*intf.type(), intfId, cfg);
+    }
+  }
+  throw FbossError(
+      "No interface found for VxlanTunnel underlay interface: ", intfId);
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const std::shared_ptr<VxlanTunnel>& tunnel,
+    const std::shared_ptr<SwitchState>& state) const {
+  auto intfId = tunnel->getUnderlayIntfId();
+  auto intf = state->getInterfaces()->getNode(intfId);
+  return scope(intf, state);
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const std::shared_ptr<VxlanTunnel>& tunnel,
+    const cfg::SwitchConfig& cfg) const {
+  auto intfId = tunnel->getUnderlayIntfId();
+  for (const auto& intf : *cfg.interfaces()) {
+    if (InterfaceID(*intf.intfID()) == intfId) {
+      return scope(*intf.type(), intfId, cfg);
+    }
+  }
+  throw FbossError(
+      "No interface found for VxlanTunnel underlay interface: ", intfId);
 }
 
 } // namespace facebook::fboss

@@ -18,6 +18,10 @@
     {
       "execute": ["../components/login-containers/rpm/build_login_containers.sh"],
       "artifact": "login-containers-*.rpm"
+    },
+    {
+      "execute": ["../components/admin-broker/rpm/build_admin_broker.sh"],
+      "artifact": "admin-broker-*.rpm"
     }
   ],
   "fboss-platform-stack": {

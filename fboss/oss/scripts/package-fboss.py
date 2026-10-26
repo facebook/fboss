@@ -13,9 +13,15 @@ import tempfile
 from typing import ClassVar, TYPE_CHECKING
 
 if TYPE_CHECKING or __package__:
-    from .platform_descriptor_utils import copy_platform_descriptors
+    from .platform_configs_utils import (
+        copy_forwarding_stack_configs,
+        copy_platform_descriptors,
+    )
 else:
-    from platform_descriptor_utils import copy_platform_descriptors
+    from platform_configs_utils import (
+        copy_forwarding_stack_configs,
+        copy_platform_descriptors,
+    )
 
 OPT_ARG_SCRATCH_PATH = "--scratch-path"
 OPT_ARG_COPY_ROOT_LIBS = "--copy-root-libs"
@@ -368,6 +374,10 @@ class PackageFboss:
             pathlib.Path(self.get_fboss_subdirectory("fboss/configs/platforms")),
             pathlib.Path(tmp_dir_name),
         )
+        copy_forwarding_stack_configs(
+            pathlib.Path(self.get_fboss_subdirectory("fboss/configs/platforms")),
+            pathlib.Path(tmp_dir_name),
+        )
         self._copy_known_bad_tests(tmp_dir_name)
         self._copy_unsupported_tests(tmp_dir_name)
         self._copy_production_features(tmp_dir_name)
@@ -417,9 +427,9 @@ class PackageFboss:
 
     def _sdk_sibling_libs(self, dependencies: set[str]) -> set[str]:
         """
-        Shared libraries shipped beside a dynamically linked libsai_impl.so. An
-        NPU SDK may dlopen these (for example per-device libraries), so ldd does
-        not report them.
+        Shared libraries shipped beside a dynamically linked libsai_impl.so, plus
+        their own dependencies. An NPU SDK may dlopen these (for example
+        per-device libraries), so ldd on the binaries reports neither.
         """
         siblings = set()
         for lib in dependencies:
@@ -436,6 +446,8 @@ class PackageFboss:
                 ):
                     siblings.add(path)
         self.dependencies |= siblings
+        for sibling in list(siblings):
+            siblings |= self._get_dependency_paths(sibling)
         return siblings
 
     def _get_dependency_paths(self, path_to_binary: str) -> {str}:
@@ -444,7 +456,21 @@ class PackageFboss:
         """
 
         dependencies = set()
-        exclude_patterns = ["libc.so", "libgcc_s.so", "libsystemd.so"]
+        # All of glibc comes from the host: its libraries share GLIBC_PRIVATE
+        # symbols, so bundling some beside the host's libc mixes versions.
+        exclude_patterns = [
+            "libc.so",
+            "libm.so",
+            "libresolv.so",
+            "libdl.so",
+            "libpthread.so",
+            "librt.so",
+            "libutil.so",
+            "libnss_",
+            "ld-linux",
+            "libgcc_s.so",
+            "libsystemd.so",
+        ]
 
         try:
             output = subprocess.check_output(["file", path_to_binary])

@@ -146,6 +146,10 @@ class LedManager {
     return platformMapping_.get();
   }
 
+  const LedConfig* getLedConfig() const {
+    return ledConfig_.get();
+  }
+
   virtual bool blinkingSupported() const {
     return false;
   }

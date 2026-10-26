@@ -52,6 +52,8 @@ target_link_libraries(bsp_test_utils
   platform_manager_config_cpp2
   platform_manager_fan_cpld_manager
   platform_manager_pci_explorer
+  gpiod_line
+  ${LIBGPIOD}
   Folly::folly
   ${RE2}
 )

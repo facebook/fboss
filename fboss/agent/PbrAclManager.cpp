@@ -13,7 +13,10 @@
 #include "fboss/agent/state/ClassBasedPolicyMap.h"
 #include "fboss/agent/state/ClassBasedPolicyNode.h"
 #include "fboss/agent/state/DeltaFunctions.h"
+#include "fboss/agent/state/FibInfoMap.h"
+#include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/PbrUtils.h"
+#include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -39,17 +42,28 @@ namespace {
       " PBR policies are configured");
 }
 
+void removeRuleEntry(
+    AclMap& aclMap,
+    const std::string& policyName,
+    ForwardingClass trafficClass,
+    bool temporary) {
+  auto name = makePbrAclEntryName(policyName, trafficClass, temporary);
+  if (!aclMap.removeNodeIf(name)) {
+    throw FbossError(
+        "PBR policy '",
+        policyName,
+        "' has no programmed ACL entry '",
+        name,
+        "' to remove");
+  }
+}
+
 void removePolicyEntries(
     AclMap& aclMap,
-    const std::shared_ptr<ClassBasedPolicyNode>& policy) {
+    const std::shared_ptr<ClassBasedPolicyNode>& policy,
+    bool temporary) {
   for (const auto& [tc, _] : policy->getClass2NextHopGroup()) {
-    if (!aclMap.removeNodeIf(makePbrAclEntryName(policy->getID(), tc))) {
-      throw FbossError(
-          "removed PBR policy '",
-          policy->getID(),
-          "' had no programmed ACL entry for traffic class ",
-          static_cast<int>(tc));
-    }
+    removeRuleEntry(aclMap, policy->getID(), tc, temporary);
   }
 }
 
@@ -84,7 +98,8 @@ bool applyChangedPolicy(
   }
   bool changed = false;
   for (const auto& [tc, newNhg] : newTc2Nhg) {
-    auto name = makePbrAclEntryName(newPolicy->getID(), tc);
+    auto name =
+        makePbrAclEntryName(newPolicy->getID(), tc, false /*temporary*/);
     auto oldIt = oldTc2Nhg.find(tc);
     if (oldIt == oldTc2Nhg.end()) {
       aclMap.addNode(newEntries.at(name));
@@ -105,9 +120,8 @@ bool applyChangedPolicy(
   }
   for (const auto& [tc, _] : oldTc2Nhg) {
     if (!newTc2Nhg.count(tc)) {
-      if (aclMap.removeNodeIf(makePbrAclEntryName(newPolicy->getID(), tc))) {
-        changed = true;
-      }
+      removeRuleEntry(aclMap, newPolicy->getID(), tc, false /*temporary*/);
+      changed = true;
     }
   }
   return changed;
@@ -126,7 +140,7 @@ bool applyPolicyDelta(AclMap& newAclMap, const StateDelta& delta) {
           return;
         }
         if (!newPolicy->isReferenced()) {
-          removePolicyEntries(newAclMap, old);
+          removePolicyEntries(newAclMap, old, false /*temporary*/);
           changed = true;
           return;
         }
@@ -142,13 +156,81 @@ bool applyPolicyDelta(AclMap& newAclMap, const StateDelta& delta) {
         if (!old->isReferenced()) {
           return;
         }
-        removePolicyEntries(newAclMap, old);
+        removePolicyEntries(newAclMap, old, false /*temporary*/);
         changed = true;
       });
   return changed;
 }
 
 } // namespace
+
+PbrAclManager::InputOutputState::InputOutputState(const StateDelta& in) {
+  in.oldState()->publish();
+  in.newState()->publish();
+  out_.emplace_back(in.oldState(), in.newState());
+}
+
+void PbrAclManager::InputOutputState::publishLastDelta() {
+  if (!out_.empty()) {
+    DCHECK(out_.back().oldState()->isPublished());
+    out_.back().newState()->publish();
+  }
+}
+
+void PbrAclManager::InputOutputState::appendDelta(const StateDelta& delta) {
+  publishLastDelta();
+  DCHECK(out_.empty() || out_.back().newState() == delta.oldState());
+  out_.emplace_back(delta.oldState(), delta.newState());
+}
+
+void PbrAclManager::InputOutputState::replaceLastDelta(
+    const StateDelta& delta) {
+  CHECK(!out_.empty());
+  DCHECK(out_.back().oldState()->isPublished());
+  DCHECK_EQ(out_.back().oldState(), delta.oldState());
+  out_.pop_back();
+  out_.emplace_back(delta.oldState(), delta.newState());
+}
+
+template <typename AddrT>
+void PbrAclManager::InputOutputState::addOrUpdateRoute(
+    RouterID rid,
+    const std::shared_ptr<Route<AddrT>>& route,
+    bool withRouteDelta) {
+  DCHECK(getCurrentStateDelta().oldState()->isPublished());
+  if (withRouteDelta) {
+    publishLastDelta();
+  }
+  auto oldState = getCurrentStateDelta().newState();
+  auto newState = oldState->clone();
+  auto fib =
+      newState->getFibsInfoMap()->getFibContainer(rid)->getFib<AddrT>()->modify(
+          rid, &newState);
+  if (fib->getRouteIf(route->prefix())) {
+    fib->updateNode(route);
+  } else {
+    fib->addNode(route);
+  }
+  if (withRouteDelta) {
+    appendDelta(StateDelta(oldState, newState));
+  } else {
+    replaceLastDelta(StateDelta(getCurrentStateDelta().oldState(), newState));
+  }
+}
+
+template void PbrAclManager::InputOutputState::addOrUpdateRoute(
+    RouterID rid,
+    const std::shared_ptr<Route<folly::IPAddressV4>>& route,
+    bool withRouteDelta);
+template void PbrAclManager::InputOutputState::addOrUpdateRoute(
+    RouterID rid,
+    const std::shared_ptr<Route<folly::IPAddressV6>>& route,
+    bool withRouteDelta);
+
+StateDelta PbrAclManager::InputOutputState::getCurrentStateDelta() const {
+  CHECK(!out_.empty());
+  return StateDelta(out_.back().oldState(), out_.back().newState());
+}
 
 std::vector<StateDelta> PbrAclManager::modifyState(
     const std::vector<StateDelta>& deltas) {
@@ -160,7 +242,12 @@ std::vector<StateDelta> PbrAclManager::reconstructFromSwitchState(
   XLOG(DBG2) << "PbrAclManager reconstructing from switch state";
   std::vector<StateDelta> deltas;
   deltas.emplace_back(std::make_shared<SwitchState>(), curState);
-  return modifyStateImpl(deltas);
+  deltas = modifyStateImpl(deltas);
+  CHECK(!deltas.empty());
+  StateDelta combined(deltas.front().oldState(), deltas.back().newState());
+  deltas.clear();
+  deltas.emplace_back(std::move(combined));
+  return deltas;
 }
 
 void PbrAclManager::updateDone() {
@@ -172,15 +259,16 @@ void PbrAclManager::updateFailed(const std::shared_ptr<SwitchState>& curState) {
   reconstructFromSwitchState(curState);
 }
 
-std::shared_ptr<SwitchState> PbrAclManager::processDelta(
-    const StateDelta& delta) {
+void PbrAclManager::processDelta(
+    const StateDelta& delta,
+    InputOutputState* inOutState) {
   auto newState = delta.newState();
 
   // TODO(zecheng): also react to namedNextHopGroup member changes (FibInfo
   // normalized-id deltas), which shift a policy's match/redirect ids without a
   // policy delta.
   if (DeltaFunctions::isEmpty(delta.getClassBasedPoliciesDelta())) {
-    return newState;
+    return;
   }
   auto policies = newState->getClassBasedPolicies();
   size_t numPolicies = policies ? policies->numNodes() : 0;
@@ -192,7 +280,7 @@ std::shared_ptr<SwitchState> PbrAclManager::processDelta(
     if (numPolicies > 0) {
       throwPbrTableMissing(kPbrTableId, numPolicies);
     }
-    return newState;
+    return;
   }
 
   bool foundTable = false;
@@ -221,13 +309,14 @@ std::shared_ptr<SwitchState> PbrAclManager::processDelta(
     if (numPolicies > 0) {
       throwPbrTableMissing(kPbrTableId, numPolicies);
     }
-    return newState;
+    return;
   }
   if (!changed) {
-    return newState;
+    return;
   }
   newState->publish();
-  return newState;
+  inOutState->replaceLastDelta(StateDelta(delta.oldState(), newState));
+  inOutState->updated = true;
 }
 
 std::vector<StateDelta> PbrAclManager::modifyStateImpl(
@@ -239,9 +328,14 @@ std::vector<StateDelta> PbrAclManager::modifyStateImpl(
   retDeltas.reserve(deltas.size());
   auto oldState = deltas.begin()->oldState();
   for (const auto& delta : deltas) {
-    auto modifiedState = processDelta(StateDelta(oldState, delta.newState()));
-    retDeltas.emplace_back(oldState, modifiedState);
-    oldState = modifiedState;
+    StateDelta curDelta(oldState, delta.newState());
+    InputOutputState inOutState{curDelta};
+    processDelta(curDelta, &inOutState);
+    inOutState.publishLastDelta();
+    for (auto& out : inOutState.moveDeltas()) {
+      oldState = out.newState();
+      retDeltas.emplace_back(out.oldState(), out.newState());
+    }
   }
   return retDeltas;
 }

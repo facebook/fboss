@@ -300,6 +300,10 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
       return "tunnel";
     case SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY:
       return "tunnel-term";
+    case SAI_OBJECT_TYPE_TUNNEL_MAP:
+      return "tunnel-map";
+    case SAI_OBJECT_TYPE_TUNNEL_MAP_ENTRY:
+      return "tunnel-map-entry";
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
     case SAI_OBJECT_TYPE_SRV6_SIDLIST:
       return "srv6-sidlist";

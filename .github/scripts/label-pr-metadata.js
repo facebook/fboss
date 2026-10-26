@@ -64,23 +64,25 @@ module.exports = async function labelPullRequestMetadata({
     );
   };
 
-  async function removeManagedLabels() {
+  async function reconcileManagedLabels(desiredLabels) {
     const managedLabels = currentLabels.filter(({name}) =>
       isManagedLabel(name),
     );
     for (const {name} of managedLabels) {
-      await removeLabel(github, {
-        owner,
-        repo,
-        issue_number: issueNumber,
-        name,
-      });
+      if (!desiredLabels.has(name.toLowerCase())) {
+        await removeLabel(github, {
+          owner,
+          repo,
+          issue_number: issueNumber,
+          name,
+        });
+      }
     }
   }
 
   const match = pullRequest.title.match(/^\[([^\]]+)\]\s*\[([^\]]+)\]\s+.+/);
   if (!match) {
-    await removeManagedLabels();
+    await reconcileManagedLabels(new Set());
     core.warning(
       'PR title must use the format "[CompanyName][ProjectName] Your PR title", ' +
         'for example "[Accton][minipack3n] Add transceiver support".',
@@ -91,12 +93,18 @@ module.exports = async function labelPullRequestMetadata({
   const company = match[1].trim().toLowerCase();
   const project = match[2].trim().toLowerCase();
   if (!validCompanies.includes(company)) {
-    await removeManagedLabels();
+    await reconcileManagedLabels(new Set());
     core.warning(`Company name "${match[1].trim()}" is not recognized.`);
     return;
   }
   if (!validProjects.has(project)) {
-    await removeManagedLabels();
+    await reconcileManagedLabels(new Set([company]));
+    await github.rest.issues.addLabels({
+      owner,
+      repo,
+      issue_number: issueNumber,
+      labels: [company],
+    });
     core.warning(
       `Project name "${match[2].trim()}" is not recognized. ` +
         `Supported projects: ${projects.join(', ')}.`,
@@ -119,18 +127,7 @@ module.exports = async function labelPullRequestMetadata({
     });
   }
 
-  const desiredLabels = new Set([company, projectLabel]);
-  const managedLabels = currentLabels.filter(({name}) => isManagedLabel(name));
-  for (const {name} of managedLabels) {
-    if (!desiredLabels.has(name.toLowerCase())) {
-      await removeLabel(github, {
-        owner,
-        repo,
-        issue_number: issueNumber,
-        name,
-      });
-    }
-  }
+  await reconcileManagedLabels(new Set([company, projectLabel]));
 
   await github.rest.issues.addLabels({
     owner,

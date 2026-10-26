@@ -124,6 +124,16 @@ target_link_libraries(montblanc_bsp
   FBThrift::thriftcpp2
 )
 
+add_library(m4061clsc_bsp
+  fboss/lib/bsp/m4061clsc/M4061clscBspPlatformMapping.cpp
+)
+
+target_link_libraries(m4061clsc_bsp
+  bsp_platform_mapping
+  bsp_platform_mapping_cpp2
+  FBThrift::thriftcpp2
+)
+
 add_library(icecube800bc_bsp
   fboss/lib/bsp/icecube800bc/Icecube800bcBspPlatformMapping.cpp
 )
@@ -262,6 +272,16 @@ target_link_libraries(m4052actm_bsp
   FBThrift::thriftcpp2
 )
 
+add_library(m5120csc_bsp
+  fboss/lib/bsp/m5120csc/M5120cscBspPlatformMapping.cpp
+)
+
+target_link_libraries(m5120csc_bsp
+  bsp_platform_mapping
+  bsp_platform_mapping_cpp2
+  FBThrift::thriftcpp2
+)
+
 add_library(qsfp_bsp_core
   fboss/lib/bsp/BspGenericSystemContainer.cpp
   fboss/lib/bsp/BspIOBus.cpp
@@ -291,6 +311,7 @@ target_link_libraries(qsfp_bsp_core
   meru800bia_bsp
   meru800bfa_bsp
   montblanc_bsp
+  m4061clsc_bsp
   icecube800bc_bsp
   icetea800bc_bsp
   minipack3bta_bsp
@@ -306,6 +327,7 @@ target_link_libraries(qsfp_bsp_core
   saintpaul_bsp
   m4052actm_bsp
   m4062nhp_bsp
+  m5120csc_bsp
   device_mdio
   fpga_device
   phy_management_base
