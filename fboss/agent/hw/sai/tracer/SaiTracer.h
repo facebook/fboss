@@ -540,6 +540,8 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_TAM, "tam_"},
       {SAI_OBJECT_TYPE_TUNNEL, "tunnel_"},
       {SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY, "tunnelTerm_"},
+      {SAI_OBJECT_TYPE_TUNNEL_MAP, "tunnelMap_"},
+      {SAI_OBJECT_TYPE_TUNNEL_MAP_ENTRY, "tunnelMapEntry_"},
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
       {SAI_OBJECT_TYPE_SRV6_SIDLIST, "srv6SidList_"},
 #endif
@@ -633,6 +635,8 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_TAM, "tam_api->"},
       {SAI_OBJECT_TYPE_TUNNEL, "tunnel_api->"},
       {SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY, "tunnel_api->"},
+      {SAI_OBJECT_TYPE_TUNNEL_MAP, "tunnel_api->"},
+      {SAI_OBJECT_TYPE_TUNNEL_MAP_ENTRY, "tunnel_api->"},
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
       {SAI_OBJECT_TYPE_SRV6_SIDLIST, "srv6_api->"},
       {SAI_OBJECT_TYPE_MY_SID_ENTRY, "srv6_api->"},

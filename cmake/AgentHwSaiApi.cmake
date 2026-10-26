@@ -83,6 +83,7 @@ set(SAI_API_SRC
   fboss/agent/hw/sai/api/Srv6Api.cpp
   fboss/agent/hw/sai/api/Srv6Api.h
   fboss/agent/hw/sai/api/TunnelApi.h
+  fboss/agent/hw/sai/api/TunnelMapApi.h
   fboss/agent/hw/sai/api/Types.h
   fboss/agent/hw/sai/api/UdfApi.h
   fboss/agent/hw/sai/api/VendorSwitchApi.h
