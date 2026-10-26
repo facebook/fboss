@@ -10,6 +10,7 @@
 
 #include <fboss/lib/LogThriftCall.h>
 #include <folly/logging/xlog.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 DEFINE_string(
     sak_list_warmboot_config,
@@ -550,12 +551,18 @@ void QsfpServiceHandler::getPortInfo(
 void QsfpServiceHandler::setPortLoopbackState(
     std::unique_ptr<std::string> portNameStr,
     phy::PortComponent component,
-    bool setLoopback) {
-  auto log = LOG_THRIFT_CALL(INFO, portNameStr, setLoopback);
+    bool setLoopback,
+    phy::LoopbackMode mode) {
+  auto componentName = apache::thrift::util::enumNameSafe(component);
+  auto modeName = apache::thrift::util::enumNameSafe(mode);
+  auto log =
+      LOG_THRIFT_CALL(INFO, portNameStr, componentName, setLoopback, modeName);
   if (FLAGS_port_manager_mode) {
-    portManager_->setPortLoopbackState(*portNameStr, component, setLoopback);
+    portManager_->setPortLoopbackState(
+        *portNameStr, component, setLoopback, mode);
   } else {
-    tcvrManager_->setPortLoopbackState(*portNameStr, component, setLoopback);
+    tcvrManager_->setPortLoopbackState(
+        *portNameStr, component, setLoopback, mode);
   }
 }
 

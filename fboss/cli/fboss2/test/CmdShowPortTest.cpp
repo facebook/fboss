@@ -512,6 +512,44 @@ TEST_F(CmdShowPortTestFixture, sortByName) {
   EXPECT_THRIFT_EQ(normalizedModel, model);
 }
 
+TEST_F(CmdShowPortTestFixture, cbfc) {
+  auto portEntries = mockPortEntries;
+  CbfcInfo cbfc;
+  cbfc.configName() = "cbfc";
+  cbfc.virtualChannels() = {2, 6};
+  cbfc.senderCreditSize() = 56;
+  cbfc.senderPacketOverhead() = 16;
+  cbfc.senderCreditLimit() = 8192;
+  portEntries[3].cbfc() = cbfc;
+
+  HwPortStats stats;
+  stats.cbfcCfUpdateTx_() = 10;
+  stats.cbfcCfUpdateRx_() = 20;
+  stats.cbfcCcUpdateTx_() = 30;
+  std::map<std::string, HwPortStats> portStats{{"eth1/5/3", stats}};
+
+  auto model = CmdShowPort().createModel(
+      portEntries,
+      mockTransceiverEntries,
+      queriedEntries,
+      portStats,
+      mockPortToPeer,
+      mockPeerDrainStates,
+      mockPeerPortInfo,
+      mockDrainedInterfaces);
+
+  for (const auto& entry : *model.portEntries()) {
+    if (*entry.name() != "eth1/5/3") {
+      EXPECT_FALSE(entry.cbfc().has_value());
+      continue;
+    }
+    EXPECT_EQ(entry.cbfc(), "cbfc, VC 2 6, sender 56 B / 16 B, limit 8192");
+    EXPECT_EQ(entry.hwPortStats()->cbfcCfUpdateTx(), 10);
+    EXPECT_EQ(entry.hwPortStats()->cbfcCfUpdateRx(), 20);
+    EXPECT_EQ(entry.hwPortStats()->cbfcCcUpdateTx(), 30);
+  }
+}
+
 TEST_F(CmdShowPortTestFixture, invalidPortName) {
   auto invalidPortEntries = createInvalidPortEntries();
 

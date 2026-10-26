@@ -107,6 +107,8 @@ bool P200Asic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::CPU_QUEUE_WATERMARK_STATS:
     case HwAsic::Feature::BUFFER_POOL_HEADROOM_WATERMARK:
     case HwAsic::Feature::SAI_SET_TC_WITH_USER_DEFINED_TRAP_CPU_ACTION:
+    case HwAsic::Feature::SAI_MPLS_NEXTHOP_OUTSEG_TYPE:
+    case HwAsic::Feature::CPU_TX_PACKET_REQUIRES_VLAN_TAG:
       return true;
     case HwAsic::Feature::ACL_BYTE_COUNTER:
     case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
@@ -224,7 +226,6 @@ bool P200Asic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SDK_REGISTER_DUMP:
     case HwAsic::Feature::FEC_ERROR_DETECT_ENABLE:
     case HwAsic::Feature::SAI_HOST_MISS_TRAP:
-    case HwAsic::Feature::CPU_TX_PACKET_REQUIRES_VLAN_TAG:
     case HwAsic::Feature::DRAM_DATAPATH_PACKET_ERROR_STATS:
     case HwAsic::Feature::EGRESS_POOL_AVAILABLE_SIZE_ATTRIBUTE_SUPPORTED:
     case HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY:
@@ -259,6 +260,8 @@ bool P200Asic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::CUT_THROUGH_FORWARDING:
     case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
     case HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS:
+    case HwAsic::Feature::HW_PROTECTION_SWITCHOVER_COUNTERS:
+    case HwAsic::Feature::PBR_ACL_BYTE_COUNTER:
     case HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER:
     case HwAsic::Feature::PBR_ACL:
     case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
@@ -273,23 +276,23 @@ bool P200Asic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::ACL_DST_IPV6_WORD_QUALIFIERS:
     case HwAsic::Feature::NEXT_HOP_GROUP_MEMBER_MONITORED_OBJECT:
     case HwAsic::Feature::RX_PACKET_TYPE:
+    case HwAsic::Feature::MY_MAC:
     case HwAsic::Feature::ISOLATION_GROUP:
+    case HwAsic::Feature::CSIG:
+    case HwAsic::Feature::ACL_ENTRY_OUT_PORT_QUALIFIER:
+    case HwAsic::Feature::XPHY_SERDES_TX_FIR_POST3:
       return false;
     case HwAsic::Feature::SAI_ACL_MPLS_LABEL0_TTL:
       // Leaba does not implement the MPLS label0 TTL ACL qualifier yet.
       // Becomes saiSdkAtLeast("<version>") once it does.
       return false;
-    case HwAsic::Feature::SAI_MPLS_NEXTHOP_OUTSEG_TYPE:
-      // Leaba does not implement the MPLS next hop outsegment type attribute
-      // yet. Becomes saiSdkAtLeast("<version>") once it does.
-      return false;
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
+      // A source port trap ACL is programmed but never delivers packets to
+      // the CPU on P200, for IP as well as MPLS traffic.
+      //
+      // TODO: Pending SDK support.
+      return false;
     case HwAsic::Feature::SAI_PRBS:
-      /*
-       * Source port ACL qualifier is used in certain HW tests to trap packets
-       * to CPU. P200 always runs a P4-warmboot-capable SDK, which uses the
-       * source port qualifier, so this feature is supported.
-       */
       return true;
   }
   return false;

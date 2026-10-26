@@ -1,0 +1,12 @@
+{
+  "platformType": 38,
+  "productNamePrefixes": [
+    "Minipack3N",
+    "MINIPACK3N"
+  ],
+  "modeNames": [
+    "minipack3n"
+  ],
+  "asicType": 17,
+  "numSwitchAsics": 1
+}

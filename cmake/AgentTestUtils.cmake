@@ -24,19 +24,6 @@ target_link_libraries(acl_test_utils
   asic_test_utils
 )
 
-add_library(access_policy_acl_test_utils
-  fboss/agent/test/utils/AccessPolicyAclTestUtils.cpp
-)
-
-target_link_libraries(access_policy_acl_test_utils
-  acl_test_utils
-  asic_utils
-  config_utils
-  fboss_error
-  switch_asics
-  switch_config_cpp2
-)
-
 add_library(copp_test_utils
   fboss/agent/test/utils/CoppTestUtils.cpp
 )
@@ -61,6 +48,7 @@ target_link_libraries(copp_test_utils
 add_library(pkt_test_utils
   fboss/agent/test/utils/PacketSendUtils.cpp
   fboss/agent/test/utils/PacketTestUtils.cpp
+  fboss/agent/test/utils/oss/ChenabPacketTestUtils.cpp
 )
 
 target_link_libraries(pkt_test_utils

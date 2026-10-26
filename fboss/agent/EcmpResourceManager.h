@@ -12,6 +12,7 @@
 #include <memory>
 #include <ostream>
 #include "fboss/agent/EcmpResourceManagerConfig.h"
+#include "fboss/agent/OverrideSetIdManager.h"
 #include "fboss/agent/state/NextHopIdMaps.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -110,6 +111,8 @@ class EcmpResourceManager {
     // mergedGroupInfo is set when the merged nhops get
     // used as part of a merged group
     std::shared_ptr<NextHopGroupInfo> mergedGroupInfo;
+    // Gives an ID to mergedNhops; unset until the merge is in use.
+    std::optional<NextHopSetID> overrideSetId;
   };
   ConsolidationInfo computeConsolidationInfo(
       const NextHopGroupIds& grpIds) const;
@@ -138,6 +141,9 @@ class EcmpResourceManager {
   const NextHopGroupInfo* getGroupInfo(NextHopGroupId gid) const {
     auto grpInfo = nextHopGroupIdToInfo_.ref(gid);
     return grpInfo ? grpInfo.get() : nullptr;
+  }
+  const OverrideSetIdManager& getOverrideSetIdManager() const {
+    return overrideSetIdMgr_;
   }
   /* Test helper API end */
 
@@ -239,6 +245,8 @@ class EcmpResourceManager {
     uint32_t virtualEcmpGroupsCnt{0};
     uint32_t ecmpMemberCnt{0};
     bool updated{false};
+    // Set while replaying a recovered state, whose overrides are taken as-is.
+    bool reconstructing{false};
 
     std::shared_ptr<SwitchState> getInputNewState() const {
       return inputDelta_.newState();
@@ -456,6 +464,7 @@ class EcmpResourceManager {
   PrefixToGroupInfo prefixToGroupInfo_;
   std::map<NextHopGroupIds, ConsolidationInfo> mergedGroups_;
   std::map<NextHopGroupIds, ConsolidationInfo> candidateMergeGroups_;
+  OverrideSetIdManager overrideSetIdMgr_;
   SwitchStatsGetter statsGetter_;
   EcmpResourceManagerConfig config_;
 };

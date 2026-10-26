@@ -16,7 +16,6 @@
 #include <fmt/format.h>
 #include <algorithm>
 #include <iostream>
-#include <stdexcept>
 #include <string>
 #include "fboss/cli/fboss2/commands/config/load_balancing/CmdConfigLoadBalancing.h"
 #include "fboss/cli/fboss2/gen-cpp2/cli_metadata_types.h"
@@ -34,8 +33,13 @@ namespace {
 // subcommands rely on.
 std::string runLoadBalancerDelete(cfg::LoadBalancerID id) {
   auto& session = ConfigSession::getInstance();
-  auto msg = removeLoadBalancer(*session.getAgentConfig().sw(), id);
-  session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+  auto& swConfig = *session.getAgentConfig().sw();
+  const auto before = swConfig.loadBalancers()->size();
+  auto msg = removeLoadBalancer(swConfig, id);
+  if (swConfig.loadBalancers()->size() != before) {
+    session.saveConfig(
+        cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+  }
   return msg;
 }
 
@@ -50,8 +54,9 @@ std::string removeLoadBalancer(
         return *lb.id() == id;
       });
   if (it == loadBalancers.end()) {
-    throw std::invalid_argument(
-        fmt::format("No {} load-balancer configured", lbIdToString(id)));
+    return fmt::format(
+        "Warning: no {} load-balancer configured, nothing to delete",
+        lbIdToString(id));
   }
   loadBalancers.erase(it);
   return fmt::format("Deleted {} load-balancer", lbIdToString(id));

@@ -38,6 +38,19 @@ struct Vendor {
   6: string dateCode;
 }
 
+// A transceiver identified by the vendor name and part number from its EEPROM.
+struct TransceiverVendorPartNumber {
+  1: string vendor;
+  2: string partNumber;
+}
+
+// A placeholder vendor/part number used in platform mapping overrides, and the
+// real transceivers it stands for.
+struct TransceiverVendorOverride {
+  1: TransceiverVendorPartNumber placeholder;
+  2: list<TransceiverVendorPartNumber> transceivers;
+}
+
 struct Thresholds {
   1: double low;
   2: double high;
@@ -803,6 +816,9 @@ struct TcvrState {
   31: set<TransceiverErrorState> errorStates;
   32: ModuleTechnology moduleTechnology = GREY;
   33: PagingSupport pagingSupport = PagingSupport.UNKNOWN;
+  // Copied from QsfpServiceConfig.transceiverVendorOverrides. Unset if the
+  // config doesn't have it.
+  34: optional list<TransceiverVendorOverride> vendorOverrides;
 }
 
 struct TcvrStats {

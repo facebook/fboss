@@ -46,7 +46,7 @@ CMake could not find your vendor SDK.
 - `--npu-libsai-impl-path` and `--npu-experiments-path` must be given
   **together**. Giving neither is not an error at the wrapper level; it just
   prints that it is skipping SDK preparation, and you fail later in CMake.
-- The archive must be named exactly `libsai_impl.a`.
+- The library must be named exactly `libsai_impl.a` or `libsai_impl.so`.
 - The staging directory lives under `<scratch>/installed/` and is recorded in
   the CMake cache. If you deleted it, or ran a later build with different SDK
   flags (which replaces it), an incremental rebuild cannot find the old one.

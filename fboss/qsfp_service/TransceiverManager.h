@@ -84,10 +84,10 @@ namespace facebook::fboss {
 struct TransceiverConfig;
 
 struct NpuPortStatus {
-  int portId;
-  bool operState; // true for link up, false for link down
-  bool portEnabled; // true for enabled, false for disabled
-  bool asicPrbsEnabled; // true for enabled, false for disabled
+  int portId{0};
+  bool operState{false}; // true for link up, false for link down
+  bool portEnabled{false}; // true for enabled, false for disabled
+  bool asicPrbsEnabled{false}; // true for enabled, false for disabled
   std::string profileID;
 };
 
@@ -332,13 +332,15 @@ class TransceiverManager {
   void setPortLoopbackState(
       std::string /* portName */,
       phy::PortComponent /* component */,
-      bool /* setLoopback */);
+      bool /* setLoopback */,
+      phy::LoopbackMode mode = phy::LoopbackMode::INPUT);
 
   void setPortLoopbackStateTransceiver(
       PortID portId,
       std::string portName,
       phy::PortComponent component,
-      bool setLoopback);
+      bool setLoopback,
+      phy::LoopbackMode mode = phy::LoopbackMode::INPUT);
 
   void setPortAdminState(
       std::string /* portName */,

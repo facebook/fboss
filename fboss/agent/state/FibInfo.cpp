@@ -135,14 +135,22 @@ FibInfo::getNextHopSetIdRefCountsFromRoutes() const {
   auto collectFromFib = [&refCounts](const auto& fib) {
     for (const auto& [_, route] : std::as_const(*fib)) {
       const auto& fwdInfo = route->getForwardInfo();
-      if (auto id = fwdInfo.getClientNextHopSetID()) {
-        ++refCounts[*id];
-      }
       if (auto id = fwdInfo.getResolvedNextHopSetID()) {
         ++refCounts[*id];
       }
       if (auto id = fwdInfo.getNormalizedResolvedNextHopSetID()) {
         ++refCounts[*id];
+      }
+      const auto& clientEntries = route->getEntryForClients();
+      const auto bestClientId = clientEntries.lowestAdminDistanceClientId();
+      for (const auto& [clientId, entry] : clientEntries) {
+        if (clientId != bestClientId) {
+          continue;
+        }
+        if (auto id = entry->getClientNextHopSetID()) {
+          ++refCounts[*id];
+        }
+        break;
       }
     }
   };

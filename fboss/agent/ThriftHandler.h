@@ -142,6 +142,14 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::unique_ptr<std::vector<std::string>> names,
       bool replicateWeightedNexthops = false) override;
 
+  void addPolicies(std::unique_ptr<std::vector<Policy>> policies) override;
+  void deletePolicies(
+      std::unique_ptr<std::vector<std::string>> policyNames) override;
+  void getPolicies(
+      std::vector<Policy>& result,
+      std::unique_ptr<std::vector<std::string>> policyNames) override;
+  void getAllPolicies(std::vector<Policy>& result) override;
+
   SwSwitch* getSw() const {
     return sw_;
   }
@@ -463,6 +471,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::vector<cfg::MacAndVlan>& blockedMacAddrs) override;
   void setMacAddrsToBlock(
       std::unique_ptr<std::vector<cfg::MacAndVlan>> macAddrsToBlock) override;
+
+  void getMyMacs(std::vector<cfg::MacAndVlan>& myMacs) override;
 
   void publishLinkSnapshots(
       std::unique_ptr<std::vector<std::string>> portNames) override;

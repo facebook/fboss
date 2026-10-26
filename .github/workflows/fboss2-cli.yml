@@ -6,10 +6,12 @@ on:
     paths:
       - 'fboss-sim/**'
       - 'fboss/cli/**'
+      - 'fboss/configs/platforms/generic/forwarding_stack/**'
       - 'cmake/CliFboss2.cmake'
       - 'cmake/CliFboss2Test.cmake'
       - 'cmake/CliFboss2TestConfig.cmake'
       - 'cmake/CliFboss2TestIntegrationTest.cmake'
+      - 'cmake/ConfigsPlatformsGenericForwardingStack.cmake'
       - '.github/workflows/fboss2-cli.yml'
   # Allow manually triggering the workflow
   workflow_dispatch:

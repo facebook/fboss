@@ -12,10 +12,12 @@
 #include <map>
 #include <optional>
 #include <set>
+#include <string>
 #include <vector>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/config/agent/VlanConfigUtils.h"
 
 namespace facebook::fboss {
 class PlatformMapping;
@@ -26,26 +28,6 @@ namespace utility {
  * SwitchConfig. This library is shared by FBOSS hardware tests and the fboss2
  * config CLI so both paths use the same configuration logic.
  */
-
-/*
- * Use vlan 2000, as the base vlan for ports in configs generated here.
- * Anything except 0, 1 would actually work fine. 0 because
- * its reserved, and 1 because BRCM uses that as default VLAN.
- * So for example if we use VLAN 1, BRCM will also add cpu port to
- * that vlan along with our configured ports. This causes unnecessary
- * confusion for our tests.
- */
-auto constexpr kBaseVlanId = 2000;
-auto constexpr kDownlinkBaseVlanId = 2000;
-auto constexpr kUplinkBaseVlanId = 4000;
-
-// Per-port interface-vlan allocation band. INTERFACE_PORTs allocate from the
-// low end while MANAGEMENT_PORTs allocate from the high end. The band starts
-// just above the shared downlink base (kBaseVlanId) and stops before the
-// sidelink band (3000), so allocated ids avoid every reserved range (loopback
-// 10/11, sidelink 3000-3024, uplink 3100/4001+, default 4094).
-auto constexpr kInterfaceVlanIdMin = kBaseVlanId + 1;
-auto constexpr kInterfaceVlanIdMax = 2999;
 
 struct SafeProfileSelectionOptions {
   cfg::AsicType asicType{cfg::AsicType::ASIC_TYPE_FAKE};
@@ -59,6 +41,21 @@ struct SafeProfileSelectionOptions {
 };
 
 using PortProfileMap = std::map<PortID, cfg::PortProfileID>;
+using PortProfileSupportMap =
+    std::map<std::string, std::vector<cfg::PortProfileID>>;
+
+struct PortProfileRequest {
+  std::string portName;
+  cfg::PortProfileID profileID;
+};
+
+struct ResolvedPortProfileRequest {
+  std::string portName;
+  PortID portID;
+  cfg::PortProfileID profileID;
+  cfg::PortSpeed speed;
+  bool wasPresent;
+};
 
 // Selects one compatible profile per controlling-port group and returns that
 // profile for every port which must be present in the resulting config. The
@@ -144,6 +141,24 @@ enum class PortRemovalMode {
   // do not support adding/removing ports at runtime.
   Disable,
 };
+
+struct PortProfileChangeResult {
+  std::vector<ResolvedPortProfileRequest> requestedPorts;
+  std::map<PortID, std::string> subsumedPorts;
+};
+
+// Applies a batch atomically. Existing ports have profile and speed updated,
+// missing routed ports are created with an allocated VLAN/interface, and
+// subsumed ports are returned for the caller to erase or disable as needed.
+// Every requested profile must be supported by the platform mapping. A
+// non-empty entry in qsfpSupportedProfiles additionally constrains that port
+// to profiles supported by its transceiver; absent or empty entries fall back
+// to platform-only validation.
+PortProfileChangeResult applyPortProfileChanges(
+    cfg::SwitchConfig& config,
+    const PlatformMapping& platformMapping,
+    const std::vector<PortProfileRequest>& requests,
+    const PortProfileSupportMap& qsfpSupportedProfiles = {});
 
 // Removes `portsToRemove` from `config`. In Erase mode each port and its
 // vlanPort are dropped; in Disable mode each port is kept but set to DISABLED

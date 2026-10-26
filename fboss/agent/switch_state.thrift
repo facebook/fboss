@@ -212,6 +212,10 @@ struct PortFields {
   // membership does not change the port, and is handled off the isolation
   // group map delta instead.
   79: optional string isolationGroup;
+  80: optional i16 cbfcSenderCreditSize;
+  81: optional i16 cbfcSenderPacketOverhead;
+  82: optional switch_config.CsigTagAction csigTagAction;
+  83: optional i16 csigLinkLocator;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -222,6 +226,7 @@ struct TransceiverSpecFields {
   3: optional transceiver.MediaInterfaceCode mediaInterface;
   4: optional transceiver.TransceiverManagementInterface managementInterface;
   5: optional transceiver.Vendor vendor;
+  6: optional list<transceiver.TransceiverVendorOverride> vendorOverrides;
 }
 
 struct AclTtl {
@@ -308,6 +313,7 @@ struct AclEntryFields {
   37: optional i64 dstIpV6Word2;
   38: optional switch_config.AclLookupClassPort lookupClassPort;
   39: optional AclTtl mplsLabel0Ttl;
+  40: optional byte tcpFlagsMask;
 }
 
 struct NamedNextHopGroupAndID {
@@ -452,8 +458,10 @@ struct MirrorOnDropReportFields {
   18: optional switch_config.PortDescriptor resolvedEgressPort;
   // Optional sampling rate for MOD packets
   19: optional i32 samplingRate;
-  // Optional packets-per-second rate cap for drop report generation
+  // Optional packets-per-second rate cap for drop report generation per drop reason
   20: optional i32 dropPacketRateThreshold;
+  // Optional packets-per-second cap on combined MoD reports across drop reasons
+  21: optional i32 aggregateDropPacketRateThreshold;
 }
 
 struct ControlPlaneFields {
@@ -587,6 +595,7 @@ struct SwitchSettingsFields {
     switch_config.EcmpGroupType,
     switch_config.EcmpGroupSettings
   > ecmpGroupSettings;
+  64: list<switch_config.MacAndVlan> myMacs;
 }
 
 struct RoutePrefix {
@@ -613,6 +622,7 @@ struct RouteNextHopEntry {
   9: optional i64 resolvedNextHopSetID;
   10: optional string namedNextHopGroup;
   11: optional i64 clientNextHopSetID;
+  12: optional i64 overrideNextHopSetID;
 }
 
 struct RouteNextHopsMulti {
@@ -660,6 +670,8 @@ struct FibInfoFields {
   3: map<NextHopSetIdType, set<NextHopIdType>> idToNextHopIdSet;
   // Map from named next-hop group name to NextHopSetID
   4: map<string, NextHopSetIdType> nameToNextHopSetId;
+  // ERM override set ids
+  5: map<NextHopSetIdType, set<NextHopIdType>> overrideIdToNextHopIdSet;
 }
 
 struct TrafficClassToQosAttributeEntry {
@@ -697,6 +709,25 @@ struct Srv6TunnelFields {
   7: optional switch_config.TunnelMode ecnMode;
   8: optional switch_config.TunnelTerminationType tunnelTermType;
   9: common.TunnelType tunnelType;
+}
+
+struct VxLanTunnelFields {
+  1: string vxlanTunnelId;
+  2: i32 underlayIntfId;
+  3: optional string srcIp;
+  4: optional string dstIp;
+  5: optional switch_config.TunnelMode ttlMode;
+  6: optional switch_config.TunnelMode dscpMode;
+  7: optional switch_config.TunnelMode ecnMode;
+  8: optional switch_config.TunnelTerminationType tunnelTermType;
+  9: common.TunnelType tunnelType;
+  10: optional map<i64, i64> vrf2Vni;
+  11: optional map<i64, i64> vniToVrf;
+}
+
+struct VrfFields {
+  1: i32 vrfId;
+  2: optional string name;
 }
 
 struct MySidFields {
@@ -962,6 +993,8 @@ struct SwitchState {
     SwitchIdList,
     map<switch_config.AclStage, AclTableGroupFields>
   > portAclTableGroupMaps;
+  131: map<SwitchIdList, map<string, VxLanTunnelFields>> vxlanTunnelMaps;
+  132: map<SwitchIdList, map<i32, VrfFields>> vrfMaps;
   // Remote object maps
   600: map<SwitchIdList, map<i64, SystemPortFields>> remoteSystemPortMaps;
   601: map<SwitchIdList, map<i32, InterfaceFields>> remoteInterfaceMaps;

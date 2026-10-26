@@ -193,6 +193,13 @@ SaiPortTraits::Attributes::AttributeCrcErrorDetect::operator()() {
   return SAI_PORT_ATTR_CRC_ERROR_TOKEN_DETECT;
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeExtOperStatusLatch::operator()() {
+  return SAI_PORT_ATTR_EXT_FAKE_OPER_STATUS_LATCH;
+}
+#endif
+
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeRxLaneSquelchEnable::operator()() {
   return SAI_PORT_ATTR_RX_LANE_SQUELCH_ENABLE;
@@ -356,6 +363,16 @@ std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeLinkScanMode::operator()() {
   return SAI_PORT_ATTR_EXT_LINKSCAN_MODE;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeCsigTagActionWrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeCsigLinkLocatorWrapper::operator()() {
+  return std::nullopt;
 }
 
 std::optional<sai_attr_id_t>
@@ -1109,6 +1126,11 @@ SaiSwitchTraits::Attributes::AttributePortCl72RetryEnable::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeAclDropSnoopDisabled::operator()() {
+  return SAI_SWITCH_ATTR_ACL_DROP_SNOOP_DISABLED;
+}
+
+std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributePacketDropTypeIngressList::operator()() {
   return SAI_SWITCH_ATTR_EXT_PACKET_DROP_TYPE_INGRESS_LIST;
 }
@@ -1161,6 +1183,11 @@ SaiAclEntryTraits::Attributes::AttributeActionL3SwitchCancel::operator()() {
 std::optional<sai_attr_id_t>
 SaiAclEntryTraits::Attributes::AttributeFieldRouteDestination::operator()() {
   return SAI_ACL_ENTRY_ATTR_FIELD_ROUTE_DST;
+}
+
+std::optional<sai_attr_id_t>
+SaiAclTableTraits::Attributes::AttributeFieldRouteDestination::operator()() {
+  return SAI_ACL_TABLE_ATTR_FIELD_ROUTE_DST;
 }
 
 std::optional<sai_attr_id_t>

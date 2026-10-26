@@ -62,6 +62,19 @@ const folly::IPAddress nextHopAddr7 =
 const folly::IPAddress nextHopAddr8 =
     folly::IPAddress("2401:db00:e117:9103:1028::1b");
 
+UnresolvedNextHop makeSrv6NextHop(const folly::IPAddress& addr) {
+  return UnresolvedNextHop(
+      addr,
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      {folly::IPAddressV6("2001:db8::1")},
+      TunnelType::SRV6_ENCAP,
+      kSrv6Tunnel0);
+}
+
 NetworkTopologyInformation getTopologyInfo() {
   NetworkTopologyInformation topologyInfo;
   topologyInfo.rack_id() = 2;
@@ -1276,6 +1289,44 @@ TEST(RouteNextHopEntry, ClientNextHopSetIDInEquality) {
   EXPECT_NE(a, b);
 }
 
+TEST(RouteNextHopEntry, OverrideNextHopSetID) {
+  RouteNextHopEntry a(RouteNextHopEntry::Action::DROP, kDefaultAdminDistance);
+  RouteNextHopEntry b(RouteNextHopEntry::Action::DROP, kDefaultAdminDistance);
+  EXPECT_FALSE(a.getOverrideNextHopSetID().has_value());
+
+  a.setOverrideNextHopSetID(NextHopSetID(7));
+  EXPECT_EQ(a.getOverrideNextHopSetID(), NextHopSetID(7));
+  EXPECT_FALSE(a.getClientNextHopSetID().has_value());
+  EXPECT_NE(a, b);
+
+  RouteNextHopEntry roundTripped(
+      RouteNextHopEntry::Action::DROP, kDefaultAdminDistance);
+  roundTripped.fromThrift(a.toThrift());
+  EXPECT_EQ(roundTripped.getOverrideNextHopSetID(), NextHopSetID(7));
+  validateThriftStructNodeSerialization<RouteNextHopEntry>(roundTripped);
+
+  RouteNextHopEntry fromCtor(
+      RouteNextHopEntry::Action::DROP,
+      kDefaultAdminDistance,
+      std::optional<RouteCounterID>(),
+      std::optional<RouteNextHopEntry::AclLookupClass>(),
+      std::optional<cfg::SwitchingMode>(),
+      std::optional<RouteNextHopEntry::NextHopSet>(),
+      std::optional<NextHopSetID>(),
+      std::optional<NextHopSetID>(),
+      std::optional<NextHopSetID>(),
+      std::optional<NextHopSetID>(7));
+  EXPECT_EQ(fromCtor, a);
+
+  b.setOverrideNextHopSetID(NextHopSetID(7));
+  EXPECT_EQ(a, b);
+  b.setOverrideNextHopSetID(NextHopSetID(8));
+  EXPECT_NE(a, b);
+
+  a.setOverrideNextHopSetID(std::nullopt);
+  EXPECT_FALSE(a.getOverrideNextHopSetID().has_value());
+}
+
 namespace {
 
 NextHopThrift makeNextHopThrift(const folly::IPAddress& addr, int32_t weight) {
@@ -1428,6 +1479,21 @@ std::vector<AddrAndWeight> replicateWeighted(const RouteNextHopSet& nhs) {
 }
 
 } // namespace
+
+TEST(RouteNextHopEntry, DetectMixedSrv6NextHops) {
+  EXPECT_FALSE(hasSrv6AndNonSrv6NextHops({}));
+  EXPECT_FALSE(hasSrv6AndNonSrv6NextHops(
+      {UnresolvedNextHop(nextHopAddr2, ECMP_WEIGHT)}));
+  EXPECT_FALSE(hasSrv6AndNonSrv6NextHops(
+      {UnresolvedNextHop(nextHopAddr2, ECMP_WEIGHT),
+       UnresolvedNextHop(nextHopAddr3, ECMP_WEIGHT)}));
+  EXPECT_FALSE(hasSrv6AndNonSrv6NextHops({makeSrv6NextHop(nextHopAddr2)}));
+  EXPECT_FALSE(hasSrv6AndNonSrv6NextHops(
+      {makeSrv6NextHop(nextHopAddr2), makeSrv6NextHop(nextHopAddr3)}));
+  EXPECT_TRUE(hasSrv6AndNonSrv6NextHops(
+      {makeSrv6NextHop(nextHopAddr2),
+       UnresolvedNextHop(nextHopAddr3, ECMP_WEIGHT)}));
+}
 
 TEST(RouteNextHopEntry, ReplicateWeightedNexthopsExpandsWeight) {
   const std::vector<AddrAndWeight> expected{

@@ -162,6 +162,9 @@ class PortManagerTest : public ManagerTestBase {
 #if defined(SAI_CBFC_SUPPORTED)
         std::nullopt, // TC to VC map
         std::nullopt, // Queue to VC map
+        std::nullopt, // CBFC sender credit size
+        std::nullopt, // CBFC sender packet overhead
+        std::nullopt, // CBFC sender credit limit
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
         std::nullopt, // Inter Frame Gap
@@ -206,6 +209,8 @@ class PortManagerTest : public ManagerTestBase {
         std::nullopt, // Ingress ACL
         std::nullopt, // IsolationGroup
         std::nullopt, // Metadata
+        std::nullopt, // CsigTagAction
+        std::nullopt, // CsigLinkLocator
     };
     return portApi.create<SaiPortTraits>(a, 0);
   }
@@ -235,6 +240,27 @@ TEST_F(PortManagerTest, addPort) {
   auto handle = saiManagerTable->portManager().getPortHandle(swPort->getID());
   checkPort(PortID(0), handle, true);
 }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+TEST_F(PortManagerTest, getExtOperStatusLatch) {
+  auto swPort = makePort(p0);
+  saiManagerTable->portManager().addPort(swPort);
+
+  const auto* handle =
+      saiManagerTable->portManager().getPortHandle(swPort->getID());
+  ASSERT_NE(handle, nullptr);
+  auto& fakePort =
+      FakeSai::getInstance()->portManager.get(handle->port->adapterKey());
+  fakePort.portExtOperStatusLatch.current_status = true;
+  fakePort.portExtOperStatusLatch.changed = true;
+
+  const auto status = saiManagerTable->portManager().getExtOperStatusLatch(
+      handle->port->adapterKey());
+  ASSERT_TRUE(status.has_value());
+  EXPECT_TRUE(status->current_status);
+  EXPECT_TRUE(status->changed);
+}
+#endif
 
 TEST_F(PortManagerTest, programUserMetaData) {
   auto swPort = makePort(p0);

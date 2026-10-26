@@ -2552,6 +2552,16 @@ TEST(SubscribableStorageServeInterval, ClampReasonNamesTheRuleThatFired) {
       "serve tick not configured");
 }
 
+// The serve loop bills each bucket against tick * (bucket + 1); if that drifts
+// from serveBucketIndex, slow buckets get reported as slow serves.
+TEST(SubscribableStorageServeInterval, BucketCadenceRoundTrips) {
+  constexpr uint32_t kTickMs = 20;
+  for (size_t bucket = 0; bucket < kMaxServeBuckets; ++bucket) {
+    const auto intervalMs = kTickMs * static_cast<uint32_t>(bucket + 1);
+    EXPECT_EQ(serveBucketIndex(intervalMs, kTickMs), bucket);
+  }
+}
+
 // An interval is only honored for stats path subscriptions, but requesting one
 // elsewhere must never fail the subscribe -- it is ignored.
 TEST(SubscribableStorageServeInterval, IgnoredRatherThanRejected) {

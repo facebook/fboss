@@ -28,7 +28,7 @@ from unittest.mock import patch
 
 import yaml
 from fboss.lib.asic_config_v3.base_generator import resolve_variant_config
-from fboss.lib.asic_config_v3.gen import get_generator
+from fboss.lib.asic_config_v3.gen import get_generator, get_output_filename
 from fboss.lib.asic_config_v3.paths import AsicConfigPaths, discover_platforms
 from yaml.nodes import MappingNode, ScalarNode, SequenceNode
 
@@ -97,8 +97,8 @@ class TestValidateAsicConfigV3Contents(unittest.TestCase):
     )
     _MAX_DIFF_LINES = 200
 
-    def _output_filename(self, platform: str, variant: str, extension: str) -> str:
-        suffix = f"_{variant}" if variant else ""
+    def _reference_filename(self, platform: str, variant: str, extension: str) -> str:
+        suffix = "" if variant == "default" else f"_{variant}"
         return f"{platform}{suffix}{extension}"
 
     def _read_materialized_reference(self, path: str) -> str:
@@ -139,6 +139,8 @@ class TestValidateAsicConfigV3Contents(unittest.TestCase):
         self,
         paths: AsicConfigPaths,
         materialized_relative_path: Optional[str],
+        platform: str,
+        variant: str,
         output_filename: str,
     ) -> tuple[str, str]:
         if materialized_relative_path:
@@ -149,8 +151,14 @@ class TestValidateAsicConfigV3Contents(unittest.TestCase):
                 materialized_path
             )
 
+        reference_extension = os.path.splitext(output_filename)[1]
+        if reference_extension == ".json":
+            reference_extension = ".materialized_JSON"
+        reference_filename = self._reference_filename(
+            platform, variant, reference_extension
+        )
         synced_relative_path = os.path.join(
-            self._SYNCED_ASIC_CONFIG_DIR, output_filename
+            self._SYNCED_ASIC_CONFIG_DIR, reference_filename
         )
         synced_path = os.path.join(paths.fboss_root, synced_relative_path)
         with open(synced_path, encoding="utf-8") as f:
@@ -276,7 +284,19 @@ class TestValidateAsicConfigV3Contents(unittest.TestCase):
         output_dir: str,
     ) -> tuple[Optional[GeneratedOutput], Optional[VariantVerification]]:
         display_variant = variant or "<default>"
-        output_filename = self._output_filename(platform, variant, ".yml")
+        try:
+            generator = get_generator(platform, variant, platform_config, paths)
+        except Exception as error:
+            return (
+                None,
+                VariantVerification(
+                    ComparisonRecord(
+                        platform, variant, "<not compared>", "GENERATION_ERROR"
+                    ),
+                    error=f"{platform}/{display_variant}: generation failed: {error}",
+                ),
+            )
+        output_filename = get_output_filename(variant, generator.output_extension)
         generated_path = os.path.join(output_dir, output_filename)
         try:
             with open(generated_path, encoding="utf-8") as f:
@@ -306,7 +326,6 @@ class TestValidateAsicConfigV3Contents(unittest.TestCase):
             return GeneratedOutput(output_filename, checked_in), None
 
         try:
-            generator = get_generator(platform, variant, platform_config, paths)
             generated = generator.generate()
         except Exception as error:
             return (
@@ -316,23 +335,6 @@ class TestValidateAsicConfigV3Contents(unittest.TestCase):
                         platform, variant, "<not compared>", "GENERATION_ERROR"
                     ),
                     error=f"{platform}/{display_variant}: generation failed: {error}",
-                ),
-            )
-
-        expected_output_filename = self._output_filename(
-            platform, variant, generator.output_extension
-        )
-        if output_filename != expected_output_filename:
-            return (
-                None,
-                VariantVerification(
-                    ComparisonRecord(
-                        platform, variant, "<not compared>", "GENERATION_ERROR"
-                    ),
-                    error=(
-                        f"{platform}/{display_variant}: expected YAML output but "
-                        f"generator uses {generator.output_extension}"
-                    ),
                 ),
             )
 
@@ -368,7 +370,11 @@ class TestValidateAsicConfigV3Contents(unittest.TestCase):
         )
         try:
             reference_path, reference = self._read_reference(
-                paths, materialized_relative_path, output_filename
+                paths,
+                materialized_relative_path,
+                platform,
+                variant,
+                output_filename,
             )
         except FileNotFoundError as error:
             return VariantVerification(
@@ -540,8 +546,7 @@ def main() -> None:
         action="store_true",
         help=(
             "Compare the checked-in generated files against their references "
-            "instead of regenerating them. Skips the generators entirely, so "
-            "it does not catch generator regressions."
+            "instead of regenerating them. Does not catch generator regressions."
         ),
     )
     args = parser.parse_args()

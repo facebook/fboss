@@ -84,6 +84,8 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
+#include "fboss/agent/state/VxlanTunnel.h"
+#include "fboss/agent/state/VxlanTunnelMap.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <boost/container/flat_map.hpp>
@@ -123,6 +125,22 @@ constexpr auto kHyperPortSpeed = cfg::PortSpeed::THREEPOINTTWOT;
 // Only one buffer pool is supported systemwide. Variable to track the name
 // and validate during a config change.
 std::optional<std::string> sharedBufferPoolName;
+
+// ECMP resource manager re-modes existing backup group routes' overrides
+// whenever the backup switching mode changes.
+bool ecmpOverrideModeChanged(
+    const SwitchState& orig,
+    const cfg::SwitchConfig& cfg) {
+  std::optional<cfg::SwitchingMode> oldMode;
+  if (auto flowletCfg = orig.getFlowletSwitchingConfig()) {
+    oldMode = flowletCfg->getBackupSwitchingMode();
+  }
+  std::optional<cfg::SwitchingMode> newMode;
+  if (auto flowletCfg = cfg.flowletSwitchingConfig()) {
+    newMode = *flowletCfg->backupSwitchingMode();
+  }
+  return oldMode != newMode;
+}
 
 StateDelta updateFibFromConfig(
     const facebook::fboss::SwitchIdScopeResolver* resolver,
@@ -667,10 +685,10 @@ class ThriftConfigApplier {
 
   std::shared_ptr<MirrorOnDropReportMap> updateMirrorOnDropReports();
   std::shared_ptr<MirrorOnDropReport> createMirrorOnDropReport(
-      const cfg::MirrorOnDropReport* config);
+      const cfg::MirrorOnDropReport& config);
   std::shared_ptr<MirrorOnDropReport> updateMirrorOnDropReport(
       const std::shared_ptr<MirrorOnDropReport>& orig,
-      const cfg::MirrorOnDropReport* config);
+      const cfg::MirrorOnDropReport& config);
 
   std::shared_ptr<LabelForwardingEntry> createLabelForwardingEntry(
       MplsLabel label,
@@ -697,6 +715,11 @@ class ThriftConfigApplier {
       const std::shared_ptr<Srv6Tunnel>& orig,
       const cfg::Srv6Tunnel* config);
   std::shared_ptr<Srv6TunnelMap> updateSrv6Tunnels();
+  shared_ptr<VxlanTunnel> createVxlanTunnel(const cfg::VxLanTunnel& config);
+  shared_ptr<VxlanTunnel> updateVxlanTunnel(
+      const std::shared_ptr<VxlanTunnel>& orig,
+      const cfg::VxLanTunnel* config);
+  std::shared_ptr<VxlanTunnelMap> updateVxlanTunnels();
   std::shared_ptr<DsfNodeMap> updateDsfNodes();
   void processUpdatedDsfNodes();
   void processReachabilityGroup(
@@ -1003,7 +1026,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
         *cfg_->staticMplsRoutesWithNhops(),
         *cfg_->staticMplsRoutesToNull(),
         *cfg_->staticMplsRoutesToCPU(),
-        std::move(staticMySids));
+        std::move(staticMySids),
+        ecmpOverrideModeChanged(*orig_, *cfg_));
   } else if (rib_) {
     auto newFibInfo = updateForwardingInformationBaseInfo();
     if (newFibInfo) {
@@ -1029,7 +1053,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
         *cfg_->staticMplsRoutesToCPU(),
         staticMySids,
         &updateFibFromConfig,
-        static_cast<void*>(&new_));
+        static_cast<void*>(&new_),
+        ecmpOverrideModeChanged(*orig_, *cfg_));
   } else {
     // switch state UTs don't necessary care about RIB updates
     XLOG(WARNING)
@@ -1131,6 +1156,16 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
       new_->resetSrv6Tunnels(
           toMultiSwitchMap<MultiSwitchSrv6TunnelMap>(
               newSrv6Tunnels, *cfg_, scopeResolver_));
+      changed = true;
+    }
+  }
+
+  {
+    auto newVxlanTunnels = updateVxlanTunnels();
+    if (newVxlanTunnels) {
+      new_->resetVxlanTunnels(
+          toMultiSwitchMap<MultiSwitchVxlanTunnelMap>(
+              newVxlanTunnels, *cfg_, scopeResolver_));
       changed = true;
     }
   }
@@ -1902,7 +1937,9 @@ void ThriftConfigApplier::processInterfaceForPortForVoqSwitches(
       cfg_->switchSettings()->switchIdToSwitchInfo()->find(switchId);
   CHECK(switchInfoItr != cfg_->switchSettings()->switchIdToSwitchInfo()->end());
   const auto& switchInfo = switchInfoItr->second;
-  CHECK(switchInfo.portIdRange().has_value());
+  CHECK(
+      apache::thrift::is_non_optional_field_set_manually_or_by_serializer(
+          switchInfo.portIdRange()));
   CHECK(!switchInfo.systemPortRanges()->systemPortRanges()->empty());
   CHECK(switchInfo.localSystemPortOffset().has_value());
   CHECK(switchInfo.globalSystemPortOffset().has_value());
@@ -3107,6 +3144,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   // disabled.
   std::optional<std::vector<state::PortVcFields>> virtualChannels;
   std::optional<int64_t> cbfcSenderCreditLimit;
+  std::optional<int16_t> cbfcSenderCreditSize;
+  std::optional<int16_t> cbfcSenderPacketOverhead;
   std::optional<std::string> newCbfcConfigName;
   if (auto cbfcConfigName = portConf->cbfcConfigName()) {
     newCbfcConfigName = *cbfcConfigName;
@@ -3210,6 +3249,51 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       }
       cbfcSenderCreditLimit = *limit;
     }
+    auto checkSupported = [&](const char* field,
+                              int16_t value,
+                              const std::vector<int16_t>& supported) {
+      if (std::find(supported.begin(), supported.end(), value) ==
+          supported.end()) {
+        throw FbossError(
+            "Port ",
+            orig->getID(),
+            " cbfc config ",
+            *cbfcConfigName,
+            ": ",
+            field,
+            " ",
+            value,
+            " is not supported by ",
+            asic->getAsicTypeStr(),
+            ", supported: ",
+            folly::join(", ", supported));
+      }
+    };
+    auto size = it->second.senderCreditSize();
+    if (!size) {
+      throw FbossError(
+          "Port ",
+          orig->getID(),
+          " cbfc config ",
+          *cbfcConfigName,
+          ": senderCreditSize is required");
+    }
+    checkSupported("senderCreditSize", *size, asic->getCbfcSenderCreditSizes());
+    cbfcSenderCreditSize = *size;
+    auto overhead = it->second.senderPacketOverhead();
+    if (!overhead) {
+      throw FbossError(
+          "Port ",
+          orig->getID(),
+          " cbfc config ",
+          *cbfcConfigName,
+          ": senderPacketOverhead is required");
+    }
+    checkSupported(
+        "senderPacketOverhead",
+        *overhead,
+        asic->getCbfcSenderPacketOverheads());
+    cbfcSenderPacketOverhead = *overhead;
     virtualChannels = std::move(configuredVcs);
   }
 
@@ -3459,6 +3543,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       portConf->rxPrecoding().has_value() ==
           orig->getRxPrecoding().has_value() &&
       portConf->linkScanMode().to_optional() == orig->getLinkScanMode() &&
+      portConf->csigTagAction().to_optional() == orig->getCsigTagAction() &&
+      portConf->csigLinkLocator().to_optional() == orig->getCsigLinkLocator() &&
       portConf->ingressAclTableName().to_optional() ==
           orig->getIngressAclTableName() &&
       portConf->portDownHoldoffTimeMs().value_or(0) ==
@@ -3473,6 +3559,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       newFabricLinkMonSwitchId == orig->getPortSwitchId() &&
       newCbfcConfigName == orig->getCbfcConfigName() &&
       cbfcSenderCreditLimit == orig->getCbfcSenderCreditLimit() &&
+      cbfcSenderCreditSize == orig->getCbfcSenderCreditSize() &&
+      cbfcSenderPacketOverhead == orig->getCbfcSenderPacketOverhead() &&
       virtualChannelsUnchanged && interfaceIDsUnchanged) {
     return nullptr;
   }
@@ -3522,6 +3610,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->setVirtualChannels(virtualChannels);
   newPort->setCbfcConfigName(newCbfcConfigName);
   newPort->setCbfcSenderCreditLimit(cbfcSenderCreditLimit);
+  newPort->setCbfcSenderCreditSize(cbfcSenderCreditSize);
+  newPort->setCbfcSenderPacketOverhead(cbfcSenderPacketOverhead);
   newPort->setProfileConfig(*newProfileConfigRef);
   newPort->resetPinConfigs(newPinConfigs);
   newPort->setSerdesCustomCollection(newSerdesCustomCollection);
@@ -3586,6 +3676,13 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     newPort->setRxPrecoding(std::nullopt);
   }
   newPort->setLinkScanMode(portConf->linkScanMode().to_optional());
+  newPort->setCsigTagAction(portConf->csigTagAction().to_optional());
+  if (auto lm = portConf->csigLinkLocator().to_optional();
+      lm.has_value() && (*lm < 0 || *lm > 0x7f)) {
+    throw FbossError(
+        "csigLinkLocator must be 0-127, got ", *lm, " on port ", orig->getID());
+  }
+  newPort->setCsigLinkLocator(portConf->csigLinkLocator().to_optional());
   newPort->setUserMetaData(newUserMetaData);
   newPort->setIngressAclTableName(
       portConf->ingressAclTableName().to_optional());
@@ -4460,8 +4557,24 @@ std::shared_ptr<AclTable> ThriftConfigApplier::updateAclTable(
   auto tableName = *configTable.name();
   auto origTable = orig_->getAclTable(aclStage, tableName);
 
-  auto newTableEntries = updateAclsForTable(
-      aclStage, *configTable.aclEntries(), std::make_optional(tableName));
+  // PbrAclManager computes every entry of the PBR table from the
+  // class-based policies; none of them come from config. Rebuilding the
+  // entries here would read the computed ones as "removed from config" and
+  // wipe them, so only the table's attributes are taken from config and the
+  // programmed entries are carried over untouched.
+  const bool pbrTable =
+      tableName == cfg::switch_config_constants::DEFAULT_PBR_ACL_TABLE();
+  if (pbrTable && !configTable.aclEntries()->empty()) {
+    throw FbossError(
+        "ACL table ",
+        tableName,
+        " entries are computed from class-based policies and cannot be configured");
+  }
+  std::shared_ptr<AclMap> newTableEntries;
+  if (!pbrTable) {
+    newTableEntries = updateAclsForTable(
+        aclStage, *configTable.aclEntries(), std::make_optional(tableName));
+  }
   auto newTablePriority = *configTable.priority();
   std::vector<cfg::AclTableActionType> newActionTypes =
       *configTable.actionTypes();
@@ -4844,6 +4957,33 @@ void ThriftConfigApplier::checkAcl(const cfg::AclEntry* config) const {
           std::to_string(AclEntry::kMaxIcmpCode));
     }
   }
+  if (auto tcpFlagsBitMap = config->tcpFlagsBitMap()) {
+    if (*tcpFlagsBitMap < 0 || *tcpFlagsBitMap > AclEntry::kMaxTcpFlags) {
+      throw FbossError(
+          "tcp flags bitmap must be between 0 and ",
+          std::to_string(AclEntry::kMaxTcpFlags));
+    }
+  }
+  if (auto tcpFlagsMask = config->tcpFlagsMask()) {
+    if (!config->tcpFlagsBitMap()) {
+      throw FbossError(
+          "tcp flags bitmap must be set when tcp flags mask is set");
+    }
+    if (*tcpFlagsMask < 1 || *tcpFlagsMask > AclEntry::kMaxTcpFlagsMask) {
+      throw FbossError(
+          "tcp flags mask must be between 1 and ",
+          std::to_string(AclEntry::kMaxTcpFlagsMask));
+    }
+    // Bits outside the mask are never compared, so a rule that sets them does
+    // not match what it appears to.
+    if (*config->tcpFlagsBitMap() & ~*tcpFlagsMask) {
+      throw FbossError(
+          "tcp flags bitmap ",
+          *config->tcpFlagsBitMap(),
+          " sets bits outside tcp flags mask ",
+          *tcpFlagsMask);
+    }
+  }
   // TODO(daiweix): check proto should be 58 if icmp type/code is specified
   // after CS00012373216 is resolved.
   if (config->icmpType() && config->proto() &&
@@ -4904,6 +5044,9 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   }
   if (auto tcpFlagsBitMap = config->tcpFlagsBitMap()) {
     newAcl->setTcpFlagsBitMap(*tcpFlagsBitMap);
+  }
+  if (auto tcpFlagsMask = config->tcpFlagsMask()) {
+    newAcl->setTcpFlagsMask(*tcpFlagsMask);
   }
   if (auto srcPort = config->srcPort()) {
     newAcl->setSrcPort(*srcPort);
@@ -6517,6 +6660,24 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
       switchSettingsChange = true;
     }
   }
+  {
+    const auto& myMacs = *cfg_->switchSettings()->myMacs();
+    if (!myMacs.empty() &&
+        !hwAsicTable_->isFeatureSupportedOnAllAsic(HwAsic::Feature::MY_MAC)) {
+      throw FbossError(
+          "myMacs (MY_MAC) is not supported on ",
+          folly::join(" ", hwAsicTable_->asicNames()));
+    }
+    for (const auto& myMac : myMacs) {
+      if (!folly::MacAddress::tryFromString(*myMac.macAddress()).hasValue()) {
+        throw FbossError("Invalid myMacs MAC address: ", *myMac.macAddress());
+      }
+    }
+    if (myMacs != origSwitchSettings->getMyMacs()) {
+      newSwitchSettings->setMyMacs(myMacs);
+      switchSettingsChange = true;
+    }
+  }
 
   if (switchSettingsChange) {
     return newSwitchSettings;
@@ -7056,10 +7217,10 @@ ThriftConfigApplier::updateMirrorOnDropReports() {
     auto origReport = origReports->getNodeIf(*config.name());
     std::shared_ptr<MirrorOnDropReport> newReport;
     if (origReport) {
-      newReport = updateMirrorOnDropReport(origReport, &config);
+      newReport = updateMirrorOnDropReport(origReport, config);
       ++numExistingProcessed;
     } else {
-      newReport = createMirrorOnDropReport(&config);
+      newReport = createMirrorOnDropReport(config);
     }
     changed |= updateThriftMapNode(newReports.get(), origReport, newReport);
   }
@@ -7092,12 +7253,18 @@ ThriftConfigApplier::updateMirrorOnDropReports() {
 
 std::shared_ptr<MirrorOnDropReport>
 ThriftConfigApplier::createMirrorOnDropReport(
-    const cfg::MirrorOnDropReport* config) {
+    const cfg::MirrorOnDropReport& config) {
+  if (*config.truncateSize() < 0) {
+    throw FbossError(
+        "MirrorOnDropReport ",
+        *config.name(),
+        " truncateSize must be non-negative");
+  }
   const HwAsic* asic = checkSameAndGetAsic(hwAsicTable_->getL3Asics());
   cfg::AsicType asicType = asic->getAsicType();
 
   folly::IPAddress localSrcIp;
-  auto collectorIp = folly::IPAddress(*config->collectorIp());
+  auto collectorIp = folly::IPAddress(*config.collectorIp());
   if (asic->getSwitchType() == cfg::SwitchType::VOQ) {
     auto switchId = getAnySwitchId(cfg::SwitchType::VOQ);
     if (!switchId.has_value()) {
@@ -7112,14 +7279,20 @@ ThriftConfigApplier::createMirrorOnDropReport(
   } else {
     // Use an optional from the MirrorDestination mirrorPort
     // -> MirrorTunnel tunnel -> string srcIp
-    if (!config->mirrorPort().has_value() ||
-        !config->mirrorPort()->tunnel().has_value() ||
-        !config->mirrorPort()->tunnel()->srcIp().has_value()) {
+    if (!config.mirrorPort().has_value() ||
+        !config.mirrorPort()->tunnel().has_value() ||
+        !config.mirrorPort()->tunnel()->srcIp().has_value()) {
       throw FbossError(
           "mirrorOnDropReports requires a mirrorPort with a tunnel that also "
           "specifies a srcIp");
     }
-    localSrcIp = folly::IPAddress(*config->mirrorPort()->tunnel()->srcIp());
+    if (config.mirrorPort()->tunnel()->srcIp()->empty()) {
+      throw FbossError(
+          "MirrorOnDropReport ",
+          *config.name(),
+          ": mirrorPort.tunnel.srcIp sentinel was not resolved");
+    }
+    localSrcIp = folly::IPAddress(*config.mirrorPort()->tunnel()->srcIp());
   }
 
   // Determine the switchId for looking up the first interface MAC.
@@ -7133,8 +7306,8 @@ ThriftConfigApplier::createMirrorOnDropReport(
   // Determine the mirror recirculation port.
   std::optional<PortID> mirrorPortId;
   if (asic->getSwitchType() == cfg::SwitchType::VOQ) {
-    if (config->mirrorPort().has_value()) {
-      auto egressPort = config->mirrorPort()->egressPort();
+    if (config.mirrorPort().has_value()) {
+      auto egressPort = config.mirrorPort()->egressPort();
       if (!egressPort.has_value()) {
         throw FbossError(
             "Only egressPort can be used as a Mirror-on-Drop destination");
@@ -7158,8 +7331,8 @@ ThriftConfigApplier::createMirrorOnDropReport(
           throw FbossError(
               "Must set either name or logicalID for MirrorEgressPort");
       }
-    } else if (config->mirrorPortId().has_value()) {
-      mirrorPortId = PortID(*config->mirrorPortId());
+    } else if (config.mirrorPortId().has_value()) {
+      mirrorPortId = PortID(*config.mirrorPortId());
     } else {
       if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO3) {
         // Find the lowest numbered local-scope recycle port.
@@ -7203,28 +7376,39 @@ ThriftConfigApplier::createMirrorOnDropReport(
   }
 
   return std::make_shared<MirrorOnDropReport>(
-      *config->name(),
+      *config.name(),
       *mirrorPortId,
       localSrcIp,
-      *config->localSrcPort(),
+      *config.localSrcPort(),
       collectorIp,
-      *config->collectorPort(),
-      *config->mtu(),
-      *config->truncateSize(),
-      static_cast<uint8_t>(*config->dscp()),
+      *config.collectorPort(),
+      *config.mtu(),
+      *config.truncateSize(),
+      static_cast<uint8_t>(*config.dscp()),
       getLocalMacAddress().toString(),
       utility::getMacForFirstInterfaceWithPorts(new_, *modSwitchId).toString(),
-      *config->modEventToConfigMap(),
-      *config->agingGroupAgingIntervalUsecs(),
-      config->samplingRate().to_optional(),
-      config->dropPacketRateThreshold().to_optional());
+      *config.modEventToConfigMap(),
+      *config.agingGroupAgingIntervalUsecs(),
+      config.samplingRate().to_optional(),
+      config.dropPacketRateThreshold().to_optional(),
+      config.aggregateDropPacketRateThreshold().to_optional());
 }
 
 std::shared_ptr<MirrorOnDropReport>
 ThriftConfigApplier::updateMirrorOnDropReport(
     const std::shared_ptr<MirrorOnDropReport>& orig,
-    const cfg::MirrorOnDropReport* config) {
+    const cfg::MirrorOnDropReport& config) {
   auto newReport = createMirrorOnDropReport(config);
+  if (newReport->getCollectorIp() == orig->getCollectorIp() &&
+      newReport->getMirrorPortId() == orig->getMirrorPortId()) {
+    newReport->setIsResolved(orig->isResolved());
+    if (auto mac = orig->getResolvedCollectorMac()) {
+      newReport->setResolvedCollectorMac(*mac);
+    }
+    if (auto port = orig->getResolvedEgressPort()) {
+      newReport->setResolvedEgressPort(*port);
+    }
+  }
   if (*newReport == *orig) {
     return nullptr;
   }
@@ -7510,6 +7694,98 @@ shared_ptr<Srv6Tunnel> ThriftConfigApplier::createSrv6Tunnel(
         "Unsupported tunnel type for: ",
         tunnel->getID(),
         ", only SRV6_ENCAP and SRV6_DECAP are supported");
+  }
+  return tunnel;
+}
+
+std::shared_ptr<VxlanTunnelMap> ThriftConfigApplier::updateVxlanTunnels() {
+  const auto& origTunnels = orig_->getVxlanTunnels();
+  auto newTunnels = std::make_shared<VxlanTunnelMap>();
+
+  bool changed = false;
+  size_t numExistingProcessed = 0;
+  if (!cfg_->vxlanTunnels().has_value()) {
+    return nullptr;
+  }
+  if (cfg_->vxlanTunnels()->size() > 1) {
+    throw FbossError(
+        "Only a single VXLAN tunnel is supported, got ",
+        cfg_->vxlanTunnels()->size());
+  }
+  for (const auto& tunnelCfg : cfg_->vxlanTunnels().value()) {
+    auto origTunnel = origTunnels->getNodeIf(*tunnelCfg.vxlanTunnelId());
+    std::shared_ptr<VxlanTunnel> newTunnel;
+    if (origTunnel) {
+      newTunnel = updateVxlanTunnel(origTunnel, &tunnelCfg);
+      ++numExistingProcessed;
+    } else {
+      newTunnel = createVxlanTunnel(tunnelCfg);
+    }
+
+    changed |= updateThriftMapNode(newTunnels.get(), origTunnel, newTunnel);
+  }
+
+  if (numExistingProcessed != origTunnels->numNodes()) {
+    CHECK_LT(numExistingProcessed, origTunnels->numNodes());
+    changed = true;
+  }
+
+  if (!changed) {
+    return nullptr;
+  }
+  return newTunnels;
+}
+
+shared_ptr<VxlanTunnel> ThriftConfigApplier::updateVxlanTunnel(
+    const std::shared_ptr<VxlanTunnel>& orig,
+    const cfg::VxLanTunnel* config) {
+  auto newTunnel = createVxlanTunnel(*config);
+  if (*newTunnel == *orig) {
+    return nullptr;
+  }
+  return newTunnel;
+}
+
+shared_ptr<VxlanTunnel> ThriftConfigApplier::createVxlanTunnel(
+    const cfg::VxLanTunnel& config) {
+  auto tunnel = make_shared<VxlanTunnel>(*config.vxlanTunnelId());
+  tunnel->setUnderlayIntfId(InterfaceID(*config.underlayIntfID()));
+  tunnel->setType(*config.tunnelType());
+  if (config.tunnelTermType().has_value()) {
+    tunnel->setTunnelTermType(*config.tunnelTermType());
+  }
+  if (config.ttlMode().has_value()) {
+    tunnel->setTTLMode(static_cast<cfg::TunnelMode>(*config.ttlMode()));
+  }
+  if (config.dscpMode().has_value()) {
+    tunnel->setDscpMode(static_cast<cfg::TunnelMode>(*config.dscpMode()));
+  }
+  if (config.ecnMode().has_value()) {
+    tunnel->setEcnMode(static_cast<cfg::TunnelMode>(*config.ecnMode()));
+  }
+  if (config.srcIp().has_value()) {
+    tunnel->setSrcIP(folly::IPAddress(*config.srcIp()));
+  }
+  if (config.dstIp().has_value()) {
+    tunnel->setDstIP(folly::IPAddress(*config.dstIp()));
+  }
+  if (config.vrf2Vni().has_value()) {
+    tunnel->setVrf2Vni(*config.vrf2Vni());
+  }
+  if (config.vniToVrf().has_value()) {
+    tunnel->setVniToVrf(*config.vniToVrf());
+  }
+  if (tunnel->getType() != TunnelType::VXLAN) {
+    throw FbossError(
+        "Unsupported tunnel type for: ",
+        tunnel->getID(),
+        ", only VXLAN is supported");
+  }
+  if (!tunnel->getSrcIP()) {
+    throw FbossError("Src IP not set for: ", tunnel->getID(), ", VXLAN tunnel");
+  }
+  if (!tunnel->getDstIP()) {
+    throw FbossError("Dst IP not set for: ", tunnel->getID(), ", VXLAN tunnel");
   }
   return tunnel;
 }

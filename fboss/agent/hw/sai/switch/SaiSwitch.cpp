@@ -46,6 +46,7 @@
 #include "fboss/agent/hw/sai/switch/SaiLagManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiMirrorManager.h"
+#include "fboss/agent/hw/sai/switch/SaiMyMacManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
@@ -63,6 +64,7 @@
 #include "fboss/agent/hw/sai/switch/SaiUdfManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVendorSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
+#include "fboss/agent/hw/sai/switch/SaiVxlanTunnelManager.h"
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
@@ -1184,6 +1186,12 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       false);
   processDefaultDataPlanePolicyDelta(delta, lockPolicy);
 
+  processRemovedDelta(
+      delta.getMirrorOnDropReportsDelta(),
+      managerTable_->tamManager(),
+      lockPolicy,
+      &SaiTamManager::removeMirrorOnDropReport);
+
   for (const auto& fibInfoDelta : delta.getFibsInfoDelta()) {
     for (const auto& routeDelta : fibInfoDelta.getFibsMapDelta()) {
       auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
@@ -1536,6 +1544,14 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       &SaiSrv6TunnelManager::addSrv6Tunnel,
       &SaiSrv6TunnelManager::removeSrv6Tunnel);
 
+  processDelta(
+      delta.getVxlanTunnelsDelta(),
+      managerTable_->vxlanTunnelManager(),
+      lockPolicy,
+      &SaiVxlanTunnelManager::changeVxlanTunnel,
+      &SaiVxlanTunnelManager::addVxlanTunnel,
+      &SaiVxlanTunnelManager::removeVxlanTunnel);
+
   for (const auto& fibInfoDelta : delta.getFibsInfoDelta()) {
     for (const auto& routeDelta : fibInfoDelta.getFibsMapDelta()) {
       auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
@@ -1656,13 +1672,16 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       &SaiMirrorManager::addNode,
       &SaiMirrorManager::removeMirror);
 
-  processDelta(
+  processChangedDelta(
       delta.getMirrorOnDropReportsDelta(),
       managerTable_->tamManager(),
       lockPolicy,
-      &SaiTamManager::changeMirrorOnDropReport,
-      &SaiTamManager::addMirrorOnDropReport,
-      &SaiTamManager::removeMirrorOnDropReport);
+      &SaiTamManager::changeMirrorOnDropReport);
+  processAddedDelta(
+      delta.getMirrorOnDropReportsDelta(),
+      managerTable_->tamManager(),
+      lockPolicy,
+      &SaiTamManager::addMirrorOnDropReport);
 
   processDelta(
       delta.getIpTunnelsDelta(),
@@ -2005,6 +2024,16 @@ void SaiSwitch::processSwitchSettingsChangeSansDrainedEntryLocked(
       managerTable_->switchManager().setPtpTcEnabled(newVal);
       // update already added ports
       managerTable_->portManager().setPtpTcEnable(newVal);
+    }
+  }
+
+  {
+    const auto oldVal = oldSwitchSettings->getMyMacs();
+    const auto newVal = newSwitchSettings->getMyMacs();
+    if (oldVal != newVal) {
+      XLOG(DBG2) << "Configuring myMacs, num entries old: " << oldVal.size()
+                 << " new: " << newVal.size();
+      managerTable_->myMacManager().programMyMacs(newVal);
     }
   }
 
@@ -2999,7 +3028,7 @@ void SaiSwitch::gracefulExitLocked(const std::lock_guard<std::mutex>& lock) {
   SaiApiTable::getInstance()->switchApi().setAttribute(
       saiSwitchId_, restartWarm);
 
-#if CREDO_SDK_VERSION < CREDO_SDK_VERSION_0_9_0
+#if CREDO_SDK_VERSION < CREDO_SDK_VERSION_0_9_0 && !defined(SAI_BRCM_PAI_IMPL)
   SaiSwitchTraits::Attributes::SwitchPreShutdown preShutdown{true};
   SaiApiTable::getInstance()->switchApi().setAttribute(
       saiSwitchId_, preShutdown);
@@ -5410,13 +5439,25 @@ std::string SaiSwitch::listObjects(
 #endif
         break;
       case HwObjectType::SRV6:
+        objTypes.push_back(SAI_OBJECT_TYPE_TUNNEL);
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
         objTypes.push_back(SAI_OBJECT_TYPE_SRV6_SIDLIST);
         objTypes.push_back(SAI_OBJECT_TYPE_MY_SID_ENTRY);
 #endif
         break;
+      case HwObjectType::VXLAN:
+        objTypes.push_back(SAI_OBJECT_TYPE_TUNNEL);
+        objTypes.push_back(SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY);
+        objTypes.push_back(SAI_OBJECT_TYPE_TUNNEL_MAP);
+        objTypes.push_back(SAI_OBJECT_TYPE_TUNNEL_MAP_ENTRY);
+        break;
       case HwObjectType::SAMPLE_PACKET:
         objTypes.push_back(SAI_OBJECT_TYPE_SAMPLEPACKET);
+        break;
+      case HwObjectType::MY_MAC:
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+        objTypes.push_back(SAI_OBJECT_TYPE_MY_MAC);
+#endif
         break;
     }
   }
@@ -6031,7 +6072,10 @@ bool SaiSwitch::getArsExhaustionStatus() {
 bool SaiSwitch::processVlanUntaggedPackets() const {
   return FLAGS_rx_vlan_untagged_packets ||
       (getSwitchType() == cfg::SwitchType::VOQ ||
-       getSwitchType() == cfg::SwitchType::FABRIC);
+       getSwitchType() == cfg::SwitchType::FABRIC) ||
+      // P200 routes on port router interfaces and has no vlans, so the frames
+      // it traps arrive untagged.
+      asicType_ == cfg::AsicType::ASIC_TYPE_P200;
 }
 
 std::vector<FirmwareInfo> SaiSwitch::getAllFirmwareInfo() const {

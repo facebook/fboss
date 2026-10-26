@@ -62,6 +62,7 @@ class MockFbossCtrlAgent : public apache::thrift::ServiceHandler<FbossCtrl> {
   MOCK_METHOD(void, reloadConfig, ());
   MOCK_METHOD(void, getAclTableGroup, (AclTableThrift&));
   MOCK_METHOD(void, getNdpTable, (std::vector<NdpEntryThrift>&));
+  MOCK_METHOD(void, getMyMacs, (std::vector<cfg::MacAndVlan>&));
 
   MOCK_METHOD(
       void,
@@ -180,6 +181,8 @@ class MockFbossHwCtrlAgent
 class MockFbossQsfpService
     : public apache::thrift::ServiceHandler<QsfpService> {
  public:
+  using MacsecPortPhyMap = mka::MacsecPortPhyMap&;
+  using PortNames = std::unique_ptr<std::vector<std::string>>;
   using transceiverEntries =
       std::map<int32_t, facebook::fboss::TransceiverInfo>&;
   MOCK_METHOD2(
@@ -194,6 +197,8 @@ class MockFbossQsfpService
   MOCK_METHOD2(
       getAllPortSupportedProfiles,
       void(std::map<std::string, std::vector<cfg::PortProfileID>>&, bool));
+  MOCK_METHOD(void, getMacsecCapablePorts, (std::vector<int32_t>&));
+  MOCK_METHOD(void, macsecGetPhyPortInfo, (MacsecPortPhyMap, PortNames));
   MOCK_METHOD2(
       getSymbolErrorHistogram,
       void(CdbDatapathSymErrHistogram&, std::unique_ptr<std::string>));

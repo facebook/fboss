@@ -120,6 +120,9 @@ sai_status_t sai_get_object_count(
     case SAI_OBJECT_TYPE_SAMPLEPACKET:
       *count = fs->samplePacketManager.map().size();
       break;
+    case SAI_OBJECT_TYPE_MY_MAC:
+      *count = static_cast<uint32_t>(fs->myMacManager.map().size());
+      break;
     case SAI_OBJECT_TYPE_SCHEDULER:
       *count = fs->scheduleManager.map().size();
       break;
@@ -195,6 +198,12 @@ sai_status_t sai_get_object_count(
       break;
     case SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY:
       *count = fs->tunnelTermManager.map().size();
+      break;
+    case SAI_OBJECT_TYPE_TUNNEL_MAP:
+      *count = fs->tunnelMapManager.map().size();
+      break;
+    case SAI_OBJECT_TYPE_TUNNEL_MAP_ENTRY:
+      *count = fs->tunnelMapEntryManager.map().size();
       break;
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
     case SAI_OBJECT_TYPE_SRV6_SIDLIST:
@@ -464,6 +473,12 @@ sai_status_t sai_get_object_key(
       }
       break;
     }
+    case SAI_OBJECT_TYPE_MY_MAC: {
+      for (const auto& myMac : fs->myMacManager.map()) {
+        object_list[i++].key.object_id = myMac.second.id;
+      }
+      break;
+    }
     case SAI_OBJECT_TYPE_SCHEDULER: {
       for (const auto& sc : fs->scheduleManager.map()) {
         object_list[i++].key.object_id = sc.second.id;
@@ -609,6 +624,18 @@ sai_status_t sai_get_object_key(
     }
     case SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY: {
       for (const auto& ob : fs->tunnelTermManager.map()) {
+        object_list[i++].key.object_id = ob.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_TUNNEL_MAP: {
+      for (const auto& ob : fs->tunnelMapManager.map()) {
+        object_list[i++].key.object_id = ob.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_TUNNEL_MAP_ENTRY: {
+      for (const auto& ob : fs->tunnelMapEntryManager.map()) {
         object_list[i++].key.object_id = ob.second.id;
       }
       break;

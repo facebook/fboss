@@ -163,6 +163,12 @@ class HwAsic {
     //  - Rename to carry ACL_ prefix.
     SAI_ACL_ENTRY_SRC_PORT_QUALIFIER,
 
+    // Set to true if the egress port (AclEntry.dstPort) can be used as an
+    // ingress ACL matcher. For SAI, this maps to whether
+    // SAI_ACL_TABLE_ATTR_FIELD_OUT_PORT is set during ingress ACL table
+    // creation.
+    ACL_ENTRY_OUT_PORT_QUALIFIER,
+
     // Set to true if the SAI implementation supports ACL action to set hash
     // algorithm. For SAI, this maps to whether
     // SAI_ACL_ACTION_TYPE_SET_ECMP_HASH_ALGORITHM
@@ -620,6 +626,23 @@ class HwAsic {
     // Port isolation groups: traffic ingressing a port is not forwarded to the
     // members of the isolation group bound to it
     ISOLATION_GROUP,
+    // Extra router MACs via the SAI MY_MAC object: packets destined to a
+    // programmed MAC + VLAN are routed like packets to the switch's own MAC.
+    MY_MAC,
+    // XPHY only: the xphy SerDes has a TX FIR post3 tap, so program it and read
+    // it back. Only consulted by phy/ code; NPU ASICs report false (n/a).
+    // Agera3 (Condor SerDes) has no post3: the SDK drops it on set and returns
+    // -1 on get.
+    XPHY_SERDES_TX_FIR_POST3,
+    // Per-port HW protection switchover counters
+    // (SAI_PORT_STAT_IF_IN_HW_PROTECTION_SWITCHOVER_EVENTS and
+    // SAI_PORT_STAT_IF_IN_HW_PROTECTION_SWITCHOVER_DROP_PKTS). Broadcom
+    // Tomahawk 5/6 with XGS SDK 13.3+.
+    HW_PROTECTION_SWITCHOVER_COUNTERS,
+    // PBR ACL table byte counters, for ASICs without ACL_BYTE_COUNTER.
+    PBR_ACL_BYTE_COUNTER,
+    // CSIG (Congestion Signaling) per-port egress tag action and link locator
+    CSIG,
   };
 
   enum class AsicMode {
@@ -808,6 +831,16 @@ class HwAsic {
   virtual std::optional<uint32_t> getMaxArsWidth() const {
     return std::nullopt;
   }
+  // CBFC sender credit sizes, in bytes, that the SAI implementation accepts.
+  // Empty on ASICs without CBFC.
+  virtual std::vector<int16_t> getCbfcSenderCreditSizes() const {
+    return {};
+  }
+  // CBFC sender per-packet overheads, in bytes, that the SAI implementation
+  // accepts. Empty on ASICs without CBFC.
+  virtual std::vector<int16_t> getCbfcSenderPacketOverheads() const {
+    return {};
+  }
   // TODO(zecheng): Define more specific limits for v4/v6 routes with different
   // mask lengths
   virtual std::optional<uint32_t> getMaxRoutes() const {
@@ -845,6 +878,11 @@ class HwAsic {
 
   // SRv6 next hops used by single-nhop routes (NextHopSet size == 1)
   virtual std::optional<uint32_t> getMaxSrv6SingleNextHops() const {
+    return std::nullopt;
+  }
+
+  // Distinct member weights in one SRv6 UCMP next hop group
+  virtual std::optional<uint32_t> getMaxSrv6UcmpDistinctWeights() const {
     return std::nullopt;
   }
 
@@ -1028,6 +1066,10 @@ class HwAsic {
   virtual uint64_t getCpuPortEgressPoolSize() const;
 
   virtual bool portMtuSupported(cfg::PortType portType) const;
+
+  virtual cfg::L2LearningMode getDefaultL2LearningMode() const {
+    return cfg::L2LearningMode::HARDWARE;
+  }
 
  protected:
   static cfg::Range64 makeRange(int64_t min, int64_t max);

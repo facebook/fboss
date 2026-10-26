@@ -112,6 +112,12 @@ struct SaiMacAddressDefault {
   }
 };
 
+struct SaiMacAddressExactMatchMaskDefault {
+  folly::MacAddress operator()() const {
+    return folly::MacAddress::BROADCAST;
+  }
+};
+
 template <typename SaiIntRangeT>
 struct SaiIntRangeDefault {
   SaiIntRangeT operator()() const {

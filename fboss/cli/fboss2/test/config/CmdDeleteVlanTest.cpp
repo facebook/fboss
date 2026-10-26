@@ -82,9 +82,17 @@ class CmdDeleteVlanTestFixture : public CmdConfigTestBase {
 // VlanManager::deleteVlan — refuse matrix + not-found
 // ============================================================================
 
-TEST_F(CmdDeleteVlanTestFixture, refuseNotFound) {
+TEST_F(CmdDeleteVlanTestFixture, notFoundIsNoop) {
   setupTestableConfigSession(cmdPrefix_, "999");
-  EXPECT_THROW(VlanManager::deleteVlan(swConfig(), VlanID(999)), FbossError);
+  const auto sessionBefore = sessionConfigText();
+  CmdDeleteVlan cmd;
+  EXPECT_THAT(
+      cmd.queryClient(HostInfo("testhost"), VlanId({"999"})),
+      HasSubstr("not found, nothing to delete"));
+  // Nothing was touched.
+  EXPECT_EQ(swConfig().vlans()->size(), 5);
+  EXPECT_EQ(sessionConfigText(), sessionBefore)
+      << "a no-op delete must not save the config";
 }
 
 TEST_F(CmdDeleteVlanTestFixture, refuseDefaultVlan) {

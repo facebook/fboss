@@ -104,6 +104,9 @@ std::string RestClient::requestWithOutput(
   /* for curl errors */
   char error[CURL_ERROR_SIZE];
 
+  /* Reset up front so a throw cannot leave the previous request's status. */
+  lastResponseCode_ = std::nullopt;
+
   curl = curl_easy_init();
   if (curl) {
     /* Set the curl options */
@@ -143,6 +146,14 @@ std::string RestClient::requestWithOutput(
     }
 
     resp = curl_easy_perform(curl);
+
+    /* Read before cleanup: the handle owns this. Stays 0 when the request
+     * never reached a response, which is how a dead peer is told apart from
+     * one that answered with an error. */
+    long responseCode = 0;
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &responseCode);
+    lastResponseCode_ =
+        responseCode ? std::optional<long>(responseCode) : std::nullopt;
 
     if (headers) {
       curl_slist_free_all(headers);

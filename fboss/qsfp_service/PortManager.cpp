@@ -294,7 +294,7 @@ std::string PortManager::listHwObjects(
 
 bool PortManager::getSdkState(const std::string& filename) const {
   if (!phyManager_) {
-    return false;
+    throw FbossError("getSdkState: no external PHY on this platform");
   }
   return phyManager_->getSdkState(filename);
 }
@@ -310,7 +310,8 @@ std::string PortManager::getPortInfo(const std::string& portNameStr) {
 void PortManager::setPortLoopbackState(
     const std::string& portNameStr,
     phy::PortComponent component,
-    bool setLoopback) {
+    bool setLoopback,
+    phy::LoopbackMode mode) {
   auto portId = getPortIDByPortNameOrThrow(portNameStr);
   if (!isXphyComponent(component) && !isTransceiverComponent(component)) {
     SW_PORT_LOG(WARN, "", portNameStr, portId)
@@ -323,6 +324,13 @@ void PortManager::setPortLoopbackState(
       << "setPortLoopbackState() called.";
 
   if (isXphyComponent(component)) {
+    if (mode != phy::LoopbackMode::INPUT) {
+      throw FbossError(
+          fmt::format(
+              "Loopback mode {} is not supported on {}",
+              apache::thrift::util::enumNameSafe(mode),
+              apache::thrift::util::enumNameSafe(component)));
+    }
     if (!phyManager_) {
       throw FbossError(
           "Unable to set xphy loopback state when PhyManager is not set");
@@ -330,7 +338,7 @@ void PortManager::setPortLoopbackState(
     phyManager_->setPortLoopbackState(PortID(portId), component, setLoopback);
   } else {
     transceiverManager_->setPortLoopbackStateTransceiver(
-        portId, portNameStr, component, setLoopback);
+        portId, portNameStr, component, setLoopback, mode);
   }
 }
 
@@ -869,7 +877,8 @@ void PortManager::setOverrideAgentPortStatusForTesting(
 void PortManager::setOverrideAllAgentPortStatusForTesting(
     bool up,
     bool enabled,
-    bool clearOnly) {
+    bool clearOnly,
+    bool asicPrbsEnabled) {
   overrideAgentPortStatusForTesting_.clear();
   if (clearOnly) {
     return;
@@ -879,6 +888,7 @@ void PortManager::setOverrideAllAgentPortStatusForTesting(
     NpuPortStatus status;
     status.portEnabled = enabled;
     status.operState = up;
+    status.asicPrbsEnabled = asicPrbsEnabled;
     status.profileID = apache::thrift::util::enumNameSafe(profileID);
     overrideAgentPortStatusForTesting_.emplace(portId, status);
   };
@@ -1480,6 +1490,14 @@ void PortManager::updateTransceiverPortStatus() noexcept {
     return;
   }
 
+  std::unordered_set<PortID> asicPrbsEnabledPorts;
+  for (const auto& [portId, status] : newPortToPortStatus) {
+    if (status.asicPrbsEnabled) {
+      asicPrbsEnabledPorts.insert(PortID(portId));
+    }
+  }
+  *asicPrbsEnabledPorts_.wlock() = std::move(asicPrbsEnabledPorts);
+
   // Build a snapshot of previous port active states per transceiver
   // before processing any updates
   std::map<TransceiverID, bool> previousTcvrHadActivePort =
@@ -1594,6 +1612,7 @@ void PortManager::updatePortActiveStatusInTransceiverManager() {
       *multiTcvrControllingToNonControllingTcvr_.rlock();
 
   auto multiTcvrQsfpToAgentPort = *multiTcvrQsfpPortToAgentPort_.rlock();
+  const auto asicPrbsEnabledPorts = *asicPrbsEnabledPorts_.rlock();
   for (auto& [tcvrId, lockedInitializedPorts] : tcvrToInitializedPorts_) {
     std::unordered_set<PortID> inactivePorts;
     // Create a copy to avoid holding two locks at once.
@@ -1636,6 +1655,8 @@ void PortManager::updatePortActiveStatusInTransceiverManager() {
         // remediate or upgrade transceiver.
         portInfo.status->operState =
             inactivePorts.find(portId) == inactivePorts.end();
+        portInfo.status->asicPrbsEnabled =
+            asicPrbsEnabledPorts.find(portId) != asicPrbsEnabledPorts.end();
       }
     }
   }

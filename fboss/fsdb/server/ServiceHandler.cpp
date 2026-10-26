@@ -48,6 +48,12 @@ DEFINE_int32(
     0,
     "Granularity of the stats serve loop; 0 serves everything at the default interval");
 
+// Off by default: auto-exported per switch, so enable only while debugging.
+DEFINE_bool(
+    statsExportPerBucketServeMetrics,
+    false,
+    "Export serve latency/count per serve-interval bucket on the stats storage");
+
 // queue size for serving stats subscriptions is chosen
 // to accommodate pending updates generated over 1 min interval
 // (6 updates + 2 heartbeats).
@@ -349,6 +355,8 @@ ServiceHandler::ServiceHandler(
               FLAGS_statsSubscriptionServeQueueSize,
               FLAGS_statsSubscriptionServeQueueSize)
               .setServeTickInterval(resolveStatsServeTick())
+              .setExportPerBucketServeMetrics(
+                  FLAGS_statsExportPerBucketServeMetrics)
               .setDeltaSubscriptionQueueFullMinSize(
                   FLAGS_deltaSubscriptionQueueFullMinSize)
               .setDeltaSubscriptionQueueMemoryLimit(
@@ -413,6 +421,10 @@ ServiceHandler::~ServiceHandler() {
   }
   XLOG(INFO) << "Destroying ServiceHandler";
   num_instances_.incrementValue(-1);
+}
+
+FsdbOperStatsRoot ServiceHandler::operStatsRootExpensive() const {
+  return operStatsStorage_.currentStateExpensive();
 }
 
 OperPublisherInfo ServiceHandler::makePublisherInfo(

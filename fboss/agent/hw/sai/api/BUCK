@@ -12,10 +12,10 @@ cpp_library(
         "AddressUtil.h",
     ],
     exported_deps = [
-        "//folly:network_address",
-        "//folly:string",
-        "//folly/lang:assume",
-        "//folly/logging:logging",
+        "fbsource//xplat/folly:network_address",
+        "fbsource//xplat/folly:string",
+        "fbsource//xplat/folly/lang:assume",
+        "fbsource//xplat/folly/logging:logging",
     ],
     exported_external_deps = [
         ("sai", None),
@@ -81,6 +81,7 @@ cpp_library(
         "MacsecApi.h",
         "MirrorApi.h",
         "MplsApi.h",
+        "MyMacApi.h",
         "NeighborApi.h",
         "NextHopApi.h",
         "NextHopGroupApi.h",
@@ -108,6 +109,7 @@ cpp_library(
         "TamEventAgingGroupApi.h",
         "Traits.h",
         "TunnelApi.h",
+        "TunnelMapApi.h",
         "Types.h",
         "UdfApi.h",
         "VendorSwitchApi.h",
@@ -119,7 +121,7 @@ cpp_library(
     ],
     labels = ["noautodeps"],
     exported_deps = [
+        "fbsource//xplat/folly:network_address",
         "//fboss/lib:tuple_utils",
-        "//folly:network_address",
     ],
 )

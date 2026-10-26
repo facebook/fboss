@@ -30,7 +30,8 @@
         "zPortName": "fab1/18/4",
         "profileID": 37
       }
-    ]
+    ],
+    "qsfpServiceMemLimitBytes": 2500000000
   },
   "transceiverFirmwareVersions": {
     "versionsMap": {

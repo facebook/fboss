@@ -20,6 +20,8 @@
 
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
+#include "fboss/cli/fboss2/commands/config/gen/ConfigGenerationUtils.h"
+#include "fboss/configs/platforms/generic/forwarding_stack/utils/LinkTopologyUtils.h"
 #include "fboss/lib/platforms/gen-cpp2/platform_descriptor_types.h"
 
 namespace facebook::fboss::configgen {
@@ -30,6 +32,7 @@ struct ResolvedAgentConfigInputs {
   PlatformDescriptor platformDescriptor;
   std::map<int32_t, cfg::PortAssignment> portAssignments;
   std::unique_ptr<PlatformMapping> platformMapping;
+  std::optional<LinkTopology> linkTopology;
   // Asic config inputs
   cfg::ChipConfig chipConfig;
 };
@@ -58,13 +61,13 @@ cfg::PlatformConfig assemblePlatformConfig(
     cfg::ChipConfig chipConfig,
     std::map<int32_t, cfg::PortAssignment> portAssignments);
 
-// Resolves the generated ASIC configuration selected by platform and profile.
-// An empty profile or "default" selects the default variant. The file extension
-// is derived from config_type in asic_config.json.
+// Resolves the generated ASIC configuration selected by platform and variant.
+// An empty variant selects "default". The file extension is derived from
+// config_type in asic_config.json.
 std::filesystem::path findGeneratedAsicConfig(
     const std::filesystem::path& fbossRoot,
     std::string_view platform,
-    std::string_view profile);
+    std::string_view asicConfigVariant);
 
 // Resolves the generated port-assignment artifact selected with the platform
 // descriptor. Colocated and legacy centralized layouts are both supported.
@@ -89,7 +92,9 @@ ResolvedAgentConfigInputs resolveAgentConfigInputs(
     std::string_view platform,
     std::string_view profile,
     const std::optional<std::filesystem::path>& asicConfigFile = std::nullopt,
-    const std::optional<cfg::AsicConfigType>& asicConfigType = std::nullopt);
+    const std::optional<cfg::AsicConfigType>& asicConfigType = std::nullopt,
+    std::optional<std::string_view> asicConfigVariant = std::nullopt,
+    std::optional<std::string_view> linkTopologyVariant = std::nullopt);
 
 // Generates SwitchSettings for a single NPU platform. Multi-ASIC platforms are
 // rejected until their switch IDs and indexes can be supplied explicitly.
@@ -98,6 +103,13 @@ cfg::SwitchSettings generateSwitchSettings(
 
 // Constructs the switch section of an AgentConfig from resolved inputs.
 cfg::SwitchConfig generateSwitchConfig(const ResolvedAgentConfigInputs& inputs);
+
+// Applies requested profiles and modeled LLDP peers, removes ports subsumed by
+// those profiles, and disables ports outside the topology.
+void applyLinkTopology(
+    cfg::SwitchConfig& switchConfig,
+    const PlatformMapping& platformMapping,
+    const LinkTopology& topology);
 
 // Constructs the platform section of an AgentConfig from resolved inputs.
 cfg::PlatformConfig generatePlatformConfig(
@@ -111,6 +123,12 @@ std::filesystem::path generateAgentConfig(
     const std::filesystem::path& fbossRoot,
     const std::optional<std::filesystem::path>& outputDirectory = std::nullopt,
     const std::optional<std::filesystem::path>& asicConfigFile = std::nullopt,
-    const std::optional<cfg::AsicConfigType>& asicConfigType = std::nullopt);
+    const std::optional<cfg::AsicConfigType>& asicConfigType = std::nullopt,
+    std::optional<std::string_view> asicConfigVariant = std::nullopt);
+
+// Produces serialized Agent config contents for a generic declaration request.
+// Agent does not currently define service variants.
+std::string generateAgentConfigForManifest(
+    const ConfigGenerationRequest& request);
 
 } // namespace facebook::fboss::configgen

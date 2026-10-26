@@ -2085,6 +2085,57 @@ TEST_F(ResourceAccountantTest, srv6NextHopResourceExceeded) {
       false /* intermediateState */));
 }
 
+TEST_F(ResourceAccountantTest, srv6UcmpDistinctWeights) {
+  FLAGS_enable_srv6_nexthop_resource_protection = true;
+  const int limit = asicTable_->getHwAsic(SwitchID(0))
+                        ->getMaxSrv6UcmpDistinctWeights()
+                        .value();
+
+  auto makeSrv6Nhops = [limit](int group, int maxWeight, NextHopRole lastRole) {
+    RouteNextHopSet nhops;
+    for (int i = 1; i <= limit + 1; ++i) {
+      nhops.insert(ResolvedNextHop(
+          folly::IPAddress(fmt::format("1.1.{}.{}", group, i)),
+          InterfaceID(1),
+          std::min(i, maxWeight),
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::vector<folly::IPAddressV6>{folly::IPAddressV6(
+              fmt::format("3001:db8:{:x}:{:x}::", group, i))},
+          TunnelType::SRV6_ENCAP,
+          std::string("srv6Tunnel0"),
+          std::nullopt,
+          i == limit + 1 ? lastRole : NextHopRole::PRIMARY));
+    }
+    return nhops;
+  };
+  auto checkAdd = [&](int idx, const RouteNextHopSet& nhops) {
+    RouteNextHopEntry entry(nhops, AdminDistance::EBGP);
+    auto route = makeV6Route(
+        {folly::IPAddressV6(fmt::format("2800:{:x}::", idx)), 48},
+        entry,
+        nhops);
+    return this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+        route, true /* add */, state_);
+  };
+
+  // 1) limit + 1 distinct weights is rejected
+  EXPECT_FALSE(checkAdd(0, makeSrv6Nhops(0, limit + 1, NextHopRole::PRIMARY)));
+  // 2) limit distinct weights over limit + 1 next hops is accepted
+  EXPECT_TRUE(checkAdd(1, makeSrv6Nhops(1, limit, NextHopRole::PRIMARY)));
+  // 3) Protection groups are not limited
+  EXPECT_TRUE(checkAdd(2, makeSrv6Nhops(2, limit + 1, NextHopRole::BACKUP)));
+  // 4) Non-SRv6 groups are not limited
+  RouteNextHopSet regular;
+  for (int i = 1; i <= limit + 1; ++i) {
+    regular.insert(ResolvedNextHop(
+        folly::IPAddress(fmt::format("2.2.2.{}", i)), InterfaceID(2), i));
+  }
+  EXPECT_TRUE(checkAdd(3, regular));
+}
+
 TEST_F(ResourceAccountantTest, checkAndUpdateRouteCounterResource) {
   RouteNextHopSet nhops1{
       ResolvedNextHop(folly::IPAddress("1.1.1.1"), InterfaceID(1), ecmpWeight)};

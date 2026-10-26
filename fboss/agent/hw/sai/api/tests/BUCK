@@ -173,6 +173,13 @@ api_unittest(
 )
 
 api_unittest(
+    name = "my_mac_api_test",
+    srcs = [
+        "MyMacApiTest.cpp",
+    ],
+)
+
+api_unittest(
     name = "samplepacket_api_test",
     srcs = [
         "SamplePacketApiTest.cpp",
@@ -211,6 +218,13 @@ api_unittest(
     name = "tunnel_api_test",
     srcs = [
         "TunnelApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "tunnel_map_api_test",
+    srcs = [
+        "TunnelMapApiTest.cpp",
     ],
 )
 

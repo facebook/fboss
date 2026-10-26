@@ -481,6 +481,80 @@ TYPED_TEST(TamManagerTest, ResolveReportOnAdd) {
   });
 }
 
+TYPED_TEST(TamManagerTest, ResolveReportAfterCollectorPortReadded) {
+  const auto params = this->getParamsHelper();
+  this->updateState(
+      "addReport", [=, this](const std::shared_ptr<SwitchState>& state) {
+        return this->addMirrorOnDropReport(
+            state, kReportName, params.localSrcIp, params.collectorIp);
+      });
+  this->addRoute(params.longerPrefix, {params.nextHop(0)});
+  this->resolveNeighbor(
+      folly::IPAddress(params.neighborIPs[0]),
+      params.neighborMACs[0],
+      params.interfaces[0],
+      params.neighborPorts[0]);
+  const auto port =
+      this->sw_->getState()->getPorts()->getNodeIf(params.neighborPorts[0]);
+  ASSERT_NE(port, nullptr);
+  this->verifyStateUpdate([this]() {
+    const auto report =
+        this->sw_->getState()->getMirrorOnDropReports()->getNodeIf(kReportName);
+    ASSERT_NE(report, nullptr);
+    EXPECT_TRUE(report->isResolved());
+  });
+
+  this->sw_->getNeighborUpdater()
+      ->flushEntryForIntf(
+          params.interfaces[0], folly::IPAddress(params.neighborIPs[0]))
+      .get();
+  this->sw_->getNeighborUpdater()->waitForPendingUpdates();
+  waitForBackgroundThread(this->sw_);
+  waitForStateUpdates(this->sw_);
+
+  this->updateState(
+      "removeCollectorPort", [=](const std::shared_ptr<SwitchState>& state) {
+        auto updatedState = state->clone();
+        updatedState->getPorts()
+            ->modify(&updatedState)
+            ->removeNode(port->getID());
+        return updatedState;
+      });
+  waitForStateUpdates(this->sw_);
+  this->verifyStateUpdate([this]() {
+    const auto report =
+        this->sw_->getState()->getMirrorOnDropReports()->getNodeIf(kReportName);
+    ASSERT_NE(report, nullptr);
+    EXPECT_FALSE(report->isResolved());
+  });
+
+  this->updateState(
+      "readdCollectorPort",
+      [=, this](const std::shared_ptr<SwitchState>& state) {
+        auto updatedState = state->clone();
+        updatedState->getPorts()
+            ->modify(&updatedState)
+            ->addNode(port, this->sw_->getScopeResolver()->scope(port));
+        return updatedState;
+      });
+  waitForStateUpdates(this->sw_);
+  this->resolveNeighbor(
+      folly::IPAddress(params.neighborIPs[0]),
+      params.neighborMACs[0],
+      params.interfaces[0],
+      params.neighborPorts[0]);
+  this->verifyStateUpdate([=, this]() {
+    const auto report =
+        this->sw_->getState()->getMirrorOnDropReports()->getNodeIf(kReportName);
+    ASSERT_NE(report, nullptr);
+    EXPECT_TRUE(report->isResolved());
+    EXPECT_EQ(report->getResolvedCollectorMac(), params.neighborMACs[0]);
+    EXPECT_EQ(
+        report->getResolvedEgressPort(),
+        PortDescriptor(params.neighborPorts[0]).toThrift());
+  });
+}
+
 TYPED_TEST(TamManagerTest, SkipResolutionWithStaticMirrorPort) {
   TamManagerTestParams<typename TestFixture::AddrT> params =
       this->getParamsHelper();

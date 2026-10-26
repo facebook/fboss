@@ -132,6 +132,10 @@ add_library(state
   fboss/agent/state/Vlan.cpp
   fboss/agent/state/VlanMap.cpp
   fboss/agent/state/VlanMapDelta.cpp
+  fboss/agent/state/Vrf.cpp
+  fboss/agent/state/VrfMap.cpp
+  fboss/agent/state/VxlanTunnel.cpp
+  fboss/agent/state/VxlanTunnelMap.cpp
 )
 
 target_link_libraries(state

@@ -4,8 +4,8 @@ load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
 oncall("fboss_distro")
 
 python_library(
-    name = "platform_descriptor_utils",
-    srcs = ["platform_descriptor_utils.py"],
+    name = "platform_configs_utils",
+    srcs = ["platform_configs_utils.py"],
     labels = ["autodeps2_generated"],
 )
 
@@ -34,7 +34,7 @@ python_library(
     name = "package_lib",
     srcs = ["package.py"],
     labels = ["autodeps2_generated"],
-    deps = [":platform_descriptor_utils"],
+    deps = [":platform_configs_utils"],
 )
 
 python_binary(
@@ -56,6 +56,17 @@ python_library(
     # @lint-ignore BUCKLINT no_base_module_usage_python
     base_module = "",
     labels = ["autodeps2_generated"],
+)
+
+python_library(
+    name = "check_copyright_headers_lib",
+    srcs = ["check_copyright_headers.py"],
+)
+
+python_binary(
+    name = "check_copyright_headers",
+    main_module = "fboss.oss.scripts.check_copyright_headers",
+    deps = [":check_copyright_headers_lib"],
 )
 
 python_binary(

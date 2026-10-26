@@ -37,6 +37,11 @@ RESOLVE_STRUCT_MEMBER(
     switch_state_tags::idToNextHopIdSet,
     IdToNextHopIdSetMap);
 
+RESOLVE_STRUCT_MEMBER(
+    FibInfo,
+    switch_state_tags::overrideIdToNextHopIdSet,
+    IdToNextHopIdSetMap);
+
 class FibInfo : public ThriftStructNode<FibInfo, state::FibInfoFields> {
  public:
   using Base = ThriftStructNode<FibInfo, state::FibInfoFields>;
@@ -92,6 +97,16 @@ class FibInfo : public ThriftStructNode<FibInfo, state::FibInfoFields> {
   void setIdToNextHopIdSetMap(
       std::shared_ptr<IdToNextHopIdSetMap> idToNextHopIdSetMap) {
     ref<switch_state_tags::idToNextHopIdSet>() = idToNextHopIdSetMap;
+  }
+
+  std::shared_ptr<IdToNextHopIdSetMap> getOverrideIdToNextHopIdSetMap() const {
+    return safe_cref<switch_state_tags::overrideIdToNextHopIdSet>();
+  }
+
+  void setOverrideIdToNextHopIdSetMap(
+      std::shared_ptr<IdToNextHopIdSetMap> overrideIdToNextHopIdSetMap) {
+    ref<switch_state_tags::overrideIdToNextHopIdSet>() =
+        overrideIdToNextHopIdSetMap;
   }
 
   // Resolve NextHopSetId to NextHops

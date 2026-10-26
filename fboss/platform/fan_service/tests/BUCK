@@ -17,13 +17,13 @@ cpp_unittest(
     network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/googletest:gmock",
+        "fbsource//xplat/folly/logging:logging",
         "//fboss/agent:fboss-error",
         "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/fan_service:config_validator",
         "//fboss/platform/fan_service:core",
         "//fboss/platform/fan_service:pid_logic_library",
         "//fboss/platform/fan_service/if:fan_service-cpp2-types",
-        "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
 )

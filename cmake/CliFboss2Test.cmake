@@ -77,9 +77,11 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/CmdShowInterfaceErrorsTest.cpp
   # fboss/cli/fboss2/test/CmdShowInterfaceFlapsTest.cpp - excluded (depends on hardware model not built in CMake)
   fboss/cli/fboss2/test/CmdShowInterfacePhyTest.cpp
+  fboss/cli/fboss2/test/CmdShowInterfacePhymapTest.cpp
   fboss/cli/fboss2/test/CmdShowInterfacePrbsTest.cpp
   fboss/cli/fboss2/test/CmdShowMacDetailsTest.cpp
   fboss/cli/fboss2/test/CmdShowMirrorTest.cpp
+  fboss/cli/fboss2/test/CmdShowMyMacTest.cpp
   fboss/cli/fboss2/test/CmdShowMySidTest.cpp
   fboss/cli/fboss2/test/CmdShowNextHopGroupsTest.cpp
   fboss/cli/fboss2/test/CmdShowPortTest.cpp
@@ -95,7 +97,7 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/CmdShowRouteTest.cpp
   fboss/cli/fboss2/test/CmdShowSystemPortTest.cpp
   fboss/cli/fboss2/test/CmdShowTeFlowTest.cpp
-  fboss/cli/fboss2/test/CmdShowTransceiverEepromTest.cpp
+  fboss/cli/fboss2/test/CmdShowInterfaceTransceiverEepromTest.cpp
   fboss/cli/fboss2/test/CmdShowTransceiverLoopbackTest.cpp
   # fboss/cli/fboss2/test/CmdShowTransceiverTest.cpp - excluded (depends on configerator bgp namespace)
   # fboss/cli/fboss2/test/CmdShowVersionAgentTest.cpp - excluded (facebook-only command; depends on configerator)
@@ -115,6 +117,7 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/CmdShowBgpNeighborsReceivedRejectedTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpNeighborsByNameTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpPolicyTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpPolicyQueryTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpProfilerTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpNeighborsTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpNexthopInfoWikiDocsTest.cpp

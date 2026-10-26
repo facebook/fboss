@@ -70,9 +70,10 @@
       {
         "aPortName": "eth1/33/1",
         "zPortName": "eth1/33/1",
-        "profileID": 48
+        "profileID": 23
       }
-    ]
+    ],
+    "qsfpServiceMemLimitBytes": 2500000000
   },
   "transceiverFirmwareVersions": {
     "versionsMap": {

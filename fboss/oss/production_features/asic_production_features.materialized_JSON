@@ -3,6 +3,7 @@
     "chenab": [
         2,
         3,
+        138,
         4,
         5,
         7,
@@ -57,6 +58,7 @@
     "chenab2": [
         2,
         3,
+        138,
         4,
         5,
         7,
@@ -400,7 +402,8 @@
         69,
         72,
         86,
-        4
+        4,
+        133
     ],
     "tomahawk3": [
         2,
@@ -466,7 +469,9 @@
         88,
         124,
         126,
-        127
+        127,
+        133,
+        132
     ],
     "tomahawk4": [
         2,
@@ -531,7 +536,8 @@
         86,
         87,
         79,
-        109
+        109,
+        133
     ],
     "tomahawk5": [
         2,
@@ -610,7 +616,8 @@
         117,
         122,
         119,
-        123
+        123,
+        133
     ],
     "tomahawk6": [
         2,
@@ -683,7 +690,10 @@
         123,
         49,
         111,
-        131
+        131,
+        133,
+        106,
+        107
     ],
     "tomahawkultra1": [
         2,
@@ -796,13 +806,15 @@
         112,
         113,
         49,
-        111
+        111,
+        134
     ]
   },
   "asicToFeatureNames": {
     "chenab": [
         "CPU_RX_TX",
         "L3_FORWARDING",
+        "MIRROR_ON_DROP_STATEFUL",
         "ACL_PORT_IN_DISCARDS_COUNTER",
         "NULL_ROUTE_IN_DISCARDS_COUNTER",
         "PRBS",
@@ -857,6 +869,7 @@
     "chenab2": [
         "CPU_RX_TX",
         "L3_FORWARDING",
+        "MIRROR_ON_DROP_STATEFUL",
         "ACL_PORT_IN_DISCARDS_COUNTER",
         "NULL_ROUTE_IN_DISCARDS_COUNTER",
         "PRBS",
@@ -1200,7 +1213,8 @@
         "PTP_TC",
         "MODIFY_ACL_QUALIFIERS",
         "CLASS_ID_FOR_NEIGHBOR",
-        "ACL_PORT_IN_DISCARDS_COUNTER"
+        "ACL_PORT_IN_DISCARDS_COUNTER",
+        "MY_MAC"
     ],
     "tomahawk3": [
         "CPU_RX_TX",
@@ -1266,7 +1280,9 @@
         "INTER_PACKET_GAP",
         "EMPTY_ACL_MATCHER",
         "ACL_DENY_DATA_AND_CONTROL_PLANE",
-        "PORT_USER_METADATA"
+        "PORT_USER_METADATA",
+        "MY_MAC",
+        "ACCESS_POLICY_CLASS_ID_ACL"
     ],
     "tomahawk4": [
         "CPU_RX_TX",
@@ -1331,7 +1347,8 @@
         "CLASS_ID_FOR_NEIGHBOR",
         "UDF_HASH",
         "PTP_TC_PROVISIONING_TIME_HW_VALIDATION",
-        "SAVE_SDK_STATE"
+        "SAVE_SDK_STATE",
+        "MY_MAC"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
@@ -1410,7 +1427,8 @@
         "CABLE_LENGTH_MEASUREMENT",
         "ARS_SOURCE_PORT_PRUNE",
         "ADJACENCY_FRR",
-        "DROP_REASON_LIST_SUPPORT"
+        "DROP_REASON_LIST_SUPPORT",
+        "MY_MAC"
     ],
     "tomahawk6": [
         "CPU_RX_TX",
@@ -1483,7 +1501,10 @@
         "DROP_REASON_LIST_SUPPORT",
         "MIRROR_ON_DROP",
         "MIRROR_ON_DROP_STATELESS",
-        "MPLS_TTL_ACL"
+        "MPLS_TTL_ACL",
+        "MY_MAC",
+        "MPLS_HEADEND",
+        "MPLS_MIDPOINT"
     ],
     "tomahawkultra1": [
         "CPU_RX_TX",
@@ -1596,10 +1617,62 @@
         "PORT_DEBOUNCE",
         "SRV6_BINDING_SID",
         "MIRROR_ON_DROP",
-        "MIRROR_ON_DROP_STATELESS"
+        "MIRROR_ON_DROP_STATELESS",
+        "MIRROR_ON_DROP_AGGREGATE_RATE_LIMIT"
     ]
   },
   "featureSupportSpecs": [
+    {
+      "feature": 138,
+      "supportedFrom": [
+        {
+          "asics": [
+            "chenab",
+            "chenab2"
+          ],
+          "sdk": 3,
+          "minSdkVersion": "2605.37"
+        }
+      ]
+    },
+    {
+      "feature": 133,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk",
+            "tomahawk3"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "10.2.0.0_odp",
+          "note": "MY_MAC verified by AgentMyMacTest"
+        },
+        {
+          "asics": [
+            "tomahawk5"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "11.7.0.0_odp",
+          "note": "MY_MAC verified by AgentMyMacTest"
+        },
+        {
+          "asics": [
+            "tomahawk4"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "15.4.0.0_odp",
+          "note": "MY_MAC verified by AgentMyMacTest"
+        },
+        {
+          "asics": [
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "16.0_ea_odp",
+          "note": "MY_MAC verified by AgentMyMacTest"
+        }
+      ]
+    },
     {
       "feature": 100,
       "supportedFrom": [
@@ -2050,6 +2123,94 @@
           "sdk": 1,
           "minSdkVersion": "16.0",
           "note": "MPLS label0 TTL ACL qualifier is supported from the BRCM-SAI 16.0 early access drop onward; 15.4 is GA and is not patched for it"
+        }
+      ]
+    },
+    {
+      "feature": 106,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "16.0",
+          "note": "Label imposition needs SAI_NEXT_HOP_ATTR_OUTSEG_TYPE PUSH, which FBOSS sets on Tomahawk6 from the BRCM-SAI 16.0 early access drop onward"
+        }
+      ]
+    },
+    {
+      "feature": 107,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "16.0",
+          "note": "Label push on transit traffic needs SAI_NEXT_HOP_ATTR_OUTSEG_TYPE PUSH, which FBOSS sets on Tomahawk6 from the BRCM-SAI 16.0 early access drop onward"
+        }
+      ]
+    },
+    {
+      "feature": 42,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk",
+            "tomahawk3",
+            "tomahawk4",
+            "tomahawk5",
+            "tomahawk6",
+            "tomahawkultra1"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp",
+          "note": "PFC/buffer programming is supported on Broadcom XGS SAI from 13.3 onwards. No DNX entry: jericho/ramon run PFC tests on 11.7/12.2 DNX SDKs."
+        }
+      ]
+    },
+    {
+      "feature": 93,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk5",
+            "tomahawkultra1"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp",
+          "note": "PFC TX duration counters are supported on Broadcom XGS SAI from 13.3 onwards"
+        }
+      ]
+    },
+    {
+      "feature": 43,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk4",
+            "tomahawk5",
+            "tomahawk6",
+            "tomahawkultra1"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp",
+          "note": "UDF write-immediate ACL is supported on Broadcom XGS SAI from 13.3 onwards"
+        }
+      ]
+    },
+    {
+      "feature": 95,
+      "supportedFrom": [
+        {
+          "asics": [
+            "jericho3",
+            "jericho4"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "12.0.0.0_dnx_odp",
+          "note": "DNX mirror-on-drop is supported from 12.x onwards"
         }
       ]
     }

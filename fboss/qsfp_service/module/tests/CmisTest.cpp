@@ -51,6 +51,7 @@ class MockCmisModule : public CmisModule {
   using CmisModule::disableTxRxSquelchForTunableOptics;
   using CmisModule::enableRxLfInsertionForTunableOptics;
   using CmisModule::frequencyGridToGridSelection;
+  using CmisModule::getAllPortsResetLaneMasks;
   using CmisModule::getApplicationField;
   using CmisModule::getBankedQsfpValuePtr;
   using CmisModule::getChannelNumFromFrequency;
@@ -70,6 +71,7 @@ class MockCmisModule : public CmisModule {
   using CmisModule::isTunableOptics;
   using CmisModule::portDatapathStates_;
   using CmisModule::readModifyWriteCmisField;
+  using CmisModule::resetDataPath;
   using CmisModule::triggerModuleReset;
 
  private:
@@ -118,6 +120,66 @@ constexpr uint8_t kDiagSelSnr =
 // VDM FreezeRequest is Page 2Fh byte 144 (upper-page offset 16).
 constexpr int kPage2f = static_cast<int>(CmisPages::PAGE2F);
 constexpr int kVdmLatchRequestUpperPageOffset = 144 - 128;
+
+constexpr uint8_t kPage10h = 0x10;
+constexpr uint8_t kPage11h = 0x11;
+constexpr int kDataPathDeinitOffset = 128;
+constexpr int kActiveAppSelOffset = 206;
+
+void writeUpperPage(
+    FakeTransceiverImpl* impl,
+    uint8_t page,
+    int offset,
+    const std::vector<uint8_t>& data) {
+  TransceiverAccessParameter pageParam(
+      TransceiverAccessParameter::ADDR_QSFP, 127, 1);
+  impl->writeTransceiver(pageParam, &page, 0, 0);
+  TransceiverAccessParameter param(
+      TransceiverAccessParameter::ADDR_QSFP,
+      offset,
+      static_cast<int>(data.size()));
+  impl->writeTransceiver(param, data.data(), 0, 0);
+}
+
+std::vector<uint8_t>
+readUpperPage(FakeTransceiverImpl* impl, uint8_t page, int offset, int len) {
+  TransceiverAccessParameter pageParam(
+      TransceiverAccessParameter::ADDR_QSFP, 127, 1);
+  impl->writeTransceiver(pageParam, &page, 0, 0);
+  std::vector<uint8_t> data(len);
+  TransceiverAccessParameter param(
+      TransceiverAccessParameter::ADDR_QSFP, offset, len);
+  impl->readTransceiver(param, data.data(), 0);
+  return data;
+}
+
+// Active control set for 3x200G: AppSel 9 on host lanes 0-5 with datapath IDs
+// 0, 2 and 4; lanes 6-7 without an application
+const std::vector<uint8_t> k3x200GActiveAppSel =
+    {0x90, 0x90, 0x94, 0x94, 0x98, 0x98, 0x00, 0x00};
+
+ProgramTransceiverState make3x200GZrProgramState() {
+  ProgramTransceiverState programTcvrState;
+  for (uint8_t startHostLane : {0, 2, 4}) {
+    TransceiverPortState portState;
+    portState.portName = fmt::format("eth1/1/{}", startHostLane + 1);
+    portState.startHostLane = startHostLane;
+    portState.speed = cfg::PortSpeed::TWOHUNDREDG;
+    portState.numHostLanes = 2;
+    cfg::OpticalChannelConfig optChanConfig;
+    cfg::FrequencyConfig freqConfig;
+    freqConfig.frequencyGrid() = FrequencyGrid::LASER_6P25GHZ;
+    cfg::CenterFrequencyConfig centerFreq;
+    centerFreq.set_frequencyMhz(CmisModule::kDefaultFrequencyMhz);
+    freqConfig.centerFrequencyConfig() = centerFreq;
+    optChanConfig.frequencyConfig() = freqConfig;
+    optChanConfig.txPower0P01Dbm() = 0;
+    optChanConfig.appSelCode() = 9;
+    portState.opticalChannelConfig = optChanConfig;
+    programTcvrState.ports.emplace(portState.portName, portState);
+  }
+  return programTcvrState;
+}
 } // namespace
 
 // Existing (non-CPO) CMIS modules don't advertise a multi-bank capacity in
@@ -3618,5 +3680,265 @@ TEST_F(CmisTest, readModifyWriteCmisFieldRejectsMultiByteField) {
   EXPECT_THROW(
       xcvr->readModifyWriteCmisField(CmisField::PART_NUMBER, 0xff, 0x00),
       FbossError);
+}
+
+namespace {
+// Page 13h loopback enable registers, per the CMIS spec names.
+constexpr uint8_t kLoopbackPage = 0x13;
+constexpr int kMediaOutputLbByte = 180;
+constexpr int kMediaInputLbByte = 181;
+constexpr int kHostOutputLbByte = 182;
+constexpr int kHostInputLbByte = 183;
+constexpr std::array<int, 4> kLoopbackBytes = {
+    kMediaOutputLbByte,
+    kMediaInputLbByte,
+    kHostOutputLbByte,
+    kHostInputLbByte};
+
+struct LoopbackCase {
+  phy::Side side;
+  phy::LoopbackMode mode;
+  int expectedByte;
+};
+
+// Loopback is applied to a port's lanes, which are only known once the port
+// has been programmed.
+void programSinglePort(
+    MockCmisModule* xcvr,
+    const std::string& portName,
+    cfg::PortSpeed speed) {
+  ProgramTransceiverState programTcvrState;
+  TransceiverPortState portState;
+  portState.portName = portName;
+  portState.startHostLane = 0;
+  portState.speed = speed;
+  portState.numHostLanes = 4;
+  programTcvrState.ports.emplace(portState.portName, portState);
+  xcvr->programTransceiver(programTcvrState, false);
+}
+} // namespace
+
+TEST_F(CmisTest, setTransceiverLoopbackSelectsRegisterPerMode) {
+  auto xcvrID = TransceiverID(0);
+  auto xcvr = overrideCmisModule<Cmis200GTransceiver>(xcvrID);
+  auto impl = lastQsfpImpl();
+  auto portName = *transceiverManager_->getPortNames(xcvrID).begin();
+  programSinglePort(xcvr, portName, cfg::PortSpeed::TWOHUNDREDG);
+
+  for (const auto& tc : std::vector<LoopbackCase>{
+           {phy::Side::SYSTEM, phy::LoopbackMode::INPUT, kHostInputLbByte},
+           {phy::Side::SYSTEM, phy::LoopbackMode::OUTPUT, kHostOutputLbByte},
+           {phy::Side::LINE, phy::LoopbackMode::INPUT, kMediaInputLbByte},
+           {phy::Side::LINE, phy::LoopbackMode::OUTPUT, kMediaOutputLbByte},
+       }) {
+    SCOPED_TRACE(
+        fmt::format(
+            "{} {}",
+            apache::thrift::util::enumNameSafe(tc.side),
+            apache::thrift::util::enumNameSafe(tc.mode)));
+
+    xcvr->setTransceiverLoopback(portName, tc.side, true, tc.mode);
+    for (auto byte : kLoopbackBytes) {
+      if (byte == tc.expectedByte) {
+        EXPECT_NE(peekEeprom(impl, kLoopbackPage, byte), 0);
+      } else {
+        EXPECT_EQ(peekEeprom(impl, kLoopbackPage, byte), 0);
+      }
+    }
+
+    xcvr->setTransceiverLoopback(portName, tc.side, false, tc.mode);
+    for (auto byte : kLoopbackBytes) {
+      EXPECT_EQ(peekEeprom(impl, kLoopbackPage, byte), 0);
+    }
+  }
+}
+
+// kCmis2x400GFr4Page13 advertises only the media and host input loopbacks.
+TEST_F(CmisTest, setTransceiverLoopbackRejectsUnadvertisedMode) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x400GFr4Transceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+  auto impl = lastQsfpImpl();
+  auto portName = *transceiverManager_->getPortNames(xcvrID).begin();
+  programSinglePort(xcvr, portName, cfg::PortSpeed::FOURHUNDREDG);
+
+  EXPECT_THROW(
+      xcvr->setTransceiverLoopback(
+          portName, phy::Side::SYSTEM, true, phy::LoopbackMode::OUTPUT),
+      FbossError);
+  EXPECT_THROW(
+      xcvr->setTransceiverLoopback(
+          portName, phy::Side::LINE, true, phy::LoopbackMode::OUTPUT),
+      FbossError);
+  for (auto byte : kLoopbackBytes) {
+    EXPECT_EQ(peekEeprom(impl, kLoopbackPage, byte), 0);
+  }
+
+  // Disabling an unadvertised loopback is a no-op rather than an error.
+  EXPECT_NO_THROW(xcvr->setTransceiverLoopback(
+      portName, phy::Side::LINE, false, phy::LoopbackMode::OUTPUT));
+
+  EXPECT_NO_THROW(xcvr->setTransceiverLoopback(
+      portName, phy::Side::LINE, true, phy::LoopbackMode::INPUT));
+  EXPECT_NE(peekEeprom(impl, kLoopbackPage, kMediaInputLbByte), 0);
+}
+
+// Neither fixture advertises simultaneous host and media side loopback.
+TEST_F(CmisTest, setTransceiverLoopbackRejectsSimultaneousHostAndMedia) {
+  auto xcvrID = TransceiverID(0);
+  auto xcvr = overrideCmisModule<Cmis200GTransceiver>(xcvrID);
+  auto impl = lastQsfpImpl();
+  auto portName = *transceiverManager_->getPortNames(xcvrID).begin();
+  programSinglePort(xcvr, portName, cfg::PortSpeed::TWOHUNDREDG);
+
+  xcvr->setTransceiverLoopback(
+      portName, phy::Side::LINE, true, phy::LoopbackMode::INPUT);
+  EXPECT_THROW(
+      xcvr->setTransceiverLoopback(
+          portName, phy::Side::SYSTEM, true, phy::LoopbackMode::INPUT),
+      FbossError);
+  EXPECT_EQ(peekEeprom(impl, kLoopbackPage, kHostInputLbByte), 0);
+
+  // Both loopbacks on the same side are allowed together.
+  EXPECT_NO_THROW(xcvr->setTransceiverLoopback(
+      portName, phy::Side::LINE, true, phy::LoopbackMode::OUTPUT));
+
+  xcvr->setTransceiverLoopback(
+      portName, phy::Side::LINE, false, phy::LoopbackMode::INPUT);
+  xcvr->setTransceiverLoopback(
+      portName, phy::Side::LINE, false, phy::LoopbackMode::OUTPUT);
+  EXPECT_NO_THROW(xcvr->setTransceiverLoopback(
+      portName, phy::Side::SYSTEM, true, phy::LoopbackMode::INPUT));
+}
+
+// Applications 9-15 are advertised in Page 01h. The ZR fixture advertises
+// the vendor-custom application on all of them.
+TEST_F(CmisTest, applicationCapabilitiesIncludePage01Applications) {
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::OSFP);
+
+  auto app = xcvr->getApplicationField(
+      static_cast<uint8_t>(SMFMediaInterfaceCode::ZR_VENDOR_CUSTOM), 0);
+
+  ASSERT_TRUE(app.has_value());
+  EXPECT_EQ(app->ApSelCode, 9);
+  EXPECT_EQ(app->hostLaneCount, 8);
+  EXPECT_EQ(app->mediaLaneCount, 1);
+  EXPECT_EQ(xcvr->getModuleCapabilities().size(), 15);
+}
+
+// A Page 01h entry that isn't terminated with 0xFF but has an undefined
+// (0) media interface is not an application. The fixture's ApSel 9 entry is
+// such an entry and the list ends at ApSel 10, so only the 8 lower page
+// applications remain.
+TEST_F(CmisTest, applicationCapabilitiesSkipUndefinedPage01Entries) {
+  auto xcvr = overrideCmisModule<Cmis2x400GFr4Transceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::OSFP);
+
+  const auto& capabilities = xcvr->getModuleCapabilities();
+
+  EXPECT_EQ(capabilities.size(), 8);
+  for (const auto& capability : capabilities) {
+    EXPECT_LE(capability.ApSelCode, 8);
+  }
+}
+
+// Host datapaths multiplexed onto one media lane (3x200G ZR) all map to
+// that media lane.
+TEST_F(CmisTest, configuredMediaLanesSharedByMultipleHostDatapaths) {
+  auto xcvr = overrideCmisModule<Cmis800GZr3x200GTransceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::OSFP);
+  writeUpperPage(
+      lastQsfpImpl(), kPage11h, kActiveAppSelOffset, k3x200GActiveAppSel);
+  xcvr->refresh();
+
+  const std::vector<uint8_t> expectedMediaLanes = {0};
+  for (uint8_t startHostLane : {0, 2, 4}) {
+    EXPECT_EQ(xcvr->configuredMediaLanes(startHostLane), expectedMediaLanes);
+  }
+  const std::vector<uint8_t> expectedHostLanes = {2, 3};
+  EXPECT_EQ(xcvr->configuredHostLanes(2), expectedHostLanes);
+}
+
+// A datapath reset only covers lanes in an active application. Lanes 6-7
+// have none in 3x200G and never activate, so including them would never
+// complete.
+TEST_F(CmisTest, resetDataPathSkipsLanesWithoutApplication) {
+  auto xcvr = overrideCmisModule<Cmis800GZr3x200GTransceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::OSFP);
+  writeUpperPage(
+      lastQsfpImpl(), kPage11h, kActiveAppSelOffset, k3x200GActiveAppSel);
+  xcvr->refresh();
+
+  EXPECT_NO_THROW(xcvr->resetDataPath("eth1/1/1"));
+}
+
+// Programming all ports deinitializes every lane in the current and new
+// configs and initializes every lane the new config puts in an application.
+TEST_F(CmisTest, allPortsResetLaneMasks) {
+  TransceiverPropertiesManager::initDefault();
+  auto xcvr = overrideCmisModule<Cmis2x400GFr4Transceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::OSFP);
+  TransceiverPortState state;
+  state.portName = "eth1/1/5";
+  state.startHostLane = 4;
+  state.speed = cfg::PortSpeed::HUNDREDG;
+  state.numHostLanes = 4;
+  ASSERT_FALSE(xcvr->isRequestValidMultiportSpeedConfig(
+      state.speed, state.startHostLane, state.numHostLanes));
+
+  // 100G-CWDM4 on the second port moves both ports (all 8 lanes) to CWDM4
+  EXPECT_EQ(
+      xcvr->getAllPortsResetLaneMasks(state, state.numHostLanes),
+      std::make_pair(uint8_t(0xff), uint8_t(0xff)));
+
+  // With no valid speed combo (no 25G application) only the port's own lane is
+  // reset
+  state.startHostLane = 1;
+  state.speed = cfg::PortSpeed::TWENTYFIVEG;
+  state.numHostLanes = 1;
+  EXPECT_EQ(
+      xcvr->getAllPortsResetLaneMasks(state, state.numHostLanes),
+      std::make_pair(uint8_t(0x02), uint8_t(0x02)));
+}
+
+// Moving a ZR from 800G to 3x200G programs all three datapaths in one
+// stage set 0 commit and one datapath deinit/init, leaving lanes 6-7 in deinit.
+TEST_F(CmisTest, cmis800GZr3x200GProgramsAllDatapathsTogether) {
+  TransceiverPropertiesManager::initDefault();
+  auto xcvr = overrideCmisModule<Cmis800GZr3x200GTransceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::OSFP);
+  auto programTcvrState = make3x200GZrProgramState();
+
+  xcvr->programTransceiver(programTcvrState, false);
+
+  EXPECT_EQ(
+      readUpperPage(lastQsfpImpl(), kPage11h, kActiveAppSelOffset, 8),
+      k3x200GActiveAppSel);
+  const std::vector<uint8_t> lanes6And7InDeinit = {0xc0};
+  EXPECT_EQ(
+      readUpperPage(lastQsfpImpl(), kPage10h, kDataPathDeinitOffset, 1),
+      lanes6And7InDeinit);
+  EXPECT_EQ(
+      lastQsfpImpl()->getUpperPageWriteCount(
+          kPage10h, kDataPathDeinitOffset - 128),
+      2);
+}
+
+// A datapath reset requested in the same programTransceiver call skips the
+// lanes the AppSel change just initialized.
+TEST_F(CmisTest, programTransceiverSkipsResetOfJustInitializedLanes) {
+  TransceiverPropertiesManager::initDefault();
+  auto xcvr = overrideCmisModule<Cmis800GZr3x200GTransceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::OSFP);
+  auto programTcvrState = make3x200GZrProgramState();
+
+  xcvr->programTransceiver(programTcvrState, true /* needResetDataPath */);
+
+  // Only the AppSel change's deinit and init; no second cycle for the reset
+  EXPECT_EQ(
+      lastQsfpImpl()->getUpperPageWriteCount(
+          kPage10h, kDataPathDeinitOffset - 128),
+      2);
 }
 } // namespace facebook::fboss

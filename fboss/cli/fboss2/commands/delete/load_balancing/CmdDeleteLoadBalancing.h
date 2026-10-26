@@ -19,8 +19,8 @@
 namespace facebook::fboss {
 
 // Removes the load-balancer entry matching `id` from
-// swConfig.loadBalancers, returning a human-readable result string.
-// Throws std::invalid_argument if no entry with that ID is configured.
+// swConfig.loadBalancers, returning a human-readable result string. If no
+// entry with that ID is configured, returns a warning and changes nothing.
 std::string removeLoadBalancer(
     cfg::SwitchConfig& swConfig,
     cfg::LoadBalancerID id);

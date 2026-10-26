@@ -280,6 +280,7 @@ class AgentQueuePerHostTest : public AgentHwTest {
     auto ttlAclName = utility::getQueuePerHostTtlAclName();
     auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
 
+    getNextUpdatedPortStats(masterLogicalPortIds()[0]);
     auto statBefore = utility::getAclInOutPackets(getSw(), ttlCounterName);
 
     std::map<int, int64_t> beforeQueueOutPkts;
@@ -444,6 +445,7 @@ class AgentQueuePerHostTest : public AgentHwTest {
     auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
 
     for (bool frontPanel : {false, true}) {
+      getNextUpdatedPortStats(masterLogicalPortIds()[0]);
       auto packetsBefore = utility::getAclInOutPackets(getSw(), ttlCounterName);
 
       auto bytesBefore =

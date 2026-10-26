@@ -93,18 +93,21 @@ bool BspSaiPhyManager::initExternalPhyMap(bool warmboot) {
   XLOG(DBG5) << __func__ << ": Starting with warmboot=" << warmboot;
   std::optional<GlobalXphyID> firstXphy;
 
-  // Reset all PHY IO controllers and PHYs during coldboot only
-  if (!warmboot) {
-    XLOG(INFO) << "Coldboot: Resetting all PHY IO controllers and PHYs";
-    for (const auto& [pimID, pimMapping] : bspMapping_->getPimMappings()) {
-      auto pimContainer = systemContainer_->getPimContainerFromPimID(pimID);
+  XLOG(INFO)
+      << (warmboot ? "Warmboot: Initializing PHY IO controllers without reset"
+                   : "Coldboot: Resetting all PHY IO controllers and PHYs");
+  for (const auto& [pimID, pimMapping] : bspMapping_->getPimMappings()) {
+    auto pimContainer = systemContainer_->getPimContainerFromPimID(pimID);
 
-      // 1. Reset MDIO bus controllers first
-      pimContainer->initAllPhyIOControllers();
+    // 1. Init MDIO bus controllers first
+    pimContainer->initAllPhyIOControllers(/*forceReset=*/!warmboot);
 
-      // 2. Then reset individual PHY retimers
+    // 2. Then reset individual PHY retimers
+    if (!warmboot) {
       pimContainer->initAllPhys();
     }
+  }
+  if (!warmboot) {
     XLOG(INFO) << "Coldboot: All PHY resets complete";
   }
 

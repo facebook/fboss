@@ -533,6 +533,14 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     portCl72RetryEnable = true;
   }
 #endif
+  std::optional<SaiSwitchTraits::Attributes::AclDropSnoopDisabled>
+      aclDropSnoopDisabled{std::nullopt};
+#if defined(TAJO_SDK_VERSION_24_8_3001) || defined(TAJO_SDK_VERSION_25_11_4210)
+  // Only the Gibraltar driver implements it (GR2/G2LL return NOT_IMPLEMENTED).
+  if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO) {
+    aclDropSnoopDisabled = true;
+  }
+#endif
   std::optional<SaiSwitchTraits::Attributes::DllPath> dllPath;
 #if defined(BRCM_SAI_SDK_XGS)
   auto platformMode = getType();
@@ -902,7 +910,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 
   std::optional<SaiSwitchTraits::Attributes::SdkDumpRateLimitWindow>
       sdkDumpRateLimitWindow{std::nullopt};
-#if defined(SAI_VERSION_12_2_0_0_DNX_ODP)
+#if defined(SAI_SDK_DUMP_RATE_LIMIT_SUPPORTED)
   sdkDumpRateLimitWindow = FLAGS_sdk_dump_rate_limit_window_ms;
 #endif
 
@@ -1006,6 +1014,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // enable PFC monitoring for the switch
       measureCableLengths, // enable cable propagation delay measurement
       portCl72RetryEnable, // enable CL72 link training retry
+      aclDropSnoopDisabled, // disable snoop on ingress ACL drop
       std::nullopt, // switching mode (store-and-forward / cut-through)
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
       // Link up debounce timeout. Derived from the per-port
@@ -1016,6 +1025,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #if defined(SAI_BRCM_PAI_IMPL)
       std::nullopt, // SyncLock
       std::nullopt, // SyncUnlock
+      std::nullopt, // WarmRecover
 #endif
   };
 }
@@ -1052,6 +1062,8 @@ const std::set<sai_api_t>& SaiPlatform::getDefaultSwitchAsicSupportedApis()
   // But in case in the future we have some special phy api which won't be
   // supported in the switch asic, we can also exclude those apis ad-hoc.
   static auto apis = SaiApiTable::getInstance()->getFullApiList();
+  auto* asic = getAsic();
+  CHECK(asic);
   // Macsec is not currently supported in the broadcom sai sdk
   apis.erase(facebook::fboss::MacsecApi::ApiType);
   /*
@@ -1060,9 +1072,16 @@ const std::set<sai_api_t>& SaiPlatform::getDefaultSwitchAsicSupportedApis()
    * SaiApiTable::queryApis, and that takes agent init down entirely -- not just
    * isolation group functionality -- so the default has to be to leave it out.
    */
-  if (!getAsic()->isSupported(HwAsic::Feature::ISOLATION_GROUP)) {
+  if (!asic->isSupported(HwAsic::Feature::ISOLATION_GROUP)) {
     apis.erase(facebook::fboss::IsolationGroupApi::ApiType);
   }
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  // Querying an api the adapter does not implement fails init, so only query
+  // it where the asic declares support.
+  if (!asic->isSupported(HwAsic::Feature::MY_MAC)) {
+    apis.erase(facebook::fboss::MyMacApi::ApiType);
+  }
+#endif
   return apis;
 }
 const std::set<sai_api_t>& SaiPlatform::getDefaultPhyAsicSupportedApis() const {

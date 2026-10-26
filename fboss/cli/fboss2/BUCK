@@ -2,6 +2,8 @@ load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:export_files.bzl", "export_file")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+load("@fbsource//tools/target_determinator/macros:ci.bzl", "ci")
+load("@fbsource//tools/target_determinator/macros:ci_sandcastle.bzl", "ci_sandcastle")
 load("//fastcli:defs.bzl", "auto_tab_complete")
 
 oncall("fboss_agent_push")
@@ -478,6 +480,7 @@ cpp_library(
         "commands/show/bgp/neighbors_by_name/received/BgpNeighborsByNameReceivedRejected.cpp",
         "commands/show/bgp/neighbors_by_name/received/BgpNeighborsByNameReceivedRejectedCrf.cpp",
         "commands/show/bgp/nexthopinfo/CmdShowBgpNexthopInfo.cpp",
+        "commands/show/bgp/policy/CmdShowBgpPolicy.cpp",
         "commands/show/bgp/profiler/CmdShowBgpProfiler.cpp",
         "commands/show/bgp/shadowrib/CmdShowBgpShadowRib.cpp",
         "commands/show/bgp/stats/CmdShowBgpStatsEntries.cpp",
@@ -600,6 +603,8 @@ cpp_library(
         "commands/show/interface/status/CmdShowInterfaceStatus.cpp",
         "commands/show/interface/traffic/CmdShowInterfaceTraffic.cpp",
         "commands/show/interface/transceiver/CmdShowInterfaceTransceiver.cpp",
+        "commands/show/interface/transceiver/eeprom/CmdShowInterfaceTransceiverEeprom.cpp",
+        "commands/show/interface/transceiver/eeprom/CmdShowInterfaceTransceiverEepromDump.cpp",
         "commands/show/interface/transceiver/performancemonitoring/CmdShowInterfaceTransceiverPerformanceMonitoring.cpp",
         "commands/show/l2/CmdShowL2.cpp",
         "commands/show/lldp/CmdShowLldp.cpp",
@@ -607,6 +612,7 @@ cpp_library(
         "commands/show/mac/CmdShowMacDetails.cpp",
         "commands/show/mirror/CmdShowMirror.cpp",
         "commands/show/mpls/CmdShowMplsRoute.cpp",
+        "commands/show/mymac/CmdShowMyMac.cpp",
         "commands/show/mysid/CmdShowMySid.cpp",
         "commands/show/ndp/CmdShowNdp.cpp",
         "commands/show/nexthopgroups/CmdShowNextHopGroups.cpp",
@@ -625,8 +631,6 @@ cpp_library(
         "commands/show/systemport/CmdShowSystemPort.cpp",
         "commands/show/teflow/CmdShowTeFlow.cpp",
         "commands/show/transceiver/CmdShowTransceiver.cpp",
-        "commands/show/transceiver/eeprom/CmdShowTransceiverEeprom.cpp",
-        "commands/show/transceiver/eeprom/CmdShowTransceiverEepromDump.cpp",
         "commands/show/transceiver/loopback/CmdShowTransceiverLoopback.cpp",
         "commands/start/pcap/CmdStartPcap.cpp",
         "commands/start/port/CmdStartPort.cpp",
@@ -832,6 +836,8 @@ cpp_library(
         "commands/show/interface/status/CmdShowInterfaceStatus.h",
         "commands/show/interface/traffic/CmdShowInterfaceTraffic.h",
         "commands/show/interface/transceiver/CmdShowInterfaceTransceiver.h",
+        "commands/show/interface/transceiver/eeprom/CmdShowInterfaceTransceiverEeprom.h",
+        "commands/show/interface/transceiver/eeprom/CmdShowInterfaceTransceiverEepromDump.h",
         "commands/show/interface/transceiver/performancemonitoring/CmdShowInterfaceTransceiverPerformanceMonitoring.h",
         "commands/show/l2/CmdShowL2.h",
         "commands/show/lldp/CmdShowLldp.h",
@@ -839,6 +845,7 @@ cpp_library(
         "commands/show/mac/CmdShowMacDetails.h",
         "commands/show/mirror/CmdShowMirror.h",
         "commands/show/mpls/CmdShowMplsRoute.h",
+        "commands/show/mymac/CmdShowMyMac.h",
         "commands/show/mysid/CmdShowMySid.h",
         "commands/show/ndp/CmdShowNdp.h",
         "commands/show/nexthopgroups/CmdShowNextHopGroups.h",
@@ -857,8 +864,6 @@ cpp_library(
         "commands/show/systemport/CmdShowSystemPort.h",
         "commands/show/teflow/CmdShowTeFlow.h",
         "commands/show/transceiver/CmdShowTransceiver.h",
-        "commands/show/transceiver/eeprom/CmdShowTransceiverEeprom.h",
-        "commands/show/transceiver/eeprom/CmdShowTransceiverEepromDump.h",
         "commands/show/transceiver/loopback/CmdShowTransceiverLoopback.h",
         "commands/start/pcap/CmdStartPcap.h",
         "commands/start/port/CmdStartPort.h",
@@ -911,6 +916,7 @@ cpp_library(
         "//configerator/structs/neteng/fboss/push/forwarding_stack:fbpkg_map-cpp2-types",
         "//configerator/structs/neteng/matryoshka/dc_id_comm_registry:dc_fbnet_id_comm_registry-cpp2-types",
         "//configerator/structs/neteng/netwhoami:netwhoami-cpp2-types",
+        "//configerator/structs/neteng/transceiver_properties:transceiver_properties-cpp2-types",
         "//employee/if:thrift-cpp2-services",
         "//employee/if:thrift-cpp2-types",
         "//fboss/agent:address_utils",
@@ -989,6 +995,7 @@ cpp_library(
         "//fboss/cli/fboss2/commands/show/mac:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/mirror:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/mpls:model-cpp2-types",
+        "//fboss/cli/fboss2/commands/show/mymac:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/mysid:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/ndp:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/nexthopgroups:model-cpp2-types",
@@ -1017,7 +1024,6 @@ cpp_library(
         "//fboss/platform/fan_service/if:fan_service-cpp2-types",
         "//fboss/platform/rackmon/if:rackmonsvc-cpp2-services",
         "//fboss/platform/sensor_service/if:sensor_service-cpp2-services",
-        "//fboss/qsfp_service:transceiver-delay-constants",
         "//fboss/qsfp_service/if:qsfp-cpp2-services",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//folly:conv",
@@ -1106,13 +1112,13 @@ cpp_library(
 cpp_library(
     name = "fboss2-config-gen-lib",
     srcs = [
-        "commands/config/gen/FeatureDefaultCommandArgs.cpp",
+        "commands/config/gen/ConfigGenerationUtils.cpp",
         "commands/config/gen/PlatformConfigPathUtils.cpp",
         "commands/config/gen/agent/AgentConfigComparisonUtils.cpp",
         "commands/config/gen/agent/AgentConfigGenUtils.cpp",
     ],
     headers = [
-        "commands/config/gen/FeatureDefaultCommandArgs.h",
+        "commands/config/gen/ConfigGenerationUtils.h",
         "commands/config/gen/PlatformConfigPathUtils.h",
         "commands/config/gen/agent/AgentConfigComparisonUtils.h",
         "commands/config/gen/agent/AgentConfigGenUtils.h",
@@ -1122,6 +1128,7 @@ cpp_library(
         ":fboss2-config-file-utils",
         "//fboss/agent:fboss-error",
         "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/configs/platforms/generic/forwarding_stack/utils:config_generation_utils",
         "//fboss/lib/config:fboss_agent_config_utils",
         "//fboss/lib/config:fboss_config_utils",
         "//fboss/lib/platforms:platform_descriptor",
@@ -1134,9 +1141,9 @@ cpp_library(
     ],
     exported_deps = [
         "//fboss/agent:agent_config-cpp2-types",
-        "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/platforms/common:platform_mapping",
-        "//fboss/configs/platforms/generic/forwarding_stacks:feature_default_command_args-cpp2-types",
+        "//fboss/configs/platforms/generic/forwarding_stack:config_generation-cpp2-types",
+        "//fboss/configs/platforms/generic/forwarding_stack/utils:config_generation_utils",
         "//fboss/lib/if:fboss_common-cpp2-types",
         "//fboss/lib/platforms:platform_descriptor_thrift-cpp2-types",
     ],
@@ -1190,7 +1197,6 @@ cpp_library(
         "commands/config/dhcp/reply_source_override/CmdConfigDhcpReplySourceOverride.cpp",
         "commands/config/history/CmdConfigHistory.cpp",
         "commands/config/interface/CmdConfigInterface.cpp",
-        "commands/config/interface/ProfileValidation.cpp",
         "commands/config/interface/ipv6/CmdConfigInterfaceIpv6.cpp",
         "commands/config/interface/ipv6/ndp/CmdConfigInterfaceIpv6Ndp.cpp",
         "commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.cpp",
@@ -1211,6 +1217,10 @@ cpp_library(
         "commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroup.cpp",
         "commands/config/protocol/bgp/policy/CmdConfigProtocolBgpPolicy.cpp",
         "commands/config/protocol/bgp/policy/as-path-list/CmdConfigProtocolBgpPolicyAsPathList.cpp",
+        "commands/config/protocol/bgp/policy/community-list/CmdConfigProtocolBgpPolicyCommunityList.cpp",
+        "commands/config/protocol/bgp/policy/prefix-list/CmdConfigProtocolBgpPolicyPrefixList.cpp",
+        "commands/config/protocol/bgp/policy/prefix-list/entry/CmdConfigProtocolBgpPolicyPrefixListEntry.cpp",
+        "commands/config/protocol/bgp/policy/routing-policy/CmdConfigProtocolBgpPolicyRoutingPolicy.cpp",
         "commands/config/protocol/static/CmdConfigProtocolStatic.cpp",
         "commands/config/protocol/static/route/add/CmdConfigProtocolStaticRouteAdd.cpp",
         "commands/config/ptp/CmdConfigPtp.cpp",
@@ -1280,6 +1290,9 @@ cpp_library(
         "commands/delete/protocol/bgp/peer-group/CmdDeleteProtocolBgpPeerGroup.cpp",
         "commands/delete/protocol/bgp/policy/CmdDeleteProtocolBgpPolicy.cpp",
         "commands/delete/protocol/bgp/policy/as-path-list/CmdDeleteProtocolBgpPolicyAsPathList.cpp",
+        "commands/delete/protocol/bgp/policy/community-list/CmdDeleteProtocolBgpPolicyCommunityList.cpp",
+        "commands/delete/protocol/bgp/policy/prefix-list/CmdDeleteProtocolBgpPolicyPrefixList.cpp",
+        "commands/delete/protocol/bgp/policy/routing-policy/CmdDeleteProtocolBgpPolicyRoutingPolicy.cpp",
         "commands/delete/protocol/static/CmdDeleteProtocolStatic.cpp",
         "commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.cpp",
         "commands/delete/qos/CmdDeleteQos.cpp",
@@ -1331,7 +1344,6 @@ cpp_library(
         "commands/config/interface/CmdConfigInterface.h",
         "commands/config/interface/InterfaceAttrArgsBase.h",
         "commands/config/interface/InterfaceIpUtils.h",
-        "commands/config/interface/ProfileValidation.h",
         "commands/config/interface/ipv6/CmdConfigInterfaceIpv6.h",
         "commands/config/interface/ipv6/ndp/CmdConfigInterfaceIpv6Ndp.h",
         "commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h",
@@ -1357,6 +1369,12 @@ cpp_library(
         "commands/config/protocol/bgp/policy/CmdConfigProtocolBgpPolicy.h",
         "commands/config/protocol/bgp/policy/as-path-list/BgpAsPathListCliUtils.h",
         "commands/config/protocol/bgp/policy/as-path-list/CmdConfigProtocolBgpPolicyAsPathList.h",
+        "commands/config/protocol/bgp/policy/community-list/BgpCommunityListCliUtils.h",
+        "commands/config/protocol/bgp/policy/community-list/CmdConfigProtocolBgpPolicyCommunityList.h",
+        "commands/config/protocol/bgp/policy/prefix-list/BgpPrefixListCliUtils.h",
+        "commands/config/protocol/bgp/policy/prefix-list/CmdConfigProtocolBgpPolicyPrefixList.h",
+        "commands/config/protocol/bgp/policy/prefix-list/entry/CmdConfigProtocolBgpPolicyPrefixListEntry.h",
+        "commands/config/protocol/bgp/policy/routing-policy/CmdConfigProtocolBgpPolicyRoutingPolicy.h",
         "commands/config/protocol/static/CmdConfigProtocolStatic.h",
         "commands/config/protocol/static/route/StaticRouteUtils.h",
         "commands/config/protocol/static/route/add/CmdConfigProtocolStaticRouteAdd.h",
@@ -1427,6 +1445,9 @@ cpp_library(
         "commands/delete/protocol/bgp/peer-group/CmdDeleteProtocolBgpPeerGroup.h",
         "commands/delete/protocol/bgp/policy/CmdDeleteProtocolBgpPolicy.h",
         "commands/delete/protocol/bgp/policy/as-path-list/CmdDeleteProtocolBgpPolicyAsPathList.h",
+        "commands/delete/protocol/bgp/policy/community-list/CmdDeleteProtocolBgpPolicyCommunityList.h",
+        "commands/delete/protocol/bgp/policy/prefix-list/CmdDeleteProtocolBgpPolicyPrefixList.h",
+        "commands/delete/protocol/bgp/policy/routing-policy/CmdDeleteProtocolBgpPolicyRoutingPolicy.h",
         "commands/delete/protocol/static/CmdDeleteProtocolStatic.h",
         "commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.h",
         "commands/delete/qos/CmdDeleteQos.h",
@@ -1467,7 +1488,6 @@ cpp_library(
         "//fboss/agent/packet:ipproto",
         "//fboss/agent/platforms/common:platform_mapping",
         "//fboss/lib:common_file_utils",
-        "//fboss/lib/config:fboss_agent_config_utils",
         "//fboss/qsfp_service/if:qsfp-cpp2-services",
         "//folly:cpp_attributes",
         "//folly:file_util",
@@ -1498,6 +1518,7 @@ cpp_library(
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/if:common-cpp2-types",
         "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/lib/config:fboss_agent_config_utils",
         "//folly:conv",
         "//folly:network_address",
         "//folly:string",
@@ -1532,6 +1553,46 @@ cpp_binary(
     ],
     external_deps = [
         "CLI11",
+    ],
+)
+
+# @ci-signal-ack
+ci_sandcastle(
+    name = "verify_generated_agent_configs",
+    alias = "fboss-verify-generated-agent-configs-citadel",
+    args = {
+        "skip_if_error_exists_on_base_revision": True,
+        "steps": [
+            {
+                "name": "Verify declaration-generated Agent configs",
+                "shell": "buck2 run --flagfile fbcode//mode/opt fbcode//fboss/cli/fboss2:fboss2 -- config gen agent --fboss-root fbcode/fboss --verify",
+            },
+        ],
+    },
+    capabilities = {
+        "tenant": "default-tenant",
+        "type": "fbcode",
+        "vcs": "full-fbsource",
+    },
+    # This transitively tracks fboss_agent_config_utils and fboss_config_utils,
+    # whose helpers construct the generated switch config.
+    ci_deps = [
+        "fbcode//fboss/cli/fboss2:fboss2-config-gen-lib",
+    ],
+    ci_srcs = [
+        "fbcode/fboss/cli/fboss2/commands/config/gen/**",
+        "fbcode/fboss/configs/platforms/**/asic_config/asic_config.json",
+        "fbcode/fboss/configs/platforms/**/asic_config/generated/**",
+        "fbcode/fboss/configs/platforms/**/forwarding_stack/config_generation.json",
+        "fbcode/fboss/configs/platforms/**/forwarding_stack/generated/agent/**",
+        "fbcode/fboss/configs/platforms/**/platform_mapping/generated/**",
+        "fbcode/fboss/configs/platforms/generic/forwarding_stack/**",
+        "fbcode/fboss/lib/platform_mapping_v2/generated_platform_mappings/**",
+    ],
+    command = "SandcastleUniversalCommand",
+    oncall = "fboss_oss",
+    schedules = [
+        ci.diff,
     ],
 )
 

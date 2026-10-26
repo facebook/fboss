@@ -41,4 +41,5 @@ enum LinkTestProductionFeature {
   VDM = 20,
   IPHY_FEC_COUNTERS = 21,
   TRANSCEIVER_LOOPBACK = 22,
+  TRANSCEIVER_RX_OUTPUT_DISABLE = 23,
 }

@@ -2,6 +2,10 @@
 
 #include "fboss/platform/reboot_cause_finder/RebootCauseFinderImpl.h"
 
+DECLARE_int32(bmc_logfile_poll_timeout_s);
+DECLARE_bool(redo_current_boot);
+DECLARE_bool(clear_reboot_causes);
+
 #include <sys/stat.h>
 #include <algorithm>
 #include <cerrno>
@@ -1172,9 +1176,13 @@ class DetermineRebootCauseTest : public RebootCauseFinderImplTest {
  protected:
   void SetUp() override {
     RebootCauseFinderImplTest::SetUp();
+    // No BMC here, so every logfile read fails with no response, which is
+    // retryable. Without this the whole poll window elapses per test.
+    FLAGS_bmc_logfile_poll_timeout_s = 0;
     historyDir_ = (tmpDir_ / "history").string();
     procStat_ = (tmpDir_ / "stat").string();
     bootIdPath_ = (tmpDir_ / "boot_id").string();
+    osReleasePath_ = (tmpDir_ / "osrelease").string();
     crashDir_ = (tmpDir_ / "crash").string();
     logPath_ = (tmpDir_ / "messages").string();
     std::filesystem::create_directories(crashDir_);
@@ -1186,11 +1194,29 @@ class DetermineRebootCauseTest : public RebootCauseFinderImplTest {
         folly::writeFile(
             std::string("11111111-2222-3333-4444-555555555555\n"),
             bootIdPath_.c_str()));
+    ASSERT_TRUE(
+        folly::writeFile(
+            std::string("6.4.3-0_fbk15_test\n"), osReleasePath_.c_str()));
   }
 
   RebootCauseFinderImpl::Paths paths() const {
     return RebootCauseFinderImpl::Paths{
-        historyDir_, procStat_, bootIdPath_, {crashDir_}, {logPath_}};
+        historyDir_,
+        procStat_,
+        bootIdPath_,
+        osReleasePath_,
+        {crashDir_},
+        {logPath_}};
+  }
+
+  // Path of the single record determineRebootCause() persisted.
+  std::string singleRecordPath() const {
+    std::vector<std::string> files;
+    for (const auto& e : std::filesystem::directory_iterator(historyDir_)) {
+      files.push_back(e.path().string());
+    }
+    EXPECT_EQ(files.size(), 1);
+    return files.empty() ? std::string{} : files.front();
   }
 
   // The single record determineRebootCause() persisted, as parsed JSON.
@@ -1217,7 +1243,8 @@ class DetermineRebootCauseTest : public RebootCauseFinderImplTest {
   }
 
   int64_t btime_{};
-  std::string historyDir_, procStat_, bootIdPath_, crashDir_, logPath_;
+  std::string historyDir_, procStat_, bootIdPath_, osReleasePath_, crashDir_,
+      logPath_;
 };
 
 // The headline rule: nothing found means nothing claimed.
@@ -1299,6 +1326,128 @@ TEST_F(DetermineRebootCauseTest, SecondRunInTheSameBootDoesNothing) {
   RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
       .determineRebootCause();
   EXPECT_EQ(readRecord()["detectedAtMs"].asInt(), first);
+}
+
+// --redo_current_boot lifts that guard, for debugging a boot in place.
+TEST_F(DetermineRebootCauseTest, RedoCurrentBootReplacesTheRecord) {
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+
+  // Mark the record rather than comparing detectedAtMs: that has millisecond
+  // resolution and both runs can land inside the same millisecond, which
+  // makes the timestamp a coin flip rather than a signal. The guard matches
+  // on the filename, so the contents can be anything.
+  ASSERT_TRUE(
+      folly::writeFile(std::string("SENTINEL"), singleRecordPath().c_str()));
+
+  FLAGS_redo_current_boot = true;
+  SCOPE_EXIT {
+    FLAGS_redo_current_boot = false;
+  };
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+
+  // singleRecordPath() asserts there is exactly one file, so this pins both
+  // halves: the marked record is gone and no second one was left beside it.
+  std::string contents;
+  ASSERT_TRUE(folly::readFile(singleRecordPath().c_str(), contents));
+  EXPECT_THAT(contents, testing::Not(testing::HasSubstr("SENTINEL")));
+  EXPECT_THAT(contents, testing::HasSubstr("detectedAtMs"));
+}
+
+// The filename stamp is the boot time, not the time of the run, so a record
+// determined long after its boot still sorts with that boot.
+TEST_F(DetermineRebootCauseTest, RecordIsNamedByBootTime) {
+  const std::time_t btime = btime_ - 86400;
+  ASSERT_TRUE(
+      folly::writeFile(
+          fmt::format("cpu 1 2 3\nbtime {}\n", btime), procStat_.c_str()));
+
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+
+  std::tm tm{};
+  localtime_r(&btime, &tm);
+  char stamp[32];
+  std::strftime(stamp, sizeof(stamp), "%Y-%m-%d-%H-%M-%S", &tm);
+  EXPECT_EQ(
+      std::filesystem::path(singleRecordPath()).filename().string(),
+      fmt::format(
+          "reboot-cause-{}-11111111-2222-3333-4444-555555555555.json", stamp));
+}
+
+TEST_F(DetermineRebootCauseTest, RecordCarriesTheKernelRelease) {
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+  EXPECT_EQ(readRecord()["kernelRelease"].asString(), "6.4.3-0_fbk15_test");
+}
+
+// The kernel release is informational, so losing it must not cost the record.
+TEST_F(DetermineRebootCauseTest, UnreadableKernelReleaseStillWritesRecord) {
+  std::filesystem::remove(osReleasePath_);
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+  EXPECT_EQ(readRecord()["kernelRelease"].asString(), "");
+}
+
+// A redo that cannot clear the way for itself must stop. Writing a second
+// record for one boot would leave two answers and no way to tell which is
+// current, which is worse than refusing to redo.
+TEST_F(DetermineRebootCauseTest, RedoStopsWhenTheRecordCannotBeRemoved) {
+  if (::geteuid() == 0) {
+    GTEST_SKIP() << "root ignores the directory permissions this relies on";
+  }
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+  const auto first = readRecord()["detectedAtMs"].asInt();
+
+  // Removing a file needs write permission on its directory, not the file.
+  std::filesystem::permissions(
+      historyDir_,
+      std::filesystem::perms::owner_write,
+      std::filesystem::perm_options::remove);
+  SCOPE_EXIT {
+    std::filesystem::permissions(
+        historyDir_,
+        std::filesystem::perms::owner_write,
+        std::filesystem::perm_options::add);
+  };
+
+  FLAGS_redo_current_boot = true;
+  SCOPE_EXIT {
+    FLAGS_redo_current_boot = false;
+  };
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+
+  // readRecord() asserts on there being exactly one file, so this pins both
+  // halves: the original survived and no second record was written.
+  std::filesystem::permissions(
+      historyDir_,
+      std::filesystem::perms::owner_write,
+      std::filesystem::perm_options::add);
+  EXPECT_EQ(readRecord()["detectedAtMs"].asInt(), first);
+}
+
+// Clearing the providers is destructive, so a redo that follows a run which
+// already cleared them will quietly find less. It is allowed, but it says so.
+TEST_F(DetermineRebootCauseTest, RedoWarnsWhenProviderClearingIsAlsoOn) {
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+
+  FLAGS_redo_current_boot = true;
+  FLAGS_clear_reboot_causes = true;
+  SCOPE_EXIT {
+    FLAGS_redo_current_boot = false;
+    FLAGS_clear_reboot_causes = false;
+  };
+
+  testing::internal::CaptureStderr();
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+  const auto logs = testing::internal::GetCapturedStderr();
+
+  EXPECT_THAT(logs, testing::HasSubstr("--clear_reboot_causes is also set"));
 }
 
 // ------------------------------------------------------- hardware providers
@@ -1450,3 +1599,24 @@ TEST_F(RebootCauseFinderImplTest, ProviderUnparseableDateKeepsTheCause) {
 }
 
 } // namespace
+
+TEST(BmcFailureIsRetryableTest, NoResponseIsRetryable) {
+  // The BMC is still booting, or the sideband address is not up yet.
+  EXPECT_TRUE(detail::bmcFailureIsRetryable(std::nullopt));
+}
+
+TEST(BmcFailureIsRetryableTest, ForbiddenIsRetryable) {
+  // The ACL a reboot wiped comes back when the BMC is reconfigured.
+  EXPECT_TRUE(detail::bmcFailureIsRetryable(403));
+}
+
+TEST(BmcFailureIsRetryableTest, NotFoundIsNotRetryable) {
+  // An image without the endpoint will not grow one while we wait.
+  EXPECT_FALSE(detail::bmcFailureIsRetryable(404));
+}
+
+TEST(BmcFailureIsRetryableTest, OtherStatusesAreNotRetryable) {
+  EXPECT_FALSE(detail::bmcFailureIsRetryable(200));
+  EXPECT_FALSE(detail::bmcFailureIsRetryable(401));
+  EXPECT_FALSE(detail::bmcFailureIsRetryable(500));
+}

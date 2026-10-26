@@ -226,9 +226,7 @@ class ServiceHandler : public FsdbServiceSvIf,
   }
   // Expensive API to copy root thrift object. To be used only
   // in tests.
-  FsdbOperStatsRoot operStatsRootExpensive() const {
-    return operStatsStorage_.currentStateExpensive();
-  }
+  FsdbOperStatsRoot operStatsRootExpensive() const;
 
   FsdbOperTreeMetadataTracker getStatsPublisherMetadata() const {
     return operStatsStorage_.getMetadata();

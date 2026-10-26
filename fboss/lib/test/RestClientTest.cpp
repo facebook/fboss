@@ -50,4 +50,11 @@ TEST(RestClientTest, SourceAddressAcceptsZonedLinkLocal) {
   EXPECT_NO_THROW(client.setSourceAddress(folly::IPAddressV6("fe80::2%lo")));
 }
 
+TEST(RestClientTest, ReportsNoResponseCodeBeforeAnyRequest) {
+  RestClient client(folly::IPAddress("::1"), kPort);
+  // nullopt is the "never got a response" signal callers branch on, so it
+  // has to be the starting state rather than an arbitrary status.
+  EXPECT_EQ(client.lastResponseCode(), std::nullopt);
+}
+
 } // namespace facebook::fboss

@@ -8,6 +8,9 @@
  *
  */
 
+#include "fboss/agent/state/FibInfo.h"
+#include "fboss/agent/state/FibInfoMap.h"
+#include "fboss/agent/state/NextHopIdMaps.h"
 #include "fboss/agent/test/BaseEcmpResourceMgrMergeGroupsTests.h"
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/utils/EcmpResourceManagerTestUtils.h"
@@ -1297,5 +1300,45 @@ TEST_F(
 
   // nhop count: manager's ecmp member count matches the FIB.
   assertResourceMgrCorrectness(*mgr, sw_->getState());
+}
+
+TEST_F(EcmpResourceMgrMergeGroupTest, reconstructRebuildsOverrideSetIds) {
+  const auto start = nextHopIdTypeStart(NextHopIdType::OVERRIDE_SET);
+  const auto end = nextHopIdTypeEnd(NextHopIdType::OVERRIDE_SET);
+  // Sparse ids across the whole range, with overlapping member sets.
+  const std::map<int64_t, std::set<int64_t>> overrides = {
+      {start, {1, 2}},
+      {start + 3, {3}},
+      {start + 17, {4, 5, 6}},
+      {start + 1000, {2, 7}},
+      {start + 65536, {1, 2, 3, 4, 5, 6, 7, 8}},
+      {end - 1, {9, 10}},
+  };
+  auto overrideMap = std::make_shared<IdToNextHopIdSetMap>();
+  for (const auto& [id, members] : overrides) {
+    overrideMap->addNextHopIdSet(id, members);
+  }
+  auto state = state_->clone();
+  auto fibsInfoMap = state->getFibsInfoMap()->modify(&state);
+  for (const auto& [switchId, fibInfo] : std::as_const(*fibsInfoMap)) {
+    fibInfo->modify(&state)->setOverrideIdToNextHopIdSetMap(overrideMap);
+  }
+  auto newConsolidator = makeResourceMgr();
+  newConsolidator->reconstructFromSwitchState(state);
+  const auto& mgr = newConsolidator->getOverrideSetIdManager();
+  ASSERT_EQ(mgr.getIdToMembers().size(), overrides.size());
+  ASSERT_EQ(mgr.getMembersToId().size(), overrides.size());
+  for (const auto& [id, members] : overrides) {
+    NextHopIDSet expected;
+    for (auto member : members) {
+      expected.insert(NextHopID(member));
+    }
+    EXPECT_EQ(mgr.getIdToMembers().at(NextHopSetID(id)), expected);
+    EXPECT_EQ(mgr.getMembersToId().at(expected), NextHopSetID(id));
+  }
+
+  newConsolidator->reconstructFromSwitchState(state_);
+  EXPECT_TRUE(mgr.getIdToMembers().empty());
+  EXPECT_TRUE(mgr.getMembersToId().empty());
 }
 } // namespace facebook::fboss

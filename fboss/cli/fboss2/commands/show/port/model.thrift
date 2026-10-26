@@ -37,6 +37,8 @@ struct PortEntry {
   26: string userMetaData;
   // Ingress ACL table bound directly to this port, or "--" when none is bound.
   27: string ingressAclTable;
+  // CBFC profile, VCs and sender values. Unset when the port has no CBFC.
+  28: optional string cbfc;
 }
 
 struct PortHwStatsEntry {
@@ -56,4 +58,8 @@ struct PortHwStatsEntry {
   14: i64 ingressBytes;
   15: i64 egressBytes;
   16: i64 inCongestionDiscards;
+  // CBFC credit messages. Set only on ports with CBFC.
+  17: optional i64 cbfcCfUpdateTx;
+  18: optional i64 cbfcCfUpdateRx;
+  19: optional i64 cbfcCcUpdateTx;
 }

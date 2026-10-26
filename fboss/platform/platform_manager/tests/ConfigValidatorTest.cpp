@@ -1745,6 +1745,96 @@ TEST(ConfigValidatorTest, PciDeviceConfigWithI2cAdapterBlockConfigs) {
   EXPECT_TRUE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
 }
 
+TEST(ConfigValidatorTest, MdioBusBlockConfig) {
+  ConfigValidator validator;
+  MdioBusBlockConfig config;
+
+  // Test case: Valid config
+  config.pmUnitScopedNamePrefix() = "RTM_L_MDIO";
+  config.deviceName() = "fbiob-mdio";
+  config.csrOffsetCalc() = "0x200 + {busIndex}*0x20";
+  config.numBuses() = 4;
+  EXPECT_TRUE(validator.isValidMdioBusBlockConfig(config));
+
+  // Test case: Valid config with iobufOffsetCalc
+  config.iobufOffsetCalc() = "0x8000 + {busIndex}*0x200";
+  EXPECT_TRUE(validator.isValidMdioBusBlockConfig(config));
+
+  // Test case: Invalid iobufOffsetCalc expression
+  config.iobufOffsetCalc() = "invalid_expression";
+  EXPECT_FALSE(validator.isValidMdioBusBlockConfig(config));
+
+  // Test case: iobufOffsetCalc uses a placeholder other than busIndex
+  config.iobufOffsetCalc() = "0x8000 + {portNum}*0x200";
+  EXPECT_FALSE(validator.isValidMdioBusBlockConfig(config));
+  config.iobufOffsetCalc() = "";
+
+  // Test case: Empty pmUnitScopedNamePrefix
+  config.pmUnitScopedNamePrefix() = "";
+  EXPECT_FALSE(validator.isValidMdioBusBlockConfig(config));
+  config.pmUnitScopedNamePrefix() = "RTM_L_MDIO";
+
+  // Test case: pmUnitScopedNamePrefix ends with _
+  config.pmUnitScopedNamePrefix() = "RTM_L_MDIO_";
+  EXPECT_FALSE(validator.isValidMdioBusBlockConfig(config));
+  config.pmUnitScopedNamePrefix() = "RTM_L_MDIO";
+
+  // Test case: Empty deviceName
+  config.deviceName() = "";
+  EXPECT_FALSE(validator.isValidMdioBusBlockConfig(config));
+  config.deviceName() = "fbiob-mdio";
+
+  // Test case: Empty csrOffsetCalc
+  config.csrOffsetCalc() = "";
+  EXPECT_FALSE(validator.isValidMdioBusBlockConfig(config));
+  config.csrOffsetCalc() = "0x200 + {busIndex}*0x20";
+
+  // Test case: Zero numBuses
+  config.numBuses() = 0;
+  EXPECT_FALSE(validator.isValidMdioBusBlockConfig(config));
+  config.numBuses() = 4;
+
+  // Test case: Negative numBuses
+  config.numBuses() = -1;
+  EXPECT_FALSE(validator.isValidMdioBusBlockConfig(config));
+  config.numBuses() = 4;
+
+  // Test case: Invalid csrOffsetCalc expression
+  config.csrOffsetCalc() = "invalid_expression";
+  EXPECT_FALSE(validator.isValidMdioBusBlockConfig(config));
+
+  // Test case: csrOffsetCalc uses a placeholder other than busIndex
+  config.csrOffsetCalc() = "0x200 + {portNum}*0x20";
+  EXPECT_FALSE(validator.isValidMdioBusBlockConfig(config));
+
+  // Test case: csrOffsetCalc has an unterminated placeholder
+  config.csrOffsetCalc() = "0x200 + {busIndex*0x20";
+  EXPECT_FALSE(validator.isValidMdioBusBlockConfig(config));
+  config.csrOffsetCalc() = "0x200 + {busIndex}*0x20";
+}
+
+TEST(ConfigValidatorTest, PciDeviceConfigWithMdioBusBlockConfigs) {
+  auto pciDevConfig = getValidPciDeviceConfig();
+
+  // Test case: Invalid MdioBusBlockConfig in PciDeviceConfig
+  MdioBusBlockConfig invalidConfig;
+  invalidConfig.pmUnitScopedNamePrefix() = ""; // This will make it invalid
+  invalidConfig.deviceName() = "fbiob-mdio";
+  invalidConfig.csrOffsetCalc() = "0x200 + {busIndex}*0x20";
+  invalidConfig.numBuses() = 4;
+  pciDevConfig.mdioBusBlockConfigs() = {invalidConfig};
+  EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+
+  // Test case: Valid MdioBusBlockConfig in PciDeviceConfig
+  MdioBusBlockConfig validConfig;
+  validConfig.pmUnitScopedNamePrefix() = "RTM_L_MDIO";
+  validConfig.deviceName() = "fbiob-mdio";
+  validConfig.csrOffsetCalc() = "0x200 + {busIndex}*0x20";
+  validConfig.numBuses() = 4;
+  pciDevConfig.mdioBusBlockConfigs() = {validConfig};
+  EXPECT_TRUE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+}
+
 TEST(ConfigValidatorTest, LogicalEeproms) {
   // Test 1: Empty result when no EEPROMs configured
   std::map<std::string, SlotTypeConfig> slotTypeConfigs;
