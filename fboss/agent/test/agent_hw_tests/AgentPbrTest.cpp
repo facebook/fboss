@@ -75,19 +75,6 @@ NextHopT makeSrv6NextHop(PortID port, Args&&... args) {
       TunnelType::SRV6_ENCAP,
       std::string(kSrv6TunnelId));
 }
-
-std::shared_ptr<AclEntry> programmedPbrEntry(
-    const AclMap& aclMap,
-    const std::string& policyName,
-    ForwardingClass trafficClass) {
-  for (bool temporary : {false, true}) {
-    if (auto entry = aclMap.getEntryIf(
-            makePbrAclEntryName(policyName, trafficClass, temporary))) {
-      return entry;
-    }
-  }
-  return nullptr;
-}
 } // namespace
 
 class AgentPbrTest : public AgentHwTest {
@@ -584,10 +571,10 @@ TEST_F(AgentPbrTest, TwoPoliciesShareOnePriority) {
     ASSERT_NE(aclMap, nullptr);
 
     // 1. Both rules are present, at one priority, distinguished by name.
-    auto entryA =
-        programmedPbrEntry(*aclMap, kPolicy(), ForwardingClass::CLASS_1);
-    auto entryB =
-        programmedPbrEntry(*aclMap, kPolicyB, ForwardingClass::CLASS_1);
+    auto entryA = aclMap->getEntryIf(makePbrAclEntryName(
+        kPolicy(), ForwardingClass::CLASS_1, false /*temporary*/));
+    auto entryB = aclMap->getEntryIf(makePbrAclEntryName(
+        kPolicyB, ForwardingClass::CLASS_1, false /*temporary*/));
     ASSERT_NE(entryA, nullptr);
     ASSERT_NE(entryB, nullptr);
     EXPECT_EQ(entryA->getPriority(), FLAGS_pbr_acl_priority);
