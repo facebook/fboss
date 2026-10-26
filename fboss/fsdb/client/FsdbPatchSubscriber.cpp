@@ -3,13 +3,31 @@
 #include "fboss/fsdb/client/FsdbPatchSubscriber.h"
 #include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
 
+#include <folly/coro/Sleep.h>
 #include <folly/coro/Task.h>
 #include <folly/logging/xlog.h>
+
+#include <algorithm>
+#include <chrono>
 
 namespace facebook::fboss::fsdb {
 
 namespace {
-constexpr std::chrono::seconds kLiveAddRpcTimeout{5};
+// Server verdicts a retry cannot change.
+bool isTerminalLiveAddError(FsdbErrorCode code) {
+  return code == FsdbErrorCode::INVALID_REQUEST ||
+      code == FsdbErrorCode::INVALID_PATH ||
+      code == FsdbErrorCode::SUBSCRIPTION_NOT_PERMITTED ||
+      code == FsdbErrorCode::ID_ALREADY_EXISTS;
+}
+
+// Verdicts a reconnect's subscribe request would get too. INVALID_REQUEST is
+// excluded: some causes (e.g. the first wildcard on an initialized eager
+// subscription) do not apply to a fresh subscribe.
+bool isReconnectInvariantLiveAddError(FsdbErrorCode code) {
+  return code == FsdbErrorCode::INVALID_PATH ||
+      code == FsdbErrorCode::SUBSCRIPTION_NOT_PERMITTED;
+}
 } // namespace
 
 template <typename MessageType, typename SubUnit, typename PathElement>
@@ -61,19 +79,37 @@ FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::addPaths(
   if (newPaths.empty()) {
     return std::nullopt;
   }
+  // A key is never sent with two different paths, so a server holding a key
+  // holds this client's path for it. Re-adding a key with its path is a no-op.
+  const auto& basePaths = this->subscribePaths();
+  std::optional<FsdbErrorCode> err;
   // Recorded paths are delivered by the createRequest() merge on any
   // (re)connect, independent of the live add.
-  bool schedule = liveAdd_.withWLock([&newPaths](auto& state) {
+  bool schedule = liveAdd_.withWLock([&](auto& state) {
+    PathElement unknown;
     for (const auto& [key, path] : newPaths) {
-      state.addedPaths.insert_or_assign(key, path);
+      const auto added = state.addedPaths.find(key);
+      const auto base = basePaths.find(key);
+      const auto* knownPath = added != state.addedPaths.end() ? &added->second
+          : base != basePaths.end()                           ? &base->second
+                                                              : nullptr;
+      if (!knownPath) {
+        unknown.emplace(key, path);
+      } else if (*knownPath != path) {
+        err = FsdbErrorCode::ID_ALREADY_EXISTS;
+        return false;
+      }
+    }
+    for (auto& [key, path] : unknown) {
       state.pendingKeys.insert(key);
+      state.addedPaths.emplace(key, std::move(path));
     }
     return claimLiveAddDrain(state);
   });
   if (schedule) {
     scheduleLiveAddDrain();
   }
-  return std::nullopt;
+  return err;
 }
 
 template <typename MessageType, typename SubUnit, typename PathElement>
@@ -112,10 +148,10 @@ FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::makeLiveAddRequest(
 
 template <typename MessageType, typename SubUnit, typename PathElement>
 void FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::
-    eraseLiveAddKeys(uint64_t uid, const PathElement& batch) {
+    eraseLiveAddKeys(uint64_t generation, const PathElement& batch) {
   liveAdd_.withWLock([&](auto& state) {
     // After a reconnect, pendingKeys is relative to the new request.
-    if (state.uid == uid) {
+    if (state.generation == generation) {
       for (const auto& [key, _] : batch) {
         state.pendingKeys.erase(key);
       }
@@ -143,17 +179,110 @@ FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::liveAddRpc(
 
 template <typename MessageType, typename SubUnit, typename PathElement>
 folly::coro::Task<void>
+FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::invokeLiveAddRpc(
+    const AddPatchSubscriptionPathsRequest& request,
+    std::chrono::milliseconds timeout) {
+  auto interceptor = liveAddRpcInterceptorForTest_.copy();
+  if (interceptor) {
+    co_await interceptor(
+        request, [this, timeout](AddPatchSubscriptionPathsRequest next) {
+          return liveAddRpc(std::move(next), timeout);
+        });
+  } else {
+    co_await liveAddRpc(request, timeout);
+  }
+}
+
+template <typename MessageType, typename SubUnit, typename PathElement>
+folly::coro::Task<
+    typename FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::
+        LiveAddOutcome>
 FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::sendLiveAddBatch(
     uint64_t uid,
-    const PathElement& batch) {
-  try {
-    co_await liveAddRpc(makeLiveAddRequest(uid, batch), kLiveAddRpcTimeout);
-  } catch (const folly::OperationCancelled&) {
-    throw;
-  } catch (const std::exception& e) {
-    XLOG(WARN) << "addPatchSubscriptionPaths live-extend failed for "
-               << this->clientId() << ": " << folly::exceptionStr(e)
-               << "; added paths will be delivered on next reconnect";
+    uint64_t generation,
+    const PathElement& batch,
+    std::chrono::steady_clock::time_point deadline,
+    bool& outcomeUnknown) {
+  const auto retryOptions = liveAddRetryOptions_.copy();
+  const auto request = makeLiveAddRequest(uid, batch);
+  auto backoff = retryOptions.initialBackoff;
+  for (int attempt = 0;; ++attempt) {
+    if (this->isCancelled() || !this->client_ ||
+        liveAdd_.rlock()->generation != generation) {
+      co_return LiveAddOutcome::ABANDONED;
+    }
+    try {
+      co_await invokeLiveAddRpc(request, retryOptions.rpcTimeout);
+      XLOG_IF(INFO, attempt > 0)
+          << "addPatchSubscriptionPaths applied for " << this->clientId()
+          << " after " << attempt + 1 << " attempts";
+      co_return LiveAddOutcome::APPLIED;
+    } catch (const folly::OperationCancelled&) {
+      throw;
+    } catch (const FsdbException& ex) {
+      const auto code = folly::copy(ex.errorCode().value());
+      if (code == FsdbErrorCode::ID_ALREADY_EXISTS && outcomeUnknown) {
+        // A multi-key batch is rejected as a whole, so only a single key is
+        // known to be applied; the caller resends the rest key by key.
+        co_return batch.size() == 1 ? LiveAddOutcome::APPLIED
+                                    : LiveAddOutcome::REJECTED;
+      }
+      if (isTerminalLiveAddError(code)) {
+        if (batch.size() == 1) {
+          liveAddRejects_.add(1);
+          const auto key = batch.begin()->first;
+          // Kept, the path would fail every resubscribe with it, healthy
+          // paths included.
+          const bool drop = isReconnectInvariantLiveAddError(code);
+          if (drop) {
+            liveAdd_.wlock()->addedPaths.erase(key);
+          }
+          XLOG(ERR) << "addPatchSubscriptionPaths rejected for "
+                    << this->clientId() << " key " << key << ": "
+                    << apache::thrift::util::enumNameSafe(code)
+                    << (drop ? "; path dropped"
+                             : "; path kept for next reconnect, which may "
+                               "reject it the same way");
+        }
+        co_return LiveAddOutcome::REJECTED;
+      }
+      XLOG_IF(WARN, attempt == 0)
+          << "addPatchSubscriptionPaths failed for " << this->clientId() << ": "
+          << apache::thrift::util::enumNameSafe(code) << "; retrying";
+    } catch (const std::exception& ex) {
+      outcomeUnknown = true;
+      XLOG_IF(WARN, attempt == 0)
+          << "addPatchSubscriptionPaths failed for " << this->clientId() << ": "
+          << folly::exceptionStr(ex) << "; retrying";
+    }
+    // Bounded for every retryable failure so a stuck batch cannot block later
+    // adds; the reconnect's subscribe request carries every added path.
+    if (std::chrono::steady_clock::now() + backoff > deadline) {
+      co_return LiveAddOutcome::EXHAUSTED;
+    }
+    liveAddRetries_.add(1);
+    co_await folly::coro::sleep(backoff);
+    backoff = std::min(backoff * 2, retryOptions.maxBackoff);
+  }
+}
+
+template <typename MessageType, typename SubUnit, typename PathElement>
+void FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::
+    fallBackToReconnect(uint64_t generation) {
+  bool fallback = liveAdd_.withWLock([generation](auto& state) {
+    if (state.generation != generation) {
+      return false;
+    }
+    // Stop live adds on this stream; the reconnect's subscribe request carries
+    // every added path.
+    state.uid.reset();
+    return true;
+  });
+  if (fallback) {
+    liveAddReconnectFallbacks_.add(1);
+    XLOG(WARN) << "addPatchSubscriptionPaths retries exhausted for "
+               << this->clientId() << "; reconnecting to deliver added paths";
+    this->reconnect();
   }
 }
 
@@ -163,6 +292,7 @@ FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::drainLiveAdds() {
   try {
     while (true) {
       uint64_t uid{0};
+      uint64_t generation{0};
       PathElement batch;
       bool done = liveAdd_.withWLock([&](auto& state) {
         if (!state.uid.has_value() || state.pendingKeys.empty() ||
@@ -171,6 +301,7 @@ FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::drainLiveAdds() {
           return true;
         }
         uid = *state.uid;
+        generation = state.generation;
         for (const auto key : state.pendingKeys) {
           batch.emplace(key, state.addedPaths.at(key));
         }
@@ -179,8 +310,33 @@ FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::drainLiveAdds() {
       if (done) {
         co_return;
       }
-      co_await sendLiveAddBatch(uid, batch);
-      eraseLiveAddKeys(uid, batch);
+      const auto deadline = std::chrono::steady_clock::now() +
+          liveAddRetryOptions_.rlock()->budget;
+      bool outcomeUnknown = false;
+      auto outcome = co_await sendLiveAddBatch(
+          uid, generation, batch, deadline, outcomeUnknown);
+      if (outcome == LiveAddOutcome::REJECTED && batch.size() > 1) {
+        // The server rejects a batch as a whole; resend key by key, within the
+        // batch's deadline, so only the offending paths are dropped.
+        for (const auto& [key, path] : batch) {
+          PathElement single{{key, path}};
+          bool singleOutcomeUnknown = outcomeUnknown;
+          outcome = co_await sendLiveAddBatch(
+              uid, generation, single, deadline, singleOutcomeUnknown);
+          if (outcome != LiveAddOutcome::APPLIED &&
+              outcome != LiveAddOutcome::REJECTED) {
+            break;
+          }
+          eraseLiveAddKeys(generation, single);
+        }
+      } else if (
+          outcome == LiveAddOutcome::APPLIED ||
+          outcome == LiveAddOutcome::REJECTED) {
+        eraseLiveAddKeys(generation, batch);
+      }
+      if (outcome == LiveAddOutcome::EXHAUSTED) {
+        fallBackToReconnect(generation);
+      }
     }
   } catch (const folly::OperationCancelled&) {
     liveAdd_.wlock()->drainScheduled = false;
@@ -203,6 +359,7 @@ FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::setupStream() {
   auto request = liveAdd_.withWLock([this](auto& state) {
     state.uid.reset();
     state.pendingKeys.clear();
+    ++state.generation;
     return createRequest(state.addedPaths);
   });
   if (auto hook = onSubscribeRequestCreatedForTest_.copy()) {

@@ -15,6 +15,15 @@
 
 namespace facebook::fboss::fsdb {
 
+struct FsdbLiveAddRetryOptions {
+  std::chrono::milliseconds rpcTimeout{5000};
+  std::chrono::milliseconds initialBackoff{100};
+  std::chrono::milliseconds maxBackoff{2000};
+  // Time spent retrying one batch, including its key-by-key resend, before
+  // falling back to reconnect().
+  std::chrono::milliseconds budget{30000};
+};
+
 template <typename MessageType, typename SubUnit, typename PathElement>
 class FsdbPatchSubscriberImpl : public FsdbSubscriber<SubUnit, PathElement> {
   using BaseT = FsdbSubscriber<SubUnit, PathElement>;
@@ -36,9 +45,10 @@ class FsdbPatchSubscriberImpl : public FsdbSubscriber<SubUnit, PathElement> {
   // (re)connect subscribes the full (original + added) set. While the current
   // stream supports live add-path, a serialized background drain also appends
   // them to the live server-side subscription for an immediate initial sync.
-  // Always returns std::nullopt today: server-side rejections are logged. The
-  // FsdbErrorCode return is retained for a future synchronous client-side
-  // rejection.
+  // Returns ID_ALREADY_EXISTS, adding nothing, if a key is already subscribed
+  // with a different path; re-adding a key with its path is a no-op. A path
+  // the server rejects as INVALID_PATH or SUBSCRIPTION_NOT_PERMITTED is dropped
+  // from later subscribe requests; other server-side rejections are logged.
   std::optional<FsdbErrorCode> addPaths(const PathElement& newPaths);
 
   // Whether the server on the current connection advertised live add-path
@@ -57,7 +67,25 @@ class FsdbPatchSubscriberImpl : public FsdbSubscriber<SubUnit, PathElement> {
     *onSubscribeRequestCreatedForTest_.wlock() = std::move(hook);
   }
 
+  using LiveAddRetryOptions = FsdbLiveAddRetryOptions;
+  using LiveAddRpc =
+      std::function<folly::coro::Task<void>(AddPatchSubscriptionPathsRequest)>;
+  // Test-only: wraps each live add-paths RPC attempt; `next` issues the real
+  // RPC.
+  using LiveAddRpcInterceptor = std::function<folly::coro::Task<void>(
+      AddPatchSubscriptionPathsRequest request,
+      LiveAddRpc next)>;
+
+  void setLiveAddRpcInterceptorForTest(LiveAddRpcInterceptor interceptor) {
+    *liveAddRpcInterceptorForTest_.wlock() = std::move(interceptor);
+  }
+  void setLiveAddRetryOptionsForTest(LiveAddRetryOptions options) {
+    *liveAddRetryOptions_.wlock() = options;
+  }
+
  private:
+  enum class LiveAddOutcome { APPLIED, REJECTED, ABANDONED, EXHAUSTED };
+
   // Live add-path state, guarded together so a subscribe request snapshot and
   // the keys it misses stay consistent.
   struct LiveAddState {
@@ -68,6 +96,9 @@ class FsdbPatchSubscriberImpl : public FsdbSubscriber<SubUnit, PathElement> {
     // Keys added after the current subscribe request was built and not yet
     // applied to the live subscription.
     std::set<SubscriptionKey> pendingKeys;
+    // Incremented per subscribe attempt; identifies the stream a live add
+    // targets, since uids can repeat across FSDB restarts.
+    uint64_t generation{0};
     bool drainScheduled{false};
   };
 
@@ -77,9 +108,16 @@ class FsdbPatchSubscriberImpl : public FsdbSubscriber<SubUnit, PathElement> {
   folly::coro::Task<StreamT> setupStream() override;
   folly::coro::Task<void> serveStream(StreamT&& stream) override;
   folly::coro::Task<void> drainLiveAdds();
-  folly::coro::Task<void> sendLiveAddBatch(
+  // outcomeUnknown: in/out, set once an attempt fails without a server verdict.
+  folly::coro::Task<LiveAddOutcome> sendLiveAddBatch(
       uint64_t uid,
-      const PathElement& batch);
+      uint64_t generation,
+      const PathElement& batch,
+      std::chrono::steady_clock::time_point deadline,
+      bool& outcomeUnknown);
+  folly::coro::Task<void> invokeLiveAddRpc(
+      const AddPatchSubscriptionPathsRequest& request,
+      std::chrono::milliseconds timeout);
   folly::coro::Task<void> liveAddRpc(
       AddPatchSubscriptionPathsRequest request,
       std::chrono::milliseconds timeout);
@@ -92,10 +130,25 @@ class FsdbPatchSubscriberImpl : public FsdbSubscriber<SubUnit, PathElement> {
   AddPatchSubscriptionPathsRequest makeLiveAddRequest(
       uint64_t uid,
       const PathElement& paths) const;
-  void eraseLiveAddKeys(uint64_t uid, const PathElement& batch);
+  void eraseLiveAddKeys(uint64_t generation, const PathElement& batch);
+  void fallBackToReconnect(uint64_t generation);
 
   folly::Synchronized<LiveAddState> liveAdd_;
   folly::Synchronized<std::function<void()>> onSubscribeRequestCreatedForTest_;
+  folly::Synchronized<LiveAddRpcInterceptor> liveAddRpcInterceptorForTest_;
+  folly::Synchronized<LiveAddRetryOptions> liveAddRetryOptions_;
+  fb303::TimeseriesWrapper liveAddRetries_{
+      this->getCounterPrefix() + ".liveAddPaths.retries",
+      fb303::SUM,
+      fb303::RATE};
+  fb303::TimeseriesWrapper liveAddRejects_{
+      this->getCounterPrefix() + ".liveAddPaths.rejected",
+      fb303::SUM,
+      fb303::RATE};
+  fb303::TimeseriesWrapper liveAddReconnectFallbacks_{
+      this->getCounterPrefix() + ".liveAddPaths.reconnectFallbacks",
+      fb303::SUM,
+      fb303::RATE};
 };
 
 using FsdbPatchSubscriber = FsdbPatchSubscriberImpl<
