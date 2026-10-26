@@ -284,6 +284,7 @@ target_link_libraries(pbr_acl_manager
 
 add_library(fsdb_adapted_sub_manager
   fboss/agent/FsdbAdaptedCowStorage.cpp
+  fboss/agent/FsdbAdaptedCowStoragePatch.cpp
   fboss/agent/FsdbAdaptedSubManager.cpp
   fboss/agent/FsdbAdaptedTemplateInstantiations.cpp
 )
