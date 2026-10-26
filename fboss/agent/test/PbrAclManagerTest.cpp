@@ -159,6 +159,28 @@ TEST(PbrUtils, EntryAndCounterNames) {
       "CLASS_1_qzk1-gold-nhg");
 }
 
+TEST(PbrUtils, TemporaryEntryName) {
+  EXPECT_EQ(
+      makePbrAclEntryName("qzk1", ForwardingClass::CLASS_2, true /*temporary*/),
+      "#qzk1_tc2");
+  EXPECT_FALSE(isPbrTempAclEntry("qzk1_tc2"));
+  EXPECT_TRUE(isPbrTempAclEntry("#qzk1_tc2"));
+}
+
+// A rule and its temporary copy sit at the one PBR priority; only the name
+// differs.
+TEST(PbrUtils, TemporaryEntryKeepsPriority) {
+  auto policy = makePolicy("qzk1", 100, {{ForwardingClass::CLASS_1, 201}});
+  auto original = createAclEntriesFromPolicy(policy);
+  auto temporary = createAclEntriesFromPolicy(policy, true /*temporary*/);
+  ASSERT_EQ(original.size(), 1);
+  ASSERT_EQ(temporary.size(), 1);
+  EXPECT_EQ(original[0]->getID(), "qzk1_tc1");
+  EXPECT_EQ(temporary[0]->getID(), "#qzk1_tc1");
+  EXPECT_EQ(original[0]->getPriority(), FLAGS_pbr_acl_priority);
+  EXPECT_EQ(temporary[0]->getPriority(), FLAGS_pbr_acl_priority);
+}
+
 TEST(PbrUtils, CreateAclEntriesFromPolicy) {
   auto policy = makePolicy(
       "qzk1",
@@ -644,6 +666,30 @@ TEST(PbrAclManagerTest, ReconstructReturnsOneDelta) {
   auto deltas = mgr.reconstructFromSwitchState(state);
   EXPECT_EQ(deltas.size(), 1);
   EXPECT_EQ(pbrAcls(deltas.back().newState())->numEntries(), 3);
+}
+
+TEST(PbrAclManagerTest, RemovingAPolicyWithoutItsOriginalEntryThrows) {
+  auto policy = makePolicy("qzk1", 100, {{ForwardingClass::CLASS_1, 201}});
+  auto seeded = createAclEntriesFromPolicy(policy, true /*temporary*/);
+  auto state = makeState({policy}, true /*withPbrTable*/, seeded);
+
+  PbrAclManager mgr;
+  EXPECT_THROW(
+      runManagerDelta(mgr, state, withPolicies(state, {})), FbossError);
+}
+
+TEST(PbrAclManagerTest, DroppingATrafficClassWithoutItsOriginalEntryThrows) {
+  auto policy = makePolicy(
+      "qzk1",
+      100,
+      {{ForwardingClass::CLASS_1, 201}, {ForwardingClass::CLASS_2, 202}});
+  auto tc1Only = makePolicy("qzk1", 100, {{ForwardingClass::CLASS_1, 201}});
+  auto state = makeState(
+      {policy}, true /*withPbrTable*/, createAclEntriesFromPolicy(tc1Only));
+
+  PbrAclManager mgr;
+  EXPECT_THROW(
+      runManagerDelta(mgr, state, withPolicies(state, {tc1Only})), FbossError);
 }
 
 TEST(PbrAclManagerTest, TwoPoliciesShareThePbrPriorityAcrossGetAclsDelta) {
