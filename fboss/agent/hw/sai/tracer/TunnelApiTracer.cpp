@@ -22,6 +22,8 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _TunnelMap{
     SAI_ATTR_MAP(IpInIpTunnel, EncapTtlMode),
     SAI_ATTR_MAP(IpInIpTunnel, EncapDscpMode),
     SAI_ATTR_MAP(IpInIpTunnel, EncapEcnMode),
+    SAI_ATTR_MAP(VxlanTunnel, EncapMappers),
+    SAI_ATTR_MAP(VxlanTunnel, DecapMappers),
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
     // SRv6 tunnels share the SAI_TUNNEL_ATTR_* ids with IP-in-IP but are
     // distinct AttributeName types (default getters), so they need their own
