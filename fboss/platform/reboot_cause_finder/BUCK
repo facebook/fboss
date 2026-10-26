@@ -22,6 +22,24 @@ cpp_library(
 )
 
 cpp_library(
+    name = "reboot_history_lib",
+    srcs = [
+        "RebootHistory.cpp",
+    ],
+    headers = [
+        "RebootHistory.h",
+    ],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "fbsource//xplat/folly:file_util",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_deps = [
+        "//fboss/platform/reboot_cause_finder/if:reboot_cause_config-cpp2-types",
+    ],
+)
+
+cpp_library(
     name = "reboot_cause_finder_lib",
     srcs = [
         "RebootCauseFinderImpl.cpp",

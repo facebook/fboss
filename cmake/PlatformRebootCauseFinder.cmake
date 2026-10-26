@@ -18,6 +18,17 @@ target_link_libraries(reboot_cause_finder_config_validator
   Folly::folly
 )
 
+add_library(reboot_history_lib
+  fboss/platform/reboot_cause_finder/RebootHistory.cpp
+)
+
+target_link_libraries(reboot_history_lib
+  fmt::fmt
+  reboot_cause_config_cpp2
+  Folly::folly
+  FBThrift::thriftcpp2
+)
+
 add_library(reboot_cause_finder_lib
   fboss/platform/reboot_cause_finder/RebootCauseFinderImpl.cpp
 )
