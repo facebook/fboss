@@ -751,6 +751,7 @@ class SaiStore {
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
       SaiObjectStore<SaiSrv6TunnelTraits>,
 #endif
+      SaiObjectStore<SaiVxlanTunnelTraits>,
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
       SaiObjectStore<SaiMySidEntryTraits>,
       SaiObjectStore<SaiSrv6SidListTraits>,

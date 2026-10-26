@@ -52,6 +52,7 @@
 #include "fboss/agent/hw/sai/switch/SaiVirtualChannelManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
+#include "fboss/agent/hw/sai/switch/SaiVxlanTunnelManager.h"
 #include "fboss/agent/hw/sai/switch/SaiWredManager.h"
 
 #include <optional>
@@ -125,6 +126,8 @@ void SaiManagerTable::createSaiTableManagers(
   tunnelManager_ = std::make_unique<SaiTunnelManager>(saiStore, this, platform);
   srv6TunnelManager_ =
       std::make_unique<SaiSrv6TunnelManager>(saiStore, this, platform);
+  vxlanTunnelManager_ =
+      std::make_unique<SaiVxlanTunnelManager>(saiStore, this, platform);
   srv6SidListManager_ =
       std::make_unique<SaiSrv6SidListManager>(saiStore, this, platform);
   srv6MySidManager_ =
@@ -271,6 +274,7 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   srv6MySidManager_.reset();
   srv6SidListManager_.reset();
   srv6TunnelManager_.reset();
+  vxlanTunnelManager_.reset();
   schedulerManager_.reset();
   teFlowEntryManager_.reset();
 
@@ -560,6 +564,14 @@ SaiSrv6TunnelManager& SaiManagerTable::srv6TunnelManager() {
 
 const SaiSrv6TunnelManager& SaiManagerTable::srv6TunnelManager() const {
   return *srv6TunnelManager_;
+}
+
+SaiVxlanTunnelManager& SaiManagerTable::vxlanTunnelManager() {
+  return *vxlanTunnelManager_;
+}
+
+const SaiVxlanTunnelManager& SaiManagerTable::vxlanTunnelManager() const {
+  return *vxlanTunnelManager_;
 }
 
 SaiUdfManager& SaiManagerTable::udfManager() {

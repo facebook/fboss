@@ -312,6 +312,11 @@ ThriftMapDelta<Srv6TunnelMap> StateDelta::getSrv6TunnelsDelta() const {
       old_->getSrv6Tunnels(), new_->getSrv6Tunnels());
 }
 
+ThriftMapDelta<VxlanTunnelMap> StateDelta::getVxlanTunnelsDelta() const {
+  return getFirstMapDelta<VxlanTunnelMap>(
+      old_->getVxlanTunnels(), new_->getVxlanTunnels());
+}
+
 ThriftMapDelta<MySidMap> StateDelta::getMySidsDelta() const {
   return getFirstMapDelta<MySidMap>(old_->getMySids(), new_->getMySids());
 }

@@ -35,7 +35,8 @@ sai_status_t create_tunnel_fn(
         type = static_cast<sai_tunnel_type_t>(attr_list[i].value.s32);
         break;
       case SAI_TUNNEL_ATTR_UNDERLAY_INTERFACE:
-        if (type == SAI_TUNNEL_TYPE_IPINIP || type == SAI_TUNNEL_TYPE_SRV6) {
+        if (type == SAI_TUNNEL_TYPE_IPINIP || type == SAI_TUNNEL_TYPE_SRV6 ||
+            type == SAI_TUNNEL_TYPE_VXLAN) {
           underlay = attr_list[i].value.oid;
         } else {
           return SAI_STATUS_INVALID_PARAMETER;
