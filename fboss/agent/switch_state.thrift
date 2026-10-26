@@ -725,6 +725,11 @@ struct VxLanTunnelFields {
   11: optional map<i64, i64> vniToVrf;
 }
 
+struct VrfFields {
+  1: i32 vrfId;
+  2: optional string name;
+}
+
 struct MySidFields {
   1: common.MySidType type;
   # MySid entry in ip/mask format. 32 bits of this are
@@ -989,6 +994,7 @@ struct SwitchState {
     map<switch_config.AclStage, AclTableGroupFields>
   > portAclTableGroupMaps;
   131: map<SwitchIdList, map<string, VxLanTunnelFields>> vxlanTunnelMaps;
+  132: map<SwitchIdList, map<i32, VrfFields>> vrfMaps;
   // Remote object maps
   600: map<SwitchIdList, map<i64, SystemPortFields>> remoteSystemPortMaps;
   601: map<SwitchIdList, map<i32, InterfaceFields>> remoteInterfaceMaps;
