@@ -3,16 +3,19 @@
 #include "fboss/fsdb/client/FsdbPatchSubscriber.h"
 #include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
 
-#include <folly/coro/Invoke.h>
 #include <folly/coro/Task.h>
 #include <folly/logging/xlog.h>
 
 namespace facebook::fboss::fsdb {
 
+namespace {
+constexpr std::chrono::seconds kLiveAddRpcTimeout{5};
+} // namespace
+
 template <typename MessageType, typename SubUnit, typename PathElement>
 SubRequest
-FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::createRequest()
-    const {
+FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::createRequest(
+    const PathElement& addedPaths) const {
   SubRequest request;
   request.clientId()->instanceId() = clientId();
   request.forceSubscribe() = this->subscriptionOptions().forceSubscribe_;
@@ -27,11 +30,9 @@ FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::createRequest()
   // Merge the original subscribe paths with any paths appended post-subscribe
   // so a (re)connect re-subscribes the full set.
   PathElement merged = this->subscribePaths();
-  addedPaths_.withRLock([&merged](const auto& added) {
-    for (const auto& [key, path] : added) {
-      merged.insert_or_assign(key, path);
-    }
-  });
+  for (const auto& [key, path] : addedPaths) {
+    merged.insert_or_assign(key, path);
+  }
   if constexpr (std::is_same_v<
                     PathElement,
                     std::map<SubscriptionKey, ExtendedOperPath>>) {
@@ -43,78 +44,151 @@ FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::createRequest()
 }
 
 template <typename MessageType, typename SubUnit, typename PathElement>
+bool FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::
+    claimLiveAddDrain(LiveAddState& state) {
+  if (!state.uid.has_value() || state.pendingKeys.empty() ||
+      state.drainScheduled) {
+    return false;
+  }
+  state.drainScheduled = true;
+  return true;
+}
+
+template <typename MessageType, typename SubUnit, typename PathElement>
 std::optional<FsdbErrorCode>
 FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::addPaths(
     const PathElement& newPaths) {
   if (newPaths.empty()) {
-    // Nothing to add; avoid recording a no-op and issuing an empty
-    // live-extend RPC that the server would only reject/log.
     return std::nullopt;
   }
-  // Record the new paths first (durable source of truth): the reconnect merge
-  // in createRequest() guarantees delivery regardless of the RPC below.
-  addedPaths_.withWLock([&newPaths](auto& added) {
+  // Recorded paths are delivered by the createRequest() merge on any
+  // (re)connect, independent of the live add.
+  bool schedule = liveAdd_.withWLock([&newPaths](auto& state) {
     for (const auto& [key, path] : newPaths) {
-      added.insert_or_assign(key, path);
+      state.addedPaths.insert_or_assign(key, path);
+      state.pendingKeys.insert(key);
+    }
+    return claimLiveAddDrain(state);
+  });
+  if (schedule) {
+    scheduleLiveAddDrain();
+  }
+  return std::nullopt;
+}
+
+template <typename MessageType, typename SubUnit, typename PathElement>
+void FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::
+    scheduleLiveAddDrain() {
+  if (this->isCancelled()) {
+    liveAdd_.wlock()->drainScheduled = false;
+    return;
+  }
+  // On the stream EventBase, serialized with setupStream() and client_ resets;
+  // on serviceLoopScope_ so teardown cancels and joins it.
+  this->serviceLoopScope_.add(
+      co_withExecutor(this->getStreamEventBase(), drainLiveAdds()));
+}
+
+template <typename MessageType, typename SubUnit, typename PathElement>
+AddPatchSubscriptionPathsRequest
+FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::makeLiveAddRequest(
+    uint64_t uid,
+    const PathElement& paths) const {
+  AddPatchSubscriptionPathsRequest request;
+  request.clientId()->instanceId() = this->clientId();
+  request.subscriptionUid() = uid;
+  // Round-trip token: the server echoes the largest (most recently added) key
+  // back as OperMetadata.streamRevision once the add takes effect.
+  request.lastStreamRevision() = paths.rbegin()->first;
+  if constexpr (std::is_same_v<
+                    PathElement,
+                    std::map<SubscriptionKey, ExtendedOperPath>>) {
+    request.extPaths() = paths;
+  } else {
+    request.paths() = paths;
+  }
+  return request;
+}
+
+template <typename MessageType, typename SubUnit, typename PathElement>
+void FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::
+    eraseLiveAddKeys(uint64_t uid, const PathElement& batch) {
+  liveAdd_.withWLock([&](auto& state) {
+    // After a reconnect, pendingKeys is relative to the new request.
+    if (state.uid == uid) {
+      for (const auto& [key, _] : batch) {
+        state.pendingKeys.erase(key);
+      }
     }
   });
-  // Best-effort live extend: if connected, extend the server-side subscription
-  // in place so new paths get a full-state initial sync without a reconnect;
-  // failure is logged, not returned (the reconnect merge still delivers them).
-  // Run on the stream EventBase for consistent access to client_/serverUid_ and
-  // to avoid a blockingWait deadlock; registered on serviceLoopScope_ so
-  // teardown's cancel()+join prevents running against a destroyed `this`.
-  this->serviceLoopScope_.add(co_withExecutor(
-      this->getStreamEventBase(),
-      folly::coro::co_invoke(
-          [this,
-           paths = std::move(newPaths)]() mutable -> folly::coro::Task<void> {
-            // Fire-and-forget on the stream EventBase: an escaping exception
-            // would terminate the process. A live-extend failure is non-fatal
-            // (reconnect still delivers), so wrap the body and log failures.
-            try {
-              if (this->isCancelled() || !this->client_) {
-                co_return;
-              }
-              auto uid = serverUid_.copy();
-              if (!uid.has_value()) {
-                // No live subscription to extend yet; paths will be delivered
-                // on the next (re)connect via createRequest().
-                co_return;
-              }
-              AddPatchSubscriptionPathsRequest request;
-              request.clientId()->instanceId() = this->clientId();
-              request.subscriptionUid() = *uid;
-              // Round-trip token: send the largest (most recently added)
-              // SubscriptionKey (raw or extended); the server echoes it back as
-              // OperMetadata.streamRevision once the add takes effect.
-              if (!paths.empty()) {
-                request.lastStreamRevision() = paths.rbegin()->first;
-              }
-              if constexpr (std::is_same_v<
-                                PathElement,
-                                std::map<SubscriptionKey, ExtendedOperPath>>) {
-                request.extPaths() = std::move(paths);
-              } else {
-                request.paths() = std::move(paths);
-              }
-              // Unary RPC needs its own request timeout; getRpcOptions() only
-              // carries a streaming chunk timeout.
-              apache::thrift::RpcOptions rpcOptions;
-              rpcOptions.setTimeout(std::chrono::seconds(5));
-              auto task = this->isStats()
-                  ? this->client_->co_addStatsPatchSubscriptionPaths(
-                        rpcOptions, request)
-                  : this->client_->co_addStatePatchSubscriptionPaths(
-                        rpcOptions, request);
-              co_await std::move(task);
-            } catch (const std::exception& e) {
-              XLOG(WARN) << "addPatchSubscriptionPaths live-extend failed for "
-                         << this->clientId() << ": " << folly::exceptionStr(e)
-                         << "; added paths will be delivered on next reconnect";
-            }
-          })));
-  return std::nullopt;
+}
+
+template <typename MessageType, typename SubUnit, typename PathElement>
+folly::coro::Task<void>
+FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::liveAddRpc(
+    AddPatchSubscriptionPathsRequest request,
+    std::chrono::milliseconds timeout) {
+  if (!this->client_) {
+    throw std::runtime_error("no FSDB client");
+  }
+  // Unary RPC needs its own request timeout; getRpcOptions() only carries a
+  // streaming chunk timeout.
+  apache::thrift::RpcOptions rpcOptions;
+  rpcOptions.setTimeout(timeout);
+  auto task = this->isStats()
+      ? this->client_->co_addStatsPatchSubscriptionPaths(rpcOptions, request)
+      : this->client_->co_addStatePatchSubscriptionPaths(rpcOptions, request);
+  co_await std::move(task);
+}
+
+template <typename MessageType, typename SubUnit, typename PathElement>
+folly::coro::Task<void>
+FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::sendLiveAddBatch(
+    uint64_t uid,
+    const PathElement& batch) {
+  try {
+    co_await liveAddRpc(makeLiveAddRequest(uid, batch), kLiveAddRpcTimeout);
+  } catch (const folly::OperationCancelled&) {
+    throw;
+  } catch (const std::exception& e) {
+    XLOG(WARN) << "addPatchSubscriptionPaths live-extend failed for "
+               << this->clientId() << ": " << folly::exceptionStr(e)
+               << "; added paths will be delivered on next reconnect";
+  }
+}
+
+template <typename MessageType, typename SubUnit, typename PathElement>
+folly::coro::Task<void>
+FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::drainLiveAdds() {
+  try {
+    while (true) {
+      uint64_t uid{0};
+      PathElement batch;
+      bool done = liveAdd_.withWLock([&](auto& state) {
+        if (!state.uid.has_value() || state.pendingKeys.empty() ||
+            this->isCancelled() || !this->client_) {
+          state.drainScheduled = false;
+          return true;
+        }
+        uid = *state.uid;
+        for (const auto key : state.pendingKeys) {
+          batch.emplace(key, state.addedPaths.at(key));
+        }
+        return false;
+      });
+      if (done) {
+        co_return;
+      }
+      co_await sendLiveAddBatch(uid, batch);
+      eraseLiveAddKeys(uid, batch);
+    }
+  } catch (const folly::OperationCancelled&) {
+    liveAdd_.wlock()->drainScheduled = false;
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Live add-paths drain failed for " << this->clientId() << ": "
+              << folly::exceptionStr(ex);
+    liveAdd_.wlock()->drainScheduled = false;
+  }
 }
 
 template <typename MessageType, typename SubUnit, typename PathElement>
@@ -122,24 +196,33 @@ folly::coro::Task<
     typename FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::
         StreamT>
 FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::setupStream() {
-  // Clear the uid from any previous stream; repopulated from this connection's
-  // OperSubInitResponse below. Until then addPaths() treats the subscription as
-  // "not connected" rather than targeting a dead uid.
-  serverUid_.wlock()->reset();
+  // Build the request and reset per-stream live-add state atomically: paths
+  // added after this point are missing from the request and are applied live
+  // once this stream's uid is known. Keeping the request alive here also works
+  // around a GCC coroutine bug (materialize the Task before co_await).
+  auto request = liveAdd_.withWLock([this](auto& state) {
+    state.uid.reset();
+    state.pendingKeys.clear();
+    return createRequest(state.addedPaths);
+  });
+  if (auto hook = onSubscribeRequestCreatedForTest_.copy()) {
+    hook();
+  }
   auto initResponseReceiver =
       [this](const OperSubInitResponse& initResponse) -> bool {
-    // Capture the server-assigned uid so addPaths() can target this stream;
-    // refreshed on every (re)connect since the server mints a new uid per
-    // stream.
+    // The server mints a new uid per stream; capture it so live adds target
+    // this stream, and apply paths the request missed.
     if (initResponse.subscriptionUid().has_value()) {
-      *serverUid_.wlock() = *initResponse.subscriptionUid();
+      bool schedule = liveAdd_.withWLock([&initResponse](auto& state) {
+        state.uid = *initResponse.subscriptionUid();
+        return claimLiveAddDrain(state);
+      });
+      if (schedule) {
+        scheduleLiveAddDrain();
+      }
     }
     return !this->isCancelled();
   };
-
-  // Workaround for GCC coroutine bug: Keep the request alive and materialize
-  // the Task before co_await to prevent premature destruction.
-  auto request = this->createRequest();
 
   if constexpr (std::is_same_v<
                     PathElement,

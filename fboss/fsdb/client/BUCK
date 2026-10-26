@@ -65,7 +65,7 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
-        "fbsource//third-party/googletest:gtest_headers",
+        "fbsource//third-party/googletest:gtest_prod_headers",
         "fbsource//xplat/folly:string",
         "fbsource//xplat/folly:synchronized",
         "fbsource//xplat/folly/concurrency:dynamic_bounded_queue",

@@ -100,8 +100,8 @@ SubscriptionKey FsdbSubManagerBase::addPathToLiveSubscriptionImpl(
   auto key = nextKey_;
   RawOperPath p;
   p.path() = pathTokens;
-  // Best-effort live extend on the raw-path subscriber: the RPC is
-  // fire-and-forget, so this only rejects via the client-side validation above.
+  // The live extend is applied asynchronously, so this only rejects via the
+  // client-side validation above.
   subscriber_->addPaths({{key, p}});
   subscribePaths_.insert_or_assign(key, std::move(p));
   ++nextKey_;

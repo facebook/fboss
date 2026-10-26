@@ -18,6 +18,7 @@
 #include <thrift/lib/cpp2/op/Get.h>
 
 #include <chrono>
+#include <set>
 #include <utility>
 
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG5; default:async=true");
@@ -770,6 +771,57 @@ TYPED_TEST(FsdbSubManagerTest, addPathsMultiPathUsesLargestStreamRevision) {
     ASSERT_EVENTUALLY_TRUE(rev.has_value());
     EXPECT_EVENTUALLY_EQ(*rev, kLargestKey);
   });
+
+  subscriber.reset();
+}
+
+// Paths added while the subscribe RPC is in flight are missing from the
+// subscribe request; once the server uid arrives they must be appended to the
+// live subscription instead of waiting for a reconnect.
+TYPED_TEST(FsdbSubManagerTest, addPathsWhileSubscribeInFlight) {
+  this->connectPublisherAndPublish(this->path1(), this->data1("foo"));
+  this->testPublisher().publish(this->path2(), this->data2(123));
+
+  folly::ScopedEventBaseThread streamThread("test-raw-sub-stream");
+  folly::ScopedEventBaseThread reconnectThread("test-raw-sub-reconnect");
+
+  RawOperPath basePath;
+  basePath.path() = this->path1().idTokens();
+  RawOperPath addedPath;
+  addedPath.path() = this->path2().idTokens();
+  constexpr SubscriptionKey kAddedKey = 1;
+
+  folly::Synchronized<std::set<SubscriptionKey>> seenKeys;
+  std::atomic<int> numConnects{0};
+  auto subscriber = std::make_unique<FsdbPatchSubscriber>(
+      SubscriptionOptions("test", this->IsStats),
+      std::map<SubscriptionKey, RawOperPath>{{0, basePath}},
+      streamThread.getEventBase(),
+      reconnectThread.getEventBase(),
+      [&](SubscriberChunk&& chunk) {
+        for (const auto& [key, patchGroup] : *chunk.patchGroups()) {
+          if (!patchGroup.empty()) {
+            seenKeys.wlock()->insert(key);
+          }
+        }
+      },
+      std::nullopt,
+      [&](auto /* oldState */, auto newState) {
+        if (newState == FsdbStreamClient::State::CONNECTED) {
+          ++numConnects;
+        }
+      });
+  std::atomic<bool> added{false};
+  subscriber->setOnSubscribeRequestCreatedForTest([&]() {
+    if (!added.exchange(true)) {
+      subscriber->addPaths({{kAddedKey, addedPath}});
+    }
+  });
+  subscriber->setConnectionOptions(this->connectionOptions());
+
+  WITH_RETRIES(EXPECT_EVENTUALLY_TRUE(seenKeys.rlock()->contains(kAddedKey)));
+  EXPECT_TRUE(subscriber->serverSupportsLiveAddPath());
+  EXPECT_EQ(numConnects.load(), 1);
 
   subscriber.reset();
 }
