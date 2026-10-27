@@ -21,6 +21,7 @@ Payload paths below `payload/` install to the same absolute paths:
 | `usr/local/bin/role-entry` | Container-side cert-login entry (checks, banner, identity export) |
 | `usr/local/bin/session-recorder`, `session-ancestors` | PAM open/close hook and ancestor-chain helper |
 | `usr/local/sbin/escape-keygen` | Generates the per-device escape keypair at first boot |
+| `usr/local/sbin/enable_netadmin_root`, `disable_netadmin_root` | Root-only on/off knob for netadmin root escalation |
 | `etc/sudoers.d/login-containers` | Each role may run exactly its own wrapper as root |
 | `var/lib/machines/netadmin/etc/{sudoers,pam.d/sudo,sysusers.d/}` | Container-local netadmin sudo (root shell grant) |
 | `etc/ssh/sshd_config.d/12-escape-localhost.conf` | Root auth denied off loopback |
@@ -59,3 +60,15 @@ only, and appends the loopback-scoped public key to host root's
 0 only when all of them are present; a wiped home re-provisions a
 fresh pair (prior escape blocks are stripped first), while operator
 `authorized_keys` lines are always preserved.
+
+## Root escalation knob
+
+`disable_netadmin_root` (host root only) closes both netadmin root
+gates at runtime: it moves the machine sudo grant aside and strips the
+escape-key trust from host root's `authorized_keys`, then records
+`/etc/login-containers/netadmin-root-disabled` so first-boot
+provisioning stays off across reboots. `enable_netadmin_root` restores
+the grant and re-provisions a fresh escape pair. Both are idempotent
+and audited via `logger`. Default is enabled; privileged broker verbs
+(`EXEC`, unit control) follow the knob automatically since they
+require container root.

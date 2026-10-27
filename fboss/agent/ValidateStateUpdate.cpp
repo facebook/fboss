@@ -9,7 +9,12 @@
 #include "fboss/agent/ResourceAccountant.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/state/AclMap.h"
+#include "fboss/agent/state/AclTable.h"
+#include "fboss/agent/state/AclTableGroupMap.h"
+#include "fboss/agent/state/AclTableMap.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -240,6 +245,70 @@ bool hasAcceptedLinkUpHoldoff(
   return true;
 }
 
+// Two entries at one priority are indistinguishable to hardware unless the
+// platform carries the ACL entry name down as well, which only the PBR-capable
+// ASICs do.
+bool hasUniqueAclPriorities(
+    const AclMap& acls,
+    const std::string& tableName,
+    bool sharedPbrPriorityAllowed) {
+  std::unordered_map<int, std::string> nameByPriority;
+  for (const auto& [name, entry] : std::as_const(acls)) {
+    auto priority = entry->getPriority();
+    if (sharedPbrPriorityAllowed && priority == FLAGS_pbr_acl_priority) {
+      continue;
+    }
+    auto [itr, inserted] = nameByPriority.emplace(priority, name);
+    if (!inserted) {
+      XLOG(ERR) << "Acl table " << tableName << " has entries " << itr->second
+                << " and " << name << " at the same priority " << priority;
+      return false;
+    }
+  }
+  return true;
+}
+
+bool hasUniqueAclPriorities(
+    const StateDelta& delta,
+    const HwAsicTable* hwAsicTable) {
+  const auto& oldState = delta.oldState();
+  const auto& newState = delta.newState();
+  if (oldState->getAcls() == newState->getAcls() &&
+      oldState->getAclTableGroups() == newState->getAclTableGroups()) {
+    return true;
+  }
+  const bool pbrAclSupported =
+      hwAsicTable->isFeatureSupportedOnAllAsic(HwAsic::Feature::PBR_ACL);
+  bool isValid = true;
+  if (const auto& aclTableGroups = newState->getAclTableGroups()) {
+    for (const auto& [_matcher, groupMap] : std::as_const(*aclTableGroups)) {
+      for (const auto& [_stage, group] : std::as_const(*groupMap)) {
+        const auto& tableMap = group->getAclTableMap();
+        if (!tableMap) {
+          continue;
+        }
+        for (const auto& [tableName, table] : std::as_const(*tableMap)) {
+          const bool sharedPbrPriorityAllowed = pbrAclSupported &&
+              tableName ==
+                  cfg::switch_config_constants::DEFAULT_PBR_ACL_TABLE();
+          if (const auto& aclMap = table->getAclMap()) {
+            isValid = isValid &&
+                hasUniqueAclPriorities(
+                          *aclMap, tableName, sharedPbrPriorityAllowed);
+          }
+        }
+      }
+    }
+  }
+  if (const auto& acls = newState->getAcls()) {
+    for (const auto& [matcher, aclMap] : std::as_const(*acls)) {
+      isValid = isValid &&
+          hasUniqueAclPriorities(
+                    *aclMap, matcher, false /*sharedPbrPriorityAllowed*/);
+    }
+  }
+  return isValid;
+}
 } // namespace
 
 bool isStateUpdateValidCommon(
@@ -274,6 +343,8 @@ bool isStateUpdateValidCommon(
         return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
       },
       [&](const shared_ptr<AclEntry>& /* delAcl */) {});
+
+  isValid = isValid && hasUniqueAclPriorities(delta, hwAsicTable);
 
   forEachChanged(
       delta.getPortsDelta(),

@@ -432,7 +432,9 @@ struct MirrorFields {
 
 struct MirrorOnDropReportFields {
   1: string name;
-  2: i32 mirrorPortId;
+  // Unset on ASICs with no recirculation port (XGS); TamManager resolves
+  // an egress port per ASIC at runtime instead.
+  2: optional i32 mirrorPortId;
   3: Address.BinaryAddress localSrcIp; // Populated at runtime
   4: i16 localSrcPort;
   5: Address.BinaryAddress collectorIp;
@@ -725,6 +727,11 @@ struct VxLanTunnelFields {
   11: optional map<i64, i64> vniToVrf;
 }
 
+struct VrfFields {
+  1: i32 vrfId;
+  2: optional string name;
+}
+
 struct MySidFields {
   1: common.MySidType type;
   # MySid entry in ip/mask format. 32 bits of this are
@@ -989,6 +996,7 @@ struct SwitchState {
     map<switch_config.AclStage, AclTableGroupFields>
   > portAclTableGroupMaps;
   131: map<SwitchIdList, map<string, VxLanTunnelFields>> vxlanTunnelMaps;
+  132: map<SwitchIdList, map<i32, VrfFields>> vrfMaps;
   // Remote object maps
   600: map<SwitchIdList, map<i64, SystemPortFields>> remoteSystemPortMaps;
   601: map<SwitchIdList, map<i32, InterfaceFields>> remoteInterfaceMaps;

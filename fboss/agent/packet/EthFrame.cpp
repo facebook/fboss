@@ -66,6 +66,11 @@ std::unique_ptr<facebook::fboss::TxPacket> EthFrame::getTxPacket(
       rwCursor.template writeBE<uint32_t>(vlanTag.value);
     }
   }
+  if (hdr_.csigTag) {
+    rwCursor.template writeBE<uint16_t>(
+        static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_CSIG));
+    rwCursor.template writeBE<uint16_t>(hdr_.csigTag->value);
+  }
   if (v4PayLoad_) {
     rwCursor.template writeBE<uint16_t>(
         static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4));
@@ -105,6 +110,11 @@ void EthFrame::serialize(folly::io::RWPrivateCursor& cursor) const {
     for (const auto& vlanTag : hdr_.vlanTags) {
       cursor.template writeBE<uint32_t>(vlanTag.value);
     }
+  }
+  if (hdr_.csigTag) {
+    cursor.template writeBE<uint16_t>(
+        static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_CSIG));
+    cursor.template writeBE<uint16_t>(hdr_.csigTag->value);
   }
 
   if (v4PayLoad_) {
@@ -236,7 +246,9 @@ void EthFrame::stripVlans() {
   auto srcMac = hdr_.getSrcMac();
   auto dstMac = hdr_.getDstMac();
   auto etherType = hdr_.getEtherType();
+  auto csigTag = hdr_.getCsigTag();
   hdr_ = EthHdr(dstMac, srcMac, {}, etherType);
+  hdr_.setCsigTag(csigTag);
 }
 
 EthFrame makeEthFrame(const TxPacket& txPkt, bool skipTtlDecrement) {

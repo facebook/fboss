@@ -683,7 +683,7 @@ class ThriftConfigApplier {
       const cfg::Mirror* config);
   std::shared_ptr<FibInfo> updateForwardingInformationBaseInfo();
 
-  std::shared_ptr<MirrorOnDropReportMap> updateMirrorOnDropReports();
+  std::shared_ptr<MultiSwitchMirrorOnDropReportMap> updateMirrorOnDropReports();
   std::shared_ptr<MirrorOnDropReport> createMirrorOnDropReport(
       const cfg::MirrorOnDropReport& config);
   std::shared_ptr<MirrorOnDropReport> updateMirrorOnDropReport(
@@ -720,6 +720,9 @@ class ThriftConfigApplier {
       const std::shared_ptr<VxlanTunnel>& orig,
       const cfg::VxLanTunnel* config);
   std::shared_ptr<VxlanTunnelMap> updateVxlanTunnels();
+  const std::vector<cfg::VrfConfig>& getConfigVrfs() const;
+  void validateVrfs() const;
+  std::shared_ptr<VrfMap> updateVrfs();
   std::shared_ptr<DsfNodeMap> updateDsfNodes();
   void processUpdatedDsfNodes();
   void processReachabilityGroup(
@@ -1120,9 +1123,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     auto newMirrorOnDropReports = updateMirrorOnDropReports();
     if (newMirrorOnDropReports) {
-      new_->resetMirrorOnDropReports(
-          toMultiSwitchMap<MultiSwitchMirrorOnDropReportMap>(
-              newMirrorOnDropReports, scopeResolver_));
+      new_->resetMirrorOnDropReports(newMirrorOnDropReports);
       changed = true;
     }
   }
@@ -1166,6 +1167,15 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
       new_->resetVxlanTunnels(
           toMultiSwitchMap<MultiSwitchVxlanTunnelMap>(
               newVxlanTunnels, *cfg_, scopeResolver_));
+      changed = true;
+    }
+  }
+
+  {
+    auto newVrfs = updateVrfs();
+    if (newVrfs) {
+      new_->resetVrfs(
+          toMultiSwitchMap<MultiSwitchVrfMap>(newVrfs, scopeResolver_));
       changed = true;
     }
   }
@@ -7206,7 +7216,7 @@ std::shared_ptr<Mirror> ThriftConfigApplier::updateMirror(
   return newMirror;
 }
 
-std::shared_ptr<MirrorOnDropReportMap>
+std::shared_ptr<MultiSwitchMirrorOnDropReportMap>
 ThriftConfigApplier::updateMirrorOnDropReports() {
   const auto& origReports = orig_->getMirrorOnDropReports();
   auto newReports = std::make_shared<MirrorOnDropReportMap>();
@@ -7235,20 +7245,31 @@ ThriftConfigApplier::updateMirrorOnDropReports() {
     return nullptr;
   }
 
-  auto newReportWithSwitchIds = std::make_shared<MirrorOnDropReportMap>();
-  for (auto& switchIdAndSwitchInfo :
+  auto multiSwitchReports =
+      std::make_shared<MultiSwitchMirrorOnDropReportMap>();
+  for (const auto& [switchIdInt, switchInfo] :
        *cfg_->switchSettings()->switchIdToSwitchInfo()) {
-    if (switchIdAndSwitchInfo.second.switchType() != cfg::SwitchType::VOQ &&
-        switchIdAndSwitchInfo.second.switchType() != cfg::SwitchType::NPU) {
+    auto switchType = switchInfo.switchType();
+    if (switchType != cfg::SwitchType::VOQ &&
+        switchType != cfg::SwitchType::NPU) {
       continue;
     }
-    for (auto& mapEntry : std::as_const(*newReports)) {
-      auto newReport = mapEntry.second->clone();
-      newReportWithSwitchIds->insert(mapEntry.first, std::move(newReport));
+    auto switchId = SwitchID(switchIdInt);
+    auto switchMatcher =
+        HwSwitchMatcher(std::unordered_set<SwitchID>({switchId}));
+    for (const auto& mapEntry : std::as_const(*newReports)) {
+      const auto& report = mapEntry.second;
+      // No mirror port (XGS): every L3 switch resolves its own.
+      const auto mirrorPortId = report->getMirrorPortId();
+      if (mirrorPortId.has_value() &&
+          !scopeResolver_.scope(*mirrorPortId).has(switchId)) {
+        continue;
+      }
+      multiSwitchReports->addNode(report->clone(), switchMatcher);
     }
   }
 
-  return newReportWithSwitchIds;
+  return multiSwitchReports;
 }
 
 std::shared_ptr<MirrorOnDropReport>
@@ -7368,16 +7389,14 @@ ThriftConfigApplier::createMirrorOnDropReport(
             "Mirror-on-Drop must use LOCAL scoped recycle/eventor ports");
       }
     }
-  } else {
-    // Explicitly set the mirror port ID to 0 for non-VOQ switches. The only
-    // other platform that currently supports Mirror-on-Drop is XGS (e.g. TH5).
-    // The mirror port will be resolved based on the destination IP address.
-    mirrorPortId = PortID(0);
   }
+  // Left unset on non-VOQ switches. The only other platform that currently
+  // supports Mirror-on-Drop is XGS (e.g. TH5), where TamManager resolves the
+  // mirror port from the collector IP at runtime.
 
   return std::make_shared<MirrorOnDropReport>(
       *config.name(),
-      *mirrorPortId,
+      mirrorPortId,
       localSrcIp,
       *config.localSrcPort(),
       collectorIp,
@@ -7707,6 +7726,11 @@ std::shared_ptr<VxlanTunnelMap> ThriftConfigApplier::updateVxlanTunnels() {
   if (!cfg_->vxlanTunnels().has_value()) {
     return nullptr;
   }
+  if (cfg_->vxlanTunnels()->size() > 1) {
+    throw FbossError(
+        "Only a single VXLAN tunnel is supported, got ",
+        cfg_->vxlanTunnels()->size());
+  }
   for (const auto& tunnelCfg : cfg_->vxlanTunnels().value()) {
     auto origTunnel = origTunnels->getNodeIf(*tunnelCfg.vxlanTunnelId());
     std::shared_ptr<VxlanTunnel> newTunnel;
@@ -7783,6 +7807,61 @@ shared_ptr<VxlanTunnel> ThriftConfigApplier::createVxlanTunnel(
     throw FbossError("Dst IP not set for: ", tunnel->getID(), ", VXLAN tunnel");
   }
   return tunnel;
+}
+
+const std::vector<cfg::VrfConfig>& ThriftConfigApplier::getConfigVrfs() const {
+  static const std::vector<cfg::VrfConfig> kNoVrfs;
+  return cfg_->vrfs() ? *cfg_->vrfs() : kNoVrfs;
+}
+
+void ThriftConfigApplier::validateVrfs() const {
+  const auto& vrfs = getConfigVrfs();
+  if (vrfs.empty()) {
+    return;
+  }
+  for (const auto& vrfCfg : vrfs) {
+    if (*vrfCfg.vrfId() <= 0) {
+      throw FbossError(
+          "VRF id must be positive, VRF 0 is the default VRF: ",
+          *vrfCfg.vrfId());
+    }
+  }
+  for (const auto* asic : hwAsicTable_->getL3Asics()) {
+    if (!asic->isSupported(HwAsic::Feature::VRF)) {
+      throw FbossError("VRFs are not supported on ", asic->getAsicTypeStr());
+    }
+  }
+}
+
+std::shared_ptr<VrfMap> ThriftConfigApplier::updateVrfs() {
+  validateVrfs();
+  const auto& origVrfs = orig_->getVrfs();
+  auto newVrfs = std::make_shared<VrfMap>();
+  bool changed = false;
+  size_t numExistingProcessed = 0;
+  for (const auto& vrfCfg : getConfigVrfs()) {
+    if (newVrfs->getNodeIf(RouterID(*vrfCfg.vrfId()))) {
+      throw FbossError("Duplicate VRF id: ", *vrfCfg.vrfId());
+    }
+    auto origVrf = origVrfs->getNodeIf(RouterID(*vrfCfg.vrfId()));
+    auto newVrf = std::make_shared<Vrf>(RouterID(*vrfCfg.vrfId()));
+    newVrf->setName(vrfCfg.name().to_optional());
+    if (origVrf) {
+      ++numExistingProcessed;
+      if (*origVrf == *newVrf) {
+        newVrf = nullptr;
+      }
+    }
+    changed |= updateThriftMapNode(newVrfs.get(), origVrf, newVrf);
+  }
+
+  if (numExistingProcessed != origVrfs->numNodes()) {
+    changed = true;
+  }
+  if (!changed) {
+    return nullptr;
+  }
+  return newVrfs;
 }
 
 std::shared_ptr<MultiLabelForwardingInformationBase>

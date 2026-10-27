@@ -1764,6 +1764,22 @@ TEST_F(NdpTest, PendingNdpCleanup) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.ndp.sum", 0);
 
+  // ndpTimeout=1 lets this entry reach PROBE and send a unicast probe while
+  // the rest of the test is still running, so expect it before resolving.
+  EXPECT_OUT_OF_PORT_PKT(
+      sw,
+      "neighbor solicitation",
+      checkNeighborSolicitation(
+          MacAddress("00:02:00:00:00:55"),
+          IPAddressV6("2401:db00:2110:3004::"),
+          MacAddress("02:10:20:30:40:22"),
+          IPAddressV6("2401:db00:2110:3004::1:0"),
+          IPAddressV6("2401:db00:2110:3004::1:0"),
+          VlanID(1),
+          false),
+      PortID(1),
+      std::optional<uint8_t>(kNCStrictPriorityQueue));
+
   // Resolve the pending entry by injecting a Neighbor Advertisement
   WaitForNdpEntryReachable neighborEntryReachable(
       sw, IPAddressV6("2401:db00:2110:3004::1:0"), intfID);
@@ -1842,20 +1858,6 @@ TEST_F(NdpTest, PendingNdpCleanup) {
   // Set up unicast probe expectations BEFORE resolving entries, since with
   // ndpTimeout=1 entries can advance through REACHABLE -> STALE -> PROBE
   // before we get a chance to register expectations after NA injection.
-  EXPECT_OUT_OF_PORT_PKT(
-      sw,
-      "neighbor solicitation",
-      checkNeighborSolicitation(
-          MacAddress("00:02:00:00:00:55"),
-          IPAddressV6("2401:db00:2110:3004::"),
-          MacAddress("02:10:20:30:40:22"),
-          IPAddressV6("2401:db00:2110:3004::1:0"),
-          IPAddressV6("2401:db00:2110:3004::1:0"),
-          VlanID(1),
-          false),
-      PortID(1),
-      std::optional<uint8_t>(kNCStrictPriorityQueue));
-
   EXPECT_OUT_OF_PORT_PKT(
       sw,
       "neighbor solicitation",

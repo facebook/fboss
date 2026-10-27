@@ -1699,7 +1699,7 @@ struct SaiPortSerdesTraits {
       ,
       std::optional<Attributes::CustomCollection>
 #endif
-#if defined(BRCM_SAI_SDK_GTE_13_0)
+#if defined(BRCM_SAI_SDK_GTE_13_0) || defined(SAI_BRCM_PAI_IMPL)
       ,
       std::optional<Attributes::RxReach>
 #endif

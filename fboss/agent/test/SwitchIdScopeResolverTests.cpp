@@ -12,6 +12,7 @@
 #include "fboss/agent/state/MySidMap.h"
 #include "fboss/agent/state/PortFlowletConfig.h"
 #include "fboss/agent/state/Vlan.h"
+#include "fboss/agent/state/Vrf.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
 
@@ -218,6 +219,19 @@ TYPED_TEST(SwitchIdScopeResolverTest, fibContainerScope) {
     this->expectThrow(fibContainer);
   } else {
     this->expectSwitchId(fibContainer);
+  }
+}
+
+TYPED_TEST(SwitchIdScopeResolverTest, vrfScope) {
+  cfg::VrfConfig vrfCfg;
+  vrfCfg.vrfId() = 1001;
+  auto vrf = std::make_shared<Vrf>(RouterID(1001));
+  if (this->isFabric()) {
+    this->expectThrow(vrfCfg);
+    this->expectThrow(vrf);
+  } else {
+    this->expectL3(vrfCfg);
+    this->expectL3(vrf);
   }
 }
 

@@ -64,6 +64,7 @@
 #include "fboss/agent/hw/sai/switch/SaiUdfManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVendorSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
+#include "fboss/agent/hw/sai/switch/SaiVxlanTunnelManager.h"
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
@@ -1185,6 +1186,12 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       false);
   processDefaultDataPlanePolicyDelta(delta, lockPolicy);
 
+  processRemovedDelta(
+      delta.getMirrorOnDropReportsDelta(),
+      managerTable_->tamManager(),
+      lockPolicy,
+      &SaiTamManager::removeMirrorOnDropReport);
+
   for (const auto& fibInfoDelta : delta.getFibsInfoDelta()) {
     for (const auto& routeDelta : fibInfoDelta.getFibsMapDelta()) {
       auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
@@ -1537,6 +1544,14 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       &SaiSrv6TunnelManager::addSrv6Tunnel,
       &SaiSrv6TunnelManager::removeSrv6Tunnel);
 
+  processDelta(
+      delta.getVxlanTunnelsDelta(),
+      managerTable_->vxlanTunnelManager(),
+      lockPolicy,
+      &SaiVxlanTunnelManager::changeVxlanTunnel,
+      &SaiVxlanTunnelManager::addVxlanTunnel,
+      &SaiVxlanTunnelManager::removeVxlanTunnel);
+
   for (const auto& fibInfoDelta : delta.getFibsInfoDelta()) {
     for (const auto& routeDelta : fibInfoDelta.getFibsMapDelta()) {
       auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
@@ -1657,13 +1672,16 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       &SaiMirrorManager::addNode,
       &SaiMirrorManager::removeMirror);
 
-  processDelta(
+  processChangedDelta(
       delta.getMirrorOnDropReportsDelta(),
       managerTable_->tamManager(),
       lockPolicy,
-      &SaiTamManager::changeMirrorOnDropReport,
-      &SaiTamManager::addMirrorOnDropReport,
-      &SaiTamManager::removeMirrorOnDropReport);
+      &SaiTamManager::changeMirrorOnDropReport);
+  processAddedDelta(
+      delta.getMirrorOnDropReportsDelta(),
+      managerTable_->tamManager(),
+      lockPolicy,
+      &SaiTamManager::addMirrorOnDropReport);
 
   processDelta(
       delta.getIpTunnelsDelta(),
@@ -5421,10 +5439,17 @@ std::string SaiSwitch::listObjects(
 #endif
         break;
       case HwObjectType::SRV6:
+        objTypes.push_back(SAI_OBJECT_TYPE_TUNNEL);
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
         objTypes.push_back(SAI_OBJECT_TYPE_SRV6_SIDLIST);
         objTypes.push_back(SAI_OBJECT_TYPE_MY_SID_ENTRY);
 #endif
+        break;
+      case HwObjectType::VXLAN:
+        objTypes.push_back(SAI_OBJECT_TYPE_TUNNEL);
+        objTypes.push_back(SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY);
+        objTypes.push_back(SAI_OBJECT_TYPE_TUNNEL_MAP);
+        objTypes.push_back(SAI_OBJECT_TYPE_TUNNEL_MAP_ENTRY);
         break;
       case HwObjectType::SAMPLE_PACKET:
         objTypes.push_back(SAI_OBJECT_TYPE_SAMPLEPACKET);

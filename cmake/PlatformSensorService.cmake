@@ -87,6 +87,7 @@ target_link_libraries(sensor_service_lib
   sensor_service_stats_cpp2
   sensor_config_cpp2
   reboot_cause_config_cpp2
+  reboot_history_lib
   Folly::folly
   FBThrift::thriftcpp2
   fsdb_stream_client

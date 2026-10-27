@@ -537,7 +537,8 @@
         87,
         79,
         109,
-        133
+        133,
+        139
     ],
     "tomahawk5": [
         2,
@@ -617,7 +618,8 @@
         122,
         119,
         123,
-        133
+        133,
+        139
     ],
     "tomahawk6": [
         2,
@@ -693,7 +695,8 @@
         131,
         133,
         106,
-        107
+        107,
+        139
     ],
     "tomahawkultra1": [
         2,
@@ -807,7 +810,8 @@
         113,
         49,
         111,
-        134
+        134,
+        139
     ]
   },
   "asicToFeatureNames": {
@@ -1348,7 +1352,8 @@
         "UDF_HASH",
         "PTP_TC_PROVISIONING_TIME_HW_VALIDATION",
         "SAVE_SDK_STATE",
-        "MY_MAC"
+        "MY_MAC",
+        "MULTI_VRF"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
@@ -1428,7 +1433,8 @@
         "ARS_SOURCE_PORT_PRUNE",
         "ADJACENCY_FRR",
         "DROP_REASON_LIST_SUPPORT",
-        "MY_MAC"
+        "MY_MAC",
+        "MULTI_VRF"
     ],
     "tomahawk6": [
         "CPU_RX_TX",
@@ -1504,7 +1510,8 @@
         "MPLS_TTL_ACL",
         "MY_MAC",
         "MPLS_HEADEND",
-        "MPLS_MIDPOINT"
+        "MPLS_MIDPOINT",
+        "MULTI_VRF"
     ],
     "tomahawkultra1": [
         "CPU_RX_TX",
@@ -1618,7 +1625,8 @@
         "SRV6_BINDING_SID",
         "MIRROR_ON_DROP",
         "MIRROR_ON_DROP_STATELESS",
-        "MIRROR_ON_DROP_AGGREGATE_RATE_LIMIT"
+        "MIRROR_ON_DROP_AGGREGATE_RATE_LIMIT",
+        "MULTI_VRF"
     ]
   },
   "featureSupportSpecs": [

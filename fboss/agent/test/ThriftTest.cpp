@@ -3586,6 +3586,98 @@ TEST_F(ThriftTestWithNhopIdMgr, addAdjacencyFrrRejectsEmptyBackupNextHops) {
       managerAfter->getNextHops(NextHopSetID(backupId)), backupNextHopsBefore);
 }
 
+TEST_F(ThriftTest, addAdjacencyFrrRejectsSrv6NextHopWithoutTunnel) {
+  ThriftHandler handler(sw_);
+  auto protectedObject = std::make_unique<FrrProtectedObject>();
+  protectedObject->mySid() = toFrrMySidIpPrefix("2001:db8::1", 64);
+  NextHopThrift backupNextHop;
+  backupNextHop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::ff"));
+  backupNextHop.srv6SegmentList() = {
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::1"))};
+  auto backupNextHops = std::make_unique<std::vector<NextHopThrift>>();
+  backupNextHops->push_back(std::move(backupNextHop));
+
+  // No SRV6_ENCAP tunnel in config, so no tunnelId can be defaulted.
+  EXPECT_THROW(
+      handler.addAdjacencyFrr(
+          std::move(protectedObject), std::move(backupNextHops)),
+      FbossError);
+}
+
+TEST_F(ThriftTest, addAdjacencyFrrRejectsBadLinkLocalInterface) {
+  ThriftHandler handler(sw_);
+  auto protectedObject = std::make_unique<FrrProtectedObject>();
+  protectedObject->mySid() = toFrrMySidIpPrefix("2001:db8::1", 64);
+  NextHopThrift backupNextHop;
+  backupNextHop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("fe80::1"));
+  backupNextHop.address()->ifName() = "fboss9999";
+  auto backupNextHops = std::make_unique<std::vector<NextHopThrift>>();
+  backupNextHops->push_back(std::move(backupNextHop));
+
+  EXPECT_THROW(
+      handler.addAdjacencyFrr(
+          std::move(protectedObject), std::move(backupNextHops)),
+      FbossError);
+}
+
+TEST_F(ThriftTestWithNhopIdMgr, addAdjacencyFrrDefaultsSrv6Tunnel) {
+  // Add an SRv6 tunnel to the config so the defaulting logic can find it.
+  auto config = sw_->getConfig();
+  cfg::Srv6Tunnel srv6Tunnel;
+  srv6Tunnel.srv6TunnelId() = "srv6Tunnel0";
+  srv6Tunnel.underlayIntfID() = 1;
+  srv6Tunnel.tunnelType() = TunnelType::SRV6_ENCAP;
+  srv6Tunnel.srcIp() = "2001:db8::100";
+  config.srv6Tunnels() = {srv6Tunnel};
+  sw_->applyConfig("Add SRv6 tunnel", config);
+
+  auto ribMySidToSwitchStateFunc =
+      createRibMySidToSwitchStateFunction(std::nullopt);
+  state::MySidFields fields;
+  fields.type() = MySidType::ADJACENCY_MICRO_SID;
+  fields.mySid() = toFrrMySidIpPrefix("2001:db8::1", 64);
+  fields.adjacencyInterfaceId() = static_cast<int32_t>(kInterfaceA);
+  fields.isV6() = true;
+  fields.clientId() = ClientID::STATIC_ROUTE;
+  auto mySid = std::make_shared<MySid>(fields);
+  const RouteNextHopSet nextHops{
+      ResolvedNextHop(folly::IPAddress(kNhopAddrA), kInterfaceA, ECMP_WEIGHT)};
+  sw_->getRib()->update(
+      sw_->getScopeResolver(),
+      std::vector<MySidWithNextHops>{{mySid, nextHops, std::nullopt}},
+      {},
+      {},
+      "add adjacency mysid via rib",
+      ribMySidToSwitchStateFunc,
+      sw_);
+
+  ThriftHandler handler(sw_);
+  auto protectedObject = std::make_unique<FrrProtectedObject>();
+  protectedObject->mySid() = toFrrMySidIpPrefix("2001:db8::1", 64);
+  NextHopThrift backupNextHop;
+  backupNextHop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::ff"));
+  backupNextHop.srv6SegmentList() = {
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::1"))};
+  // tunnelId not set — should default to "srv6Tunnel0" from config.
+  auto backupNextHops = std::make_unique<std::vector<NextHopThrift>>();
+  backupNextHops->push_back(std::move(backupNextHop));
+  EXPECT_NO_THROW(handler.addAdjacencyFrr(
+      std::move(protectedObject), std::move(backupNextHops)));
+
+  const folly::CIDRNetworkV6 prefix{folly::IPAddressV6("2001:db8::1"), 64};
+  const auto mySidEntry = sw_->getRib()->getMySidTableCopy().at(prefix);
+  ASSERT_TRUE(mySidEntry.backupUnresolveNextHopsId().has_value());
+  const auto manager = sw_->getRib()->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  const auto storedBackupNextHops = manager->getNextHops(
+      NextHopSetID(*mySidEntry.backupUnresolveNextHopsId()));
+  ASSERT_EQ(storedBackupNextHops.size(), 1);
+  EXPECT_EQ(storedBackupNextHops.begin()->tunnelId(), "srv6Tunnel0");
+}
+
 TEST_F(ThriftTest, deleteAdjacencyFrrRejectsMissingMySid) {
   ThriftHandler handler(sw_);
   auto protectedObject = std::make_unique<FrrProtectedObject>();

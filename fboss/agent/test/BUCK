@@ -264,6 +264,22 @@ cpp_unittest(
 )
 
 cpp_unittest(
+    name = "vrf_config_test",
+    srcs = [
+        "VrfConfigTests.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    test_main = "//fboss/agent/test:fboss_test_main",
+    deps = [
+        ":hw_test_handle",
+        ":utils",
+        "//fboss/agent:core",
+        "//fboss/agent/hw/mock:mock",
+        "//fboss/agent/state:state",
+    ],
+)
+
+cpp_unittest(
     name = "pfc_utils_test",
     srcs = [
         "PfcUtilsTests.cpp",

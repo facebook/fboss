@@ -222,6 +222,13 @@ switch_manager_unittest(
 )
 
 switch_manager_unittest(
+    name = "vxlan_tunnel_manager_test",
+    srcs = [
+        "VxlanTunnelManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
     name = "srv6_manager_test",
     srcs = [
         "Srv6ManagerTest.cpp",

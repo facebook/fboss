@@ -869,6 +869,7 @@ cpp_library(
     name = "fsdb_adapted_sub_manager",
     srcs = [
         "FsdbAdaptedCowStorage.cpp",
+        "FsdbAdaptedCowStoragePatch.cpp",
         "FsdbAdaptedSubManager.cpp",
         "FsdbAdaptedTemplateInstantiations.cpp",
     ],
@@ -1331,6 +1332,7 @@ cpp_library(
         ":fsdb_adapted_sub_manager",
         ":hw_switch_handler",
         ":hw_switch_thrift_client_table",
+        ":hwswitch_matcher",
         ":hwswitchcallback",
         ":l2learn_event_observer",
         ":load_agent_config",

@@ -109,6 +109,7 @@ cpp_library(
         "TamEventAgingGroupApi.h",
         "Traits.h",
         "TunnelApi.h",
+        "TunnelMapApi.h",
         "Types.h",
         "UdfApi.h",
         "VendorSwitchApi.h",

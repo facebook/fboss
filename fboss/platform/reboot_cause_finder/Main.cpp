@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include <fb303/FollyLoggingHandler.h>
+#include <fmt/format.h>
 #include <folly/logging/xlog.h>
 
 #include <thrift/lib/cpp2/protocol/Serializer.h>
@@ -16,11 +17,9 @@ using namespace facebook;
 using namespace facebook::fboss::platform;
 using namespace facebook::fboss::platform::reboot_cause_finder;
 
-int main(int argc, char** argv) {
-  fb303::registerFollyLoggingOptionHandlers();
+namespace {
 
-  helpers::init(&argc, &argv);
-
+int run() {
   std::optional<std::string> configJson;
   try {
     configJson = ConfigLib().getRebootCauseFinderConfig();
@@ -54,4 +53,25 @@ int main(int argc, char** argv) {
   RebootCauseFinderImpl(config).determineRebootCause();
 
   return 0;
+}
+
+} // namespace
+
+int main(int argc, char** argv) {
+  fb303::registerFollyLoggingOptionHandlers();
+
+  helpers::init(&argc, &argv);
+
+  // One line on every way out, so the log file shows each run ended and how.
+  // An exception is logged and rethrown so it still crashes with a core.
+  try {
+    const int status = run();
+    XLOG(INFO) << fmt::format(
+        "reboot_cause_finder exiting with status {}", status);
+    return status;
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << fmt::format(
+        "reboot_cause_finder exiting on an uncaught exception: {}", ex.what());
+    throw;
+  }
 }

@@ -159,6 +159,28 @@ TEST(PbrUtils, EntryAndCounterNames) {
       "CLASS_1_qzk1-gold-nhg");
 }
 
+TEST(PbrUtils, TemporaryEntryName) {
+  EXPECT_EQ(
+      makePbrAclEntryName("qzk1", ForwardingClass::CLASS_2, true /*temporary*/),
+      "#qzk1_tc2");
+  EXPECT_FALSE(isPbrTempAclEntry("qzk1_tc2"));
+  EXPECT_TRUE(isPbrTempAclEntry("#qzk1_tc2"));
+}
+
+// A rule and its temporary copy sit at the one PBR priority; only the name
+// differs.
+TEST(PbrUtils, TemporaryEntryKeepsPriority) {
+  auto policy = makePolicy("qzk1", 100, {{ForwardingClass::CLASS_1, 201}});
+  auto original = createAclEntriesFromPolicy(policy);
+  auto temporary = createAclEntriesFromPolicy(policy, true /*temporary*/);
+  ASSERT_EQ(original.size(), 1);
+  ASSERT_EQ(temporary.size(), 1);
+  EXPECT_EQ(original[0]->getID(), "qzk1_tc1");
+  EXPECT_EQ(temporary[0]->getID(), "#qzk1_tc1");
+  EXPECT_EQ(original[0]->getPriority(), FLAGS_pbr_acl_priority);
+  EXPECT_EQ(temporary[0]->getPriority(), FLAGS_pbr_acl_priority);
+}
+
 TEST(PbrUtils, CreateAclEntriesFromPolicy) {
   auto policy = makePolicy(
       "qzk1",
@@ -644,6 +666,66 @@ TEST(PbrAclManagerTest, ReconstructReturnsOneDelta) {
   auto deltas = mgr.reconstructFromSwitchState(state);
   EXPECT_EQ(deltas.size(), 1);
   EXPECT_EQ(pbrAcls(deltas.back().newState())->numEntries(), 3);
+}
+
+TEST(PbrAclManagerTest, RemovingAPolicyWithoutItsOriginalEntryThrows) {
+  auto policy = makePolicy("qzk1", 100, {{ForwardingClass::CLASS_1, 201}});
+  auto seeded = createAclEntriesFromPolicy(policy, true /*temporary*/);
+  auto state = makeState({policy}, true /*withPbrTable*/, seeded);
+
+  PbrAclManager mgr;
+  EXPECT_THROW(
+      runManagerDelta(mgr, state, withPolicies(state, {})), FbossError);
+}
+
+TEST(PbrAclManagerTest, DroppingATrafficClassWithoutItsOriginalEntryThrows) {
+  auto policy = makePolicy(
+      "qzk1",
+      100,
+      {{ForwardingClass::CLASS_1, 201}, {ForwardingClass::CLASS_2, 202}});
+  auto tc1Only = makePolicy("qzk1", 100, {{ForwardingClass::CLASS_1, 201}});
+  auto state = makeState(
+      {policy}, true /*withPbrTable*/, createAclEntriesFromPolicy(tc1Only));
+
+  PbrAclManager mgr;
+  EXPECT_THROW(
+      runManagerDelta(mgr, state, withPolicies(state, {tc1Only})), FbossError);
+}
+
+TEST(PbrAclManagerTest, TwoPoliciesShareThePbrPriorityAcrossGetAclsDelta) {
+  // 1. Two policies, four rules, all synthesized at the one PBR priority.
+  auto a = makePolicy(
+      "qzk1",
+      100,
+      {{ForwardingClass::CLASS_1, 201}, {ForwardingClass::CLASS_2, 202}});
+  auto b = makePolicy(
+      "qzk2",
+      300,
+      {{ForwardingClass::CLASS_1, 203}, {ForwardingClass::CLASS_3, 204}});
+  PbrAclManager mgr;
+  auto programmed = runManager(mgr, makeState({a, b}, true /*withPbrTable*/));
+
+  auto acls = pbrAcls(programmed);
+  ASSERT_EQ(acls->numEntries(), 4);
+  for (const auto& [_, entry] : std::as_const(*acls)) {
+    EXPECT_EQ(entry->getPriority(), FLAGS_pbr_acl_priority);
+  }
+
+  // 2. getAclsDelta builds a PrioAclMap over the table on every state update,
+  // so all four must key apart. On a priority-only key this threw duplicate
+  // node ID, which SwSwitch turns into XLOG(FATAL).
+  auto empty = std::make_shared<SwitchState>();
+  empty->publish();
+  StateDelta delta(empty, programmed);
+  int added = 0;
+  for (const auto& entry :
+       delta.getAclsDelta(cfg::AclStage::INGRESS, kPbrTable())) {
+    EXPECT_EQ(entry.getOld(), nullptr);
+    ASSERT_NE(entry.getNew(), nullptr);
+    EXPECT_EQ(entry.getNew()->getPriority(), FLAGS_pbr_acl_priority);
+    ++added;
+  }
+  EXPECT_EQ(added, 4);
 }
 
 TEST(PbrAclManagerTest, UpdateFailedThenReapplySucceeds) {

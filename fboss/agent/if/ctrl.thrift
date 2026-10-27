@@ -811,6 +811,7 @@ enum HwObjectType {
   NEXT_HOP_GROUP_MEMBER = 28,
   SAMPLE_PACKET = 29,
   MY_MAC = 30,
+  VXLAN = 31,
 }
 
 exception FbossFibUpdateError {

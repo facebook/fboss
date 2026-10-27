@@ -219,9 +219,12 @@ std::optional<PlatformType> PlatformDescriptorRegistry::findPlatformType(
       for (const auto& modeName : entry.descriptor.modeNames().value()) {
         if (equalsNormalized(mode, normalize(modeName))) {
           const auto platformType = entry.descriptor.platformType().value();
-          XLOG(INFO) << "Found platform type "
-                     << apache::thrift::util::enumNameSafe(platformType)
-                     << " from platform descriptor for mode '" << mode << "'";
+          XLOG(DBG2) << "Using platform descriptor file "
+                     << fs::path(entry.platformMappingPath)
+                            .replace_filename(kPlatformDescriptorFileName)
+                            .string()
+                     << " for mode '" << mode << "' (platform type "
+                     << apache::thrift::util::enumNameSafe(platformType) << ")";
           return platformType;
         }
       }
@@ -232,6 +235,7 @@ std::optional<PlatformType> PlatformDescriptorRegistry::findPlatformType(
   std::optional<PlatformType> bestMatch;
   std::optional<PlatformType> conflictingBestMatch;
   std::string bestMatchPrefix;
+  const PlatformDescriptorEntry* bestMatchEntry{nullptr};
   size_t bestMatchLength = 0;
   for (const auto& entry : descriptorEntries_) {
     for (const auto& productNamePrefix :
@@ -245,6 +249,7 @@ std::optional<PlatformType> PlatformDescriptorRegistry::findPlatformType(
         bestMatch = platformType;
         conflictingBestMatch.reset();
         bestMatchPrefix = productNamePrefix;
+        bestMatchEntry = &entry;
         bestMatchLength = normalizedPrefix.size();
       } else if (
           normalizedPrefix.size() == bestMatchLength &&
@@ -263,10 +268,13 @@ std::optional<PlatformType> PlatformDescriptorRegistry::findPlatformType(
         static_cast<int>(*conflictingBestMatch));
   }
   if (bestMatch) {
-    XLOG(INFO) << "Found platform type "
-               << apache::thrift::util::enumNameSafe(*bestMatch)
-               << " from platform descriptor for product name '" << productName
-               << "' using prefix '" << bestMatchPrefix << "'";
+    XLOG(DBG2) << "Using platform descriptor file "
+               << fs::path(bestMatchEntry->platformMappingPath)
+                      .replace_filename(kPlatformDescriptorFileName)
+                      .string()
+               << " for product name '" << productName << "' using prefix '"
+               << bestMatchPrefix << "' (platform type "
+               << apache::thrift::util::enumNameSafe(*bestMatch) << ")";
   }
   return bestMatch;
 }

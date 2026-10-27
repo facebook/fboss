@@ -26,6 +26,18 @@ python_unittest(
 )
 
 python_unittest(
+    name = "test_netadmin_root_knob",
+    srcs = ["test_netadmin_root_knob.py"],
+    base_module = "login_containers.tests",
+    network_access = network_access_utils.none(),
+    resources = {
+        "//fboss/github/fboss-image/components/login-containers/payload/usr/local/sbin:disable_netadmin_root": "disable_netadmin_root",
+        "//fboss/github/fboss-image/components/login-containers/payload/usr/local/sbin:enable_netadmin_root": "enable_netadmin_root",
+        "//fboss/github/fboss-image/components/login-containers/payload/usr/local/sbin:escape-keygen": "escape-keygen",
+    },
+)
+
+python_unittest(
     name = "test_sshd_posture",
     srcs = ["test_sshd_posture.py"],
     base_module = "login_containers.tests",

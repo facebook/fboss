@@ -1028,6 +1028,34 @@ TEST_F(RebootCauseFinderImplTest, PanicOneSecondBeforeWindowIsExcluded) {
   EXPECT_TRUE(detail::readKernelPanic({dir}, btime, kWindow).causes()->empty());
 }
 
+// ------------------------------------------- window bounded by previous boot
+
+constexpr int64_t kBtime = 1'000'000;
+
+TEST_F(RebootCauseFinderImplTest, WindowIsUnchangedWithoutAPreviousBoot) {
+  EXPECT_EQ(
+      detail::boundWindowByPreviousBoot(kBtime, kWindow, std::nullopt),
+      kWindow);
+}
+
+TEST_F(RebootCauseFinderImplTest, WindowStopsAtThePreviousBootsStart) {
+  EXPECT_EQ(
+      detail::boundWindowByPreviousBoot(kBtime, kWindow, kBtime - 600), 600);
+}
+
+TEST_F(RebootCauseFinderImplTest, PreviousBootBeforeTheWindowLeavesItAlone) {
+  EXPECT_EQ(
+      detail::boundWindowByPreviousBoot(kBtime, kWindow, kBtime - kWindow - 1),
+      kWindow);
+}
+
+// A clock stepped back between boots can date the previous boot after this
+// one, which would make the window negative.
+TEST_F(RebootCauseFinderImplTest, PreviousBootDatedAfterThisOneIsIgnored) {
+  EXPECT_EQ(
+      detail::boundWindowByPreviousBoot(kBtime, kWindow, kBtime + 60), kWindow);
+}
+
 TEST_F(RebootCauseFinderImplTest, BootTimeExactlyNowIsAccepted) {
   const auto now = nowSec();
   const auto path = writeProcStat(fmt::format("btime {}\n", now));
@@ -1159,6 +1187,8 @@ TEST_F(RebootCauseFinderImplTest, SyslogDecemberLineReadInJanuaryResolves) {
 // if the arbitration changes, not only if the serializer does.
 class DetermineRebootCauseTest : public RebootCauseFinderImplTest {
  public:
+  static constexpr auto kBootId = "11111111-2222-3333-4444-555555555555";
+
   // By name, not position: the implicit providers are prepended, so any new
   // one would silently shift a positional index onto the wrong attempt.
   static folly::dynamic attemptNamed(
@@ -1191,9 +1221,7 @@ class DetermineRebootCauseTest : public RebootCauseFinderImplTest {
         folly::writeFile(
             fmt::format("cpu 1 2 3\nbtime {}\n", btime_), procStat_.c_str()));
     ASSERT_TRUE(
-        folly::writeFile(
-            std::string("11111111-2222-3333-4444-555555555555\n"),
-            bootIdPath_.c_str()));
+        folly::writeFile(fmt::format("{}\n", kBootId), bootIdPath_.c_str()));
     ASSERT_TRUE(
         folly::writeFile(
             std::string("6.4.3-0_fbk15_test\n"), osReleasePath_.c_str()));
@@ -1240,6 +1268,46 @@ class DetermineRebootCauseTest : public RebootCauseFinderImplTest {
     rcc::RebootCauseConfig c;
     c.rebootCauseProviderConfigs() = {pc};
     return c;
+  }
+
+  // The record an earlier run left for the boot that started at bootStartSec.
+  void writeEarlierBootRecord(int64_t bootStartSec) {
+    rcc::RebootCauseRecord record;
+    record.bootId() = fmt::format("earlier-boot-{}", bootStartSec);
+    record.bootTimeMs() = bootStartSec * 1000;
+    std::filesystem::create_directories(historyDir_);
+    ASSERT_TRUE(
+        folly::writeFile(
+            apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+                record),
+            fmt::format(
+                "{}/reboot-cause-{}-{}.json",
+                historyDir_,
+                bootStartSec,
+                *record.bootId())
+                .c_str()));
+  }
+
+  void writeRebootLine(int64_t atSec) {
+    ASSERT_TRUE(
+        folly::writeFile(
+            fmt::format(
+                "{} sw systemd-logind[1]: System is rebooting.\n",
+                syslogStamp(atSec)),
+            logPath_.c_str()));
+  }
+
+  // This boot's record, when the history dir also holds earlier ones.
+  folly::dynamic readThisBootsRecord() const {
+    for (const auto& e : std::filesystem::directory_iterator(historyDir_)) {
+      if (e.path().string().ends_with(fmt::format("-{}.json", kBootId))) {
+        std::string contents;
+        EXPECT_TRUE(folly::readFile(e.path().c_str(), contents));
+        return folly::parseJson(contents);
+      }
+    }
+    ADD_FAILURE() << "no record for this boot";
+    return folly::dynamic::object();
   }
 
   int64_t btime_{};
@@ -1328,6 +1396,66 @@ TEST_F(DetermineRebootCauseTest, SecondRunInTheSameBootDoesNothing) {
   EXPECT_EQ(readRecord()["detectedAtMs"].asInt(), first);
 }
 
+// A clean reboot, then within the hour an unclean reset that leaves no log
+// line of its own (a chassis reset, a power loss). With the BMC log
+// unreadable, the clean reboot's line from before the previous boot must not
+// be claimed for this one.
+TEST_F(
+    DetermineRebootCauseTest,
+    RebootLineFromBeforeThePreviousBootIsNotClaimed) {
+  writeEarlierBootRecord(btime_ - 600);
+  writeRebootLine(btime_ - 700);
+
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+
+  const auto rec = readThisBootsRecord();
+  EXPECT_EQ(rec.count("determinedCause"), 0);
+  EXPECT_EQ(attemptNamed(rec, "X86RebootCommand")["causes"].size(), 0);
+}
+
+TEST_F(DetermineRebootCauseTest, RebootLineAfterThePreviousBootIsClaimed) {
+  writeEarlierBootRecord(btime_ - 600);
+  writeRebootLine(btime_ - 60);
+
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+
+  const auto rec = readThisBootsRecord();
+  ASSERT_EQ(rec.count("determinedCause"), 1);
+  EXPECT_EQ(
+      rec["determinedCause"]["providerName"].asString(), "X86RebootCommand");
+}
+
+// With no record of the previous boot there is nothing to bound by, so the
+// configured window applies.
+TEST_F(DetermineRebootCauseTest, WithoutAnEarlierRecordTheFullWindowApplies) {
+  writeRebootLine(btime_ - 700);
+
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+
+  const auto rec = readRecord();
+  ASSERT_EQ(rec.count("determinedCause"), 1);
+  EXPECT_EQ(
+      rec["determinedCause"]["providerName"].asString(), "X86RebootCommand");
+}
+
+TEST_F(DetermineRebootCauseTest, UnparseableEarlierRecordDoesNotLoseTheBound) {
+  writeEarlierBootRecord(btime_ - 600);
+  ASSERT_TRUE(
+      folly::writeFile(
+          std::string("{truncated"),
+          (std::filesystem::path(historyDir_) / "reboot-cause-x-y.json")
+              .c_str()));
+  writeRebootLine(btime_ - 700);
+
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+
+  EXPECT_EQ(readThisBootsRecord().count("determinedCause"), 0);
+}
+
 // --redo_current_boot lifts that guard, for debugging a boot in place.
 TEST_F(DetermineRebootCauseTest, RedoCurrentBootReplacesTheRecord) {
   RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
@@ -1372,8 +1500,7 @@ TEST_F(DetermineRebootCauseTest, RecordIsNamedByBootTime) {
   std::strftime(stamp, sizeof(stamp), "%Y-%m-%d-%H-%M-%S", &tm);
   EXPECT_EQ(
       std::filesystem::path(singleRecordPath()).filename().string(),
-      fmt::format(
-          "reboot-cause-{}-11111111-2222-3333-4444-555555555555.json", stamp));
+      fmt::format("reboot-cause-{}-{}.json", stamp, kBootId));
 }
 
 TEST_F(DetermineRebootCauseTest, RecordCarriesTheKernelRelease) {

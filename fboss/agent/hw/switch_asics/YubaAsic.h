@@ -188,6 +188,10 @@ class YubaAsic : public TajoAsic {
     return 512;
   }
 
+  std::optional<uint32_t> getMaxVrfs() const override {
+    return 256;
+  }
+
   std::optional<uint32_t> getMaxArpTableSize() const override {
     return 512;
   }

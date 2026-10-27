@@ -19,6 +19,9 @@ cpp_library(
     # Will need symbols from bcm, sai layers. Those
     # will come when we build bcm/sai link test bins
     undefined_symbols = True,
+    deps = [
+        "//thrift/lib/cpp/transport:transport-core",
+    ],
     exported_deps = [
         "fbsource//xplat/folly/gen:base",
         "//fboss/agent:agent_features",

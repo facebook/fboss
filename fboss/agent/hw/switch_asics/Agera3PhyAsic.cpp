@@ -8,6 +8,7 @@ bool Agera3PhyAsic::isSupported(Feature feature) const {
   switch (feature) {
     case HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING:
     case HwAsic::Feature::SAI_SERDES_PRECODING:
+    case HwAsic::Feature::SAI_SERDES_RX_REACH:
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
     // Enable the FEC-monitor read paths for the Agera3 retimer. FEC mode

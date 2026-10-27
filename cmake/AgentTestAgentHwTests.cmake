@@ -155,6 +155,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentMacLearningAndNeighborResolutionTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMirrorOnDropDnxTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMirrorOnDropSrv6Tests.cpp
+  fboss/agent/test/agent_hw_tests/AgentMirrorOnDropStatefulTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMirrorOnDropStatelessTest.cpp
   fboss/agent/test/agent_hw_tests/AgentMirrorOnDropStatelessTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMirrorOnDropTajoImpl.cpp
@@ -243,6 +244,7 @@ target_link_libraries(agent_hw_test_src
   port_stats_test_utils
   packet
   packet_snooper
+  chenab_mod_header
   tajo_punt_header
   queue_per_host_test_utils
   multi_port_traffic_test_utils

@@ -867,6 +867,10 @@ class HwAsic {
     return std::nullopt;
   }
 
+  virtual std::optional<uint32_t> getMaxVrfs() const {
+    return std::nullopt;
+  }
+
   virtual std::optional<uint32_t> getMaxRouteCounters() const {
     return std::nullopt;
   }

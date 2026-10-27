@@ -72,8 +72,42 @@ class FakeSaiTunnelTerm {
   std::optional<sai_ip_address_t> srcIpMask;
 };
 
+class FakeSaiTunnelMap {
+ public:
+  explicit FakeSaiTunnelMap(sai_tunnel_map_type_t type) : type(type) {}
+  sai_object_id_t id{};
+  sai_tunnel_map_type_t type;
+};
+
+class FakeSaiTunnelMapEntry {
+ public:
+  FakeSaiTunnelMapEntry(
+      sai_tunnel_map_type_t type,
+      sai_object_id_t mapId,
+      sai_uint32_t vniKey,
+      sai_uint32_t vniValue,
+      sai_object_id_t vrKey,
+      sai_object_id_t vrValue)
+      : type(type),
+        mapId(mapId),
+        vniKey(vniKey),
+        vniValue(vniValue),
+        vrKey(vrKey),
+        vrValue(vrValue) {}
+  sai_object_id_t id{};
+  sai_tunnel_map_type_t type;
+  sai_object_id_t mapId;
+  sai_uint32_t vniKey;
+  sai_uint32_t vniValue;
+  sai_object_id_t vrKey;
+  sai_object_id_t vrValue;
+};
+
 using FakeTunnelManager = FakeManager<sai_object_id_t, FakeSaiTunnel>;
 using FakeTunnelTermManager = FakeManager<sai_object_id_t, FakeSaiTunnelTerm>;
+using FakeTunnelMapManager = FakeManager<sai_object_id_t, FakeSaiTunnelMap>;
+using FakeTunnelMapEntryManager =
+    FakeManager<sai_object_id_t, FakeSaiTunnelMapEntry>;
 
 void populate_tunnel_api(sai_tunnel_api_t** tunnel_api);
 

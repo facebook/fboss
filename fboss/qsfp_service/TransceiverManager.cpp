@@ -572,15 +572,20 @@ TransceiverManager::getPortsRequiringOpticsFwUpgrade() const {
 }
 
 void TransceiverManager::ensureFwUpgradeAllowed() const {
+  std::string reason;
   if (!isFullyInitialized()) {
-    throw FbossError("Service is still initializing...");
+    reason = "Service is still initializing...";
+  } else if (isUpgradingFirmware()) {
+    reason = "Service is already upgrading firmware...";
+  } else if (!FLAGS_firmware_upgrade_supported) {
+    reason =
+        "Firmware upgrade is not supported, --firmware_upgrade_supported is false";
   }
-  if (isUpgradingFirmware()) {
-    throw FbossError("Service is already upgrading firmware...");
+  if (reason.empty()) {
+    return;
   }
-  if (!FLAGS_firmware_upgrade_supported) {
-    throw FbossError("Firmware upgrade is not supported...");
-  }
+  XLOG(ERR) << "Rejecting optics firmware upgrade request: " << reason;
+  throw FbossError(reason);
 }
 
 std::map<std::string, FirmwareUpgradeData>

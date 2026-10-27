@@ -33,6 +33,7 @@ credentials, and non-public paths.
 | `../components/login-containers/payload/usr/local/bin/session-ancestors` | same path | RPM (ancestor-chain helper for attribution) |
 | `../components/login-containers/payload/var/lib/machines/netadmin/etc/{sudoers,pam.d/sudo,sysusers.d/}` | same paths | RPM (container-local netadmin sudo) |
 | `../components/login-containers/payload/usr/local/sbin/escape-keygen` | same path | RPM (first-boot escape-key provisioner) |
+| `../components/login-containers/payload/usr/local/sbin/{enable,disable}_netadmin_root` | same paths | RPM (root-only on/off knob for netadmin root escalation) |
 | `../components/login-containers/payload/usr/lib/systemd/system/escape-keygen.service` | same path | RPM (oneshot unit, enabled in `%post`) |
 | `../components/login-containers/payload/etc/ssh/sshd_config.d/` | same path | RPM (localhost root scoping + client-alive drop-ins) |
 | `../components/admin-broker/payload/usr/local/sbin/admin-broker` | same path | RPM (host-context broker daemon) |

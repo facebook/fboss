@@ -42,22 +42,28 @@ namespace {
       " PBR policies are configured");
 }
 
+void removeRuleEntry(
+    AclMap& aclMap,
+    const std::string& policyName,
+    ForwardingClass trafficClass,
+    bool temporary) {
+  auto name = makePbrAclEntryName(policyName, trafficClass, temporary);
+  if (!aclMap.removeNodeIf(name)) {
+    throw FbossError(
+        "PBR policy '",
+        policyName,
+        "' has no programmed ACL entry '",
+        name,
+        "' to remove");
+  }
+}
+
 void removePolicyEntries(
     AclMap& aclMap,
-    const std::shared_ptr<ClassBasedPolicyNode>& policy) {
+    const std::shared_ptr<ClassBasedPolicyNode>& policy,
+    bool temporary) {
   for (const auto& [tc, _] : policy->getClass2NextHopGroup()) {
-    bool removed = false;
-    for (bool temporary : {false, true}) {
-      removed |= aclMap.removeNodeIf(makePbrAclEntryName(
-                     policy->getID(), tc, temporary)) != nullptr;
-    }
-    if (!removed) {
-      throw FbossError(
-          "removed PBR policy '",
-          policy->getID(),
-          "' had no programmed ACL entry for traffic class ",
-          static_cast<int>(tc));
-    }
+    removeRuleEntry(aclMap, policy->getID(), tc, temporary);
   }
 }
 
@@ -114,10 +120,8 @@ bool applyChangedPolicy(
   }
   for (const auto& [tc, _] : oldTc2Nhg) {
     if (!newTc2Nhg.count(tc)) {
-      if (aclMap.removeNodeIf(makePbrAclEntryName(
-              newPolicy->getID(), tc, false /*temporary*/))) {
-        changed = true;
-      }
+      removeRuleEntry(aclMap, newPolicy->getID(), tc, false /*temporary*/);
+      changed = true;
     }
   }
   return changed;
@@ -136,7 +140,7 @@ bool applyPolicyDelta(AclMap& newAclMap, const StateDelta& delta) {
           return;
         }
         if (!newPolicy->isReferenced()) {
-          removePolicyEntries(newAclMap, old);
+          removePolicyEntries(newAclMap, old, false /*temporary*/);
           changed = true;
           return;
         }
@@ -152,7 +156,7 @@ bool applyPolicyDelta(AclMap& newAclMap, const StateDelta& delta) {
         if (!old->isReferenced()) {
           return;
         }
-        removePolicyEntries(newAclMap, old);
+        removePolicyEntries(newAclMap, old, false /*temporary*/);
         changed = true;
       });
   return changed;

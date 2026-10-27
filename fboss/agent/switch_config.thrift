@@ -1771,6 +1771,11 @@ enum AsicType {
   ASIC_TYPE_CHENAB2 = 25,
   ASIC_TYPE_P200 = 26,
 }
+struct VrfConfig {
+  1: i32 vrfId;
+  2: optional string name;
+}
+
 /**
  * The configuration for an interface
  */
@@ -2932,4 +2937,5 @@ struct SwitchConfig {
   // Named isolation groups, referenced per-port by Port.isolationGroup.
   63: optional map<IsolationGroupName, IsolationGroup> isolationGroups;
   64: optional list<VxLanTunnel> vxlanTunnels;
+  65: optional list<VrfConfig> vrfs;
 }

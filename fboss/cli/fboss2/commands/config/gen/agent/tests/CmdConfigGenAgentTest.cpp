@@ -1749,7 +1749,7 @@ TEST(CmdConfigGenAgentTest, VerifiesDeclaredOutputsGloballyAndForPlatform) {
   EXPECT_NE(error.find("Stale:"), std::string::npos);
   EXPECT_NE(error.find(generatedPaths.front().string()), std::string::npos);
   EXPECT_NE(
-      error.find("fboss2 config gen agent --fboss-root " + fbossRoot.string()),
+      error.find(std::string(kConfigGenerationCommand) + fbossRoot.string()),
       std::string::npos);
 
   localOptions->setLocalOption(
@@ -1768,7 +1768,7 @@ TEST(CmdConfigGenAgentTest, VerifiesDeclaredOutputsGloballyAndForPlatform) {
       std::string::npos);
   EXPECT_NE(
       error.find(
-          "fboss2 config gen agent --fboss-root " + fbossRoot.string() +
+          std::string(kConfigGenerationCommand) + fbossRoot.string() +
           " --platform " + std::string(kManifestPlatform)),
       std::string::npos);
 }
