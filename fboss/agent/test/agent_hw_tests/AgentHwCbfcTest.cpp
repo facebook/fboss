@@ -38,8 +38,10 @@ class AgentHwCbfcTest : public AgentHwTest {
   // The two lossless classes SUSWs run today: pg2 rdma, pg6 monitoring.
   static constexpr int16_t kRdmaVc = 2;
   static constexpr int16_t kMonitoringVc = 6;
-  static constexpr int64_t kRdmaReservedCredits = 36;
-  static constexpr int64_t kMonitoringReservedCredits = 12;
+  // 36 and 12 cells. brcm-sai reads reserved credits as bytes (/56), so 36
+  // alone programs 0 cells. Back to cells once CS00012481990 fixes the unit.
+  static constexpr int64_t kRdmaReservedCredits = 36 * 56;
+  static constexpr int64_t kMonitoringReservedCredits = 12 * 56;
   static constexpr int64_t kSenderCreditLimit = 8192;
   // The TU1 receiver's values, so a TU1-to-TU1 link counts credits alike.
   static constexpr int16_t kSenderCreditSize = 56;
