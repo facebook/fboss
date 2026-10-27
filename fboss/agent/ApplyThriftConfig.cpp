@@ -720,6 +720,8 @@ class ThriftConfigApplier {
       const std::shared_ptr<VxlanTunnel>& orig,
       const cfg::VxLanTunnel* config);
   std::shared_ptr<VxlanTunnelMap> updateVxlanTunnels();
+  const std::vector<cfg::VrfConfig>& getConfigVrfs() const;
+  std::shared_ptr<VrfMap> updateVrfs();
   std::shared_ptr<DsfNodeMap> updateDsfNodes();
   void processUpdatedDsfNodes();
   void processReachabilityGroup(
@@ -1166,6 +1168,15 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
       new_->resetVxlanTunnels(
           toMultiSwitchMap<MultiSwitchVxlanTunnelMap>(
               newVxlanTunnels, *cfg_, scopeResolver_));
+      changed = true;
+    }
+  }
+
+  {
+    auto newVrfs = updateVrfs();
+    if (newVrfs) {
+      new_->resetVrfs(
+          toMultiSwitchMap<MultiSwitchVrfMap>(newVrfs, scopeResolver_));
       changed = true;
     }
   }
@@ -7788,6 +7799,41 @@ shared_ptr<VxlanTunnel> ThriftConfigApplier::createVxlanTunnel(
     throw FbossError("Dst IP not set for: ", tunnel->getID(), ", VXLAN tunnel");
   }
   return tunnel;
+}
+
+const std::vector<cfg::VrfConfig>& ThriftConfigApplier::getConfigVrfs() const {
+  static const std::vector<cfg::VrfConfig> kNoVrfs;
+  return cfg_->vrfs() ? *cfg_->vrfs() : kNoVrfs;
+}
+
+std::shared_ptr<VrfMap> ThriftConfigApplier::updateVrfs() {
+  const auto& origVrfs = orig_->getVrfs();
+  auto newVrfs = std::make_shared<VrfMap>();
+  bool changed = false;
+  size_t numExistingProcessed = 0;
+  for (const auto& vrfCfg : getConfigVrfs()) {
+    if (newVrfs->getNodeIf(RouterID(*vrfCfg.vrfId()))) {
+      throw FbossError("Duplicate VRF id: ", *vrfCfg.vrfId());
+    }
+    auto origVrf = origVrfs->getNodeIf(RouterID(*vrfCfg.vrfId()));
+    auto newVrf = std::make_shared<Vrf>(RouterID(*vrfCfg.vrfId()));
+    newVrf->setName(vrfCfg.name().to_optional());
+    if (origVrf) {
+      ++numExistingProcessed;
+      if (*origVrf == *newVrf) {
+        newVrf = nullptr;
+      }
+    }
+    changed |= updateThriftMapNode(newVrfs.get(), origVrf, newVrf);
+  }
+
+  if (numExistingProcessed != origVrfs->numNodes()) {
+    changed = true;
+  }
+  if (!changed) {
+    return nullptr;
+  }
+  return newVrfs;
 }
 
 std::shared_ptr<MultiLabelForwardingInformationBase>
