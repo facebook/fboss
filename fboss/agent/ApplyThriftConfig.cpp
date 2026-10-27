@@ -7816,15 +7816,26 @@ const std::vector<cfg::VrfConfig>& ThriftConfigApplier::getConfigVrfs() const {
 
 void ThriftConfigApplier::validateVrfs() const {
   const auto& vrfs = getConfigVrfs();
-  if (vrfs.empty()) {
-    return;
-  }
+  std::unordered_set<int32_t> vrfIds;
   for (const auto& vrfCfg : vrfs) {
     if (*vrfCfg.vrfId() <= 0) {
       throw FbossError(
           "VRF id must be positive, VRF 0 is the default VRF: ",
           *vrfCfg.vrfId());
     }
+    vrfIds.insert(*vrfCfg.vrfId());
+  }
+  for (const auto& intfCfg : *cfg_->interfaces()) {
+    if (*intfCfg.routerID() != 0 && !vrfIds.contains(*intfCfg.routerID())) {
+      throw FbossError(
+          "Interface ",
+          *intfCfg.intfID(),
+          " refers to unconfigured VRF ",
+          *intfCfg.routerID());
+    }
+  }
+  if (vrfs.empty()) {
+    return;
   }
   for (const auto* asic : hwAsicTable_->getL3Asics()) {
     if (!asic->isSupported(HwAsic::Feature::VRF)) {

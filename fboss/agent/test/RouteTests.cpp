@@ -1126,6 +1126,7 @@ TEST_F(RouteTest, applyNewConfig) {
   config.interfaces()[5].intfID() = 6;
   config.interfaces()[5].vlanID() = 6;
   config.interfaces()[5].routerID() = 1;
+  config.vrfs().ensure().emplace_back().vrfId() = 1;
   config.interfaces()[5].mac() = "00:00:00:00:00:66";
   config.interfaces()[5].ipAddresses()->resize(2);
   config.interfaces()[5].ipAddresses()[0] = "5.1.1.1/24";
@@ -1173,6 +1174,7 @@ TEST_F(RouteTest, applyNewConfig) {
   config.interfaces()[6].intfID() = 7;
   config.interfaces()[6].vlanID() = 7;
   config.interfaces()[6].routerID() = 2;
+  config.vrfs().ensure().emplace_back().vrfId() = 2;
   config.interfaces()[6].mac() = "00:00:00:00:00:77";
   config.interfaces()[6].ipAddresses()->resize(2);
   config.interfaces()[6].ipAddresses()[0] = "1.1.1.1/24";

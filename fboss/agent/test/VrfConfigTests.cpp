@@ -119,3 +119,21 @@ TEST(VrfResource, MaxVrfs) {
   EXPECT_THROW(sw->applyConfig("8 vrfs", config), FbossError);
   EXPECT_EQ(sw->getState()->getVrfs()->numNodes(), 7);
 }
+
+TEST_F(VrfConfigTest, InterfaceInVrf) {
+  config_.vrfs() = {makeVrfConfig(1001)};
+  config_.interfaces()[0].routerID() = 1001;
+  state_ = apply();
+  ASSERT_NE(state_, nullptr);
+
+  EXPECT_EQ(
+      state_->getInterfaces()
+          ->getNode(InterfaceID(*config_.interfaces()[0].intfID()))
+          ->getRouterID(),
+      RouterID(1001));
+}
+
+TEST_F(VrfConfigTest, InterfaceInUnconfiguredVrfRejected) {
+  config_.interfaces()[0].routerID() = 1001;
+  EXPECT_THROW(apply(), FbossError);
+}
