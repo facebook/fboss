@@ -20967,6 +20967,12 @@
         },
         {
           "test_name_regex": "AgentQueuePerHostTest.VerifyHostToQueueMappingClassIDsAfterResolve$"
+        },
+        {
+          "test_name_regex": "AgentPrbsTest.enablePortPrbs$"
+        },
+        {
+          "test_name_regex": "AgentPrbsTest.disablePortPrbs$"
         }
     ],
     "brcm/16.0_ea_odp/16.0_ea_odp/tomahawk6/multi_switch/rbb": [
@@ -21473,6 +21479,12 @@
         },
         {
           "test_name_regex": "AgentQueuePerHostTest.VerifyHostToQueueMappingClassIDsAfterResolve$"
+        },
+        {
+          "test_name_regex": "AgentPrbsTest.enablePortPrbs$"
+        },
+        {
+          "test_name_regex": "AgentPrbsTest.disablePortPrbs$"
         }
     ],
     "brcm/16.0_ea_odp/16.0_ea_odp/tomahawkultra1/multi_switch": [
