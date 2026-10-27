@@ -4,6 +4,7 @@
 
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vrf.h"
 #include "fboss/agent/test/HwTestHandle.h"
@@ -136,4 +137,21 @@ TEST_F(VrfConfigTest, InterfaceInVrf) {
 TEST_F(VrfConfigTest, InterfaceInUnconfiguredVrfRejected) {
   config_.interfaces()[0].routerID() = 1001;
   EXPECT_THROW(apply(), FbossError);
+}
+
+TEST_F(VrfConfigTest, RibTablePerVrf) {
+  RoutingInformationBase rib;
+  config_.vrfs() = {makeVrfConfig(1001)};
+  state_ = publishAndApplyConfig(state_, &config_, platform_.get(), &rib);
+  ASSERT_NE(state_, nullptr);
+  auto vrfList = rib.getVrfList();
+  EXPECT_NE(
+      std::find(vrfList.begin(), vrfList.end(), RouterID(1001)), vrfList.end());
+
+  config_.vrfs() = {};
+  state_ = publishAndApplyConfig(state_, &config_, platform_.get(), &rib);
+  ASSERT_NE(state_, nullptr);
+  vrfList = rib.getVrfList();
+  EXPECT_EQ(
+      std::find(vrfList.begin(), vrfList.end(), RouterID(1001)), vrfList.end());
 }

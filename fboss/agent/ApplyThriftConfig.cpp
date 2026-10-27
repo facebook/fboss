@@ -1019,6 +1019,13 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
         convertMySidConfig(*mySidConfig, buildPortNameToInterfaceIdMap(*cfg_));
   }
 
+  std::vector<std::pair<RouterID, IntfRoute>> vrfRouteTables;
+  for (const auto& vrfCfg : getConfigVrfs()) {
+    vrfRouteTables.emplace_back(RouterID(*vrfCfg.vrfId()), IntfRoute{});
+  }
+  // Keeps existing entries for VRFs that already have interface routes
+  intfRouteTables_.insert(vrfRouteTables.begin(), vrfRouteTables.end());
+
   if (routeUpdater_) {
     routeUpdater_->setRoutesToConfig(
         intfRouteTables_,
