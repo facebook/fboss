@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/platform/reboot_cause_finder/RebootCauseFinderImpl.h"
+#include "fboss/platform/reboot_cause_finder/RebootHistory.h"
 #include "fboss/platform/reboot_cause_finder/if/gen-cpp2/reboot_cause_config_constants.h"
 
 #include "fboss/lib/RestClient.h"
@@ -47,9 +48,10 @@ DEFINE_bool(
 // Must span shutdown, POST and the bootloader. On a switch whose firmware
 // attempts a network boot before falling back to local disk, the gap between
 // a power cycle and btime has been observed above 25 minutes, so the default
-// is deliberately generous. Erring large only risks admitting an older event,
-// which nearest-to-btime selection already handles; erring small silently
-// misses the cause.
+// is deliberately generous. Erring large only risks admitting an older event:
+// nearest-to-btime selection handles it when a newer one is also in range, and
+// the previous boot's start bounds the window when its record exists. Erring
+// small silently misses the cause.
 DEFINE_int32(
     max_downtime_sec,
     3600,
@@ -263,6 +265,36 @@ bool removeRecordForBoot(
   return removedAll;
 }
 
+// Start of the newest boot recorded before btimeSec, in epoch seconds. A boot
+// that left no record is skipped, so the result is at or before the real
+// previous boot's start: it can only make the window looser than ideal, never
+// tighter. std::nullopt when no earlier record is usable, which leaves the
+// configured window in place.
+std::optional<int64_t> previousBootStartSec(
+    const std::string& historyDir,
+    const std::string& bootId,
+    int64_t btimeSec) {
+  RebootHistory history;
+  try {
+    readRebootHistory(historyDir, history);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << fmt::format(
+        "Failed to read reboot history from '{}': {}", historyDir, ex.what());
+    return std::nullopt;
+  }
+  for (const auto& warning : history.warnings) {
+    XLOG(WARNING) << fmt::format("Reboot history: {}", warning);
+  }
+  // Newest boot first, so the first earlier boot is the previous one.
+  for (const auto& record : history.records) {
+    const int64_t startSec = *record.bootTimeMs() / 1000;
+    if (*record.bootId() != bootId && startSec > 0 && startSec < btimeSec) {
+      return startSec;
+    }
+  }
+  return std::nullopt;
+}
+
 // Clearing a provider is destructive and unrecoverable, so it only runs once
 // this boot's cause is safely on disk.
 bool shouldClearProviders(bool recorded) {
@@ -423,6 +455,16 @@ reboot_cause_config::RebootCause makeCause(
 bool inBootWindow(std::time_t when, int64_t btimeSec, int64_t windowSec) {
   const auto t = static_cast<int64_t>(when);
   return t < btimeSec && t >= btimeSec - windowSec;
+}
+
+int64_t boundWindowByPreviousBoot(
+    int64_t btimeSec,
+    int64_t windowSec,
+    std::optional<int64_t> previousBootStartSec) {
+  if (!previousBootStartSec || *previousBootStartSec >= btimeSec) {
+    return windowSec;
+  }
+  return std::min(windowSec, btimeSec - *previousBootStartSec);
 }
 
 // Crash dirs are named "%Y-%m-%dT%H:%M:%S%Z" or "%Y-%m-%d-%H:%M:%S".
@@ -1081,6 +1123,9 @@ void RebootCauseFinderImpl::determineRebootCause() {
         paths_.bootId);
     return;
   }
+  // Logged on every run, including the ones the guard below stops, so each run
+  // in the log file can be tied to the boot it ran in.
+  XLOG(INFO) << fmt::format("Running in boot {}", bootId);
   const auto alreadyHandled = recordExistsForBoot(paths_.historyDir, bootId);
   if (!alreadyHandled.has_value()) {
     XLOG(ERR) << "Doing nothing: cannot tell whether this boot was already "
@@ -1139,7 +1184,17 @@ void RebootCauseFinderImpl::determineRebootCause() {
   const auto btime = detail::readBootTimeSec(paths_.procStat);
   if (btime) {
     bootTimeMs = toEpochMs(static_cast<std::time_t>(*btime));
-    const int64_t window = FLAGS_max_downtime_sec;
+    const int64_t window = detail::boundWindowByPreviousBoot(
+        *btime,
+        FLAGS_max_downtime_sec,
+        previousBootStartSec(paths_.historyDir, bootId, *btime));
+    if (window < FLAGS_max_downtime_sec) {
+      XLOG(INFO) << fmt::format(
+          "Searching the {}s since the previous boot started, not the "
+          "configured {}s",
+          window,
+          FLAGS_max_downtime_sec);
+    }
 
     std::vector<reboot_cause_config::RebootCauseProviderAttempt> software;
     software.push_back(
@@ -1241,6 +1296,17 @@ void RebootCauseFinderImpl::determineRebootCause() {
   record.kernelRelease() = readKernelRelease(paths_.osRelease);
   record.providersAttempted() = attempts;
 
+  if (record.determinedCause().has_value()) {
+    XLOG(INFO) << fmt::format(
+        "Determined reboot cause: '{}' [Provider: {}]",
+        *record.determinedCause()->cause()->description(),
+        *record.determinedCause()->providerName());
+  } else {
+    XLOG(INFO) << fmt::format(
+        "No reboot cause determined. Providers attempted: {}",
+        summariseAttempts(attempts));
+  }
+
   // Writing the record is what arms the guard, so it has to succeed before
   // anything destructive happens. If it failed, the providers stay latched and
   // the next run retries this boot from scratch.
@@ -1252,17 +1318,6 @@ void RebootCauseFinderImpl::determineRebootCause() {
           "Clearing provider '{}'", *providerConfig.name());
       clearProvider(providerConfig);
     }
-  }
-
-  if (record.determinedCause().has_value()) {
-    XLOG(INFO) << fmt::format(
-        "Determined reboot cause: '{}' [Provider: {}]",
-        *record.determinedCause()->cause()->description(),
-        *record.determinedCause()->providerName());
-  } else {
-    XLOG(INFO) << fmt::format(
-        "No reboot cause determined. Providers attempted: {}",
-        summariseAttempts(attempts));
   }
 }
 
@@ -1296,6 +1351,10 @@ bool RebootCauseFinderImpl::persistResult(
     XLOG(ERR) << fmt::format("Failed to write history file '{}'", filePath);
     return false;
   }
+  XLOG(INFO) << fmt::format(
+      "Wrote the reboot cause record for boot {} to '{}'",
+      *record.bootId(),
+      filePath);
   return true;
 }
 

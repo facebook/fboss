@@ -2,7 +2,7 @@ Name: fake-ident
 Version: 1.0
 Release: 1
 Summary: Fake-distro identity files (VM/dev only, never for hardware)
-License: GPL
+License: BSD
 BuildArch: noarch
 %description
 Synthetic platform identity for the fake-SAI distro VM: fruid, agent seed,

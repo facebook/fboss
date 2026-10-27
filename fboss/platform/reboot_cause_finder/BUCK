@@ -22,6 +22,24 @@ cpp_library(
 )
 
 cpp_library(
+    name = "reboot_history_lib",
+    srcs = [
+        "RebootHistory.cpp",
+    ],
+    headers = [
+        "RebootHistory.h",
+    ],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "fbsource//xplat/folly:file_util",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_deps = [
+        "//fboss/platform/reboot_cause_finder/if:reboot_cause_config-cpp2-types",
+    ],
+)
+
+cpp_library(
     name = "reboot_cause_finder_lib",
     srcs = [
         "RebootCauseFinderImpl.cpp",
@@ -37,6 +55,7 @@ cpp_library(
         "fbsource//xplat/folly:file_util",
         "fbsource//xplat/folly:string",
         "fbsource//xplat/folly/logging:logging",
+        ":reboot_history_lib",
         "//fboss/lib:rest-client",
         "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2/protocol:protocol",
@@ -57,6 +76,7 @@ cpp_binary(
         "Main.cpp",
     ],
     deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//xplat/folly/logging:logging",
         ":config_validator",
         ":reboot_cause_finder_lib",

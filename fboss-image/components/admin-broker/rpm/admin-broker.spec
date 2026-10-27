@@ -2,7 +2,7 @@ Name: admin-broker
 Version: 1.0
 Release: 1
 Summary: Scoped host control channel for role login containers
-License: GPL
+License: BSD
 BuildArch: noarch
 %description
 Host-side broker for the netops/netadmin login containers: an abstract-socket

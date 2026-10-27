@@ -1570,7 +1570,7 @@ ci_sandcastle(
         ],
     },
     capabilities = {
-        "tenant": "default-tenant",
+        "tenant": "fboss-oss",
         "type": "fbcode",
         "vcs": "full-fbsource",
     },
@@ -1590,6 +1590,11 @@ ci_sandcastle(
         "fbcode/fboss/lib/platform_mapping_v2/generated_platform_mappings/**",
     ],
     command = "SandcastleUniversalCommand",
+    metadata = {
+        "infra_errors_should_block_lands": False,
+        "landblocking": True,
+        "timeout_should_block_lands": False,
+    },
     oncall = "fboss_oss",
     schedules = [
         ci.diff,

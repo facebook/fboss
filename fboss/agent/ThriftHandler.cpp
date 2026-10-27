@@ -1926,9 +1926,13 @@ void ThriftHandler::addAdjacencyFrr(
   if (!rib) {
     throw FbossError("RIB not initialized");
   }
+  auto defaultSrv6TunnelId = getDefaultSrv6TunnelId(sw_->getConfig());
+  auto state = sw_->getState();
   for (auto& nextHop : *backupNextHops) {
     nextHop.role() = NextHopRole::BACKUP;
   }
+  validateAndDefaultSrv6NextHops(*backupNextHops, defaultSrv6TunnelId);
+  validateLinkLocalNextHopInterfaces(*backupNextHops, state);
   std::vector<MySidFrrProtectionUpdate> toAddOrUpdate{MySidFrrProtectionUpdate{
       .mySidPrefix =
           facebook::network::toCIDRNetwork(*protectedObject->mySid_ref()),

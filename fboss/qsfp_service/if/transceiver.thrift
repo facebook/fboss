@@ -260,6 +260,8 @@ enum MediaInterfaceCode {
   DR4_8x800G = 36,
   FR2_200G = 37,
   DR8_800G = 38,
+  // 1.6TBASE-DR8 (IEEE 802.3 Clause 180)
+  DR8_1600G = 39,
   // Active copper at 200G/lane (IEEE 802.3 Clause 179). The hw test runner
   // parses the trailing speed off these names, so keep the suffix.
   CR1_200G = 40,
@@ -341,6 +343,7 @@ enum SMFMediaInterfaceCode {
   FR2_200G = 0xC0,
   FR2_400G = 0xC2,
   FR1_200G = 0xC4,
+  DR8_1600G = 0x7F,
   ZR_VENDOR_CUSTOM = 0xF7,
 }
 

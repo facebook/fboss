@@ -2,7 +2,7 @@ Name: login-containers
 Version: 1.0
 Release: 1
 Summary: Role login containers (nspawn machines for netops/netadmin)
-License: GPL
+License: BSD
 BuildArch: noarch
 %description
 nspawn login machines for the netops/netadmin roles: machine rootfs skeletons,

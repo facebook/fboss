@@ -274,12 +274,14 @@ class AgentQueuePerHostTest : public AgentHwTest {
   void _verifyHelper(bool frontPanel, bool blockNeighbor) {
     XLOG(DBG2) << "verify send packets "
                << (frontPanel ? "out of port" : "switched");
-    // wait for pending state updates to complete
     waitForStateUpdates(getSw());
     verifyNeighborClassId<AddrT>(blockNeighbor);
     auto ttlAclName = utility::getQueuePerHostTtlAclName();
     auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
 
+    if (frontPanel) {
+      learnSrcMacOnEcmpTxPortIfPending(kDefaultEcmpWidth);
+    }
     getNextUpdatedPortStats(masterLogicalPortIds()[0]);
     auto statBefore = utility::getAclInOutPackets(getSw(), ttlCounterName);
 

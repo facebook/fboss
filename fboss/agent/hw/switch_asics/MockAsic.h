@@ -53,6 +53,9 @@ class MockAsic : public HwAsic {
   cfg::AsicType getAsicType() const override {
     return cfg::AsicType::ASIC_TYPE_MOCK;
   }
+  std::optional<uint32_t> getMaxVrfs() const override {
+    return 8;
+  }
   phy::DataPlanePhyChipType getDataPlanePhyChipType() const override {
     return phy::DataPlanePhyChipType::IPHY;
   }
