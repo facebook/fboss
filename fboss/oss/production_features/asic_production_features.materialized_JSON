@@ -1738,6 +1738,20 @@
       ]
     },
     {
+      "feature": 128,
+      "supportedFrom": [
+        {
+          "asics": [
+            "yuba",
+            "g202x"
+          ],
+          "sdk": 2,
+          "minSdkVersion": "26.5.4210",
+          "note": "SRv6 MySid Adj FRR is supported starting SDK 26.5.4210"
+        }
+      ]
+    },
+    {
       "feature": 49,
       "supportedFrom": [
         {
