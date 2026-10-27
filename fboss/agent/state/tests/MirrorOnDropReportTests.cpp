@@ -2,6 +2,9 @@
 
 #include <gtest/gtest.h>
 
+#include <unordered_set>
+
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/hw/mock/MockPlatformMapping.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -284,6 +287,34 @@ TEST_F(MirrorOnDropReportTest, CreateReportOnNifPort) {
       publishAndApplyConfig(
           state_, &config_, platform_.get(), nullptr, &mockPlatformMapping_),
       FbossError);
+}
+
+// XGS has no mirror port, so every NPU gets the report.
+TEST(MirrorOnDropReportXgsTest, ReportReachesEveryNpu) {
+  auto platform = createMockPlatform();
+  auto config = testConfigA();
+  // One VLAN interface per NPU: Vlan1 is ports 1-11, Vlan55 is 12-20.
+  config.switchSettings()->switchIdToSwitchInfo() = {
+      {0,
+       createSwitchInfo(
+           cfg::SwitchType::NPU, cfg::AsicType::ASIC_TYPE_MOCK, 0, 11, 0)},
+      {1,
+       createSwitchInfo(
+           cfg::SwitchType::NPU, cfg::AsicType::ASIC_TYPE_MOCK, 12, 99, 1)}};
+  auto reportCfg = makeReportCfg(std::monostate{}, "2401::1");
+  reportCfg.mirrorPort().ensure().tunnel().ensure().srcIp() = "2401::2";
+  config.mirrorOnDropReports()->push_back(reportCfg);
+
+  auto state = publishAndApplyConfig(
+      std::make_shared<SwitchState>(), &config, platform.get());
+  ASSERT_NE(state, nullptr);
+
+  for (const auto& switchId : {SwitchID(0), SwitchID(1)}) {
+    auto reports = state->getMirrorOnDropReports()->getMapNodeIf(
+        HwSwitchMatcher(std::unordered_set<SwitchID>{switchId}));
+    ASSERT_NE(reports, nullptr) << "switch " << switchId;
+    EXPECT_NE(reports->getNodeIf("mod-1"), nullptr) << "switch " << switchId;
+  }
 }
 
 TEST_F(MirrorOnDropReportTest, CreateReportOnGlobalScopedRecyclePort) {

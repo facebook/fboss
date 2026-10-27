@@ -683,7 +683,7 @@ class ThriftConfigApplier {
       const cfg::Mirror* config);
   std::shared_ptr<FibInfo> updateForwardingInformationBaseInfo();
 
-  std::shared_ptr<MirrorOnDropReportMap> updateMirrorOnDropReports();
+  std::shared_ptr<MultiSwitchMirrorOnDropReportMap> updateMirrorOnDropReports();
   std::shared_ptr<MirrorOnDropReport> createMirrorOnDropReport(
       const cfg::MirrorOnDropReport& config);
   std::shared_ptr<MirrorOnDropReport> updateMirrorOnDropReport(
@@ -1123,9 +1123,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     auto newMirrorOnDropReports = updateMirrorOnDropReports();
     if (newMirrorOnDropReports) {
-      new_->resetMirrorOnDropReports(
-          toMultiSwitchMap<MultiSwitchMirrorOnDropReportMap>(
-              newMirrorOnDropReports, scopeResolver_));
+      new_->resetMirrorOnDropReports(newMirrorOnDropReports);
       changed = true;
     }
   }
@@ -7218,7 +7216,7 @@ std::shared_ptr<Mirror> ThriftConfigApplier::updateMirror(
   return newMirror;
 }
 
-std::shared_ptr<MirrorOnDropReportMap>
+std::shared_ptr<MultiSwitchMirrorOnDropReportMap>
 ThriftConfigApplier::updateMirrorOnDropReports() {
   const auto& origReports = orig_->getMirrorOnDropReports();
   auto newReports = std::make_shared<MirrorOnDropReportMap>();
@@ -7247,20 +7245,30 @@ ThriftConfigApplier::updateMirrorOnDropReports() {
     return nullptr;
   }
 
-  auto newReportWithSwitchIds = std::make_shared<MirrorOnDropReportMap>();
-  for (auto& switchIdAndSwitchInfo :
+  auto multiSwitchReports =
+      std::make_shared<MultiSwitchMirrorOnDropReportMap>();
+  for (const auto& [switchIdInt, switchInfo] :
        *cfg_->switchSettings()->switchIdToSwitchInfo()) {
-    if (switchIdAndSwitchInfo.second.switchType() != cfg::SwitchType::VOQ &&
-        switchIdAndSwitchInfo.second.switchType() != cfg::SwitchType::NPU) {
+    auto switchType = switchInfo.switchType();
+    if (switchType != cfg::SwitchType::VOQ &&
+        switchType != cfg::SwitchType::NPU) {
       continue;
     }
-    for (auto& mapEntry : std::as_const(*newReports)) {
-      auto newReport = mapEntry.second->clone();
-      newReportWithSwitchIds->insert(mapEntry.first, std::move(newReport));
+    auto switchId = SwitchID(switchIdInt);
+    auto switchMatcher =
+        HwSwitchMatcher(std::unordered_set<SwitchID>({switchId}));
+    for (const auto& mapEntry : std::as_const(*newReports)) {
+      const auto& report = mapEntry.second;
+      // XGS has no mirror port, so every L3 switch gets the report.
+      if (switchType == cfg::SwitchType::VOQ &&
+          !scopeResolver_.scope(report->getMirrorPortId()).has(switchId)) {
+        continue;
+      }
+      multiSwitchReports->addNode(report->clone(), switchMatcher);
     }
   }
 
-  return newReportWithSwitchIds;
+  return multiSwitchReports;
 }
 
 std::shared_ptr<MirrorOnDropReport>
