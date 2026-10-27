@@ -108,7 +108,10 @@ void fillHwSwitchCreditStats(
 void fillHwSwitchErrorStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     HwSwitchDropStats& dropStats) {
-  for (auto counterIdAndValue : counterId2Value) {
+  const auto& counters = counterId2Value;
+  const auto begin = counters.begin();
+  const auto end = counters.end();
+  std::for_each(begin, end, [&](auto counterIdAndValue) {
     auto [counterId, value] = counterIdAndValue;
     switch (counterId) {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
@@ -133,13 +136,16 @@ void fillHwSwitchErrorStats(
       default:
         throw FbossError("Got unexpected switch counter id: ", counterId);
     }
-  }
+  });
 }
 
 void fillHwSwitchSaiExtensionDropStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     HwSwitchDropStats& dropStats) {
-  for (auto counterIdAndValue : counterId2Value) {
+  const auto& counters = counterId2Value;
+  const auto begin = counters.begin();
+  const auto end = counters.end();
+  std::for_each(begin, end, [&](auto counterIdAndValue) {
     auto [counterId, value] = counterIdAndValue;
     switch (counterId) {
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
@@ -150,14 +156,17 @@ void fillHwSwitchSaiExtensionDropStats(
       default:
         throw FbossError("Got unexpected switch counter id: ", counterId);
     }
-  }
+  });
 }
 
 void fillHwSwitchPipelineStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     int idx,
     HwSwitchPipelineStats& hwSwitchPipelineStats) {
-  for (auto counterIdAndValue : counterId2Value) {
+  const auto& counters = counterId2Value;
+  const auto begin = counters.begin();
+  const auto end = counters.end();
+  std::for_each(begin, end, [&](auto counterIdAndValue) {
     auto [counterId, value] = counterIdAndValue;
     switch (counterId) {
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
@@ -186,7 +195,7 @@ void fillHwSwitchPipelineStats(
       default:
         throw FbossError("Got unexpected switch counter id: ", counterId);
     }
-  }
+  });
 }
 
 void fillHwSwitchDropBitmapStats(
