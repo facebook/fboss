@@ -83,6 +83,7 @@ cpp_binary(
         "//fb303:logging",
         "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/helpers:init",
+        "//fboss/platform/helpers:structured_logger",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
 )

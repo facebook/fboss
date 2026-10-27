@@ -52,6 +52,7 @@ add_executable(reboot_cause_finder
 
 target_link_libraries(reboot_cause_finder
   reboot_cause_finder_lib
+  structured_logger
   fb303::fb303
   fmt::fmt
 )

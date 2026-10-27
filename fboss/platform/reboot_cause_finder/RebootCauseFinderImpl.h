@@ -5,6 +5,7 @@
 #include <folly/Range.h>
 #include <optional>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "fboss/platform/reboot_cause_finder/if/gen-cpp2/reboot_cause_config_types.h"
@@ -118,6 +119,34 @@ std::optional<reboot_cause_config::DeterminedCause> selectNearestToBoot(
 
 } // namespace detail
 
+// How a run ended, for the one structured event Main logs per run.
+enum class RunOutcome {
+  // Did nothing: the boot id or the history dir could not be read, or a redo
+  // could not remove the existing record.
+  NOT_RUN,
+  // This boot already has a record and no redo was asked for.
+  ALREADY_HANDLED,
+  // The finished record is on disk.
+  RECORDED,
+  // The providers were read but the finished record could not be written.
+  RECORD_FAILED,
+};
+
+struct RunResult {
+  RunOutcome outcome{RunOutcome::NOT_RUN};
+  // Empty when it could not be read.
+  std::string bootId;
+  // The finished record, for RECORDED and RECORD_FAILED.
+  std::optional<reboot_cause_config::RebootCauseRecord> record;
+};
+
+// Tags for the per-run structured event. Built here rather than in Main so the
+// event's contents can be tested without the logger, which reads the platform
+// name from the host.
+std::unordered_map<std::string, std::string> runEventTags(
+    const RunResult& result,
+    int exitStatus);
+
 class RebootCauseFinderImpl {
  public:
   // Everything the finder reads or writes outside the config. Defaults are
@@ -140,7 +169,7 @@ class RebootCauseFinderImpl {
   // Read all providers, determine the reboot cause, persist the record, and
   // optionally clear providers (when --clear_reboot_causes is set).
   // Invoked once when the one-shot binary runs.
-  void determineRebootCause();
+  RunResult determineRebootCause();
 
  private:
   const reboot_cause_config::RebootCauseConfig config_;

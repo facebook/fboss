@@ -1538,6 +1538,50 @@ TEST_F(DetermineRebootCauseTest, WithoutBootTimeBothWritesShareOneFile) {
   EXPECT_EQ(rec["bootTimeMs"].asInt(), 0);
 }
 
+// The per-run event says whether a cause was found and, when not, which
+// providers could not even be read.
+TEST_F(DetermineRebootCauseTest, RunEventNamesTheProvidersThatFailed) {
+  const auto result =
+      RebootCauseFinderImpl(
+          configWithProvider((tmpDir_ / "absent").string()), paths())
+          .determineRebootCause();
+  EXPECT_EQ(result.outcome, RunOutcome::RECORDED);
+
+  const auto tags = runEventTags(result, 0);
+  EXPECT_EQ(tags.at("outcome"), "RECORDED");
+  EXPECT_EQ(tags.at("boot_id"), kBootId);
+  EXPECT_EQ(tags.at("exit_status"), "0");
+  EXPECT_EQ(tags.at("determined"), "false");
+  EXPECT_EQ(tags.count("cause"), 0);
+  // No BMC is reachable from a test host, so BMCWedgePower fails too.
+  EXPECT_THAT(tags.at("failed_providers"), testing::HasSubstr("TEST_CPLD"));
+  EXPECT_THAT(tags.at("failed_providers"), testing::HasSubstr("BMCWedgePower"));
+}
+
+TEST_F(DetermineRebootCauseTest, RunEventCarriesTheDeterminedCause) {
+  writeRebootLine(btime_ - 60);
+  const auto result = RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+                          .determineRebootCause();
+
+  const auto tags = runEventTags(result, 0);
+  EXPECT_EQ(tags.at("determined"), "true");
+  EXPECT_EQ(tags.at("provider"), "X86RebootCommand");
+  EXPECT_FALSE(tags.at("cause").empty());
+}
+
+TEST_F(DetermineRebootCauseTest, RunEventForASecondRunSaysAlreadyHandled) {
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+  const auto result = RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+                          .determineRebootCause();
+  EXPECT_EQ(result.outcome, RunOutcome::ALREADY_HANDLED);
+
+  const auto tags = runEventTags(result, 0);
+  EXPECT_EQ(tags.at("outcome"), "ALREADY_HANDLED");
+  EXPECT_EQ(tags.at("boot_id"), kBootId);
+  EXPECT_EQ(tags.count("determined"), 0);
+}
+
 // What a run killed at its runtime cap leaves behind. The boot is on record,
 // and a later run in the same boot must not overwrite it: the providers may
 // already have been read, so a second answer would be a worse one.

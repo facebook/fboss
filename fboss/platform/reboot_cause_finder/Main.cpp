@@ -10,6 +10,7 @@
 
 #include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/helpers/Init.h"
+#include "fboss/platform/helpers/StructuredLogger.h"
 #include "fboss/platform/reboot_cause_finder/ConfigValidator.h"
 #include "fboss/platform/reboot_cause_finder/RebootCauseFinderImpl.h"
 
@@ -55,6 +56,21 @@ int run(reboot_cause_config::RebootCauseConfig& config) {
   return 0;
 }
 
+// The per-run event is logged through this so that a failure to log, however
+// unlikely, is only logged itself: it must not turn a recorded run into a
+// failed one, or escape a catch block and crash the binary.
+template <typename LogFn>
+void logRunEvent(LogFn&& log) {
+  try {
+    helpers::StructuredLogger structuredLogger("reboot_cause_finder");
+    log(structuredLogger);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Failed to log the run event: " << ex.what();
+  } catch (...) {
+    XLOG(ERR) << "Failed to log the run event";
+  }
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -62,21 +78,33 @@ int main(int argc, char** argv) {
 
   helpers::init(&argc, &argv);
 
+  // One structured event per run, which netstate streams to Scuba so runs can
+  // be counted across the fleet: outcome, whether a cause was determined, and
+  // which providers could not be read.
   // One line on every way out, so the log file shows each run ended and how.
   // An exception exits 1 instead of crashing; the run's incomplete record is
   // already on disk.
   try {
     reboot_cause_config::RebootCauseConfig config;
     const int status = run(config);
-    RebootCauseFinderImpl(config).determineRebootCause();
+    const auto result = RebootCauseFinderImpl(config).determineRebootCause();
+    logRunEvent([&](helpers::StructuredLogger& logger) {
+      logger.logEvent("run_complete", runEventTags(result, status));
+    });
     XLOG(INFO) << fmt::format(
         "reboot_cause_finder exiting with status {}", status);
     return status;
   } catch (const std::exception& ex) {
+    logRunEvent([&](helpers::StructuredLogger& logger) {
+      logger.logAlert("run_failed", ex.what());
+    });
     XLOG(ERR) << fmt::format(
         "reboot_cause_finder exiting on an uncaught exception: {}", ex.what());
     return 1;
   } catch (...) {
+    logRunEvent([](helpers::StructuredLogger& logger) {
+      logger.logAlert("run_failed", "non-standard exception");
+    });
     XLOG(ERR) << "reboot_cause_finder exiting on an uncaught exception";
     return 1;
   }

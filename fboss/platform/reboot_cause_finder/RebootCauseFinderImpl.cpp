@@ -1082,6 +1082,55 @@ reboot_cause_config::RebootCauseProviderAttempt readProvider(
 
 } // namespace detail
 
+namespace {
+std::string runOutcomeName(RunOutcome outcome) {
+  switch (outcome) {
+    case RunOutcome::NOT_RUN:
+      return "NOT_RUN";
+    case RunOutcome::ALREADY_HANDLED:
+      return "ALREADY_HANDLED";
+    case RunOutcome::RECORDED:
+      return "RECORDED";
+    case RunOutcome::RECORD_FAILED:
+      return "RECORD_FAILED";
+  }
+  return "UNKNOWN";
+}
+} // namespace
+
+std::unordered_map<std::string, std::string> runEventTags(
+    const RunResult& result,
+    int exitStatus) {
+  std::unordered_map<std::string, std::string> tags{
+      {"outcome", runOutcomeName(result.outcome)},
+      {"boot_id", result.bootId},
+      {"exit_status", folly::to<std::string>(exitStatus)},
+  };
+  if (!result.record.has_value()) {
+    return tags;
+  }
+  const auto& record = *result.record;
+  tags["determined"] = record.determinedCause().has_value() ? "true" : "false";
+  if (record.determinedCause().has_value()) {
+    const auto& determined = *record.determinedCause();
+    tags["cause"] = *determined.cause()->description();
+    tags["provider"] = *determined.providerName();
+  }
+  // Providers that could not be read or parsed, so a run that found nothing
+  // because it could not look is visible at scale.
+  std::vector<std::string> failed;
+  for (const auto& attempt : *record.providersAttempted()) {
+    if (*attempt.status() ==
+            reboot_cause_config::RebootCauseProviderStatus::READ_FAILED ||
+        *attempt.status() ==
+            reboot_cause_config::RebootCauseProviderStatus::PARSE_FAILED) {
+      failed.push_back(*attempt.name());
+    }
+  }
+  tags["failed_providers"] = folly::join(",", failed);
+  return tags;
+}
+
 RebootCauseFinderImpl::Paths RebootCauseFinderImpl::defaultPaths() {
   return Paths{
       kHistoryDir,
@@ -1107,13 +1156,15 @@ void RebootCauseFinderImpl::clearProvider(
   }
 }
 
-void RebootCauseFinderImpl::determineRebootCause() {
+RunResult RebootCauseFinderImpl::determineRebootCause() {
+  RunResult result;
   // Anything that re-runs this binary within a boot (a manual invocation, a
   // package upgrade, a restart of whatever unit owns it) would otherwise
   // record a reboot that never happened and, worse, clear the providers that
   // still hold the real boot's causes. Only the first run of a boot is
   // meaningful.
   const auto bootId = readBootId(paths_.bootId);
+  result.bootId = bootId;
   if (bootId.empty()) {
     XLOG(ERR) << fmt::format(
         "Failed to read boot id from '{}'. Doing nothing: without it a fresh "
@@ -1121,7 +1172,7 @@ void RebootCauseFinderImpl::determineRebootCause() {
         "same boot, and clearing the providers would risk discarding a real "
         "boot's causes.",
         paths_.bootId);
-    return;
+    return result;
   }
   // Logged on every run, including the ones the guard below stops, so each run
   // in the log file can be tied to the boot it ran in.
@@ -1131,7 +1182,7 @@ void RebootCauseFinderImpl::determineRebootCause() {
     XLOG(ERR) << "Doing nothing: cannot tell whether this boot was already "
                  "handled, so clearing the providers would risk discarding a "
                  "real boot's causes.";
-    return;
+    return result;
   }
   if (*alreadyHandled) {
     if (!FLAGS_redo_current_boot) {
@@ -1139,14 +1190,15 @@ void RebootCauseFinderImpl::determineRebootCause() {
           "Reboot causes were already determined during boot {}. Nothing to "
           "do.",
           bootId);
-      return;
+      result.outcome = RunOutcome::ALREADY_HANDLED;
+      return result;
     }
     if (!removeRecordForBoot(paths_.historyDir, bootId)) {
       XLOG(ERR) << "Doing nothing: asked to redo this boot, but the existing "
                    "record could not be removed and a second record for one "
                    "boot would leave two answers with no way to tell which "
                    "is current.";
-      return;
+      return result;
     }
     XLOG(WARNING) << fmt::format(
         "Discarded the record for boot {} and re-reading every provider, "
@@ -1355,6 +1407,9 @@ void RebootCauseFinderImpl::determineRebootCause() {
         "Wrote the reboot cause record for boot {} to '{}'", bootId, filePath);
   }
 
+  result.outcome = recorded ? RunOutcome::RECORDED : RunOutcome::RECORD_FAILED;
+  result.record = record;
+
   if (shouldClearProviders(recorded)) {
     for (const auto& providerConfig : providerConfigs) {
       XLOG(INFO) << fmt::format(
@@ -1362,6 +1417,7 @@ void RebootCauseFinderImpl::determineRebootCause() {
       clearProvider(providerConfig);
     }
   }
+  return result;
 }
 
 bool RebootCauseFinderImpl::persistResult(
