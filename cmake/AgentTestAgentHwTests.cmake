@@ -166,7 +166,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentMirroringScaleTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMyMacTest.cpp
   fboss/agent/test/agent_hw_tests/AgentMySidAdjFrrRouteTests.cpp
-  fboss/agent/test/agent_hw_tests/AgentMPLSDataplaneTestUtils.cpp
+  fboss/agent/test/utils/AgentMPLSDataplaneTestUtils.cpp
   fboss/agent/test/agent_hw_tests/AgentMPLSHeadEndTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMPLSMidpointTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMPLSTtlTests.cpp

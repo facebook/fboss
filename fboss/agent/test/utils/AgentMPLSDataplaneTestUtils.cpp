@@ -1,6 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/agent/test/agent_hw_tests/AgentMPLSDataplaneTestUtils.h"
+#include "fboss/agent/test/utils/AgentMPLSDataplaneTestUtils.h"
 
 #include <fmt/ranges.h>
 

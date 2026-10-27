@@ -623,6 +623,37 @@ cpp_library(
 )
 
 cpp_library(
+    name = "agent_test_address_constants",
+    headers = [
+        "AgentTestAddressConstants.h",
+    ],
+)
+
+cpp_library(
+    name = "agent_test_ecmp_constants",
+    headers = [
+        "AgentTestEcmpConstants.h",
+    ],
+)
+
+cpp_library(
+    name = "mpls_dataplane_test_utils",
+    srcs = [
+        "AgentMPLSDataplaneTestUtils.cpp",
+    ],
+    headers = [
+        "AgentMPLSDataplaneTestUtils.h",
+    ],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+    ],
+    exported_deps = [
+        "//fboss/agent/packet:packet",
+        "//fboss/agent/state:label_forwarding_action",
+    ],
+)
+
+cpp_library(
     name = "agent_hw_test_constants",
     srcs = [
         "AgentHwTestConstants.cpp",
