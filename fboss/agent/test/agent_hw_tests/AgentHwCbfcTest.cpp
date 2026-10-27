@@ -42,7 +42,8 @@ class AgentHwCbfcTest : public AgentHwTest {
   // alone programs 0 cells. Back to cells once CS00012481990 fixes the unit.
   static constexpr int64_t kRdmaReservedCredits = 36 * 56;
   static constexpr int64_t kMonitoringReservedCredits = 12 * 56;
-  static constexpr int64_t kSenderCreditLimit = 8192;
+  // 8192 cells, in bytes for the same reason. 8192 alone programs 146 cells.
+  static constexpr int64_t kSenderCreditLimit = 8192 * 56;
   // The TU1 receiver's values, so a TU1-to-TU1 link counts credits alike.
   static constexpr int16_t kSenderCreditSize = 56;
   static constexpr int16_t kSenderPacketOverhead = 16;
