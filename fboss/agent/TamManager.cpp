@@ -55,14 +55,16 @@ TamManager::resolveCollectorIp(
   auto nexthops = resolver.resolveNextHops(state, ip);
   for (const auto& nexthop : nexthops) {
     auto neighbor = resolver.resolveNextHopNeighbor(state, ip, nexthop);
-    if (neighbor) {
-      resolvedMac = neighbor->getMac();
-      auto port = resolver.resolveEgressPort(state, neighbor);
-      if (port) {
-        resolvedPort = port->toThrift();
-        break;
-      }
+    if (!neighbor) {
+      continue;
     }
+    auto port = resolver.resolveEgressPort(state, neighbor);
+    if (!port) {
+      continue;
+    }
+    resolvedMac = neighbor->getMac();
+    resolvedPort = port->toThrift();
+    break;
   }
 
   return {resolvedMac, resolvedPort};
