@@ -271,7 +271,9 @@ cpp_unittest(
     network_access = network_access_utils.none(),
     test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
+        ":hw_test_handle",
         ":utils",
+        "//fboss/agent:core",
         "//fboss/agent/hw/mock:mock",
         "//fboss/agent/state:state",
     ],

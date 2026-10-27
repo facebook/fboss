@@ -2,9 +2,11 @@
 
 #include <gtest/gtest.h>
 
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vrf.h"
+#include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
 
 using namespace facebook::fboss;
@@ -90,4 +92,30 @@ TEST_F(VrfConfigTest, DuplicateVrfIdRejected) {
   ASSERT_NE(state_, nullptr);
   config_.vrfs() = {makeVrfConfig(1001), makeVrfConfig(1001)};
   EXPECT_THROW(apply(), FbossError);
+}
+
+TEST_F(VrfConfigTest, DefaultVrfIdRejected) {
+  config_.vrfs() = {makeVrfConfig(0)};
+  EXPECT_THROW(apply(), FbossError);
+}
+
+TEST_F(VrfConfigTest, NegativeVrfIdRejected) {
+  config_.vrfs() = {makeVrfConfig(-1)};
+  EXPECT_THROW(apply(), FbossError);
+}
+
+TEST(VrfResource, MaxVrfs) {
+  // Mock ASIC supports 8 VRFs, including the default VRF
+  auto config = testConfigA();
+  auto handle = createTestHandle(&config);
+  auto sw = handle->getSw();
+  for (int32_t id = 1; id <= 7; ++id) {
+    config.vrfs().ensure().emplace_back().vrfId() = id;
+  }
+  sw->applyConfig("7 vrfs", config);
+  EXPECT_EQ(sw->getState()->getVrfs()->numNodes(), 7);
+
+  config.vrfs()->emplace_back().vrfId() = 8;
+  EXPECT_THROW(sw->applyConfig("8 vrfs", config), FbossError);
+  EXPECT_EQ(sw->getState()->getVrfs()->numNodes(), 7);
 }

@@ -721,6 +721,7 @@ class ThriftConfigApplier {
       const cfg::VxLanTunnel* config);
   std::shared_ptr<VxlanTunnelMap> updateVxlanTunnels();
   const std::vector<cfg::VrfConfig>& getConfigVrfs() const;
+  void validateVrfs() const;
   std::shared_ptr<VrfMap> updateVrfs();
   std::shared_ptr<DsfNodeMap> updateDsfNodes();
   void processUpdatedDsfNodes();
@@ -7806,7 +7807,27 @@ const std::vector<cfg::VrfConfig>& ThriftConfigApplier::getConfigVrfs() const {
   return cfg_->vrfs() ? *cfg_->vrfs() : kNoVrfs;
 }
 
+void ThriftConfigApplier::validateVrfs() const {
+  const auto& vrfs = getConfigVrfs();
+  if (vrfs.empty()) {
+    return;
+  }
+  for (const auto& vrfCfg : vrfs) {
+    if (*vrfCfg.vrfId() <= 0) {
+      throw FbossError(
+          "VRF id must be positive, VRF 0 is the default VRF: ",
+          *vrfCfg.vrfId());
+    }
+  }
+  for (const auto* asic : hwAsicTable_->getL3Asics()) {
+    if (!asic->isSupported(HwAsic::Feature::VRF)) {
+      throw FbossError("VRFs are not supported on ", asic->getAsicTypeStr());
+    }
+  }
+}
+
 std::shared_ptr<VrfMap> ThriftConfigApplier::updateVrfs() {
+  validateVrfs();
   const auto& origVrfs = orig_->getVrfs();
   auto newVrfs = std::make_shared<VrfMap>();
   bool changed = false;
