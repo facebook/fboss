@@ -7323,11 +7323,21 @@ ThriftConfigApplier::createMirrorOnDropReport(
     localSrcIp = folly::IPAddress(*config.mirrorPort()->tunnel()->srcIp());
   }
 
-  // Determine the switchId for looking up the first interface MAC.
-  auto modSwitchId = getAnySwitchId(asic->getSwitchType());
-  if (!modSwitchId.has_value()) {
+  // Use a switch that has an interface; not every NPU does.
+  std::optional<InterfaceID> modIntfId;
+  for (const auto& [switchId, switchInfo] :
+       *cfg_->switchSettings()->switchIdToSwitchInfo()) {
+    if (switchInfo.switchType() != asic->getSwitchType()) {
+      continue;
+    }
+    modIntfId = utility::firstInterfaceIDWithPortsIf(new_, SwitchID(switchId));
+    if (modIntfId.has_value()) {
+      break;
+    }
+  }
+  if (!modIntfId.has_value()) {
     throw FbossError(
-        "No switchId found for switch type: ",
+        "No switch with an interface found for switch type: ",
         static_cast<int>(asic->getSwitchType()));
   }
 
@@ -7412,7 +7422,7 @@ ThriftConfigApplier::createMirrorOnDropReport(
       *config.truncateSize(),
       static_cast<uint8_t>(*config.dscp()),
       getLocalMacAddress().toString(),
-      utility::getMacForFirstInterfaceWithPorts(new_, *modSwitchId).toString(),
+      utility::getInterfaceMac(new_, *modIntfId).toString(),
       *config.modEventToConfigMap(),
       *config.agingGroupAgingIntervalUsecs(),
       config.samplingRate().to_optional(),
