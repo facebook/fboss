@@ -113,6 +113,11 @@ const string REBOOT_HISTORY_DIR = "/var/facebook/fboss/reboot_history";
 // belongs to. Doubles as the once-per-boot guard: a run whose boot id matches
 // the previous run's exits without touching the providers. Empty when the boot
 // id could not be read.
+//
+// `incomplete`: True on the record written as soon as a run knows its boot,
+// before any provider is read; the finished record replaces it with false. A
+// record that is still incomplete means the run that wrote it was killed or
+// crashed, so the boot happened but its cause was never determined.
 struct RebootCauseRecord {
   1: i64 detectedAtMs;
   2: string detectedAtPacific;
@@ -123,4 +128,5 @@ struct RebootCauseRecord {
   7: list<RebootCauseProviderAttempt> providersAttempted;
   // Release of the kernel this boot ran (`uname -r`). Empty if unreadable.
   8: string kernelRelease;
+  9: bool incomplete;
 }

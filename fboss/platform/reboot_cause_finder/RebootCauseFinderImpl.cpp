@@ -1160,6 +1160,47 @@ void RebootCauseFinderImpl::determineRebootCause() {
     }
   }
 
+  const auto btime = detail::readBootTimeSec(paths_.procStat);
+  const int64_t bootTimeMs =
+      btime ? toEpochMs(static_cast<std::time_t>(*btime)) : 0;
+  const auto kernelRelease = readKernelRelease(paths_.osRelease);
+
+  // Computed once, so the placeholder and the finished record are the same
+  // file even when the stamp falls back to the current time.
+  const auto stampTime = bootTimeMs > 0
+      ? static_cast<std::time_t>(bootTimeMs / 1000)
+      : std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+  const auto filePath = fmt::format(
+      "{}/reboot-cause-{}{}",
+      paths_.historyDir,
+      filenameStamp(stampTime),
+      recordFilenameSuffix(bootId));
+
+  // Written before any provider is read, so the boot is on record even if
+  // this run is killed at its runtime cap or crashes. Not fatal: the finished
+  // record below is still written, and it alone decides whether to clear.
+  {
+    reboot_cause_config::RebootCauseRecord placeholder;
+    const auto start = std::chrono::system_clock::now();
+    placeholder.detectedAtMs() =
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            start.time_since_epoch())
+            .count();
+    placeholder.detectedAtPacific() =
+        pacificString(std::chrono::system_clock::to_time_t(start));
+    placeholder.bootId() = bootId;
+    placeholder.bootTimeMs() = bootTimeMs;
+    placeholder.kernelRelease() = kernelRelease;
+    placeholder.incomplete() = true;
+    if (persistResult(placeholder, filePath)) {
+      XLOG(INFO) << fmt::format(
+          "Wrote an incomplete record for boot {} to '{}'; it stays "
+          "incomplete if this run does not finish",
+          bootId,
+          filePath);
+    }
+  }
+
   XLOG(INFO) << "Reading reboot causes from all providers";
 
   // Read providers in priority order (lower value = higher priority).
@@ -1178,12 +1219,9 @@ void RebootCauseFinderImpl::determineRebootCause() {
   // not config providers: their paths and patterns come from systemd and
   // kdump and are the same on every platform.
   std::vector<reboot_cause_config::RebootCauseProviderAttempt> attempts;
-  int64_t bootTimeMs = 0;
   std::optional<reboot_cause_config::DeterminedCause> determined;
 
-  const auto btime = detail::readBootTimeSec(paths_.procStat);
   if (btime) {
-    bootTimeMs = toEpochMs(static_cast<std::time_t>(*btime));
     const int64_t window = detail::boundWindowByPreviousBoot(
         *btime,
         FLAGS_max_downtime_sec,
@@ -1293,8 +1331,9 @@ void RebootCauseFinderImpl::determineRebootCause() {
   }
   record.bootId() = bootId;
   record.bootTimeMs() = bootTimeMs;
-  record.kernelRelease() = readKernelRelease(paths_.osRelease);
+  record.kernelRelease() = kernelRelease;
   record.providersAttempted() = attempts;
+  record.incomplete() = false;
 
   if (record.determinedCause().has_value()) {
     XLOG(INFO) << fmt::format(
@@ -1310,7 +1349,11 @@ void RebootCauseFinderImpl::determineRebootCause() {
   // Writing the record is what arms the guard, so it has to succeed before
   // anything destructive happens. If it failed, the providers stay latched and
   // the next run retries this boot from scratch.
-  const bool recorded = persistResult(record);
+  const bool recorded = persistResult(record, filePath);
+  if (recorded) {
+    XLOG(INFO) << fmt::format(
+        "Wrote the reboot cause record for boot {} to '{}'", bootId, filePath);
+  }
 
   if (shouldClearProviders(recorded)) {
     for (const auto& providerConfig : providerConfigs) {
@@ -1322,7 +1365,8 @@ void RebootCauseFinderImpl::determineRebootCause() {
 }
 
 bool RebootCauseFinderImpl::persistResult(
-    const reboot_cause_config::RebootCauseRecord& record) {
+    const reboot_cause_config::RebootCauseRecord& record,
+    const std::string& filePath) {
   std::error_code ec;
   std::filesystem::create_directories(paths_.historyDir, ec);
   if (ec) {
@@ -1333,28 +1377,20 @@ bool RebootCauseFinderImpl::persistResult(
     return false;
   }
 
-  // The boot id suffix is what recordExistsForBoot() matches on. The stamp is
-  // the boot time, so the directory lists boots in boot order; it falls back
-  // to now only when btime could not be read.
-  const auto stampTime = *record.bootTimeMs() > 0
-      ? static_cast<std::time_t>(*record.bootTimeMs() / 1000)
-      : std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-  auto filePath = fmt::format(
-      "{}/reboot-cause-{}{}",
-      paths_.historyDir,
-      filenameStamp(stampTime),
-      recordFilenameSuffix(*record.bootId()));
-
   auto json = folly::parseJson(
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(record));
-  if (!folly::writeFile(folly::toPrettyJson(json), filePath.c_str())) {
-    XLOG(ERR) << fmt::format("Failed to write history file '{}'", filePath);
+  // Atomic, so a reader or a run killed mid-write never sees half a record,
+  // and synced, so a power loss right after does not lose the boot.
+  folly::WriteFileAtomicOptions options;
+  options.setSyncType(folly::SyncType::WITH_SYNC);
+  if (const int err = folly::writeFileAtomicNoThrow(
+          filePath, folly::toPrettyJson(json), options)) {
+    XLOG(ERR) << fmt::format(
+        "Failed to write history file '{}': {}",
+        filePath,
+        folly::errnoStr(err));
     return false;
   }
-  XLOG(INFO) << fmt::format(
-      "Wrote the reboot cause record for boot {} to '{}'",
-      *record.bootId(),
-      filePath);
   return true;
 }
 

@@ -149,11 +149,13 @@ class RebootCauseFinderImpl {
   void clearProvider(
       const reboot_cause_config::RebootCauseProviderConfig& config);
 
-  // Persist the record as a pretty-printed JSON file under the history dir.
-  // The filename carries the boot id, so a successful write is also what arms
-  // the once-per-boot guard. Returns false if the record did not reach disk.
+  // Persist the record as a pretty-printed JSON file at filePath, replacing
+  // what is there atomically. The filename carries the boot id, so a
+  // successful write is also what arms the once-per-boot guard. Returns false
+  // if the record did not reach disk.
   [[nodiscard]] bool persistResult(
-      const reboot_cause_config::RebootCauseRecord& record);
+      const reboot_cause_config::RebootCauseRecord& record,
+      const std::string& filePath);
 };
 
 } // namespace facebook::fboss::platform::reboot_cause_finder

@@ -19,7 +19,9 @@ using namespace facebook::fboss::platform::reboot_cause_finder;
 
 namespace {
 
-int run() {
+// Loads the config. On failure config is left empty, which still lets the run
+// record the boot with the software providers.
+int run(reboot_cause_config::RebootCauseConfig& config) {
   std::optional<std::string> configJson;
   try {
     configJson = ConfigLib().getRebootCauseFinderConfig();
@@ -35,7 +37,6 @@ int run() {
                << ex.what();
   }
 
-  reboot_cause_config::RebootCauseConfig config;
   if (configJson.has_value()) {
     try {
       config = apache::thrift::SimpleJSONSerializer::deserialize<
@@ -46,11 +47,10 @@ int run() {
     }
     if (!ConfigValidator().isValid(config)) {
       XLOG(ERR) << "Invalid reboot_cause_finder config";
+      config = {};
       return 1;
     }
   }
-
-  RebootCauseFinderImpl(config).determineRebootCause();
 
   return 0;
 }
@@ -63,15 +63,21 @@ int main(int argc, char** argv) {
   helpers::init(&argc, &argv);
 
   // One line on every way out, so the log file shows each run ended and how.
-  // An exception is logged and rethrown so it still crashes with a core.
+  // An exception exits 1 instead of crashing; the run's incomplete record is
+  // already on disk.
   try {
-    const int status = run();
+    reboot_cause_config::RebootCauseConfig config;
+    const int status = run(config);
+    RebootCauseFinderImpl(config).determineRebootCause();
     XLOG(INFO) << fmt::format(
         "reboot_cause_finder exiting with status {}", status);
     return status;
   } catch (const std::exception& ex) {
     XLOG(ERR) << fmt::format(
         "reboot_cause_finder exiting on an uncaught exception: {}", ex.what());
-    throw;
+    return 1;
+  } catch (...) {
+    XLOG(ERR) << "reboot_cause_finder exiting on an uncaught exception";
+    return 1;
   }
 }

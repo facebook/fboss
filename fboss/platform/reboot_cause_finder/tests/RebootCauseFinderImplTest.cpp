@@ -1517,6 +1517,51 @@ TEST_F(DetermineRebootCauseTest, UnreadableKernelReleaseStillWritesRecord) {
   EXPECT_EQ(readRecord()["kernelRelease"].asString(), "");
 }
 
+// A run writes an incomplete record before reading any provider and replaces
+// it when done, so a finished run leaves exactly one record, marked complete.
+TEST_F(DetermineRebootCauseTest, FinishedRunReplacesTheIncompleteRecord) {
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+  const auto rec = readRecord();
+  EXPECT_FALSE(rec["incomplete"].asBool());
+  EXPECT_GT(rec["providersAttempted"].size(), 0);
+}
+
+// Without btime the filename stamp falls back to the current time, which moves
+// between the two writes. Both must still land in one file.
+TEST_F(DetermineRebootCauseTest, WithoutBootTimeBothWritesShareOneFile) {
+  std::filesystem::remove(procStat_);
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+  const auto rec = readRecord();
+  EXPECT_FALSE(rec["incomplete"].asBool());
+  EXPECT_EQ(rec["bootTimeMs"].asInt(), 0);
+}
+
+// What a run killed at its runtime cap leaves behind. The boot is on record,
+// and a later run in the same boot must not overwrite it: the providers may
+// already have been read, so a second answer would be a worse one.
+TEST_F(DetermineRebootCauseTest, IncompleteRecordFromAKilledRunIsKept) {
+  rcc::RebootCauseRecord killed;
+  killed.bootId() = kBootId;
+  killed.bootTimeMs() = btime_ * 1000;
+  killed.incomplete() = true;
+  std::filesystem::create_directories(historyDir_);
+  ASSERT_TRUE(
+      folly::writeFile(
+          apache::thrift::SimpleJSONSerializer::serialize<std::string>(killed),
+          fmt::format(
+              "{}/reboot-cause-{}-{}.json", historyDir_, btime_, kBootId)
+              .c_str()));
+
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+
+  const auto rec = readRecord();
+  EXPECT_TRUE(rec["incomplete"].asBool());
+  EXPECT_EQ(rec["providersAttempted"].size(), 0);
+}
+
 // A redo that cannot clear the way for itself must stop. Writing a second
 // record for one boot would leave two answers and no way to tell which is
 // current, which is worse than refusing to redo.
