@@ -151,16 +151,12 @@ class TamManagerTest : public ::testing::Test {
     sw_->updateStateBlocking(name, std::move(func));
   }
 
-  std::shared_ptr<SwitchState> addMirrorOnDropReport(
-      const std::shared_ptr<SwitchState>& state,
+  std::shared_ptr<MirrorOnDropReport> makeMirrorOnDropReport(
       const std::string& name,
       const folly::IPAddress& localSrcIp,
       const AddrT& collectorIp,
       const std::optional<PortID>& mirrorPortId = std::nullopt) {
-    std::shared_ptr<SwitchState> newState = state->clone();
-
-    std::shared_ptr<MirrorOnDropReport> report = std::make_shared<
-        MirrorOnDropReport>(
+    return std::make_shared<MirrorOnDropReport>(
         name,
         mirrorPortId,
         localSrcIp,
@@ -176,6 +172,18 @@ class TamManagerTest : public ::testing::Test {
         std::map<
             cfg::MirrorOnDropAgingGroup,
             int32_t>{}); // agingGroupAgingIntervalUsecs
+  }
+
+  std::shared_ptr<SwitchState> addMirrorOnDropReport(
+      const std::shared_ptr<SwitchState>& state,
+      const std::string& name,
+      const folly::IPAddress& localSrcIp,
+      const AddrT& collectorIp,
+      const std::optional<PortID>& mirrorPortId = std::nullopt) {
+    std::shared_ptr<SwitchState> newState = state->clone();
+
+    std::shared_ptr<MirrorOnDropReport> report =
+        makeMirrorOnDropReport(name, localSrcIp, collectorIp, mirrorPortId);
 
     // A report with no mirror port names no owning switch; this fixture has
     // a single switch.
