@@ -120,6 +120,39 @@ cfg::MirrorOnDropReport makeReportCfg(
   return report;
 }
 
+// mirrorPortId is unset on ASICs with no recirculation port. Pin that it stays
+// unset through a thrift round trip, since warmboot reads it back.
+TEST(MirrorOnDropReportOptionalPortTest, UnsetMirrorPortIdSurvivesRoundTrip) {
+  auto makeReport = [](const std::optional<PortID>& mirrorPortId) {
+    const std::string name{"mod-1"};
+    return std::make_shared<MirrorOnDropReport>(
+        name,
+        mirrorPortId,
+        folly::IPAddress("2401::1"),
+        static_cast<int16_t>(12345),
+        folly::IPAddress("2401::2"),
+        static_cast<int16_t>(6343),
+        static_cast<int16_t>(1500),
+        static_cast<int16_t>(128),
+        static_cast<uint8_t>(0),
+        std::string("00:00:00:00:00:01"),
+        std::string("00:00:00:00:00:02"),
+        std::map<int8_t, cfg::MirrorOnDropEventConfig>{},
+        std::map<cfg::MirrorOnDropAgingGroup, int32_t>{});
+  };
+  auto roundTrip = [](const std::shared_ptr<MirrorOnDropReport>& report) {
+    return std::make_shared<MirrorOnDropReport>(report->toThrift());
+  };
+
+  auto unset = makeReport(std::nullopt);
+  EXPECT_EQ(unset->getMirrorPortId(), std::nullopt);
+  EXPECT_EQ(roundTrip(unset)->getMirrorPortId(), std::nullopt);
+
+  auto set = makeReport(PortID(kRecyclePortId));
+  EXPECT_EQ(set->getMirrorPortId(), PortID(kRecyclePortId));
+  EXPECT_EQ(roundTrip(set)->getMirrorPortId(), PortID(kRecyclePortId));
+}
+
 TEST_F(MirrorOnDropReportTest, CreateReportV4) {
   config_.mirrorOnDropReports()->push_back(
       makeReportCfg(kRecyclePortId, "1.2.3.4"));

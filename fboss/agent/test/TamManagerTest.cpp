@@ -25,6 +25,7 @@
 #include <gtest/gtest.h>
 
 #include "fboss/agent/ArpHandler.h"
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
@@ -44,7 +45,6 @@ namespace facebook::fboss {
 namespace {
 const std::string kReportName = "mod_report";
 constexpr AdminDistance kDistance = AdminDistance::STATIC_ROUTE;
-const PortID kMirrorPortId{0};
 
 template <typename AddrT>
 struct TamManagerTestParams {
@@ -156,7 +156,7 @@ class TamManagerTest : public ::testing::Test {
       const std::string& name,
       const folly::IPAddress& localSrcIp,
       const AddrT& collectorIp,
-      PortID mirrorPortId = PortID(0)) {
+      const std::optional<PortID>& mirrorPortId = std::nullopt) {
     std::shared_ptr<SwitchState> newState = state->clone();
 
     std::shared_ptr<MirrorOnDropReport> report = std::make_shared<
@@ -177,8 +177,13 @@ class TamManagerTest : public ::testing::Test {
             cfg::MirrorOnDropAgingGroup,
             int32_t>{}); // agingGroupAgingIntervalUsecs
 
+    // A report with no mirror port names no owning switch; this fixture has
+    // a single switch.
+    auto matcher = mirrorPortId.has_value()
+        ? sw_->getScopeResolver()->scope(report)
+        : HwSwitchMatcher::defaultHwSwitchMatcher();
     newState->getMirrorOnDropReports()->modify(&newState)->addNode(
-        report, sw_->getScopeResolver()->scope(report));
+        report, matcher);
     return newState;
   }
 

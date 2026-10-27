@@ -510,7 +510,14 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
 
 HwSwitchMatcher SwitchIdScopeResolver::scope(
     const std::shared_ptr<MirrorOnDropReport>& report) const {
-  return scope(PortID(report->getMirrorPortId()));
+  auto mirrorPortId = report->getMirrorPortId();
+  if (!mirrorPortId.has_value()) {
+    throw FbossError(
+        "MirrorOnDropReport ",
+        report->getID(),
+        " has no mirror port, so it names no owning switch");
+  }
+  return scope(mirrorPortId.value());
 }
 
 HwSwitchMatcher SwitchIdScopeResolver::scope(

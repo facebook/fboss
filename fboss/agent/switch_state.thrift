@@ -432,7 +432,9 @@ struct MirrorFields {
 
 struct MirrorOnDropReportFields {
   1: string name;
-  2: i32 mirrorPortId;
+  // Unset on ASICs with no recirculation port (XGS); TamManager resolves
+  // an egress port per ASIC at runtime instead.
+  2: optional i32 mirrorPortId;
   3: Address.BinaryAddress localSrcIp; // Populated at runtime
   4: i16 localSrcPort;
   5: Address.BinaryAddress collectorIp;

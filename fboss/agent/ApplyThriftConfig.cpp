@@ -7259,9 +7259,10 @@ ThriftConfigApplier::updateMirrorOnDropReports() {
         HwSwitchMatcher(std::unordered_set<SwitchID>({switchId}));
     for (const auto& mapEntry : std::as_const(*newReports)) {
       const auto& report = mapEntry.second;
-      // XGS has no mirror port, so every L3 switch gets the report.
-      if (switchType == cfg::SwitchType::VOQ &&
-          !scopeResolver_.scope(report->getMirrorPortId()).has(switchId)) {
+      // No mirror port (XGS): every L3 switch resolves its own.
+      const auto mirrorPortId = report->getMirrorPortId();
+      if (mirrorPortId.has_value() &&
+          !scopeResolver_.scope(*mirrorPortId).has(switchId)) {
         continue;
       }
       multiSwitchReports->addNode(report->clone(), switchMatcher);
@@ -7388,16 +7389,14 @@ ThriftConfigApplier::createMirrorOnDropReport(
             "Mirror-on-Drop must use LOCAL scoped recycle/eventor ports");
       }
     }
-  } else {
-    // Explicitly set the mirror port ID to 0 for non-VOQ switches. The only
-    // other platform that currently supports Mirror-on-Drop is XGS (e.g. TH5).
-    // The mirror port will be resolved based on the destination IP address.
-    mirrorPortId = PortID(0);
   }
+  // Left unset on non-VOQ switches. The only other platform that currently
+  // supports Mirror-on-Drop is XGS (e.g. TH5), where TamManager resolves the
+  // mirror port from the collector IP at runtime.
 
   return std::make_shared<MirrorOnDropReport>(
       *config.name(),
-      *mirrorPortId,
+      mirrorPortId,
       localSrcIp,
       *config.localSrcPort(),
       collectorIp,

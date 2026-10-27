@@ -80,10 +80,10 @@ std::shared_ptr<SwitchState> TamManager::resolveMirrorOnDropReports(
     for (auto iter = reports->cbegin(); iter != reports->cend(); ++iter) {
       auto report = iter->second;
 
-      // A non-zero mirrorPortId indicates the egress port is statically
-      // configured (e.g. DNX), so no mirror resolution is needed. Resolution
-      // only applies when mirrorPortId is 0 (e.g. XGS platforms like TH5).
-      if (report->getMirrorPortId() != PortID(0)) {
+      // A configured mirrorPortId means the egress port is static (e.g. DNX),
+      // so no mirror resolution is needed. Resolution applies only when it is
+      // unset (e.g. XGS platforms like TH5).
+      if (report->getMirrorPortId().has_value()) {
         continue;
       }
 
