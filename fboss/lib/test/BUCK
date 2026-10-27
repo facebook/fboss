@@ -168,7 +168,7 @@ cpp_library(
         "Utils.h",
     ],
     exported_deps = [
-        "//common/network:address",
+        "fbsource//xplat/folly:network_address",
     ],
 )
 
