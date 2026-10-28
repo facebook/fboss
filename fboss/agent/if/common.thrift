@@ -64,6 +64,7 @@ struct NextHopThrift {
   5: list<Address.BinaryAddress> srv6SegmentList;
   6: optional TunnelType tunnelType;
   7: optional string tunnelId;
+  8: optional string overlayDstMac;
 
   /**
   * For capturing topology information to assist Agent path pruning decisions
