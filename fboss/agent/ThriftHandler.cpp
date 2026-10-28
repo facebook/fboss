@@ -887,6 +887,32 @@ Policy toThriftPolicy(const std::shared_ptr<ClassBasedPolicyNode>& node) {
   return policy;
 }
 
+// NHGs referenced by a live PBR policy. Not counting the policy's default NHG,
+// since that is counted through its route when the PBR policy is live.
+std::unordered_set<NextHopSetId> nhgIdsReferencedByPbr(
+    const std::shared_ptr<SwitchState>& state,
+    const std::map<std::string, NextHopSetId>& nameToSetId) {
+  std::unordered_set<NextHopSetId> ids;
+  for (const auto& [_matcher, policyMap] :
+       std::as_const(*state->getClassBasedPolicies())) {
+    for (const auto& [_name, policy] : std::as_const(*policyMap)) {
+      if (!policy->isReferenced()) {
+        continue;
+      }
+      const auto defaultName = *policy->getDefaultNextHopGroup().name();
+      for (const auto& [_fc, nhg] : policy->getClass2NextHopGroup()) {
+        if (*nhg.name() == defaultName) {
+          continue;
+        }
+        if (auto it = nameToSetId.find(*nhg.name()); it != nameToSetId.end()) {
+          ids.insert(it->second);
+        }
+      }
+    }
+  }
+  return ids;
+}
+
 void validateClassBasedPolicies(
     const SwSwitch* sw,
     const std::vector<ClassBasedPolicy>& policies) {
@@ -3772,6 +3798,7 @@ void ThriftHandler::getNextHopGroups(
   }
   auto refCounts = ctx->fibInfo->getNextHopSetIdRefCountsFromRoutes();
   FibInfo::getNextHopSetIdRefCountsFromMySid(state, refCounts);
+  auto pbrHeldIds = nhgIdsReferencedByPbr(state, ctx->nameToSetId);
 
   auto idSetMapThrift = idToNextHopIdSetMap->toThrift();
   for (const auto& [setId, nhIds] : idSetMapThrift) {
@@ -3787,7 +3814,8 @@ void ThriftHandler::getNextHopGroups(
       thriftGroup.name() = nameIter->second;
       auto refCountIter = refCounts.find(NextHopSetID(setId));
       thriftGroup.isProgrammed() =
-          refCountIter != refCounts.end() && refCountIter->second > 0;
+          (refCountIter != refCounts.end() && refCountIter->second > 0) ||
+          pbrHeldIds.count(setId) > 0;
     } else {
       thriftGroup.isProgrammed() = true;
     }
@@ -3824,6 +3852,7 @@ void ThriftHandler::getNamedNextHopGroups(
 
   auto refCounts = ctx->fibInfo->getNextHopSetIdRefCountsFromRoutes();
   FibInfo::getNextHopSetIdRefCountsFromMySid(state, refCounts);
+  auto pbrHeldIds = nhgIdsReferencedByPbr(state, ctx->nameToSetId);
 
   std::unordered_set<std::string> foundNames;
   for (const auto& [name, nextHopSetId] : ctx->nameToSetId) {
@@ -3835,7 +3864,8 @@ void ThriftHandler::getNamedNextHopGroups(
     thriftGroup.name() = name;
     thriftGroup.id() = nextHopSetId;
     thriftGroup.isProgrammed() =
-        refCounts.count(NextHopSetID(nextHopSetId)) > 0;
+        refCounts.count(NextHopSetID(nextHopSetId)) > 0 ||
+        pbrHeldIds.count(nextHopSetId) > 0;
     try {
       auto nextHops = ctx->fibInfo->resolveNextHopSetFromId(nextHopSetId);
       thriftGroup.nexthops() =
