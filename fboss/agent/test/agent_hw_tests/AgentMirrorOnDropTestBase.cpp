@@ -106,6 +106,16 @@ void AgentMirrorOnDropTestBase::applyMirrorOnDropConfig(
   waitForStateUpdates(getSw());
 }
 
+void AgentMirrorOnDropTestBase::resetMirrorOnDropFlows() {
+  auto config = getAgentEnsemble()->getCurrentConfig();
+  auto reports = *config.mirrorOnDropReports();
+  config.mirrorOnDropReports()->clear();
+  applyNewConfig(config);
+  *config.mirrorOnDropReports() = std::move(reports);
+  applyNewConfig(config);
+  waitForStateUpdates(getSw());
+}
+
 std::unique_ptr<TxPacket> AgentMirrorOnDropTestBase::makePacket(
     const folly::IPAddressV6& dstIp,
     int priority,

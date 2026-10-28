@@ -490,13 +490,16 @@ cpp_library(
     # @lint-ignore BUCKLINT: retain gtest registrations from this library
     link_whole = True,
     deps = [
+        "fbsource//third-party/fmt:fmt",
         ":agent_hw_test_src",
+        "//fboss/agent:fboss-error",
         "//fboss/agent:packet",
+        "//fboss/agent/packet:packet",
         "//fboss/agent/packet:packet_factory",
         "//fboss/agent/packet/chenab:chenab_mod_header",
+        "//fboss/agent/test:utils",
         "//fboss/agent/test/utils:packet_snooper",
-        "//folly:conv",
-        "//folly:string",
+        "//folly:range",
     ],
 )
 

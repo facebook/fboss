@@ -446,9 +446,13 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   auto platformPort = platform_->getPort(swPort->getID());
   platformPort->setCurrentProfile(swPort->getProfileID());
 
-  // set the lower 32-bit of SaiId as Hardware logical port ID
   auto portSaiId = saiPort->adapterKey();
   uint32_t hwLogicalPortId = static_cast<uint32_t>(portSaiId);
+  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    // Chenab stores the SDK logical port ID in the upper 32 bits of the OID.
+    hwLogicalPortId =
+        static_cast<uint32_t>(static_cast<uint64_t>(portSaiId) >> 32);
+  }
   XLOG(DBG2) << "swPort ID: " << swPort->getID()
              << " hwLogicalPort ID: " << hwLogicalPortId;
   platformPort->setHwLogicalPortId(hwLogicalPortId);
