@@ -41,6 +41,16 @@ namespace {
       " PBR policies are configured");
 }
 
+struct TemporaryRule {
+  std::shared_ptr<ClassBasedPolicyNode> policy;
+  ForwardingClass trafficClass;
+};
+
+struct PolicyAclUpdate {
+  bool changed{false};
+  std::vector<TemporaryRule> temporaries;
+};
+
 struct ChangedPolicy {
   std::shared_ptr<ClassBasedPolicyNode> old;
   std::shared_ptr<ClassBasedPolicyNode> updated;
@@ -108,7 +118,7 @@ bool addPolicyEntries(
   return changed;
 }
 
-bool applyChangedPolicy(
+PolicyAclUpdate applyChangedPolicy(
     AclMap& aclMap,
     const std::shared_ptr<ClassBasedPolicyNode>& old,
     const std::shared_ptr<ClassBasedPolicyNode>& newPolicy) {
@@ -117,12 +127,12 @@ bool applyChangedPolicy(
   const auto& oldTc2Nhg = old->getClass2NextHopGroup();
   const auto& newTc2Nhg = newPolicy->getClass2NextHopGroup();
   const auto& policyName = newPolicy->getID();
-  bool changed = false;
+  PolicyAclUpdate update;
   for (const auto& [tc, newNhg] : newTc2Nhg) {
     auto oldIt = oldTc2Nhg.find(tc);
     if (oldIt == oldTc2Nhg.end()) {
       aclMap.addNode(makePbrAclEntry(newPolicy, tc));
-      changed = true;
+      update.changed = true;
       continue;
     }
     if (!defaultChanged && oldIt->second == newNhg) {
@@ -139,16 +149,16 @@ bool applyChangedPolicy(
     }
     // TODO(zecheng): implement hitless (make-before-break) update here.
     aclMap.updateNode(makePbrAclEntry(newPolicy, tc));
-    changed = true;
+    update.changed = true;
   }
   for (const auto& [tc, _] : oldTc2Nhg) {
     if (newTc2Nhg.count(tc)) {
       continue;
     }
     removeRuleEntry(aclMap, policyName, tc, false /*temporary*/);
-    changed = true;
+    update.changed = true;
   }
-  return changed;
+  return update;
 }
 
 bool applyAddsAndRemoves(AclMap& newAclMap, const StateDelta& delta) {
@@ -382,7 +392,7 @@ void PbrAclManager::processDelta(
 
   for (const auto& policy : changedPolicies(delta)) {
     auto made = updatePbrTables(newState, [&](AclMap& aclMap) {
-      return applyChangedPolicy(aclMap, policy.old, policy.updated);
+      return applyChangedPolicy(aclMap, policy.old, policy.updated).changed;
     });
     if (!made) {
       continue;
