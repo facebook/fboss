@@ -42,6 +42,14 @@ namespace {
       " PBR policies are configured");
 }
 
+std::shared_ptr<AclTable> pbrTableIn(const AclTableGroupMap& groupMap) {
+  auto group = groupMap.getAclTableGroupIf(cfg::AclStage::INGRESS);
+  auto tableMap = group ? group->getAclTableMap() : nullptr;
+  return tableMap ? tableMap->getTableIf(
+                        cfg::switch_config_constants::DEFAULT_PBR_ACL_TABLE())
+                  : nullptr;
+}
+
 void removeRuleEntry(
     AclMap& aclMap,
     const std::string& policyName,
@@ -162,6 +170,19 @@ bool applyPolicyDelta(AclMap& newAclMap, const StateDelta& delta) {
   return changed;
 }
 
+bool hasPbrTable(const std::shared_ptr<SwitchState>& state) {
+  auto groups = state->getAclTableGroups();
+  if (!groups) {
+    return false;
+  }
+  for (const auto& [_, groupMap] : std::as_const(*groups)) {
+    if (pbrTableIn(*groupMap)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 } // namespace
 
 PbrAclManager::InputOutputState::InputOutputState(const StateDelta& in) {
@@ -273,26 +294,21 @@ void PbrAclManager::processDelta(
   auto policies = newState->getClassBasedPolicies();
   size_t numPolicies = policies ? policies->numNodes() : 0;
 
-  const auto& kPbrTableId =
-      cfg::switch_config_constants::DEFAULT_PBR_ACL_TABLE();
-  auto aclTableGroups = newState->getAclTableGroups();
-  if (!aclTableGroups) {
+  if (!hasPbrTable(newState)) {
     if (numPolicies > 0) {
-      throwPbrTableMissing(kPbrTableId, numPolicies);
+      throwPbrTableMissing(
+          cfg::switch_config_constants::DEFAULT_PBR_ACL_TABLE(), numPolicies);
     }
     return;
   }
 
-  bool foundTable = false;
+  auto aclTableGroups = newState->getAclTableGroups();
   bool changed = false;
   for (const auto& [matcherStr, groupMap] : std::as_const(*aclTableGroups)) {
-    auto group = groupMap->getAclTableGroupIf(cfg::AclStage::INGRESS);
-    auto tableMap = group ? group->getAclTableMap() : nullptr;
-    auto table = tableMap ? tableMap->getTableIf(kPbrTableId) : nullptr;
+    auto table = pbrTableIn(*groupMap);
     if (!table) {
       continue;
     }
-    foundTable = true;
     auto oldAclMap = table->getAclMap();
     auto newAclMap =
         oldAclMap ? oldAclMap->clone() : std::make_shared<AclMap>();
@@ -305,12 +321,6 @@ void PbrAclManager::processDelta(
     changed = true;
   }
 
-  if (!foundTable) {
-    if (numPolicies > 0) {
-      throwPbrTableMissing(kPbrTableId, numPolicies);
-    }
-    return;
-  }
   if (!changed) {
     return;
   }
