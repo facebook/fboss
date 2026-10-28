@@ -764,7 +764,28 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, voqTailDropCounter) {
   auto verify = [this, kNeighborIp]() {
     const auto kRemoteSysPortId =
         utility::getRemoteSysPortId(getSw(), getProgrammedState());
+    const auto switchIds =
+        getSw()->getSwitchInfoTable().getSwitchIdsOfType(cfg::SwitchType::VOQ);
+    for (const auto& switchId : switchIds) {
+      getAgentEnsemble()
+          ->getHwAgentTestClient(switchId)
+          ->sync_installLogCapture();
+    }
     assertVoqTailDrops(kNeighborIp, kRemoteSysPortId);
+    WITH_RETRIES({
+      bool found = false;
+      for (const auto& switchId : switchIds) {
+        std::vector<std::string> matches;
+        getAgentEnsemble()
+            ->getHwAgentTestClient(switchId)
+            ->sync_getMatchingLogMessages(
+                matches,
+                "DROP reasons CGM: (0x20000) "
+                "bcmCosqDropReasonVoqWordsSharedMaxSizeReject");
+        found |= !matches.empty();
+      }
+      EXPECT_EVENTUALLY_TRUE(found);
+    });
   };
   verifyAcrossWarmBoots(setup, verify);
 };
