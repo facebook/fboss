@@ -808,7 +808,7 @@
   "chassisEepromDevicePath": "/SMB_SLOT@0/[IDPROM]",
   "numXcvrs": 129,
   "bspKmodsRpmName": "nexthop_bsp_kmods",
-  "bspKmodsRpmVersion": "1.0.0-1",
+  "bspKmodsRpmVersion": "1.0.1-1",
   "nonBspKmodsToLoad": [
     "i2c_i801",
     "i2c_piix4",
