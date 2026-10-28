@@ -11,12 +11,16 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/EthFrame.h"
+#include "fboss/agent/packet/EthHdr.h"
+#include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/PktUtil.h"
+#include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/packet/chenab/ChenabModHeader.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentMirrorOnDropTestBase.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
+#include "fboss/agent/test/utils/PortTestUtils.h"
 
 #include <fmt/format.h>
 #include <folly/Range.h>
@@ -39,6 +43,7 @@ class AgentMirrorOnDropStatefulTest : public AgentMirrorOnDropTestBase {
   static constexpr auto kSnooperPacketType =
       utility::packetSnooperReceivePacketType::PACKET_TYPE_CHENAB_MOD;
   static constexpr size_t kTruncateSize = 128;
+  static constexpr uint8_t kSharedBufferDropMirrorReason = 8;
   static constexpr uint8_t kPipelineDropMirrorReason = 0;
   static constexpr uint16_t kDefaultRouteDropTrapId = 0x130;
   static constexpr uint16_t kAclDropTrapId = 0x1eb;
@@ -109,6 +114,41 @@ class AgentMirrorOnDropStatefulTest : public AgentMirrorOnDropTestBase {
             entry && matchesTruncatedPacket(*entry, expectedPacket)) {
           result = *entry;
           outer = captured->outer;
+        }
+      }
+      EXPECT_EVENTUALLY_TRUE(result.has_value());
+    });
+    return result;
+  }
+
+  std::optional<ChenabTacNewEntry> waitForNewEntry(
+      utility::SwSwitchPacketSnooper& snooper,
+      const folly::IPAddressV6& destination) {
+    std::optional<ChenabTacNewEntry> result;
+    WITH_RETRIES_N_TIMED(10, std::chrono::seconds(1), {
+      auto captured = waitForCapturedModPacket(snooper);
+      if (captured) {
+        if (const auto* entry =
+                std::get_if<ChenabTacNewEntry>(&captured->packet)) {
+          auto sample = folly::IOBuf::wrapBuffer(
+              entry->truncatedPacket.data(), entry->truncatedPacket.size());
+          folly::io::Cursor cursor{sample.get()};
+          const EthHdr ethHeader{cursor};
+          if (ethHeader.getEtherType() ==
+              static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6)) {
+            const IPv6Hdr ipHeader{cursor};
+            if (ipHeader.nextHeader ==
+                static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP)) {
+              UDPHeader udpHeader;
+              udpHeader.parse(&cursor);
+              if (ipHeader.srcAddr == kPacketSrcIp_ &&
+                  ipHeader.dstAddr == destination &&
+                  udpHeader.srcPort == kPacketSrcPort &&
+                  udpHeader.dstPort == kPacketDstPort) {
+                result = *entry;
+              }
+            }
+          }
         }
       }
       EXPECT_EVENTUALLY_TRUE(result.has_value());
@@ -409,6 +449,46 @@ TEST_F(AgentMirrorOnDropStatefulTest, DefaultRouteDrop) {
         config, makeReport("default-route-drop", kTruncateSize), collectorPort);
   };
   auto verify = [&]() { verifyPipelineDrop(kDefaultRouteDropTrapId); };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentMirrorOnDropStatefulTest, MmuDrop) {
+  constexpr int kPriority = 2;
+  const auto injectionPort = masterLogicalInterfacePortIds()[0];
+  const auto collectorPort = masterLogicalInterfacePortIds()[1];
+  const auto txOffPort = masterLogicalInterfacePortIds()[2];
+  auto setup = [&]() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    configureMmuDropBuffers(config, injectionPort, kPriority);
+    applyMirrorOnDropConfig(
+        config, makeReport("mmu-drop", kTruncateSize), collectorPort);
+    const auto nextHopMac =
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
+    setupEcmpTraffic(txOffPort, flowDestination(0), nextHopMac);
+    waitForStateUpdates(getSw());
+  };
+  auto verifyDrop = [&]() {
+    utility::setCreditWatchdogAndPortTx(getAgentEnsemble(), txOffPort, false);
+    utility::SwSwitchPacketSnooper snooper(
+        getSw(),
+        "mod-snooper",
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        kSnooperPacketType);
+    snooper.ignoreUnclaimedRxPkts();
+    const auto destination = flowDestination(0);
+    sendPackets(10000, injectionPort, destination, kPriority);
+    auto entry = waitForNewEntry(snooper, destination);
+    utility::setCreditWatchdogAndPortTx(getAgentEnsemble(), txOffPort, true);
+    ASSERT_TRUE(entry.has_value());
+    EXPECT_EQ(entry->metadata.mirrorReason, kSharedBufferDropMirrorReason);
+  };
+  auto verify = [&]() {
+    verifyDrop();
+    resetMirrorOnDropFlows();
+  };
 
   verifyAcrossWarmBoots(setup, verify);
 }

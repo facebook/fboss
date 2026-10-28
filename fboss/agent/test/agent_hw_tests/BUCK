@@ -500,6 +500,7 @@ cpp_library(
         "//fboss/agent/state:state",
         "//fboss/agent/test:utils",
         "//fboss/agent/test/utils:packet_snooper",
+        "//fboss/agent/test/utils:port_test_utils",
         "//folly:range",
     ],
 )

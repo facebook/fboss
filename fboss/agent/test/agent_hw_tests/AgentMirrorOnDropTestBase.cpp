@@ -21,6 +21,7 @@
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/PfcTestUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
@@ -106,6 +107,22 @@ void AgentMirrorOnDropTestBase::addDropPacketAcl(
       config, fmt::format("drop-packet-{}", portId), cfg::AclActionType::DENY);
   acl->etherType() = cfg::EtherType::IPv6;
   acl->srcPort() = portId;
+}
+
+void AgentMirrorOnDropTestBase::configureMmuDropBuffers(
+    cfg::SwitchConfig& config,
+    const PortID& injectionPortId,
+    int priority) {
+  const auto* hwAsic =
+      checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
+  utility::setupPfcBuffers(
+      getAgentEnsemble(),
+      config,
+      {injectionPortId},
+      {},
+      {priority},
+      utility::PfcBufferParams::getPfcBufferParams(
+          hwAsic->getAsicType(), kDefaultGlobalSharedBytes));
 }
 
 void AgentMirrorOnDropTestBase::applyMirrorOnDropConfig(
