@@ -81,6 +81,24 @@ void AgentMirrorOnDropTestBase::setupEcmpTraffic(
   }
 }
 
+void AgentMirrorOnDropTestBase::unprogramEcmpTraffic(
+    const folly::IPAddressV6& addr) {
+  utility::EcmpSetupTargetedPorts6 ecmpHelper{
+      getProgrammedState(),
+      getSw()->needL2EntryForNeighbor(),
+      kCollectorNextHopMac_};
+  auto routeUpdater = getSw()->getRouteUpdater();
+  ecmpHelper.unprogramRoutes(&routeUpdater, {RoutePrefixV6{addr, 128}});
+}
+
+void AgentMirrorOnDropTestBase::unresolveEcmpTraffic(const PortID& portId) {
+  utility::EcmpSetupTargetedPorts6 ecmpHelper{
+      getProgrammedState(), getSw()->needL2EntryForNeighbor()};
+  applyNewState([&](const std::shared_ptr<SwitchState>& state) {
+    return ecmpHelper.unresolveNextHops(state, {PortDescriptor(portId)});
+  });
+}
+
 void AgentMirrorOnDropTestBase::addDropPacketAcl(
     cfg::SwitchConfig* config,
     const PortID& portId) {

@@ -13,6 +13,7 @@
 #include "fboss/agent/packet/EthFrame.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/packet/chenab/ChenabModHeader.h"
+#include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentMirrorOnDropTestBase.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
@@ -344,6 +345,41 @@ class AgentMirrorOnDropStatefulTest : public AgentMirrorOnDropTestBase {
         firstReportIpPayloadLength - firstReport.truncatedPacket.size() -
             kNewEntryBodyBytes + kAggregateBodyBytes);
   }
+  void verifyModExport(
+      bool expected,
+      size_t flowIndex,
+      const folly::MacAddress& collectorMac = kCollectorNextHopMac_) {
+    const auto injectionPort = masterLogicalInterfacePortIds()[0];
+    utility::SwSwitchPacketSnooper snooper(
+        getSw(),
+        "mod-snooper",
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        kSnooperPacketType);
+    snooper.ignoreUnclaimedRxPkts();
+    auto packet = sendPackets(1, injectionPort, flowDestination(flowIndex));
+    const auto sample = expectedTruncatedPacket(*packet);
+    if (expected) {
+      ChenabModOuterHeader outer;
+      ASSERT_TRUE(waitForNewEntry(snooper, sample, outer).has_value());
+      EXPECT_EQ(outer.dstMac, collectorMac);
+      EXPECT_EQ(outer.dstIp, kCollectorIp_);
+      return;
+    }
+    // Match only this fresh flow; queued aggregates and older samples do not
+    // indicate that the removed collector is still exporting new drops.
+    const auto deadline =
+        std::chrono::steady_clock::now() + std::chrono::seconds(3);
+    while (std::chrono::steady_clock::now() < deadline) {
+      if (const auto captured = waitForCapturedModPacket(snooper)) {
+        if (const auto* entry =
+                std::get_if<ChenabTacNewEntry>(&captured->packet)) {
+          EXPECT_FALSE(matchesTruncatedPacket(*entry, sample));
+        }
+      }
+    }
+  }
 };
 
 TEST_F(AgentMirrorOnDropStatefulTest, FlowReportingLifecycle) {
@@ -383,6 +419,85 @@ TEST_F(AgentMirrorOnDropStatefulTest, FlowReportingLifecycle) {
     // Keep the flow tuples unchanged, but distinguish samples from queued
     // reports emitted before the reset.
     verifyLifecycle(kPayloadSize + 2);
+    resetMirrorOnDropFlows();
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentMirrorOnDropStatefulTest, CollectorLifecycle) {
+  const auto collectorPort = masterLogicalInterfacePortIds()[1];
+  const auto alternateCollectorPort = masterLogicalInterfacePortIds()[2];
+  const folly::MacAddress updatedCollectorMac{"02:44:44:44:44:44"};
+  constexpr auto kReportName = "collector-lifecycle";
+  auto setup = [&]() { setupMirrorOnDrop(kReportName, kTruncateSize); };
+  auto verify = [&]() {
+    size_t flowIndex{0};
+    auto verifyCollectorResolution = [&](bool resolved) {
+      WITH_RETRIES({
+        auto report = getProgrammedState()->getMirrorOnDropReports()->getNodeIf(
+            kReportName);
+        ASSERT_NE(report, nullptr);
+        EXPECT_EVENTUALLY_TRUE(report->isResolved() == resolved);
+      });
+    };
+    auto verifyCollectorUnavailable = [&]() {
+      // Collector resolution loss must suppress reports for fresh flows.
+      verifyCollectorResolution(false);
+      verifyModExport(false, flowIndex++);
+    };
+    auto restoreCollector = [&](PortID port, const folly::MacAddress& mac) {
+      setupEcmpTraffic(port, kCollectorIp_, mac);
+      WITH_RETRIES({
+        auto report = getProgrammedState()->getMirrorOnDropReports()->getNodeIf(
+            kReportName);
+        ASSERT_NE(report, nullptr);
+        EXPECT_EVENTUALLY_TRUE(report->isResolved());
+        EXPECT_EVENTUALLY_TRUE(report->getResolvedCollectorMac() == mac);
+        EXPECT_EVENTUALLY_TRUE(
+            report->getResolvedEgressPort() == PortDescriptor(port).toThrift());
+      });
+      // Fresh reports must reach the collector with its updated destination
+      // MAC.
+      verifyModExport(true, flowIndex++, mac);
+    };
+
+    // Establish that a resolved collector receives a fresh dropped flow.
+    verifyCollectorResolution(true);
+    verifyModExport(true, flowIndex++);
+
+    // Route loss stops exports; restoring the route resumes reporting.
+    unprogramEcmpTraffic(kCollectorIp_);
+    verifyCollectorUnavailable();
+    restoreCollector(collectorPort, kCollectorNextHopMac_);
+
+    // An unresolved adjacency also stops exports until it is restored.
+    unresolveEcmpTraffic(collectorPort);
+    verifyCollectorUnavailable();
+    restoreCollector(collectorPort, kCollectorNextHopMac_);
+
+    // Change a live adjacency's MAC, then move the collector route between
+    // existing ports; exports must follow the newly resolved destination.
+    restoreCollector(collectorPort, updatedCollectorMac);
+    restoreCollector(alternateCollectorPort, updatedCollectorMac);
+    restoreCollector(collectorPort, kCollectorNextHopMac_);
+
+    // Removing MOD stops reporting without removing the collector port.
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    auto reports = *config.mirrorOnDropReports();
+    config.mirrorOnDropReports()->clear();
+    applyNewConfig(config);
+    waitForStateUpdates(getSw());
+    EXPECT_EQ(getProgrammedState()->getMirrorOnDropReports()->numNodes(), 0);
+    verifyModExport(false, flowIndex++);
+    // Restoring MOD re-enables exports to the still-resolved collector.
+    *config.mirrorOnDropReports() = std::move(reports);
+    applyNewConfig(config);
+    verifyCollectorResolution(true);
+    verifyModExport(true, flowIndex++);
+
+    // TODO(01303391): Test an unresolved collector across warm boot once
+    // Chenab supports restoring telemetry after MOD teardown.
     resetMirrorOnDropFlows();
   };
 

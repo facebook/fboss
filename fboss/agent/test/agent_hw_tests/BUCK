@@ -497,6 +497,7 @@ cpp_library(
         "//fboss/agent/packet:packet",
         "//fboss/agent/packet:packet_factory",
         "//fboss/agent/packet/chenab:chenab_mod_header",
+        "//fboss/agent/state:state",
         "//fboss/agent/test:utils",
         "//fboss/agent/test/utils:packet_snooper",
         "//folly:range",

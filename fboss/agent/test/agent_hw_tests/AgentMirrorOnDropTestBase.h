@@ -70,6 +70,10 @@ class AgentMirrorOnDropTestBase : public AgentHwTest {
       const folly::MacAddress& nextHopMac,
       bool disableTtlDecrement = false);
 
+  void unprogramEcmpTraffic(const folly::IPAddressV6& addr);
+
+  void unresolveEcmpTraffic(const PortID& portId);
+
   void addDropPacketAcl(cfg::SwitchConfig* config, const PortID& portId);
 
   void applyMirrorOnDropConfig(
