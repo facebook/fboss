@@ -42,6 +42,18 @@ namespace {
       " PBR policies are configured");
 }
 
+enum class PolicyAction { Add, Remove, Change, None };
+
+PolicyAction classifyPolicy(
+    const std::shared_ptr<ClassBasedPolicyNode>& old,
+    const std::shared_ptr<ClassBasedPolicyNode>& newPolicy) {
+  if (!old->isReferenced()) {
+    return newPolicy->isReferenced() ? PolicyAction::Add : PolicyAction::None;
+  }
+  return newPolicy->isReferenced() ? PolicyAction::Change
+                                   : PolicyAction::Remove;
+}
+
 std::shared_ptr<AclTable> pbrTableIn(const AclTableGroupMap& groupMap) {
   auto group = groupMap.getAclTableGroupIf(cfg::AclStage::INGRESS);
   auto tableMap = group ? group->getAclTableMap() : nullptr;
@@ -141,18 +153,20 @@ bool applyPolicyDelta(AclMap& newAclMap, const StateDelta& delta) {
       delta.getClassBasedPoliciesDelta(),
       [&](const std::shared_ptr<ClassBasedPolicyNode>& old,
           const std::shared_ptr<ClassBasedPolicyNode>& newPolicy) {
-        if (!old->isReferenced()) {
-          if (newPolicy->isReferenced()) {
+        switch (classifyPolicy(old, newPolicy)) {
+          case PolicyAction::Add:
             changed |= addPolicyEntries(newAclMap, newPolicy);
-          }
-          return;
+            break;
+          case PolicyAction::Remove:
+            removePolicyEntries(newAclMap, old, false /*temporary*/);
+            changed = true;
+            break;
+          case PolicyAction::Change:
+            changed |= applyChangedPolicy(newAclMap, old, newPolicy);
+            break;
+          case PolicyAction::None:
+            break;
         }
-        if (!newPolicy->isReferenced()) {
-          removePolicyEntries(newAclMap, old, false /*temporary*/);
-          changed = true;
-          return;
-        }
-        changed |= applyChangedPolicy(newAclMap, old, newPolicy);
       },
       [&](const std::shared_ptr<ClassBasedPolicyNode>& newPolicy) {
         if (!newPolicy->isReferenced()) {
