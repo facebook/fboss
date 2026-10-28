@@ -2528,7 +2528,7 @@ void TransceiverManager::completeRefresh() {
     /* We don't want to set warm boot flag here for platforms with external
      * PHYs The reason is SAI based external PHYs platforms needs to
      * gracefully shutdown to store the warmboot state */
-    if (!phyManager_) {
+    if (!hasExternalPhy()) {
       setCanWarmBoot();
     }
 

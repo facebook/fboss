@@ -453,6 +453,17 @@ TEST_F(PortManagerTest, getInitializedTransceiverIdsForPort) {
       ::testing::ElementsAre(TransceiverID(0), TransceiverID(1)));
 }
 
+TEST_F(PortManagerTest, transceiverManagerKnowsPortManagerOwnsPhyManager) {
+  initManagers(1, 4, true /* setPhyManager */);
+  EXPECT_EQ(transceiverManager_->getPhyManager(), nullptr);
+  EXPECT_TRUE(transceiverManager_->hasExternalPhy());
+}
+
+TEST_F(PortManagerTest, transceiverManagerHasNoExternalPhyWithoutPhyManager) {
+  initManagers(1, 4, false /* setPhyManager */);
+  EXPECT_FALSE(transceiverManager_->hasExternalPhy());
+}
+
 TEST_F(PortManagerTest, setBothPortsEnabledAndUpForTesting) {
   initManagers(1, 4);
   portManager_->setOverrideAgentPortStatusForTesting(

@@ -270,6 +270,16 @@ class TransceiverManager {
     return phyManager_.get();
   }
 
+  // For when the PhyManager is owned elsewhere (PortManager in Port Manager
+  // mode), so TransceiverManager still knows the platform has external PHYs.
+  void setHasExternalPhy() {
+    hasExternalPhy_ = true;
+  }
+
+  bool hasExternalPhy() const {
+    return phyManager_ != nullptr || hasExternalPhy_;
+  }
+
   void releasePhyManager() {
     if (phyManager_) {
       // Suppressing ASAN warnings as this is expected behavior
@@ -952,6 +962,7 @@ class TransceiverManager {
 
   // For platforms that needs to program xphy
   std::unique_ptr<PhyManager> phyManager_;
+  bool hasExternalPhy_{false};
 
   // Shared pointer to QsfpFsdbSyncManager for publishing to FSDB.
   // Shared between WedgeManager and PortManager.

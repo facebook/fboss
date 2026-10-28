@@ -105,6 +105,7 @@ PortManager::PortManager(
       portToInitializedTcvrs_(setupPortToSynchronizedTcvrVec()) {
   // Initialize PhyManager publish callback
   if (phyManager_) {
+    transceiverManager_->setHasExternalPhy();
     phyManager_->setPublishPhyCb(
         [this](auto&& portName, auto&& newInfo, auto&& portStats) {
           if (newInfo.has_value()) {
