@@ -40,6 +40,7 @@ class AgentMirrorOnDropStatefulTest : public AgentMirrorOnDropTestBase {
       utility::packetSnooperReceivePacketType::PACKET_TYPE_CHENAB_MOD;
   static constexpr size_t kTruncateSize = 128;
   static constexpr uint8_t kPipelineDropMirrorReason = 0;
+  static constexpr uint16_t kDefaultRouteDropTrapId = 0x130;
   static constexpr uint16_t kAclDropTrapId = 0x1eb;
 
   cfg::MirrorOnDropReport makeReport(const std::string& name, int truncateSize)
@@ -380,7 +381,37 @@ class AgentMirrorOnDropStatefulTest : public AgentMirrorOnDropTestBase {
       }
     }
   }
+
+  void verifyPipelineDrop(uint16_t expectedTrapId) {
+    utility::SwSwitchPacketSnooper snooper(
+        getSw(),
+        "mod-snooper",
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        kSnooperPacketType);
+    snooper.ignoreUnclaimedRxPkts();
+    const auto injectionPort = masterLogicalInterfacePortIds()[0];
+    auto packet = sendPackets(1, injectionPort, flowDestination(0));
+    auto entry = waitForNewEntry(snooper, expectedTruncatedPacket(*packet));
+    ASSERT_TRUE(entry.has_value());
+    EXPECT_EQ(entry->metadata.mirrorReason, kPipelineDropMirrorReason);
+    EXPECT_EQ(entry->metadata.trapId, expectedTrapId);
+    resetMirrorOnDropFlows();
+  }
 };
+
+TEST_F(AgentMirrorOnDropStatefulTest, DefaultRouteDrop) {
+  const auto collectorPort = masterLogicalInterfacePortIds()[1];
+  auto setup = [&]() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    applyMirrorOnDropConfig(
+        config, makeReport("default-route-drop", kTruncateSize), collectorPort);
+  };
+  auto verify = [&]() { verifyPipelineDrop(kDefaultRouteDropTrapId); };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
 
 TEST_F(AgentMirrorOnDropStatefulTest, FlowReportingLifecycle) {
   auto setup = [&]() {
