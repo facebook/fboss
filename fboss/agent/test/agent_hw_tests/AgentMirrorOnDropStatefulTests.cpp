@@ -186,6 +186,121 @@ class AgentMirrorOnDropStatefulTest : public AgentMirrorOnDropTestBase {
     }
   }
 
+  void collectFlowReports(
+      utility::SwSwitchPacketSnooper& snooper,
+      FlowReportingState& flows,
+      uint16_t ingressLocalPort) {
+    while (snooper.receivedPacket()) {
+      const auto captured = waitForCapturedModPacket(snooper);
+      if (!captured) {
+        continue;
+      }
+      if (const auto* entry =
+              std::get_if<ChenabTacNewEntry>(&captured->packet)) {
+        // A new-entry report contains the first dropped packet of a flow.
+        // Match its sample against the distinct flows we injected.
+        const auto match = std::find_if(
+            flows.expectedPackets.begin(),
+            flows.expectedPackets.end(),
+            [&](const auto& expected) {
+              return matchesTruncatedPacket(*entry, expected);
+            });
+        if (match != flows.expectedPackets.end()) {
+          // Stateful MOD must report this flow only once before eviction,
+          // even though we sent byte-identical duplicates.
+          const auto flow = std::distance(flows.expectedPackets.begin(), match);
+          EXPECT_FALSE(flows.firstReports[flow].has_value())
+              << "Duplicate new-entry report for flow " << flow;
+          verifyNewEntryReport(*entry, captured->outer, ingressLocalPort);
+          if (!flows.firstReports[flow]) {
+            flows.firstReports[flow] = *entry;
+            flows.firstReportIpPayloadLengths[flow] =
+                captured->outer.ipPayloadLength;
+          }
+        }
+      } else if (
+          const auto* aggregate =
+              std::get_if<ChenabTacAggregate>(&captured->packet)) {
+        // An aggregate follows its new-entry report. Match their UID and
+        // signature; the eviction bit confirms that the flow was flushed.
+        for (size_t i = 0; i < kLifecycleFlowCount; ++i) {
+          if (flows.firstReports[i] &&
+              aggregate->metadata.uid == flows.firstReports[i]->metadata.uid &&
+              aggregate->metadata.signatureHash ==
+                  flows.firstReports[i]->metadata.signatureHash) {
+            verifyAggregateReport(
+                *aggregate,
+                captured->outer,
+                *flows.firstReports[i],
+                flows.firstReportIpPayloadLengths[i]);
+            flows.evicted[i] = flows.evicted[i] || aggregate->evicted;
+          }
+        }
+      }
+    }
+  }
+
+  void verifyFirstReports(
+      utility::SwSwitchPacketSnooper& snooper,
+      FlowReportingState& flows) {
+    const auto ingressLocalPort =
+        getExpectedModPacketIngressPortId(masterLogicalInterfacePortIds()[0]);
+
+    // Require a first report for every injected flow, retaining any eviction
+    // reports received while those first reports are being collected.
+    WITH_RETRIES_N_TIMED(10, std::chrono::seconds(1), {
+      collectFlowReports(snooper, flows, ingressLocalPort);
+      EXPECT_EVENTUALLY_TRUE(
+          std::all_of(
+              flows.firstReports.begin(),
+              flows.firstReports.end(),
+              [](const auto& report) { return report.has_value(); }));
+    });
+    ASSERT_TRUE(
+        std::all_of(
+            flows.firstReports.begin(),
+            flows.firstReports.end(),
+            [](const auto& report) { return report.has_value(); }));
+  }
+
+  void verifyFlowEvictions(
+      utility::SwSwitchPacketSnooper& snooper,
+      FlowReportingState& flows) {
+    const auto ingressLocalPort =
+        getExpectedModPacketIngressPortId(masterLogicalInterfacePortIds()[0]);
+
+    // Wait for every flow's eviction before testing that it can report again.
+    WITH_RETRIES_N_TIMED(20, std::chrono::seconds(1), {
+      collectFlowReports(snooper, flows, ingressLocalPort);
+      EXPECT_EVENTUALLY_TRUE(
+          std::all_of(
+              flows.evicted.begin(), flows.evicted.end(), [](bool value) {
+                return value;
+              }));
+    });
+    ASSERT_TRUE(
+        std::all_of(flows.evicted.begin(), flows.evicted.end(), [](bool value) {
+          return value;
+        }));
+  }
+
+  void verifyReReportMetadata(
+      const FlowReportingState& flows,
+      const FlowReportingState& reReportedFlows) {
+    for (size_t i = 0; i < kLifecycleFlowCount; ++i) {
+      ASSERT_TRUE(flows.firstReports[i].has_value());
+      ASSERT_TRUE(reReportedFlows.firstReports[i].has_value());
+      EXPECT_NE(flows.expectedPackets[i], reReportedFlows.expectedPackets[i]);
+      EXPECT_EQ(
+          reReportedFlows.firstReports[i]->metadata.signatureHash,
+          flows.firstReports[i]->metadata.signatureHash);
+      // TAC timestamps are big-endian; array ordering is chronological.
+      EXPECT_LT(
+          flows.firstReports[i]->metadata.timestamp,
+          reReportedFlows.firstReports[i]->metadata.timestamp);
+    }
+  }
+
   void verifyModEncapsulation(const ChenabModOuterHeader& outer) {
     EXPECT_EQ(
         outer.srcMac,
@@ -230,5 +345,48 @@ class AgentMirrorOnDropStatefulTest : public AgentMirrorOnDropTestBase {
             kNewEntryBodyBytes + kAggregateBodyBytes);
   }
 };
+
+TEST_F(AgentMirrorOnDropStatefulTest, FlowReportingLifecycle) {
+  auto setup = [&]() {
+    setupMirrorOnDrop("flow-reporting-lifecycle", kTruncateSize);
+  };
+  auto verifyLifecycle = [&](size_t payloadSize) {
+    utility::SwSwitchPacketSnooper snooper(
+        getSw(),
+        "mod-snooper",
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        kSnooperPacketType);
+    snooper.ignoreUnclaimedRxPkts();
+
+    FlowReportingState flows;
+    // Each distinct dropped flow must report once, despite duplicate packets.
+    sendDistinctFlowsAndDuplicates(payloadSize, flows);
+    verifyFirstReports(snooper, flows);
+    // Aggregate eviction reports confirm that the flows can report again.
+    verifyFlowEvictions(snooper, flows);
+
+    // Payload length is not part of the flow key; changed samples distinguish
+    // fresh reports from queued reports without changing the flow signature.
+    FlowReportingState reReportedFlows;
+    sendDistinctFlowsAndDuplicates(payloadSize + 1, reReportedFlows);
+    verifyFirstReports(snooper, reReportedFlows);
+    // Re-reports retain the flow signature and carry newer timestamps.
+    verifyReReportMetadata(flows, reReportedFlows);
+  };
+  auto verify = [&]() {
+    constexpr size_t kPayloadSize = 512;
+    // Exercise the restored graph before resetting any flows on warm boot.
+    verifyLifecycle(kPayloadSize);
+    resetMirrorOnDropFlows();
+    // Keep the flow tuples unchanged, but distinguish samples from queued
+    // reports emitted before the reset.
+    verifyLifecycle(kPayloadSize + 2);
+    resetMirrorOnDropFlows();
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
 
 } // namespace facebook::fboss
