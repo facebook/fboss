@@ -83,6 +83,27 @@ enum RouteForwardAction {
   NEXTHOPS = 2,
 }
 
+enum L3TrafficLoopState {
+  // Setup is in progress.
+  CONFIGURING = 0,
+  // The loop is configured and active.
+  READY = 1,
+  // Teardown is in progress.
+  CLEARING = 2,
+  // No loop is configured on this port.
+  NOT_CONFIGURED = 3,
+  // Cleanup failed; partial configuration may remain.
+  CLEANUP_FAILED = 4,
+  // This switch or port does not support L3 traffic loops.
+  UNSUPPORTED = 5,
+}
+
+struct L3TrafficLoopStatus {
+  1: L3TrafficLoopState state;
+  // Unix time in milliseconds.
+  2: optional i64 expirationTimeMs;
+}
+
 typedef string RouteCounterID
 
 struct UnicastRoute {
@@ -740,7 +761,7 @@ enum ClientID {
   /**
    * Routes and MySid entries programmed via Thrift RPC by the TE agent /
    * controller (e.g. addUnicastRoutes, addMySidEntries).
-   */
+  */
   TE_AGENT = 800,
 }
 
@@ -1747,6 +1768,51 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
     1: list<string> portNames,
     2: phy.PortComponent component,
     3: prbs.InterfacePrbsState state,
+  ) throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Configure this switch as one endpoint of each L3 traffic loop. Each list
+   * is indexed by loop and must have the same length. qualificationAddresses
+   * contains the unique IPv6 /128 destinations reserved for qualification
+   * traffic. An empty expectedPeerMacs entry means no peer MAC is supplied.
+   * This call returns only after all local loops are READY. The traffic-
+   * injection RPC does not check loop readiness, so callers must use
+   * getL3TrafficLoopStatus to wait for successful setup on both endpoints
+   * before injecting traffic.
+   * timeoutSeconds is the lease duration for the corresponding loop.
+   */
+  void setupL3TrafficLoops(
+    1: list<Address.BinaryAddress> qualificationAddresses,
+    2: list<string> portNames,
+    3: list<Address.BinaryAddress> peerNextHops,
+    4: list<string> expectedPeerMacs,
+    5: list<i32> timeoutSeconds,
+  ) throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Extend the expiry of each READY loop. If any requested loop is not READY,
+   * throws fboss.FbossBaseError with a message indicating the loop is not
+   * ready yet; no loop is extended.
+   */
+  void extendL3TrafficLoops(
+    1: list<string> portNames,
+    2: i32 timeoutSeconds = 60,
+  ) throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Safely stop each loop and restore the switch's pre-test state. Attempts
+   * cleanup for every requested port before throwing if any cleanup fails.
+   */
+  void teardownL3TrafficLoops(1: list<string> portNames) throws (
+    1: fboss.FbossBaseError error,
+  );
+
+  /*
+   * Return support and local setup/cleanup status for the requested ports, or
+   * all ports if portNames is empty. Results are keyed by port name.
+   */
+  map<string, L3TrafficLoopStatus> getL3TrafficLoopStatus(
+    1: list<string> portNames,
   ) throws (1: fboss.FbossBaseError error);
 
   /*
