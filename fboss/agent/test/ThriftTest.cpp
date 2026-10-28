@@ -19,6 +19,7 @@
 #include "fboss/agent/SwSwitchMySidUpdater.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/ThriftHandler.h"
+#include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
@@ -5166,6 +5167,71 @@ TEST_F(NamedNextHopGroupThriftTest, getNextHopGroupsNamedIsProgrammed) {
   EXPECT_FALSE(nameToProgrammedState.at("single_ref"));
   EXPECT_FALSE(nameToProgrammedState.at("orphan"));
   EXPECT_EQ(nameToProgrammedState, namedApiProgrammedState);
+}
+
+TEST_F(NamedNextHopGroupThriftTest, pbrRedirectGroupIsProgrammed) {
+  SCOPE_EXIT {
+    FLAGS_enable_acl_table_group = false;
+  };
+  FLAGS_enable_acl_table_group = true;
+  cfg::AclTable pbrTable;
+  pbrTable.name() = cfg::switch_config_constants::DEFAULT_PBR_ACL_TABLE();
+  pbrTable.priority() = 1;
+  pbrTable.actionTypes() = {
+      cfg::AclTableActionType::COUNTER, cfg::AclTableActionType::REDIRECT};
+  pbrTable.qualifiers() = {
+      cfg::AclTableQualifier::TC, cfg::AclTableQualifier::NEXT_HOP_GROUP_ID};
+  cfg::AclTableGroup tableGroup;
+  tableGroup.name() = "ingress-group";
+  tableGroup.stage() = cfg::AclStage::INGRESS;
+  tableGroup.aclTables() = {pbrTable};
+  auto config = testConfigA();
+  config.aclTableGroups() = {tableGroup};
+  sw_->applyConfig("add PBR ACL table", config);
+
+  ThriftHandler handler(sw_);
+  auto groups = std::make_unique<std::vector<NextHopGroup>>();
+  groups->push_back(makeGroup("defaultNhg", {"2401:db00:2110:3001::2"}));
+  groups->push_back(makeGroup("classNhg", {"2401:db00:2110:3001::3"}));
+  groups->push_back(makeGroup("aliasNhg", {"2401:db00:2110:3001::3"}));
+  handler.addOrUpdateNamedNextHopGroups(std::move(groups));
+  handler.addPolicies(onePolicy(makeCbfPolicy(
+      "pol1",
+      "defaultNhg",
+      {{ForwardingClass::CLASS_1, namedNhgRef("classNhg")}})));
+
+  auto namedGroups = [&handler]() {
+    std::vector<NextHopGroup> named;
+    handler.getNamedNextHopGroups(
+        named, std::make_unique<std::vector<std::string>>());
+    std::map<std::string, NextHopGroup> byName;
+    for (auto& group : named) {
+      const auto name = *group.name();
+      byName[name] = std::move(group);
+    }
+    return byName;
+  };
+
+  // 1. No route names the default group, so the policy programs no ACL entry.
+  EXPECT_FALSE(*namedGroups().at("classNhg").isProgrammed());
+
+  // 2. A route on the default group makes the rule redirect to classNhg.
+  // aliasNhg has the same members, so it shares classNhg's next-hop set id.
+  addUnicastRouteWithNamedNextHopGroup(handler, "2401::100/128", "defaultNhg");
+  auto byName = namedGroups();
+  ASSERT_EQ(*byName.at("aliasNhg").id(), *byName.at("classNhg").id());
+  for (const auto* name : {"defaultNhg", "classNhg", "aliasNhg"}) {
+    EXPECT_TRUE(*byName.at(name).isProgrammed()) << name;
+  }
+
+  // 3. getNextHopGroups agrees, under whichever name the shared id kept.
+  std::vector<NextHopGroup> allGroups;
+  handler.getNextHopGroups(allGroups);
+  for (const auto& group : allGroups) {
+    if (group.name().has_value()) {
+      EXPECT_TRUE(*group.isProgrammed()) << *group.name();
+    }
+  }
 }
 
 TEST_F(NamedNextHopGroupThriftTest, removeNextHopGroup) {
