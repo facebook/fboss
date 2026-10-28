@@ -712,6 +712,8 @@ void HwTransceiverUtils::verifyCopper1600gProfile(
     EXPECT_EQ(
         *mediaId.media()->activeCuCode(),
         ActiveCuHostInterfaceCode::AUI_PAM4_8_1600G);
+  }
+}
 
 bool HwTransceiverUtils::isAoc(const TcvrState& tcvrState) {
   return TransceiverManager::activeCable(tcvrState) &&
