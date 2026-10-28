@@ -22,7 +22,6 @@
 #include "fboss/agent/platforms/common/fuji/FujiPlatformMapping.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyFCPlatformMapping.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyLCPlatformMapping.h"
-#include "fboss/agent/platforms/common/icecube800banw/Icecube800banwPlatformMapping.h"
 #include "fboss/agent/platforms/common/icecube800bc/Icecube800bcPlatformMapping.h"
 #include "fboss/agent/platforms/common/icetea800bc/Icetea800bcPlatformMapping.h"
 #include "fboss/agent/platforms/common/j4sim/J4SimPlatformMapping.h"
@@ -203,10 +202,6 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return platformMappingStr.empty()
           ? std::make_unique<Icecube800bcPlatformMapping>()
           : std::make_unique<Icecube800bcPlatformMapping>(platformMappingStr);
-    case PlatformType::PLATFORM_ICECUBE800BANW:
-      return platformMappingStr.empty()
-          ? std::make_unique<Icecube800banwPlatformMapping>()
-          : std::make_unique<Icecube800banwPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_ICETEA800BC:
       return platformMappingStr.empty()
           ? std::make_unique<Icetea800bcPlatformMapping>()

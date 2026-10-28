@@ -13,7 +13,6 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/platforms/common/blackwolf800banw/Blackwolf800banwPlatformMapping.h"
-#include "fboss/agent/platforms/common/icecube800banw/Icecube800banwPlatformMapping.h"
 #include "fboss/agent/platforms/common/icecube800bc/Icecube800bcPlatformMapping.h"
 #include "fboss/agent/platforms/common/icetea800bc/Icetea800bcPlatformMapping.h"
 #include "fboss/agent/platforms/common/j4sim/J4SimPlatformMapping.h"
@@ -85,8 +84,6 @@ std::unique_ptr<PlatformMapping> createGenericSaiBcmPlatformMapping(
       return std::make_unique<Blackwolf800banwPlatformMapping>();
     case PlatformType::PLATFORM_ICECUBE800BC:
       return std::make_unique<Icecube800bcPlatformMapping>();
-    case PlatformType::PLATFORM_ICECUBE800BANW:
-      return std::make_unique<Icecube800banwPlatformMapping>();
     case PlatformType::PLATFORM_ICETEA800BC:
       return std::make_unique<Icetea800bcPlatformMapping>();
     case PlatformType::PLATFORM_J4SIM:
