@@ -282,6 +282,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::CUT_THROUGH_FORWARDING:
     case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
     case HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER:
+    case HwAsic::Feature::SRV6_BINDING_USID_UA_USD:
     case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
     case HwAsic::Feature::PBR_ACL:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:

@@ -54,6 +54,7 @@ class FakeAsic : public HwAsic {
       case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
       case HwAsic::Feature::TEMPERATURE_MONITORING:
       case HwAsic::Feature::SWITCH_WIDE_LINK_UP_DEBOUNCE:
+      case HwAsic::Feature::SRV6_BINDING_USID_UA_USD:
         return false;
 
       default:
