@@ -170,6 +170,33 @@ bool applyPolicyDelta(AclMap& newAclMap, const StateDelta& delta) {
   return changed;
 }
 
+// Returns nullptr, not the input state, when no matcher's map changed.
+template <typename Mutate>
+std::shared_ptr<SwitchState> updatePbrTables(
+    const std::shared_ptr<SwitchState>& state,
+    Mutate&& mutate) {
+  auto newState = state;
+  bool changed = false;
+  for (const auto& [matcherStr, groupMap] :
+       std::as_const(*state->getAclTableGroups())) {
+    auto table = pbrTableIn(*groupMap);
+    if (!table) {
+      continue;
+    }
+    auto oldAclMap = table->getAclMap();
+    auto newAclMap =
+        oldAclMap ? oldAclMap->clone() : std::make_shared<AclMap>();
+    if (!mutate(*newAclMap)) {
+      continue;
+    }
+    table
+        ->modify(&newState, HwSwitchMatcher(matcherStr), cfg::AclStage::INGRESS)
+        ->setAclMap(std::move(newAclMap));
+    changed = true;
+  }
+  return changed ? newState : nullptr;
+}
+
 bool hasPbrTable(const std::shared_ptr<SwitchState>& state) {
   auto groups = state->getAclTableGroups();
   if (!groups) {
@@ -302,31 +329,13 @@ void PbrAclManager::processDelta(
     return;
   }
 
-  auto aclTableGroups = newState->getAclTableGroups();
-  bool changed = false;
-  for (const auto& [matcherStr, groupMap] : std::as_const(*aclTableGroups)) {
-    auto table = pbrTableIn(*groupMap);
-    if (!table) {
-      continue;
-    }
-    auto oldAclMap = table->getAclMap();
-    auto newAclMap =
-        oldAclMap ? oldAclMap->clone() : std::make_shared<AclMap>();
-    if (!applyPolicyDelta(*newAclMap, delta)) {
-      continue;
-    }
-    table
-        ->modify(&newState, HwSwitchMatcher(matcherStr), cfg::AclStage::INGRESS)
-        ->setAclMap(std::move(newAclMap));
-    changed = true;
+  if (auto updated = updatePbrTables(newState, [&](AclMap& aclMap) {
+        return applyPolicyDelta(aclMap, delta);
+      })) {
+    updated->publish();
+    inOutState->replaceLastDelta(StateDelta(delta.oldState(), updated));
+    inOutState->updated = true;
   }
-
-  if (!changed) {
-    return;
-  }
-  newState->publish();
-  inOutState->replaceLastDelta(StateDelta(delta.oldState(), newState));
-  inOutState->updated = true;
 }
 
 std::vector<StateDelta> PbrAclManager::modifyStateImpl(
