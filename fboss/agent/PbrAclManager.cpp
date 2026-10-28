@@ -22,7 +22,6 @@
 
 #include <folly/logging/xlog.h>
 
-#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -115,39 +114,39 @@ bool applyChangedPolicy(
     const std::shared_ptr<ClassBasedPolicyNode>& newPolicy) {
   const bool defaultChanged = *old->getDefaultNextHopGroup().id() !=
       *newPolicy->getDefaultNextHopGroup().id();
-  auto oldTc2Nhg = old->getClass2NextHopGroup();
-  auto newTc2Nhg = newPolicy->getClass2NextHopGroup();
-  std::map<std::string, std::shared_ptr<AclEntry>> newEntries;
-  for (const auto& entry : createAclEntriesFromPolicy(newPolicy)) {
-    newEntries.emplace(entry->getID(), entry);
-  }
+  const auto& oldTc2Nhg = old->getClass2NextHopGroup();
+  const auto& newTc2Nhg = newPolicy->getClass2NextHopGroup();
+  const auto& policyName = newPolicy->getID();
   bool changed = false;
   for (const auto& [tc, newNhg] : newTc2Nhg) {
-    auto name =
-        makePbrAclEntryName(newPolicy->getID(), tc, false /*temporary*/);
     auto oldIt = oldTc2Nhg.find(tc);
     if (oldIt == oldTc2Nhg.end()) {
-      aclMap.addNode(newEntries.at(name));
+      aclMap.addNode(makePbrAclEntry(newPolicy, tc));
       changed = true;
-    } else if (defaultChanged || oldIt->second != newNhg) {
-      if (!aclMap.getEntryIf(name)) {
-        throw FbossError(
-            "changed PBR policy '",
-            newPolicy->getID(),
-            "' has no programmed ACL entry '",
-            name,
-            "' to update");
-      }
-      // TODO(zecheng): implement hitless (make-before-break) update here.
-      aclMap.updateNode(newEntries.at(name));
-      changed = true;
+      continue;
     }
+    if (!defaultChanged && oldIt->second == newNhg) {
+      continue;
+    }
+    auto original = makePbrAclEntryName(policyName, tc, false /*temporary*/);
+    if (!aclMap.getEntryIf(original)) {
+      throw FbossError(
+          "changed PBR policy '",
+          policyName,
+          "' has no programmed ACL entry '",
+          original,
+          "' to update");
+    }
+    // TODO(zecheng): implement hitless (make-before-break) update here.
+    aclMap.updateNode(makePbrAclEntry(newPolicy, tc));
+    changed = true;
   }
   for (const auto& [tc, _] : oldTc2Nhg) {
-    if (!newTc2Nhg.count(tc)) {
-      removeRuleEntry(aclMap, newPolicy->getID(), tc, false /*temporary*/);
-      changed = true;
+    if (newTc2Nhg.count(tc)) {
+      continue;
     }
+    removeRuleEntry(aclMap, policyName, tc, false /*temporary*/);
+    changed = true;
   }
   return changed;
 }
