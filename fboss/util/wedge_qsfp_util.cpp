@@ -53,6 +53,7 @@
 #include "fboss/lib/bsp/ladakh800bcls/Ladakh800bclsBspPlatformMapping.h"
 #include "fboss/lib/bsp/leh800bcls/Leh800bclsBspPlatformMapping.h"
 #include "fboss/lib/bsp/m4061clsc/M4061clscBspPlatformMapping.h"
+#include "fboss/lib/bsp/m4061nhp/M4061nhpBspPlatformMapping.h"
 #include "fboss/lib/bsp/m4062nhp/M4062nhpBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bfa/Meru800bfaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
@@ -4845,6 +4846,12 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
                                  .get();
       auto ioBus = std::make_unique<BspIOBus>(systemContainer);
       return std::make_pair(std::move(ioBus), 0);
+    } else if (FLAGS_platform == "m4061nhp") {
+      auto systemContainer =
+          BspGenericSystemContainer<M4061nhpBspPlatformMapping>::getInstance()
+              .get();
+      auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+      return std::make_pair(std::move(ioBus), 0);
     } else if (FLAGS_platform == "m4062nhp") {
       auto systemContainer =
           BspGenericSystemContainer<M4062nhpBspPlatformMapping>::getInstance()
@@ -4949,6 +4956,12 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
       mode == PlatformType::PLATFORM_ICECUBE800BANW) {
     auto systemContainer =
         BspGenericSystemContainer<Icecube800bcBspPlatformMapping>::getInstance()
+            .get();
+    auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+    return std::make_pair(std::move(ioBus), 0);
+  } else if (mode == PlatformType::PLATFORM_M4061NHP) {
+    auto systemContainer =
+        BspGenericSystemContainer<M4061nhpBspPlatformMapping>::getInstance()
             .get();
     auto ioBus = std::make_unique<BspIOBus>(systemContainer);
     return std::make_pair(std::move(ioBus), 0);
@@ -5082,6 +5095,8 @@ getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
       mode = PlatformType::PLATFORM_M4061CLSC;
     } else if (FLAGS_platform == "icecube800bc") {
       mode = PlatformType::PLATFORM_ICECUBE800BC;
+    } else if (FLAGS_platform == "m4061nhp") {
+      mode = PlatformType::PLATFORM_M4061NHP;
     } else if (FLAGS_platform == "m4062nhp") {
       mode = PlatformType::PLATFORM_M4062NHP;
     } else if (FLAGS_platform == "icetea800bc") {
@@ -5136,6 +5151,12 @@ getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
       mode == PlatformType::PLATFORM_ICECUBE800BANW) {
     auto systemContainer =
         BspGenericSystemContainer<Icecube800bcBspPlatformMapping>::getInstance()
+            .get();
+    return std::make_pair(
+        std::make_unique<BspTransceiverApi>(systemContainer), 0);
+  } else if (mode == PlatformType::PLATFORM_M4061NHP) {
+    auto systemContainer =
+        BspGenericSystemContainer<M4061nhpBspPlatformMapping>::getInstance()
             .get();
     return std::make_pair(
         std::make_unique<BspTransceiverApi>(systemContainer), 0);
