@@ -42,6 +42,11 @@ namespace {
       " PBR policies are configured");
 }
 
+struct ChangedPolicy {
+  std::shared_ptr<ClassBasedPolicyNode> old;
+  std::shared_ptr<ClassBasedPolicyNode> updated;
+};
+
 enum class PolicyAction { Add, Remove, Change, None };
 
 PolicyAction classifyPolicy(
@@ -147,7 +152,7 @@ bool applyChangedPolicy(
   return changed;
 }
 
-bool applyPolicyDelta(AclMap& newAclMap, const StateDelta& delta) {
+bool applyAddsAndRemoves(AclMap& newAclMap, const StateDelta& delta) {
   bool changed = false;
   DeltaFunctions::forEachChanged(
       delta.getClassBasedPoliciesDelta(),
@@ -162,8 +167,6 @@ bool applyPolicyDelta(AclMap& newAclMap, const StateDelta& delta) {
             changed = true;
             break;
           case PolicyAction::Change:
-            changed |= applyChangedPolicy(newAclMap, old, newPolicy);
-            break;
           case PolicyAction::None:
             break;
         }
@@ -181,6 +184,21 @@ bool applyPolicyDelta(AclMap& newAclMap, const StateDelta& delta) {
         removePolicyEntries(newAclMap, old, false /*temporary*/);
         changed = true;
       });
+  return changed;
+}
+
+std::vector<ChangedPolicy> changedPolicies(const StateDelta& delta) {
+  std::vector<ChangedPolicy> changed;
+  DeltaFunctions::forEachChanged(
+      delta.getClassBasedPoliciesDelta(),
+      [&](const std::shared_ptr<ClassBasedPolicyNode>& old,
+          const std::shared_ptr<ClassBasedPolicyNode>& newPolicy) {
+        if (classifyPolicy(old, newPolicy) == PolicyAction::Change) {
+          changed.push_back(ChangedPolicy{old, newPolicy});
+        }
+      },
+      [](const std::shared_ptr<ClassBasedPolicyNode>&) {},
+      [](const std::shared_ptr<ClassBasedPolicyNode>&) {});
   return changed;
 }
 
@@ -343,12 +361,35 @@ void PbrAclManager::processDelta(
     return;
   }
 
-  if (auto updated = updatePbrTables(newState, [&](AclMap& aclMap) {
-        return applyPolicyDelta(aclMap, delta);
-      })) {
-    updated->publish();
-    inOutState->replaceLastDelta(StateDelta(delta.oldState(), updated));
+  bool first = true;
+  auto emit = [&](const std::shared_ptr<SwitchState>& state) {
+    state->publish();
+    if (first) {
+      inOutState->replaceLastDelta(StateDelta(delta.oldState(), state));
+      first = false;
+    } else {
+      inOutState->appendDelta(
+          StateDelta(inOutState->getCurrentStateDelta().newState(), state));
+    }
     inOutState->updated = true;
+  };
+
+  if (auto addedAndRemoved = updatePbrTables(newState, [&](AclMap& aclMap) {
+        return applyAddsAndRemoves(aclMap, delta);
+      })) {
+    newState = addedAndRemoved;
+    emit(newState);
+  }
+
+  for (const auto& policy : changedPolicies(delta)) {
+    auto made = updatePbrTables(newState, [&](AclMap& aclMap) {
+      return applyChangedPolicy(aclMap, policy.old, policy.updated);
+    });
+    if (!made) {
+      continue;
+    }
+    newState = made;
+    emit(newState);
   }
 }
 
