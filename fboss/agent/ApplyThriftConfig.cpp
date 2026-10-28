@@ -3931,16 +3931,16 @@ uint8_t ThriftConfigApplier::computeMinimumLinkCount(
   switch (minCapacity.getType()) {
     case cfg::MinimumCapacity::Type::linkCount:
       // Thrift's byte type is an int8_t
-      CHECK_GE(minCapacity.get_linkCount(), 1);
+      CHECK_GE(minCapacity.linkCount().value(), 1);
 
-      minLinkCount = minCapacity.get_linkCount();
+      minLinkCount = minCapacity.linkCount().value();
       break;
     case cfg::MinimumCapacity::Type::linkPercentage:
-      CHECK_GT(minCapacity.get_linkPercentage(), 0);
-      CHECK_LE(minCapacity.get_linkPercentage(), 1);
+      CHECK_GT(minCapacity.linkPercentage().value(), 0);
+      CHECK_LE(minCapacity.linkPercentage().value(), 1);
 
       minLinkCount =
-          std::ceil(minCapacity.get_linkPercentage() * memberPortsSize);
+          std::ceil(minCapacity.linkPercentage().value() * memberPortsSize);
       if (memberPortsSize != 0) {
         CHECK_GE(minLinkCount, 1);
       }
@@ -7100,7 +7100,7 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
       case cfg::MirrorEgressPort::Type::name:
         for (auto& portMap : std::as_const(*(new_->getPorts()))) {
           for (auto& port : std::as_const(*portMap.second)) {
-            if (port.second->getName() == egressPort->get_name()) {
+            if (port.second->getName() == egressPort->name().value()) {
               mirrorToPort = port.second;
               break;
             }
@@ -7108,8 +7108,8 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
         }
         break;
       case cfg::MirrorEgressPort::Type::logicalID:
-        mirrorToPort =
-            new_->getPorts()->getNodeIf(PortID(egressPort->get_logicalID()));
+        mirrorToPort = new_->getPorts()->getNodeIf(
+            PortID(egressPort->logicalID().value()));
         break;
       case cfg::MirrorEgressPort::Type::__EMPTY__:
         throw FbossError(
@@ -7354,7 +7354,7 @@ ThriftConfigApplier::createMirrorOnDropReport(
         case cfg::MirrorEgressPort::Type::name:
           for (auto& portMap : std::as_const(*(new_->getPorts()))) {
             for (auto& [portId, port] : std::as_const(*portMap.second)) {
-              if (port->getName() == egressPort->get_name()) {
+              if (port->getName() == egressPort->name().value()) {
                 mirrorPortId = portId;
                 break;
               }
@@ -7362,7 +7362,7 @@ ThriftConfigApplier::createMirrorOnDropReport(
           }
           break;
         case cfg::MirrorEgressPort::Type::logicalID:
-          mirrorPortId = egressPort->get_logicalID();
+          mirrorPortId = egressPort->logicalID().value();
           break;
         case cfg::MirrorEgressPort::Type::__EMPTY__:
         default:

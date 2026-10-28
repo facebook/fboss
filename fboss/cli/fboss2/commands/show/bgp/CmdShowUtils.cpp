@@ -1051,7 +1051,7 @@ float getLinkBandwidthFromExtCommunities(
       // not a two-byte ASN
       continue;
     }
-    const auto& asn = commUnion.get_two_byte_asn();
+    const auto& asn = commUnion.two_byte_asn().value();
 
     if (folly::copy(asn.type().value()) !=
         static_cast<int>(TBgpTwoByteAsnExtCommType::LINK_BANDWIDTH_TYPE)) {

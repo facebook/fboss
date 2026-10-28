@@ -1741,7 +1741,7 @@ TransceiverManager::getOpticalChannelConfig(TransceiverID id) const {
       const auto& centerFreq = freqConfig->centerFrequencyConfig();
       if (centerFreq->getType() ==
           facebook::fboss::cfg::CenterFrequencyConfig::Type::frequencyMhz) {
-        int freqMhz = centerFreq->get_frequencyMhz();
+        int freqMhz = centerFreq.as_const()->frequencyMhz().value();
         MODULE_LOG(DBG2, "", id) << "The frequency is " << freqMhz
                             << " port_name " << portName;
       }

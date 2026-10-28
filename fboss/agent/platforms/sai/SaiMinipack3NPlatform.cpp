@@ -60,12 +60,8 @@ SaiMinipack3NPlatform::getSaiProfileVendorExtensionValues() const {
 SaiMinipack3NPlatform::~SaiMinipack3NPlatform() = default;
 
 std::string SaiMinipack3NPlatform::getHwConfig() {
-  auto hwConfig = config()
-                      ->thrift.platform()
-                      ->chip()
-                      ->get_asicConfig()
-                      .common()
-                      ->get_config();
+  auto hwConfig =
+      config()->thrift.platform()->chip()->asicConfig()->common()->get_config();
   auto constexpr kMinipack3nXml = "minipack3n.xml";
   if (!hwConfig.contains(kMinipack3nXml)) {
     throw FbossError("xml config not found in hw config");

@@ -888,7 +888,7 @@ TEST(AgentConfigGenTest, GeneratesPlatformConfig) {
   ASSERT_EQ(
       platformConfig.chip()->getType(), cfg::ChipConfig::Type::asicConfig);
   EXPECT_EQ(
-      platformConfig.chip()->get_asicConfig().common()->get_yamlConfig(),
+      platformConfig.chip()->asicConfig().value().common()->get_yamlConfig(),
       kAsicYaml);
   EXPECT_EQ(
       *platformConfig.portIdToPortAssignment(),
@@ -939,7 +939,7 @@ TEST(AgentConfigGenTest, UsesExplicitAsicConfigFile) {
   const auto platformConfig = generatePlatformConfig(inputs);
 
   EXPECT_EQ(
-      platformConfig.chip()->get_asicConfig().common()->get_yamlConfig(),
+      platformConfig.chip()->asicConfig().value().common()->get_yamlConfig(),
       kVendorAsicYaml);
 }
 
@@ -962,7 +962,7 @@ TEST(AgentConfigGenTest, UsesExplicitAsicConfigTypeWithoutMetadata) {
   const auto platformConfig = generatePlatformConfig(inputs);
 
   EXPECT_EQ(
-      platformConfig.chip()->get_asicConfig().common()->get_yamlConfig(),
+      platformConfig.chip()->asicConfig().value().common()->get_yamlConfig(),
       kVendorAsicYaml);
 }
 
@@ -1072,10 +1072,10 @@ TEST(AgentConfigGenTest, GeneratesJsonAsicConfig) {
 
   const auto inputs = resolveAgentConfigInputs(fbossRoot, kPlatform, kProfile);
   const auto platformConfig = generatePlatformConfig(inputs);
-  const auto& common = *platformConfig.chip()->get_asicConfig().common();
+  const auto& common = *platformConfig.chip()->asicConfig()->common();
 
   ASSERT_EQ(common.getType(), cfg::AsicConfigEntry::Type::jsonConfig);
-  EXPECT_EQ(common.get_jsonConfig(), kAsicJson);
+  EXPECT_EQ(common.jsonConfig().value(), kAsicJson);
 }
 
 TEST(AgentConfigGenTest, GeneratesKeyValueAsicConfig) {
@@ -1091,12 +1091,12 @@ TEST(AgentConfigGenTest, GeneratesKeyValueAsicConfig) {
 
   const auto inputs = resolveAgentConfigInputs(fbossRoot, kPlatform, kProfile);
   const auto platformConfig = generatePlatformConfig(inputs);
-  const auto& common = *platformConfig.chip()->get_asicConfig().common();
+  const auto& common = *platformConfig.chip()->asicConfig()->common();
   const std::map<std::string, std::string> expected{
       {"answer", "42"}, {"foo", "bar"}};
 
   ASSERT_EQ(common.getType(), cfg::AsicConfigEntry::Type::config);
-  EXPECT_EQ(common.get_config(), expected);
+  EXPECT_EQ(common.config().value(), expected);
 }
 
 TEST(AgentConfigGenTest, RejectsUnsupportedAsicConfigType) {
@@ -1157,7 +1157,13 @@ TEST(AgentConfigGenTest, GeneratesBenchmarkWithDefaultAsicConfigVariant) {
   EXPECT_EQ(
       *config.defaultCommandLineArgs(), expectedBenchmarkCommandLineArgs());
   EXPECT_EQ(
-      config.platform()->chip()->get_asicConfig().common()->get_yamlConfig(),
+      config.platform()
+          ->chip()
+          ->asicConfig()
+          .as_const()
+          .value()
+          .common()
+          ->get_yamlConfig(),
       kDefaultAsicYaml);
   EXPECT_EQ(
       *config.platform()->portIdToPortAssignment(),
@@ -1716,7 +1722,13 @@ TEST(CmdConfigGenAgentTest, UsesExplicitAsicConfigVariant) {
       readFile(fs::path(outputDirectory.path().string()) / "agent.conf"),
       config);
   EXPECT_EQ(
-      config.platform()->chip()->get_asicConfig().common()->get_yamlConfig(),
+      config.platform()
+          ->chip()
+          ->asicConfig()
+          .as_const()
+          .value()
+          .common()
+          ->get_yamlConfig(),
       kDefaultAsicYaml);
 }
 

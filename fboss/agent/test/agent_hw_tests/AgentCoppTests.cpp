@@ -1876,11 +1876,12 @@ TEST_F(AgentCoppQueueStuckTest, CpuQueueHighRateTraffic) {
         utility::getPortQueueRate(asic, utility::kCoppLowPriQueueId);
     uint64_t expectedRate;
     if (portQueueRate.getType() == cfg::PortQueueRate::Type::kbitsPerSec) {
-      expectedRate = portQueueRate.get_kbitsPerSec().maximum().value() * 1024;
+      expectedRate =
+          portQueueRate.kbitsPerSec().as_const()->maximum().value() * 1024;
     } else {
       // pktsPerSec
-      expectedRate =
-          portQueueRate.get_pktsPerSec().maximum().value() * pktSize * 8;
+      expectedRate = portQueueRate.pktsPerSec().as_const()->maximum().value() *
+          pktSize * 8;
     }
     auto expectedRateLow = expectedRate * (1 - kVariance);
     auto expectedRateHigh = expectedRate * (1 + kVariance);
