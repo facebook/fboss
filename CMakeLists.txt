@@ -386,6 +386,30 @@ message(STATUS "Found YAML_INCLUDE_DIR: ${YAML_INCLUDE_DIR}")
 
 find_package(python-pyyaml REQUIRED)
 
+# FBOSS's packaged Python tools link the thrift-python runtime from this
+# Python's site-packages, where the images that run them install the same
+# fbthrift-python wheel.
+file(TO_CMAKE_PATH "$ENV{CMAKE_PREFIX_PATH}" _fboss_prefixes)
+foreach(_fboss_prefix IN LISTS CMAKE_PREFIX_PATH _fboss_prefixes)
+  set(_fboss_wheel_dir "${_fboss_prefix}/share/thrift/wheels")
+  file(GLOB _fboss_thrift_python_wheels "${_fboss_wheel_dir}/thrift-*.whl")
+  if(_fboss_thrift_python_wheels)
+    # Every build's wheel is version 0.0.1, so pip replaces an installed one
+    # only when forced. pip also picks the wheel that matches this Python.
+    execute_process(
+      COMMAND "${Python3_EXECUTABLE}" -m pip install --no-deps --no-index
+        --force-reinstall --find-links "${_fboss_wheel_dir}" thrift
+      RESULT_VARIABLE _fboss_pip_result
+    )
+    if(NOT _fboss_pip_result EQUAL 0)
+      message(FATAL_ERROR
+        "Can't install thrift-python from ${_fboss_wheel_dir} into "
+        "${Python3_EXECUTABLE}")
+    endif()
+    break()
+  endif()
+endforeach()
+
 # Generate thrift deps and libraries
 include(FBThriftCppLibrary)
 include(FBThriftPythonLibrary)
