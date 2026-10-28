@@ -705,12 +705,22 @@ class AgentSrv6EncapTest : public AgentHwTest {
     int64_t counterPacketsBefore = 0;
     if (!counterID.empty()) {
       auto hwSwitchStats = this->getHwSwitchStats();
+      const auto statsTimestampBefore = hwSwitchStats.timestamp().value();
+      WITH_RETRIES({
+        hwSwitchStats = this->getHwSwitchStats();
+        EXPECT_EVENTUALLY_GT(
+            hwSwitchStats.timestamp().value(), statsTimestampBefore);
+        const auto& routeCounters =
+            *hwSwitchStats.counterStats()->routeCounters();
+        EXPECT_EVENTUALLY_TRUE(
+            routeCounters.find(counterID) != routeCounters.end());
+      });
       auto& routeCounters = *hwSwitchStats.counterStats()->routeCounters();
       auto it = routeCounters.find(counterID);
-      if (it != routeCounters.end()) {
-        counterBytesBefore = it->second.bytes().value_or(0);
-        counterPacketsBefore = it->second.packets().value_or(0);
-      }
+      ASSERT_NE(it, routeCounters.end())
+          << "Route counter " << counterID << " not found in fresh stats";
+      counterBytesBefore = it->second.bytes().value_or(0);
+      counterPacketsBefore = it->second.packets().value_or(0);
     }
 
     auto intfMac =
