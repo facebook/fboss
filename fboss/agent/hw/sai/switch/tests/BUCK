@@ -16,6 +16,7 @@ cpp_unittest(
     name = "drop_reason_utils_test",
     srcs = ["DropReasonUtilsTest.cpp"],
     network_access = network_access_utils.none(),
+    supports_static_listing = False,
     deps = [
         "//fboss/agent/hw/sai/switch:drop_reason_utils",
     ],
