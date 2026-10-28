@@ -117,6 +117,14 @@ std::optional<reboot_cause_config::DeterminedCause> selectNearestToBoot(
     const std::vector<reboot_cause_config::RebootCauseProviderAttempt>&
         attempts);
 
+// The record's cause status for a finished run. A cause wins even if other
+// providers failed; without one, any provider not read cleanly makes the
+// absence inconclusive.
+reboot_cause_config::RebootCauseStatus rebootCauseStatus(
+    bool causeDetermined,
+    const std::vector<reboot_cause_config::RebootCauseProviderAttempt>&
+        attempts);
+
 } // namespace detail
 
 // How a run ended, for the one structured event Main logs per run.

@@ -8,7 +8,8 @@
 
 #include <fmt/format.h>
 #include <folly/FileUtil.h>
-#include <thrift/lib/cpp2/protocol/Serializer.h>
+#include <folly/json.h>
+#include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 
 namespace facebook::fboss::platform::reboot_cause_finder {
 
@@ -118,9 +119,15 @@ void readRebootHistory(
       continue;
     }
     try {
-      history.records.push_back(
-          apache::thrift::SimpleJSONSerializer::deserialize<
-              reboot_cause_config::RebootCauseRecord>(contents));
+      // Lenient so enums written as numbers, by finders older than the
+      // switch to names, still read.
+      reboot_cause_config::RebootCauseRecord record;
+      facebook::thrift::from_dynamic(
+          record,
+          folly::parseJson(contents),
+          facebook::thrift::dynamic_format::PORTABLE,
+          facebook::thrift::format_adherence::LENIENT);
+      history.records.push_back(std::move(record));
     } catch (const std::exception& ex) {
       // A record still being written, or truncated by a full disk.
       history.skippedCount += 1;

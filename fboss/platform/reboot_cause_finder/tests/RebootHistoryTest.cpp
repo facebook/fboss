@@ -82,6 +82,35 @@ TEST_F(RebootHistoryTest, ReturnsValidRecord) {
   EXPECT_EQ(response.skippedCount, 0);
 }
 
+// Records name their enums. Those written before that carry numbers, and the
+// retired `incomplete` field; both must still read.
+TEST_F(RebootHistoryTest, ReadsNamedAndNumericEnums) {
+  write(
+      path("reboot-cause-named.json"),
+      R"({"bootId": "named", "bootTimeMs": 2000, "causeStatus": "UNEXPLAINED",
+          "providersAttempted": [{"name": "P", "status": "READ_FAILED"}]})");
+  write(
+      path("reboot-cause-numeric.json"),
+      R"({"bootId": "numeric", "bootTimeMs": 1000, "incomplete": true,
+          "providersAttempted": [{"name": "P", "status": 1}]})");
+  auto response = call();
+  ASSERT_EQ(response.records.size(), 2);
+  EXPECT_EQ(response.skippedCount, 0);
+  const auto& named = response.records.at(0);
+  EXPECT_EQ(*named.bootId(), "named");
+  EXPECT_EQ(
+      named.causeStatus(), reboot_cause_config::RebootCauseStatus::UNEXPLAINED);
+  EXPECT_EQ(
+      *named.providersAttempted()->at(0).status(),
+      reboot_cause_config::RebootCauseProviderStatus::READ_FAILED);
+  const auto& numeric = response.records.at(1);
+  EXPECT_EQ(*numeric.bootId(), "numeric");
+  EXPECT_FALSE(numeric.causeStatus().has_value());
+  EXPECT_EQ(
+      *numeric.providersAttempted()->at(0).status(),
+      reboot_cause_config::RebootCauseProviderStatus::READ_FAILED);
+}
+
 TEST_F(RebootHistoryTest, OrdersNewestFirstByBootTime) {
   // Written so filename order disagrees with boot order.
   write(path("reboot-cause-a.json"), makeRecord("oldest", 1000));

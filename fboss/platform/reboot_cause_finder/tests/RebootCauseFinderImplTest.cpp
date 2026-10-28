@@ -23,7 +23,7 @@ DECLARE_bool(clear_reboot_causes);
 #include <folly/json.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <thrift/lib/cpp2/protocol/Serializer.h>
+#include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 
 using namespace facebook::fboss::platform::reboot_cause_finder;
 namespace rcc = facebook::fboss::platform::reboot_cause_config;
@@ -1278,8 +1278,9 @@ class DetermineRebootCauseTest : public RebootCauseFinderImplTest {
     std::filesystem::create_directories(historyDir_);
     ASSERT_TRUE(
         folly::writeFile(
-            apache::thrift::SimpleJSONSerializer::serialize<std::string>(
-                record),
+            folly::toJson(
+                facebook::thrift::to_dynamic(
+                    record, facebook::thrift::dynamic_format::PORTABLE)),
             fmt::format(
                 "{}/reboot-cause-{}-{}.json",
                 historyDir_,
@@ -1329,8 +1330,8 @@ TEST_F(DetermineRebootCauseTest, NoProviderReportsAnythingSoNoCauseIsClaimed) {
   for (const auto& a : rec["providersAttempted"]) {
     EXPECT_EQ(a["causes"].size(), 0);
   }
-  EXPECT_EQ(attemptNamed(rec, "KernelPanic")["status"].asInt(), 0);
-  EXPECT_EQ(attemptNamed(rec, "X86RebootCommand")["status"].asInt(), 0);
+  EXPECT_EQ(attemptNamed(rec, "KernelPanic")["status"].asString(), "OK");
+  EXPECT_EQ(attemptNamed(rec, "X86RebootCommand")["status"].asString(), "OK");
 }
 
 TEST_F(DetermineRebootCauseTest, PanicInWindowBecomesTheDeterminedCause) {
@@ -1358,7 +1359,7 @@ TEST_F(DetermineRebootCauseTest, UnreadableProviderIsRecordedNotClaimed) {
   const auto rec = readRecord();
   EXPECT_EQ(rec.count("determinedCause"), 0);
   const auto hw = attemptNamed(rec, "TEST_CPLD");
-  EXPECT_EQ(hw["status"].asInt(), 1);
+  EXPECT_EQ(hw["status"].asString(), "READ_FAILED");
 }
 
 // A provider file that parses partway must not have its half-read cause
@@ -1377,7 +1378,7 @@ TEST_F(DetermineRebootCauseTest, PartiallyParsedProviderKeepsWholeCauses) {
 
   const auto rec = readRecord();
   const auto hw = attemptNamed(rec, "TEST_CPLD");
-  EXPECT_EQ(hw["status"].asInt(), 2) << "PARSE_FAILED";
+  EXPECT_EQ(hw["status"].asString(), "PARSE_FAILED");
   ASSERT_EQ(hw["causes"].size(), 1) << "the whole cause must be kept";
   EXPECT_EQ(hw["causes"][0]["description"].asString(), "Power loss");
   ASSERT_EQ(rec.count("determinedCause"), 1) << "a whole cause must promote";
@@ -1517,14 +1518,18 @@ TEST_F(DetermineRebootCauseTest, UnreadableKernelReleaseStillWritesRecord) {
   EXPECT_EQ(readRecord()["kernelRelease"].asString(), "");
 }
 
-// A run writes an incomplete record before reading any provider and replaces
-// it when done, so a finished run leaves exactly one record, marked complete.
-TEST_F(DetermineRebootCauseTest, FinishedRunReplacesTheIncompleteRecord) {
+// A run writes an INTERRUPTED record before reading any provider and replaces
+// it when done, so a finished run leaves exactly one record, with its cause
+// status. No BMC is reachable from a test host, so a run without a cause is
+// INCONCLUSIVE.
+TEST_F(DetermineRebootCauseTest, FinishedRunReplacesTheInterruptedRecord) {
   RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
       .determineRebootCause();
   const auto rec = readRecord();
-  EXPECT_FALSE(rec["incomplete"].asBool());
+  EXPECT_EQ(rec["causeStatus"].asString(), "INCONCLUSIVE");
   EXPECT_GT(rec["providersAttempted"].size(), 0);
+  // Enums are written by name so the file reads without the thrift IDL.
+  EXPECT_TRUE(rec["providersAttempted"][0]["status"].isString());
 }
 
 // Without btime the filename stamp falls back to the current time, which moves
@@ -1534,12 +1539,12 @@ TEST_F(DetermineRebootCauseTest, WithoutBootTimeBothWritesShareOneFile) {
   RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
       .determineRebootCause();
   const auto rec = readRecord();
-  EXPECT_FALSE(rec["incomplete"].asBool());
+  EXPECT_NE(rec["causeStatus"].asString(), "INTERRUPTED");
   EXPECT_EQ(rec["bootTimeMs"].asInt(), 0);
 }
 
-// The per-run event says whether a cause was found and, when not, which
-// providers could not even be read.
+// The per-run event carries the record's cause status and, when no cause was
+// found, which providers could not even be read.
 TEST_F(DetermineRebootCauseTest, RunEventNamesTheProvidersThatFailed) {
   const auto result =
       RebootCauseFinderImpl(
@@ -1551,7 +1556,7 @@ TEST_F(DetermineRebootCauseTest, RunEventNamesTheProvidersThatFailed) {
   EXPECT_EQ(tags.at("outcome"), "RECORDED");
   EXPECT_EQ(tags.at("boot_id"), kBootId);
   EXPECT_EQ(tags.at("exit_status"), "0");
-  EXPECT_EQ(tags.at("determined"), "false");
+  EXPECT_EQ(tags.at("cause_status"), "INCONCLUSIVE");
   EXPECT_EQ(tags.count("cause"), 0);
   // No BMC is reachable from a test host, so BMCWedgePower fails too.
   EXPECT_THAT(tags.at("failed_providers"), testing::HasSubstr("TEST_CPLD"));
@@ -1564,7 +1569,7 @@ TEST_F(DetermineRebootCauseTest, RunEventCarriesTheDeterminedCause) {
                           .determineRebootCause();
 
   const auto tags = runEventTags(result, 0);
-  EXPECT_EQ(tags.at("determined"), "true");
+  EXPECT_EQ(tags.at("cause_status"), "FOUND");
   EXPECT_EQ(tags.at("provider"), "X86RebootCommand");
   EXPECT_FALSE(tags.at("cause").empty());
 }
@@ -1579,21 +1584,23 @@ TEST_F(DetermineRebootCauseTest, RunEventForASecondRunSaysAlreadyHandled) {
   const auto tags = runEventTags(result, 0);
   EXPECT_EQ(tags.at("outcome"), "ALREADY_HANDLED");
   EXPECT_EQ(tags.at("boot_id"), kBootId);
-  EXPECT_EQ(tags.count("determined"), 0);
+  EXPECT_EQ(tags.count("cause_status"), 0);
 }
 
 // What a run killed at its runtime cap leaves behind. The boot is on record,
 // and a later run in the same boot must not overwrite it: the providers may
 // already have been read, so a second answer would be a worse one.
-TEST_F(DetermineRebootCauseTest, IncompleteRecordFromAKilledRunIsKept) {
+TEST_F(DetermineRebootCauseTest, InterruptedRecordFromAKilledRunIsKept) {
   rcc::RebootCauseRecord killed;
   killed.bootId() = kBootId;
   killed.bootTimeMs() = btime_ * 1000;
-  killed.incomplete() = true;
+  killed.causeStatus() = rcc::RebootCauseStatus::INTERRUPTED;
   std::filesystem::create_directories(historyDir_);
   ASSERT_TRUE(
       folly::writeFile(
-          apache::thrift::SimpleJSONSerializer::serialize<std::string>(killed),
+          folly::toJson(
+              facebook::thrift::to_dynamic(
+                  killed, facebook::thrift::dynamic_format::PORTABLE)),
           fmt::format(
               "{}/reboot-cause-{}-{}.json", historyDir_, btime_, kBootId)
               .c_str()));
@@ -1602,8 +1609,41 @@ TEST_F(DetermineRebootCauseTest, IncompleteRecordFromAKilledRunIsKept) {
       .determineRebootCause();
 
   const auto rec = readRecord();
-  EXPECT_TRUE(rec["incomplete"].asBool());
+  EXPECT_EQ(rec["causeStatus"].asString(), "INTERRUPTED");
   EXPECT_EQ(rec["providersAttempted"].size(), 0);
+}
+
+// A cause wins over failed providers. Without one, the status separates
+// "every source read and none had a cause" from "a source could not be seen".
+TEST(RebootCauseStatusTest, SeparatesUnexplainedFromInconclusive) {
+  using rcc::RebootCauseProviderStatus;
+  using rcc::RebootCauseStatus;
+  auto attempt = [](RebootCauseProviderStatus status) {
+    rcc::RebootCauseProviderAttempt a;
+    a.name() = "P";
+    a.status() = status;
+    return a;
+  };
+  const std::vector<rcc::RebootCauseProviderAttempt> allOk{
+      attempt(RebootCauseProviderStatus::OK),
+      attempt(RebootCauseProviderStatus::OK)};
+  const std::vector<rcc::RebootCauseProviderAttempt> oneFailed{
+      attempt(RebootCauseProviderStatus::OK),
+      attempt(RebootCauseProviderStatus::READ_FAILED)};
+  const std::vector<rcc::RebootCauseProviderAttempt> oneSkipped{
+      attempt(RebootCauseProviderStatus::OK),
+      attempt(RebootCauseProviderStatus::SKIPPED)};
+
+  EXPECT_EQ(
+      detail::rebootCauseStatus(true, oneFailed), RebootCauseStatus::FOUND);
+  EXPECT_EQ(
+      detail::rebootCauseStatus(false, allOk), RebootCauseStatus::UNEXPLAINED);
+  EXPECT_EQ(
+      detail::rebootCauseStatus(false, oneFailed),
+      RebootCauseStatus::INCONCLUSIVE);
+  EXPECT_EQ(
+      detail::rebootCauseStatus(false, oneSkipped),
+      RebootCauseStatus::INCONCLUSIVE);
 }
 
 // A redo that cannot clear the way for itself must stop. Writing a second

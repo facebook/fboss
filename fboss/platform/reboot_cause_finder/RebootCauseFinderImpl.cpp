@@ -26,7 +26,7 @@
 #include <gflags/gflags.h>
 #include <re2/re2.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
-#include <thrift/lib/cpp2/protocol/Serializer.h>
+#include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 
 DEFINE_int32(
     bmc_logfile_poll_timeout_s,
@@ -633,6 +633,22 @@ std::optional<std::time_t> parseSyslogTimestamp(
 // Nearest to boot start wins, across every cause in the given attempts.
 // Returns the provider alongside the cause, because a cause on its own does
 // not say which provider found it.
+reboot_cause_config::RebootCauseStatus rebootCauseStatus(
+    bool causeDetermined,
+    const std::vector<reboot_cause_config::RebootCauseProviderAttempt>&
+        attempts) {
+  if (causeDetermined) {
+    return reboot_cause_config::RebootCauseStatus::FOUND;
+  }
+  const bool allRead =
+      std::all_of(attempts.begin(), attempts.end(), [](const auto& attempt) {
+        return *attempt.status() ==
+            reboot_cause_config::RebootCauseProviderStatus::OK;
+      });
+  return allRead ? reboot_cause_config::RebootCauseStatus::UNEXPLAINED
+                 : reboot_cause_config::RebootCauseStatus::INCONCLUSIVE;
+}
+
 std::optional<reboot_cause_config::DeterminedCause> selectNearestToBoot(
     const std::vector<reboot_cause_config::RebootCauseProviderAttempt>&
         attempts) {
@@ -1110,7 +1126,10 @@ std::unordered_map<std::string, std::string> runEventTags(
     return tags;
   }
   const auto& record = *result.record;
-  tags["determined"] = record.determinedCause().has_value() ? "true" : "false";
+  if (record.causeStatus().has_value()) {
+    tags["cause_status"] =
+        apache::thrift::util::enumNameSafe(*record.causeStatus());
+  }
   if (record.determinedCause().has_value()) {
     const auto& determined = *record.determinedCause();
     tags["cause"] = *determined.cause()->description();
@@ -1243,11 +1262,12 @@ RunResult RebootCauseFinderImpl::determineRebootCause() {
     placeholder.bootId() = bootId;
     placeholder.bootTimeMs() = bootTimeMs;
     placeholder.kernelRelease() = kernelRelease;
-    placeholder.incomplete() = true;
+    placeholder.causeStatus() =
+        reboot_cause_config::RebootCauseStatus::INTERRUPTED;
     if (persistResult(placeholder, filePath)) {
       XLOG(INFO) << fmt::format(
-          "Wrote an incomplete record for boot {} to '{}'; it stays "
-          "incomplete if this run does not finish",
+          "Wrote a placeholder record for boot {} to '{}'; it stays "
+          "INTERRUPTED if this run does not finish",
           bootId,
           filePath);
     }
@@ -1385,7 +1405,8 @@ RunResult RebootCauseFinderImpl::determineRebootCause() {
   record.bootTimeMs() = bootTimeMs;
   record.kernelRelease() = kernelRelease;
   record.providersAttempted() = attempts;
-  record.incomplete() = false;
+  record.causeStatus() =
+      detail::rebootCauseStatus(record.determinedCause().has_value(), attempts);
 
   if (record.determinedCause().has_value()) {
     XLOG(INFO) << fmt::format(
@@ -1433,8 +1454,9 @@ bool RebootCauseFinderImpl::persistResult(
     return false;
   }
 
-  auto json = folly::parseJson(
-      apache::thrift::SimpleJSONSerializer::serialize<std::string>(record));
+  // Enums are written by name, so the file reads without the thrift IDL.
+  const auto json = facebook::thrift::to_dynamic(
+      record, facebook::thrift::dynamic_format::PORTABLE);
   // Atomic, so a reader or a run killed mid-write never sees half a record,
   // and synced, so a power loss right after does not lose the boot.
   folly::WriteFileAtomicOptions options;
