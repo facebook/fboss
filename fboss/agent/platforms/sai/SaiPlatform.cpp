@@ -1022,7 +1022,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       // once the port config is known rather than at switch create.
       std::nullopt,
 #endif
-#if defined(SAI_BRCM_PAI_IMPL)
+#if defined(BRCM_PAI_SDK)
       std::nullopt, // SyncLock
       std::nullopt, // SyncUnlock
       std::nullopt, // WarmRecover

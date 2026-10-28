@@ -26,7 +26,7 @@
 #include <fmt/core.h>
 #include <folly/logging/xlog.h>
 
-#if defined(SAI_BRCM_PAI_IMPL)
+#if defined(BRCM_PAI_SDK)
 extern "C" {
 #include <brcm_pai_extensions.h>
 }
@@ -189,7 +189,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   }
 
 // Extended FEC is not used on PAI and is not modeled in its port attributes.
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0) && !defined(SAI_BRCM_PAI_IMPL)
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0) && !defined(BRCM_PAI_SDK)
   std::optional<SaiPortTraits::Attributes::UseExtendedFec> useExtendedFec(
       std::nullopt);
   std::optional<SaiPortTraits::Attributes::ExtendedFecMode> extendedFecMode(
@@ -281,7 +281,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       static_cast<uint32_t>(speed),
       enabled,
       fecMode,
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0) && !defined(SAI_BRCM_PAI_IMPL)
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0) && !defined(BRCM_PAI_SDK)
       useExtendedFec,
       extendedFecMode,
 #endif
@@ -555,7 +555,7 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
         attrs, SaiPortSerdesTraits::Attributes::RxPrecodingAttr{}, rxPrecoding);
   }
 #endif
-#if defined(SAI_BRCM_PAI_IMPL)
+#if defined(BRCM_PAI_SDK)
   // Same as NPU: per-lane NR/ER from the pin config. PAI requires a value for
   // every lane, so a partial list is not sent.
   if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_SERDES_RX_REACH)) {

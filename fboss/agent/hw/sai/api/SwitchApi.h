@@ -927,7 +927,7 @@ struct SaiSwitchTraits {
         sai_int32_t,
         SaiIntDefault<sai_int32_t>>;
 
-#if defined(SAI_BRCM_PAI_IMPL)
+#if defined(BRCM_PAI_SDK)
     struct AttributeSyncLockWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -1057,7 +1057,7 @@ struct SaiSwitchTraits {
       std::optional<Attributes::LinkUpDebounceTimeout>
 #endif
 
-#if defined(SAI_BRCM_PAI_IMPL)
+#if defined(BRCM_PAI_SDK)
       ,
       std::optional<Attributes::SyncLock>,
       std::optional<Attributes::SyncUnlock>,
@@ -1275,7 +1275,7 @@ SAI_ATTRIBUTE_NAME(Switch, PacketDropTypeEgressList)
 SAI_ATTRIBUTE_NAME(Switch, LocalSystemPortIdRangeList)
 #endif
 
-#if defined(SAI_BRCM_PAI_IMPL)
+#if defined(BRCM_PAI_SDK)
 SAI_ATTRIBUTE_NAME(Switch, SyncLock)
 SAI_ATTRIBUTE_NAME(Switch, SyncUnlock)
 #endif

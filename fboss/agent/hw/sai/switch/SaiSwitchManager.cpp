@@ -786,7 +786,7 @@ void SaiSwitchManager::resetEgressAcl() {
 }
 
 void SaiSwitchManager::gracefulExit() {
-#if defined(SAI_BRCM_PAI_IMPL)
+#if defined(BRCM_PAI_SDK)
   // PAI's remove_switch frees the PHY/CFG_PHY/CFG_LANE records that warm boot
   // restores. PAI warm shutdown is RESTART_WARM (set by SaiSwitch) followed by
   // process exit, so the switch object is intentionally not destroyed.

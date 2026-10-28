@@ -2,7 +2,7 @@
 
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 
-#if defined(SAI_BRCM_PAI_IMPL)
+#if defined(BRCM_PAI_SDK)
 #include <brcm_pai_extensions.h>
 #endif
 
@@ -439,7 +439,7 @@ const std::vector<sai_stat_id_t>& SaiSwitchTraits::customDropBitmapStats() {
   return stats;
 }
 
-#if defined(SAI_BRCM_PAI_IMPL)
+#if defined(BRCM_PAI_SDK)
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeSyncLockWrapper::operator()() {
   return BRCM_PAI_SWITCH_ATTR_SYNC_LOCK;

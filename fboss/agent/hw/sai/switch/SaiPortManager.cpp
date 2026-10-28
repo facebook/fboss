@@ -405,7 +405,7 @@ void fillHwPortStats(
         if (updateFecStats) {
           // SDK provides clear-on-read counter but we store it as a monotonic
           // counter
-#if defined(BRCM_SAI_SDK_XGS_GTE_13_0) || defined(SAI_BRCM_PAI_IMPL)
+#if defined(BRCM_SAI_SDK_XGS_GTE_13_0) || defined(BRCM_PAI_SDK)
           // XGS GTE 13 and Broadcom PAI report cumulative FEC counters
           hwPortStats.fecCorrectableErrors() = value;
 #else
@@ -418,7 +418,7 @@ void fillHwPortStats(
         if (updateFecStats) {
           // SDK provides clear-on-read counter but we store it as a monotonic
           // counter
-#if defined(BRCM_SAI_SDK_XGS_GTE_13_0) || defined(SAI_BRCM_PAI_IMPL)
+#if defined(BRCM_SAI_SDK_XGS_GTE_13_0) || defined(BRCM_PAI_SDK)
           // XGS GTE 13 and Broadcom PAI report cumulative FEC counters
           hwPortStats.fecUncorrectableErrors() = value;
 #else
@@ -2605,7 +2605,7 @@ bool SaiPortManager::rxSerdesParametersSupported() const {
 
 bool SaiPortManager::rxSNRSupported() const {
 #if defined(BRCM_SAI_SDK_GTE_10_0) || \
-    (defined(SAI_BRCM_PAI_IMPL) && SAI_API_VERSION >= SAI_VERSION(1, 18, 1))
+    (defined(BRCM_PAI_SDK) && SAI_API_VERSION >= SAI_VERSION(1, 18, 1))
   return platform_->getAsic()->isSupported(HwAsic::Feature::RX_SNR);
 #else
   return false;
@@ -2614,7 +2614,7 @@ bool SaiPortManager::rxSNRSupported() const {
 
 bool SaiPortManager::fecCodewordsStatsSupported(PortID portId) const {
 #if defined(BRCM_SAI_SDK_GTE_10_0) || defined(BRCM_SAI_SDK_DNX_GTE_11_0) || \
-    defined(TAJO_SDK_GTE_24_8_3001) || defined(SAI_BRCM_PAI_IMPL)
+    defined(TAJO_SDK_GTE_24_8_3001) || defined(BRCM_PAI_SDK)
   return platform_->getAsic()->isSupported(
              HwAsic::Feature::SAI_FEC_CODEWORDS_STATS) &&
       utility::isReedSolomonFec(getFECMode(portId)) &&
@@ -2993,7 +2993,7 @@ void SaiPortManager::updateStats(
       // PAI (Agera3 retimer) has no get_port_stats_ext and reports cumulative
       // FEC frames; read (don't clear) so the call goes through get_port_stats,
       // and store the value as absolute below.
-#if defined(SAI_BRCM_PAI_IMPL)
+#if defined(BRCM_PAI_SDK)
       constexpr auto kFecStatsMode = SAI_STATS_MODE_READ;
 #else
       constexpr auto kFecStatsMode = SAI_STATS_MODE_READ_AND_CLEAR;
@@ -4466,7 +4466,7 @@ std::optional<sai_latch_status_t> SaiPortManager::getExtOperStatusLatch(
 
 #endif
 
-#if defined(SAI_BRCM_PAI_IMPL) && SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+#if defined(BRCM_PAI_SDK) && SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
 phy::Loopback SaiPortManager::getLoopbackMode(PortSaiId saiPortId) const {
   auto mode = SaiApiTable::getInstance()->portApi().getAttribute(
       saiPortId, SaiPortTraits::Attributes::PortLoopbackMode{});

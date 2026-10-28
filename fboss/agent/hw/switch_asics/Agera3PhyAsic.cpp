@@ -29,7 +29,7 @@ bool Agera3PhyAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::FEC_AM_LOCK_STATUS:
     // Per-lane RX SNR. PAI 4.1-only (SAI 1.18.1): the read is gated in
     // SaiPortManager::rxSNRSupported() by
-    // (SAI_BRCM_PAI_IMPL && SAI_API_VERSION >= 1.18.1), so it stays off on
+    // (BRCM_PAI_SDK && SAI_API_VERSION >= 1.18.1), so it stays off on
     // PAI 4.0 which does not implement SAI_PORT_ATTR_RX_SNR.
     case HwAsic::Feature::RX_SNR:
     case HwAsic::Feature::WARMBOOT:

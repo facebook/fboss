@@ -322,7 +322,7 @@ class SaiPortManager {
 #endif
 #endif
 
-#if defined(SAI_BRCM_PAI_IMPL) && SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+#if defined(BRCM_PAI_SDK) && SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
   phy::Loopback getLoopbackMode(PortSaiId saiPortId) const;
 #endif
 

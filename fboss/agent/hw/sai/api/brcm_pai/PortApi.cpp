@@ -53,7 +53,7 @@ SaiPortSerdesTraits::Attributes::AttributeRVgaWrapper::operator()() {
 }
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRxReachWrapper::operator()() {
-#if defined(SAI_BRCM_PAI_IMPL)
+#if defined(BRCM_PAI_SDK)
   return SAI_PORT_SERDES_ATTR_REACH_MODE;
 #else
   return std::nullopt;

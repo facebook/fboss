@@ -2530,7 +2530,7 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
             readSerdesParams);
       }
 
-#if defined(SAI_BRCM_PAI_IMPL) && SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+#if defined(BRCM_PAI_SDK) && SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       // Only read on the PAI retimer. NPU / non-retimer platforms are
       // unaffected: no extra per-port SAI read and no change to their PhyInfo.
       // system() is populated above under the same isXphy condition.
@@ -3028,7 +3028,7 @@ void SaiSwitch::gracefulExitLocked(const std::lock_guard<std::mutex>& lock) {
   SaiApiTable::getInstance()->switchApi().setAttribute(
       saiSwitchId_, restartWarm);
 
-#if CREDO_SDK_VERSION < CREDO_SDK_VERSION_0_9_0 && !defined(SAI_BRCM_PAI_IMPL)
+#if CREDO_SDK_VERSION < CREDO_SDK_VERSION_0_9_0 && !defined(BRCM_PAI_SDK)
   SaiSwitchTraits::Attributes::SwitchPreShutdown preShutdown{true};
   SaiApiTable::getInstance()->switchApi().setAttribute(
       saiSwitchId_, preShutdown);
