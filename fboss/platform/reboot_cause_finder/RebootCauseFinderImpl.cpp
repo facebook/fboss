@@ -53,13 +53,13 @@ DEFINE_bool(
 // the previous boot's start bounds the window when its record exists. Erring
 // small silently misses the cause.
 DEFINE_int32(
-    max_downtime_sec,
+    software_cause_lookback_sec,
     3600,
-    "How far before boot start to look for a kernel panic or an x86 reboot "
-    "command. "
+    "How far before boot start to look for a kernel panic, an x86 reboot "
+    "command or a BMC wedge_power reset. "
     "Must cover shutdown, POST and bootloader, not the power-off duration: a "
     "long outage leaves no log line at all and is reported by the hardware "
-    "providers instead.");
+    "providers instead, which this does not bound.");
 
 namespace facebook::fboss::platform::reboot_cause_finder {
 
@@ -1297,14 +1297,14 @@ RunResult RebootCauseFinderImpl::determineRebootCause() {
   if (btime) {
     const int64_t window = detail::boundWindowByPreviousBoot(
         *btime,
-        FLAGS_max_downtime_sec,
+        FLAGS_software_cause_lookback_sec,
         previousBootStartSec(paths_.historyDir, bootId, *btime));
-    if (window < FLAGS_max_downtime_sec) {
+    if (window < FLAGS_software_cause_lookback_sec) {
       XLOG(INFO) << fmt::format(
           "Searching the {}s since the previous boot started, not the "
           "configured {}s",
           window,
-          FLAGS_max_downtime_sec);
+          FLAGS_software_cause_lookback_sec);
     }
 
     std::vector<reboot_cause_config::RebootCauseProviderAttempt> software;
