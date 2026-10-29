@@ -531,6 +531,15 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void ensureVoqOrFabric(folly::StringPiece function) const;
 
  private:
+  struct L3TrafficLoopStateStore;
+  void setupL3TrafficLoopImpl(
+      const BinaryAddress& qualificationAddress,
+      const std::string& portName,
+      const BinaryAddress& peerNextHop,
+      const std::string& expectedPeerMac,
+      int32_t timeoutSeconds);
+  void teardownL3TrafficLoopImpl(const std::string& portName);
+
   void ensureNPU(folly::StringPiece function) const;
   void ensureNotFabric(folly::StringPiece function) const;
   void updateUnicastRoutesImpl(
@@ -600,6 +609,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
    * for the lifetime of the ThriftHandler.
    */
   SwSwitch* sw_;
+  std::unique_ptr<L3TrafficLoopStateStore> l3TrafficLoopState_;
 
   int thriftIdleTimeout_{};
   std::vector<const TConnectionContext*> brokenClients_;

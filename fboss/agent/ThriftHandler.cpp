@@ -84,6 +84,8 @@
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <algorithm>
 #include <memory>
+#include <mutex>
+#include <optional>
 #include <thread>
 
 #include <limits>
@@ -950,9 +952,41 @@ void validateClassBasedPolicies(
 
 namespace facebook::fboss {
 
-ThriftHandler::ThriftHandler(SwSwitch* sw) : FacebookBase2("FBOSS"), sw_(sw) {}
+struct ThriftHandler::L3TrafficLoopStateStore {
+  struct Loop {
+    L3TrafficLoopStatus status;
+    PortID portId;
+    std::optional<AggregatePortID> aggregatePortId;
+    InterfaceID interfaceId;
+    IPAddressV6 qualificationAddress;
+    IPAddressV6 peerNextHop;
+    std::optional<MacAddress> peerMac;
+    std::chrono::steady_clock::time_point expiresAt;
+    bool removeNeighborOnCleanup{false};
+    bool portTtlChanged{false};
+    bool aggregateTtlChanged{false};
+    bool neighborTtlChanged{false};
+  };
+
+  std::mutex operationMutex;
+  folly::Synchronized<std::map<std::string, Loop>> loops;
+};
+
+ThriftHandler::ThriftHandler(SwSwitch* sw)
+    : FacebookBase2("FBOSS"),
+      sw_(sw),
+      l3TrafficLoopState_(std::make_unique<L3TrafficLoopStateStore>()) {}
 
 ThriftHandler::~ThriftHandler() = default;
+
+void ThriftHandler::setupL3TrafficLoopImpl(
+    const BinaryAddress&,
+    const std::string&,
+    const BinaryAddress&,
+    const std::string&,
+    int32_t) {
+  throw FbossError("L3 traffic loop setup is not implemented yet");
+}
 
 void ThriftHandler::setupL3TrafficLoops(
     std::unique_ptr<std::vector<BinaryAddress>>,
@@ -967,6 +1001,10 @@ void ThriftHandler::extendL3TrafficLoops(
     std::unique_ptr<std::vector<std::string>>,
     int32_t) {
   throw FbossError("L3 traffic loop extension is not implemented yet");
+}
+
+void ThriftHandler::teardownL3TrafficLoopImpl(const std::string&) {
+  throw FbossError("L3 traffic loop cleanup is not implemented yet");
 }
 
 void ThriftHandler::teardownL3TrafficLoops(
