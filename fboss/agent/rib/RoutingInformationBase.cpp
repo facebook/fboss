@@ -436,6 +436,11 @@ RouteNextHopSet resolveNhopFromRib(
   }
   return resolved;
 }
+
+RibRouteTables::OverrideNhops overrideNhopsOf(const RouteNextHopEntry& entry) {
+  return {entry.getOverrideNextHops(), entry.getOverrideNextHopSetID()};
+}
+
 } // namespace
 
 template <typename AddressT, typename FibType, typename IndexT>
@@ -986,7 +991,7 @@ void RibRouteTables::updateEcmpOverrides(
       rid2prefix2SwitchingMode;
   std::unordered_map<
       RouterID,
-      std::unordered_map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>>
+      std::unordered_map<folly::CIDRNetwork, OverrideNhops>>
       rid2prefix2Nhops;
 
   forEachChangedRoute(
@@ -1003,9 +1008,12 @@ void RibRouteTables::updateEcmpOverrides(
             rid2prefix2SwitchingMode[rid][newRoute->prefix().toCidrNetwork()] =
                 newRoute->getForwardInfo().getOverrideEcmpSwitchingMode();
           }
-          if (newRoute->getForwardInfo().getOverrideNextHops().has_value()) {
+          if (newRoute->getForwardInfo().getOverrideNextHops().has_value() ||
+              newRoute->getForwardInfo()
+                  .getOverrideNextHopSetID()
+                  .has_value()) {
             rid2prefix2Nhops[rid][newRoute->prefix().toCidrNetwork()] =
-                newRoute->getForwardInfo().getOverrideNextHops();
+                overrideNhopsOf(newRoute->getForwardInfo());
           }
         } else {
           // both are resolved
@@ -1015,9 +1023,11 @@ void RibRouteTables::updateEcmpOverrides(
                 newRoute->getForwardInfo().getOverrideEcmpSwitchingMode();
           }
           if (oldRoute->getForwardInfo().getOverrideNextHops() !=
-              newRoute->getForwardInfo().getOverrideNextHops()) {
+                  newRoute->getForwardInfo().getOverrideNextHops() ||
+              oldRoute->getForwardInfo().getOverrideNextHopSetID() !=
+                  newRoute->getForwardInfo().getOverrideNextHopSetID()) {
             rid2prefix2Nhops[rid][newRoute->prefix().toCidrNetwork()] =
-                newRoute->getForwardInfo().getOverrideNextHops();
+                overrideNhopsOf(newRoute->getForwardInfo());
           }
         }
       },
@@ -1035,7 +1045,7 @@ void RibRouteTables::updateEcmpOverrides(
           rid2prefix2SwitchingMode[rid][newRoute->prefix().toCidrNetwork()] =
               newRoute->getForwardInfo().getOverrideEcmpSwitchingMode();
           rid2prefix2Nhops[rid][newRoute->prefix().toCidrNetwork()] =
-              newRoute->getForwardInfo().getOverrideNextHops();
+              overrideNhopsOf(newRoute->getForwardInfo());
         }
       },
       [&rid2prefix2SwitchingMode](RouterID /*rid*/, const auto& /*oldRoute*/) {
@@ -1142,7 +1152,9 @@ void RibRouteTables::setOverrideEcmpMode(
                   overrideEcmpMode,
                   curForwardInfo.getOverrideNextHops(),
                   curForwardInfo.getNormalizedResolvedNextHopSetID(),
-                  curForwardInfo.getResolvedNextHopSetID());
+                  curForwardInfo.getResolvedNextHopSetID(),
+                  curForwardInfo.getClientNextHopSetID(),
+                  curForwardInfo.getOverrideNextHopSetID());
               ritr->value()->setResolved(newForwardInfo);
               ritr->value()->publish();
             };
@@ -1160,9 +1172,7 @@ void RibRouteTables::setOverrideEcmpMode(
 
 void RibRouteTables::setOverrideEcmpNhops(
     RouterID rid,
-    const std::unordered_map<
-        folly::CIDRNetwork,
-        std::optional<RouteNextHopSet>>& prefix2Nhops) {
+    const std::unordered_map<folly::CIDRNetwork, OverrideNhops>& prefix2Nhops) {
   updateRib(
       rid,
       [&](auto& routeTable,
@@ -1174,15 +1184,17 @@ void RibRouteTables::setOverrideEcmpNhops(
             [](auto& rib,
                auto ip,
                uint8_t mask,
-               const std::optional<RouteNextHopSet>& overrideNhops) {
+               const RibRouteTables::OverrideNhops& overrideNhops) {
               auto ritr = rib.exactMatch(ip, mask);
               if (ritr == rib.end()) {
                 return;
               }
               auto& ribRoute = ritr->value();
               if (!ribRoute->isResolved() ||
-                  ribRoute->getForwardInfo().getOverrideNextHops() ==
-                      overrideNhops) {
+                  (ribRoute->getForwardInfo().getOverrideNextHops() ==
+                       overrideNhops.nhops &&
+                   ribRoute->getForwardInfo().getOverrideNextHopSetID() ==
+                       overrideNhops.setId)) {
                 return;
               }
               ritr->value() = ribRoute->clone();
@@ -1193,9 +1205,11 @@ void RibRouteTables::setOverrideEcmpNhops(
                   curForwardInfo.getCounterID(),
                   curForwardInfo.getClassID(),
                   curForwardInfo.getOverrideEcmpSwitchingMode(),
-                  overrideNhops,
+                  overrideNhops.nhops,
                   curForwardInfo.getNormalizedResolvedNextHopSetID(),
-                  curForwardInfo.getResolvedNextHopSetID());
+                  curForwardInfo.getResolvedNextHopSetID(),
+                  curForwardInfo.getClientNextHopSetID(),
+                  overrideNhops.setId);
               ritr->value()->setResolved(newForwardInfo);
               ritr->value()->publish();
             };

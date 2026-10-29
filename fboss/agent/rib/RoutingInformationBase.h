@@ -210,11 +210,14 @@ class RibRouteTables {
       const std::unordered_map<
           folly::CIDRNetwork,
           std::optional<cfg::SwitchingMode>>& prefix2EcmpMode);
+  struct OverrideNhops {
+    std::optional<RouteNextHopSet> nhops;
+    std::optional<NextHopSetID> setId;
+  };
   void setOverrideEcmpNhops(
       RouterID rid,
-      const std::unordered_map<
-          folly::CIDRNetwork,
-          std::optional<RouteNextHopSet>>& prefix2Nhops);
+      const std::unordered_map<folly::CIDRNetwork, OverrideNhops>&
+          prefix2Nhops);
   /*
    * VrfAndNetworkToInterfaceRoute is conceptually a mapping from the pair
    * (RouterID, folly::CIDRNetwork) to the pair (Interface(1),
