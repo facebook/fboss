@@ -7,6 +7,7 @@
 #include "fboss/agent/hw/sai/api/CounterApi.h"
 #include "fboss/agent/hw/sai/api/DebugCounterApi.h"
 #include "fboss/agent/hw/sai/api/HostifApi.h"
+#include "fboss/agent/hw/sai/api/LagApi.h"
 #include "fboss/agent/hw/sai/api/MirrorApi.h"
 #include "fboss/agent/hw/sai/api/NextHopGroupApi.h"
 #include "fboss/agent/hw/sai/api/PortApi.h"
@@ -20,6 +21,11 @@ extern "C" {
 }
 
 namespace facebook::fboss {
+
+std::optional<sai_attr_id_t>
+SaiLagTraits::Attributes::AttributeDisableTtlDecrement::operator()() {
+  return std::nullopt;
+}
 
 namespace detail {
 std::optional<sai_int32_t> trapDrops() {
