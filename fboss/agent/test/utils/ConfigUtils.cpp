@@ -93,8 +93,6 @@ int getRdswSysPortBlockSize(
       case PlatformType::PLATFORM_JANGA800BIC:
         return 22;
       case PlatformType::PLATFORM_BLACKWOLF800BANW:
-      case PlatformType::PLATFORM_J4SIM:
-      case PlatformType::PLATFORM_SAINTPAUL:
         return 1024;
       default:
         break;
@@ -459,8 +457,6 @@ cfg::DsfNode dsfNodeConfig(
     switch (asic.getAsicType()) {
       case cfg::AsicType::ASIC_TYPE_JERICHO3:
         return PlatformType::PLATFORM_MERU800BIA;
-      case cfg::AsicType::ASIC_TYPE_JERICHO4:
-        return PlatformType::PLATFORM_J4SIM;
       case cfg::AsicType::ASIC_TYPE_RAMON3:
         return PlatformType::PLATFORM_MERU800BFA;
       case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
@@ -1139,8 +1135,7 @@ void populateSwitchInfo(
         hwAsic->getSwitchType() == cfg::SwitchType::FABRIC) {
       auto dsfNode = dsfNodeConfig(*firstHwAsic, switchId, platformType);
       dsfNode.name() = fmt::format("hwTestSwitch{}", deviceSwitchId);
-      if ((platformType == PlatformType::PLATFORM_SAINTPAUL ||
-           platformType == PlatformType::PLATFORM_JANGA800BIC) &&
+      if (platformType == PlatformType::PLATFORM_JANGA800BIC &&
           hwAsic->getSwitchType() == cfg::SwitchType::VOQ) {
         dsfNode.systemPortRanges() = *switchInfo.systemPortRanges();
         if (switchInfo.localSystemPortOffset().has_value()) {

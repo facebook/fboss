@@ -244,15 +244,6 @@ target_link_libraries(leh800bcls_bsp
   FBThrift::thriftcpp2
 )
 
-add_library(saintpaul_bsp
-  fboss/lib/bsp/saintpaul/SaintpaulBspPlatformMapping.cpp
-)
-
-target_link_libraries(saintpaul_bsp
-  bsp_platform_mapping
-  FBThrift::thriftcpp2
-)
-
 add_library(m4061nhp_bsp
   fboss/lib/bsp/m4061nhp/M4061nhpBspPlatformMapping.cpp
 )
@@ -334,7 +325,6 @@ target_link_libraries(qsfp_bsp_core
   wedge800cact_bsp
   ladakh800bcls_bsp
   leh800bcls_bsp
-  saintpaul_bsp
   m4052actm_bsp
   m4061nhp_bsp
   m4062nhp_bsp

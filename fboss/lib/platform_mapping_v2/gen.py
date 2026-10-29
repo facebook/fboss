@@ -93,7 +93,6 @@ OSS_MULTI_NPU_SUPPORTED_PLATFORMS: dict[bool, list[str]] = {
         "wedge800cact",
         "wedge800cnhp",
         "blackwolf800banw",
-        "j4sim",
         "icecube800banw",
         "example_integrated_optics",
     ],
@@ -110,7 +109,6 @@ OSS_MULTI_NPU_SUPPORTED_PLATFORMS: dict[bool, list[str]] = {
         "leh800bcls",
         "leh800bcls_rack",
         "leh800bcls_test_fixture",
-        "saintpaul",
     ],
 }
 
