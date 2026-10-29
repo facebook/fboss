@@ -726,12 +726,12 @@ struct TBgpLocalConfig {
 /**
  * Nexthop information for a prefix.
  *
- * Fields 1-3 back the compact list view (`show bgpcpp nexthopinfo`). Fields
- * 4-8 carry the extra detail surfaced by the per-nexthop "zoom" view
- * (`show bgpcpp nexthopinfo <ipAddr>`).
+ * Fields 1-3 and 5-6 back the compact list view. Fields 4 and 7-8 add detail
+ * when a specific nexthop is queried.
  */
 struct TNexthopInfo {
   1: bgp_attr.TIpPrefix next_hop;
+  // Reachability reported by the nexthop resolver.
   2: bool is_reachable;
   3: optional i32 igp_cost;
   // Whether the nexthop is directly connected; unset = unknown.
@@ -740,12 +740,12 @@ struct TNexthopInfo {
   // is_reachable: a reachable nexthop without an IGP cost can still be
   // selectable under FBOSS semantics).
   5: bool is_resolved_for_selection;
-  // Number of routes/prefixes currently depending on this nexthop.
+  // Number of BGP paths currently using this nexthop.
   6: i64 route_count;
-  // Seconds since reachability last changed; unset ("-") = never resolved,
-  // i.e. no resolution has ever been received from the underlying system.
+  // Seconds since source reachability last changed; unset if the source has
+  // never reported the nexthop as reachable.
   7: optional i64 last_reachability_change_age_s;
-  // Seconds since the IGP cost last changed; unset ("-") = never resolved.
+  // Seconds since the IGP cost last changed; unset if no cost was received.
   8: optional i64 last_igp_cost_change_age_s;
 }
 
@@ -754,7 +754,7 @@ struct TNexthopInfo {
  * function of its input rather than depending on out-of-band view-mode state on
  * the command object.
  *
- * detailed = false: compact list of every nexthop-cache entry (no argument).
+ * detailed = false: compact list of every nexthop tracked by the RIB.
  * detailed = true : per-nexthop "zoom" view for the specifically queried IP(s).
  * queried_nexthops is index-parallel to entries in detailed mode, so a cache
  * miss can be reported against the exact address the operator asked for.
