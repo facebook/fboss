@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/hw/switch_asics/P200Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk6Asic.h"
+#include "fboss/agent/hw/switch_asics/YubaAsic.h"
 
 #include <gtest/gtest.h>
 
@@ -119,4 +120,12 @@ TEST(SaiSdkVersionTest, mplsTtl1TrapFollowsGaBoundary) {
                   .isSupported(HwAsic::Feature::SAI_MPLS_TTL_1_TRAP));
   EXPECT_FALSE(
       asicWithSaiSdk("sai").isSupported(HwAsic::Feature::SAI_MPLS_TTL_1_TRAP));
+}
+
+TEST(SaiSdkVersionTest, yubaUsesPortTtlDecrementDisableOnMorganSdk) {
+  YubaAsic yuba{0, npuSwitchInfo(), saiSdk("26.2.4210")};
+  EXPECT_FALSE(
+      yuba.isSupported(HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE));
+  EXPECT_TRUE(yuba.isSupported(HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE));
+  EXPECT_TRUE(yuba.isSupported(HwAsic::Feature::LAG_TTL_DECREMENT_DISABLE));
 }

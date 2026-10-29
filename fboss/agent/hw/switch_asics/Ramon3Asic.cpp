@@ -73,6 +73,7 @@ bool Ramon3Asic::isSupported(Feature feature) const {
     // TODO(nivinl): Reported from SDK 16.x, enable once that is in
     // production.
     case HwAsic::Feature::RX_PACKET_TYPE:
+    case HwAsic::Feature::LAG_TTL_DECREMENT_DISABLE:
     default:
       return false;
   }

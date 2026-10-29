@@ -646,6 +646,8 @@ class HwAsic {
     PBR_ACL_BYTE_COUNTER,
     // CSIG (Congestion Signaling) per-port egress tag action and link locator
     CSIG,
+    // TTL control on the aggregate's shared forwarding service.
+    LAG_TTL_DECREMENT_DISABLE,
   };
 
   enum class AsicMode {

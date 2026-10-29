@@ -892,6 +892,7 @@ struct AggregatePortFields {
   13: optional i64 configuredCapacityMbps;
   14: optional i64 activeCapacityMbps;
   15: optional AggregatePortStatus status;
+  16: optional bool disableTTLDecrement;
 }
 
 struct TeFlowEntryFields {

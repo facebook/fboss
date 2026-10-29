@@ -10519,6 +10519,7 @@ class ChildThriftPath<::facebook::fboss::state::AggregatePortFields, ::facebook:
     STRUCT_CHILD_GETTERS(configuredCapacityMbps, 13);
     STRUCT_CHILD_GETTERS(activeCapacityMbps, 14);
     STRUCT_CHILD_GETTERS(status, 15);
+    STRUCT_CHILD_GETTERS(disableTTLDecrement, 16);
 };
 
 
