@@ -214,6 +214,16 @@ bool checkDeltasPublished(const std::vector<StateDelta>& deltas) {
   return published;
 }
 
+bool checkDeltaChain(const std::vector<StateDelta>& deltas) {
+  for (size_t i = 1; i < deltas.size(); ++i) {
+    if (deltas[i - 1].newState() != deltas[i].oldState()) {
+      XLOG(ERR) << " Delta " << i << " does not chain to delta " << i - 1;
+      return false;
+    }
+  }
+  return true;
+}
+
 bool hasBackupNextHop(const RouteNextHopSet& nhops) {
   return std::any_of(nhops.begin(), nhops.end(), [](const auto& nhop) {
     return nhop.role() == NextHopRole::BACKUP;
@@ -231,6 +241,31 @@ std::optional<cfg::SwitchingMode> getBackupSwitchingMode(
     backupMode = state->getFlowletSwitchingConfig()->getBackupSwitchingMode();
   }
   return backupMode;
+}
+
+// Returns `state` if FibInfo already holds the manager's map; does not publish.
+std::shared_ptr<SwitchState> withOverrideSetIds(
+    const OverrideSetIdManager& overrideSetIdMgr,
+    const std::shared_ptr<SwitchState>& state) {
+  const auto& fibsInfoMap = state->getFibsInfoMap();
+  if (fibsInfoMap->empty()) {
+    return state;
+  }
+  auto overrideMap = overrideSetIdMgr.toThrift();
+  // Identical on every switch; the first copy suffices.
+  auto curMap = fibsInfoMap->cbegin()->second->getOverrideIdToNextHopIdSetMap();
+  if (curMap ? curMap->toThrift() == overrideMap : overrideMap.empty()) {
+    return state;
+  }
+  auto newMap = std::make_shared<IdToNextHopIdSetMap>(overrideMap);
+  auto newState = state->isPublished() ? state->clone() : state;
+  for (const auto& [matcher, _] : std::as_const(*state->getFibsInfoMap())) {
+    newState->getFibsInfoMap()
+        ->getNodeIf(matcher)
+        ->modify(&newState)
+        ->setOverrideIdToNextHopIdSetMap(newMap);
+  }
+  return newState;
 }
 
 } // namespace
@@ -353,7 +388,11 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
       getPrimaryEcmpAndMemberCounts();
   if (!inOutState.has_value()) {
     inOutState = InputOutputState(
-        primaryEcmpGroupsCnt, virtualEcmpGroupsCnt, ecmpMemberCnt, delta);
+        primaryEcmpGroupsCnt,
+        virtualEcmpGroupsCnt,
+        ecmpMemberCnt,
+        delta,
+        &overrideSetIdMgr_);
   } else {
     inOutState->primaryEcmpGroupsCnt = primaryEcmpGroupsCnt;
     inOutState->virtualEcmpGroupsCnt = virtualEcmpGroupsCnt;
@@ -416,6 +455,7 @@ std::vector<StateDelta> EcmpResourceManager::consolidateImpl(
     updatedState->publish();
     inOutState->replaceLastDelta(StateDelta(curDelta.oldState(), updatedState));
   }
+  inOutState->publishLastDelta();
   return inOutState->moveDeltas();
 }
 
@@ -941,11 +981,13 @@ EcmpResourceManager::InputOutputState::InputOutputState(
     uint32_t _primaryEcmpGroupsCnt,
     uint32_t _virtualEcmpGroupsCnt,
     uint32_t _ecmpMemberCnt,
-    const StateDelta& _in)
+    const StateDelta& _in,
+    const OverrideSetIdManager* _overrideSetIdMgr)
     : primaryEcmpGroupsCnt(_primaryEcmpGroupsCnt),
       virtualEcmpGroupsCnt(_virtualEcmpGroupsCnt),
       ecmpMemberCnt(_ecmpMemberCnt),
-      inputDelta_(_in.oldState(), _in.newState()) {
+      inputDelta_(_in.oldState(), _in.newState()),
+      overrideSetIdMgr_(_overrideSetIdMgr) {
   /*
    * Note that for first StateDelta we push in.oldState() for both
    * old and new state in the first StateDelta, since we will process
@@ -1006,9 +1048,21 @@ EcmpResourceManager::InputOutputState::InputOutputState(
 void EcmpResourceManager::InputOutputState::publishLastDelta() {
   if (out_.size()) {
     DCHECK(out_.back().oldState()->isPublished());
+    if (overrideSetIdMgr_) {
+      auto newState =
+          withOverrideSetIds(*overrideSetIdMgr_, out_.back().newState());
+      if (newState != out_.back().newState()) {
+        replaceLastDelta(StateDelta(out_.back().oldState(), newState));
+      }
+    }
     out_.back().newState()->publish();
   }
   DCHECK(checkDeltasPublished(out_));
+}
+
+std::vector<StateDelta> EcmpResourceManager::InputOutputState::moveDeltas() {
+  DCHECK(checkDeltaChain(out_));
+  return std::move(out_);
 }
 
 void EcmpResourceManager::InputOutputState::appendDelta(
@@ -1017,8 +1071,12 @@ void EcmpResourceManager::InputOutputState::appendDelta(
    * Now that we are starting a new delta. Ensure that the
    * previous delta is published
    */
+  DCHECK(out_.empty() || delta.oldState() == out_.back().newState());
   publishLastDelta();
-  out_.emplace_back(delta.oldState(), delta.newState());
+  // publishLastDelta may swap the base for a clone carrying the override map.
+  out_.emplace_back(
+      out_.empty() ? delta.oldState() : out_.back().newState(),
+      delta.newState());
 }
 
 void EcmpResourceManager::InputOutputState::replaceLastDelta(
@@ -1035,13 +1093,13 @@ void EcmpResourceManager::InputOutputState::addOrUpdateRoute(
     RouterID rid,
     const std::shared_ptr<Route<AddrT>>& newRoute,
     bool addNewDelta) {
-  auto curStateDelta = getCurrentStateDelta();
-  DCHECK(curStateDelta.oldState()->isPublished());
   if (addNewDelta) {
     // We are starting a new delta, publish the
     // last one.
     publishLastDelta();
   }
+  auto curStateDelta = getCurrentStateDelta();
+  DCHECK(curStateDelta.oldState()->isPublished());
   auto oldState = curStateDelta.newState();
   auto newState = oldState->clone();
   auto fib =
@@ -1501,7 +1559,8 @@ std::vector<StateDelta> EcmpResourceManager::reconstructFromSwitchState(
       0 /*primaryEcmpGroupsCnt*/,
       0 /*virtualEcmpGroupsCnt*/,
       0 /*ecmpMemberCnt*/,
-      delta);
+      delta,
+      &overrideSetIdMgr_);
   inOutState.reconstructing = true;
   auto deltas = consolidateImpl(delta, &inOutState);
   if (!getEcmpCompressionThresholdPct()) {
@@ -2348,7 +2407,8 @@ EcmpResourceManager::handleFlowletSwitchConfigDelta(const StateDelta& delta) {
       0 /*primaryEcmpGroupsCnt*/,
       0 /*virtualEcmpGroupsCnt*/,
       0 /*ecmpMemberCnt*/,
-      delta);
+      delta,
+      &overrideSetIdMgr_);
   CHECK_EQ(inOutState.numDeltas(), 1);
   // Make changes on to current new state (which is essentially,
   // newState with old state's fibs). The first delta we will queue

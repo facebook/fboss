@@ -154,7 +154,8 @@ class EcmpResourceManager {
         uint32_t _primaryEcmpGroupsCnt,
         uint32_t _virtualEcmpGroupsCnt,
         uint32_t ecmpMemberCnt,
-        const StateDelta& _in);
+        const StateDelta& _in,
+        const OverrideSetIdManager* _overrideSetIdMgr);
     /*
      * addOrUpdateRoute has 1 interesting knobs
      * addNewDelta - This route update should be placed on a new
@@ -233,9 +234,7 @@ class EcmpResourceManager {
     /*
      * Return and empty out_ deltas
      */
-    std::vector<StateDelta> moveDeltas() {
-      return std::move(out_);
-    }
+    std::vector<StateDelta> moveDeltas();
     /*
      * Number of ECMP groups of primary ECMP type. Once these
      * reach the maxEcmpGroups limit, we either compress groups
@@ -258,6 +257,8 @@ class EcmpResourceManager {
    private:
     std::vector<StateDelta> out_;
     StateDelta inputDelta_;
+    // Written into each delta's FibInfo on publish.
+    const OverrideSetIdManager* overrideSetIdMgr_;
   };
   std::pair<std::shared_ptr<NextHopGroupInfo>, bool> getOrCreateGroupInfo(
       const RouteNextHopSet& nhops,
