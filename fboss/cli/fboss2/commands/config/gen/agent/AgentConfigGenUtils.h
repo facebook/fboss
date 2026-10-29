@@ -101,8 +101,11 @@ ResolvedAgentConfigInputs resolveAgentConfigInputs(
 cfg::SwitchSettings generateSwitchSettings(
     const PlatformDescriptor& platformDescriptor);
 
-// Constructs the switch section of an AgentConfig from resolved inputs.
-cfg::SwitchConfig generateSwitchConfig(const ResolvedAgentConfigInputs& inputs);
+// Constructs the switch section of an AgentConfig from resolved inputs and
+// command-line arguments that affect the generated switch configuration.
+cfg::SwitchConfig generateSwitchConfig(
+    const ResolvedAgentConfigInputs& inputs,
+    const std::map<std::string, std::string>& defaultCommandLineArgs = {});
 
 // Applies requested profiles and modeled LLDP peers, removes ports subsumed by
 // those profiles, and disables ports outside the topology.

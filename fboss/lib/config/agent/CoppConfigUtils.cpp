@@ -38,10 +38,6 @@ constexpr uint32_t kDnxLowPriorityPacketsPerSecond = 12000;
 constexpr uint32_t kDnxDefaultPriorityPacketsPerSecond = 24000;
 constexpr uint32_t kDnxLowPriorityKbitsPerSecond = 100 * 1024;
 
-constexpr uint8_t kNetworkControlDscp = 48;
-constexpr std::string_view kIPv6LinkLocalNetwork = "fe80::/10";
-constexpr std::string_view kIPv6LinkLocalMulticastNetwork = "ff02::/16";
-
 void setWeight(cfg::PortQueue& queue, uint32_t weight) {
   if (*queue.scheduling() != cfg::QueueScheduling::STRICT_PRIORITY &&
       *queue.scheduling() != cfg::QueueScheduling::INTERNAL) {
@@ -76,31 +72,56 @@ cfg::PacketRxReasonToQueue makeRxReasonToQueue(
   return entry;
 }
 
-cfg::MatchAction makeQueueAction(const HwAsic& asic, uint16_t queueId) {
-  cfg::QueueMatchAction queueAction;
-  queueAction.queueId() = queueId;
-  cfg::MatchAction action;
-  action.sendToQueue() = queueAction;
-  action.toCpuAction() = getCpuActionType(&asic);
-  return action;
-}
-
-std::pair<cfg::AclEntry, cfg::MatchAction> makeNetworkAcl(
+void setEtherType(
     const HwAsic& asic,
-    std::string_view name,
-    std::string_view network,
-    uint16_t queueId,
-    bool networkControl) {
-  cfg::AclEntry acl;
-  acl.name() = name;
-  acl.dstIp() = network;
-  if (networkControl) {
-    acl.dscp() = kNetworkControlDscp;
+    cfg::AclEntry& acl,
+    const folly::CIDRNetwork& network) {
+  if (asic.isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
+    acl.etherType() =
+        network.first.isV6() ? cfg::EtherType::IPv6 : cfg::EtherType::IPv4;
   }
-  return {std::move(acl), makeQueueAction(asic, queueId)};
 }
 
 } // namespace
+
+const folly::CIDRNetwork& kIPv6LinkLocalMcastNetwork() {
+  static const auto network = folly::IPAddress::createNetwork("ff02::/16");
+  return network;
+}
+
+const folly::CIDRNetwork& kIPv6LinkLocalUcastNetwork() {
+  static const auto network = folly::IPAddress::createNetwork("fe80::/10");
+  return network;
+}
+
+cfg::AclEntry genLinkLocalCoppAcl(
+    const HwAsic& asic,
+    std::string_view name,
+    const folly::CIDRNetwork& linkLocalNetwork) {
+  cfg::AclEntry acl;
+  acl.name() = name;
+  acl.dstIp() = folly::IPAddress::networkToString(linkLocalNetwork);
+  setEtherType(asic, acl, linkLocalNetwork);
+  return acl;
+}
+
+cfg::AclEntry genCpuPortLinkLocalCoppAcl(
+    const HwAsic& asic,
+    std::string_view name,
+    const folly::CIDRNetwork& linkLocalNetwork) {
+  auto acl = genLinkLocalCoppAcl(asic, name, linkLocalNetwork);
+  acl.srcPort() = cfg::switch_config_constants::CPU_PORT_LOGICALID();
+  return acl;
+}
+
+cfg::AclEntry genNetworkControlLinkLocalCoppAcl(
+    const HwAsic& asic,
+    std::string_view name,
+    const folly::CIDRNetwork& linkLocalNetwork) {
+  auto acl = genLinkLocalCoppAcl(asic, name, linkLocalNetwork);
+  acl.dscp() = kNetworkControlDscp;
+  return acl;
+}
 
 cfg::Range getRange(uint32_t minimum, uint32_t maximum) {
   cfg::Range range;
@@ -210,6 +231,91 @@ cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic) {
       "ASIC does not support a CPU action: ", hwAsic->getAsicType());
 }
 
+cfg::MatchAction genCoppQueueAction(
+    bool enableUserDefinedTrap,
+    const HwAsic& asic,
+    int queueId,
+    std::optional<cfg::ToCpuAction> toCpuAction) {
+  cfg::MatchAction action;
+
+  // enableUserDefinedTrap selects a configuration mode; it is not an ASIC
+  // capability query. CoppTestUtils passes its gflag directly and intentionally
+  // exercises the UDT-mode configuration on every SAI platform. Config
+  // generation instead passes the platform-scoped default command argument, so
+  // platforms such as Tajo and DNX select the sendToQueue fallback. Keeping
+  // that decision at the caller preserves SAI test behavior while allowing
+  // generated default and link-test configs to follow their rollout settings.
+  //
+  // sendToQueue is the portable fallback. For a SAI CoPP ACL,
+  // SaiAclTableManager implements it as SET_TC plus the requested COPY/TRAP
+  // packet action. Do not also serialize setTc: both fields select the same
+  // traffic class and SaiAclTableManager only verifies that they agree.
+  //
+  // In UDT mode, serialize the explicit SAI actions. On supported ASICs, UDT
+  // maps the punted packet to the CPU queue. SaiAclTableManager guards actual
+  // UDT programming by ASIC capability, so Tajo and DNX tests ignore the UDT
+  // field and retain their existing setTc behavior. ASICs such as Chenab
+  // support UDT but cannot combine SET_TC, UDT, and a CPU action, so omit setTc
+  // when a CPU action is present. If toCpuAction is absent, the ACL forwards by
+  // default and uses only setTc; no packet is copied or trapped.
+  if (enableUserDefinedTrap) {
+    if (toCpuAction.has_value()) {
+      cfg::UserDefinedTrapAction userDefinedTrap;
+      userDefinedTrap.queueId() = queueId;
+      action.userDefinedTrap() = userDefinedTrap;
+    }
+    if (!toCpuAction.has_value() ||
+        asic.isSupported(
+            HwAsic::Feature::SAI_SET_TC_WITH_USER_DEFINED_TRAP_CPU_ACTION)) {
+      // Assume TC i maps to queue i for all i on SAI switches.
+      cfg::SetTcAction setTc;
+      setTc.tcValue() = queueId;
+      action.setTc() = setTc;
+    }
+  } else {
+    cfg::QueueMatchAction queueAction;
+    queueAction.queueId() = queueId;
+    action.sendToQueue() = queueAction;
+  }
+
+  if (toCpuAction.has_value()) {
+    action.toCpuAction() = *toCpuAction;
+  }
+  return action;
+}
+
+std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> genLinkLocalCoppAcls(
+    const HwAsic& asic,
+    const cfg::MatchAction& highPriorityAction,
+    const cfg::MatchAction& midPriorityAction) {
+  const auto& linkLocalUcastNetwork = kIPv6LinkLocalUcastNetwork();
+  const auto& linkLocalMcastNetwork = kIPv6LinkLocalMcastNetwork();
+  return {
+      {genCpuPortLinkLocalCoppAcl(
+           asic, "cpuPolicing-CPU-Port-linkLocal-v6", linkLocalUcastNetwork),
+       {}},
+      {genCpuPortLinkLocalCoppAcl(
+           asic, "cpuPolicing-CPU-Port-Mcast-v6", linkLocalMcastNetwork),
+       {}},
+      {genNetworkControlLinkLocalCoppAcl(
+           asic,
+           "cpuPolicing-high-NetworkControl-linkLocal-v6",
+           linkLocalUcastNetwork),
+       highPriorityAction},
+      {genNetworkControlLinkLocalCoppAcl(
+           asic,
+           "cpuPolicing-high-NetworkControl-ff02::/16",
+           linkLocalMcastNetwork),
+       highPriorityAction},
+      {genLinkLocalCoppAcl(
+           asic, "cpuPolicing-mid-linkLocal-v6", linkLocalUcastNetwork),
+       midPriorityAction},
+      {genLinkLocalCoppAcl(
+           asic, "cpuPolicing-mid-ff02::/16", linkLocalMcastNetwork),
+       midPriorityAction},
+  };
+}
+
 void addDefaultCpuQueueConfig(cfg::SwitchConfig& config, const HwAsic& asic) {
   if (asic.getSwitchType() != cfg::SwitchType::NPU ||
       !asic.isSupported(HwAsic::Feature::CPU_QUEUES)) {
@@ -241,7 +347,8 @@ void addDefaultCpuQueueConfig(cfg::SwitchConfig& config, const HwAsic& asic) {
 
 void addDefaultCpuTrafficPolicyConfig(
     cfg::SwitchConfig& config,
-    const HwAsic& asic) {
+    const HwAsic& asic,
+    bool enableUserDefinedTrap) {
   if (asic.getSwitchType() != cfg::SwitchType::NPU ||
       !asic.isSupported(HwAsic::Feature::CPU_QUEUES)) {
     return;
@@ -285,37 +392,16 @@ void addDefaultCpuTrafficPolicyConfig(
         cfg::PacketRxReason::UNMATCHED, kDefaultPriorityQueueId));
   }
 
-  std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> cpuAcls;
-  cfg::AclEntry cpuMulticastAcl;
-  cpuMulticastAcl.name() = "cpuPolicing-CPU-Port-Mcast-v6";
-  cpuMulticastAcl.dstIp() = kIPv6LinkLocalMulticastNetwork;
-  cpuMulticastAcl.srcPort() =
-      cfg::switch_config_constants::CPU_PORT_LOGICALID();
-  cpuAcls.emplace_back(std::move(cpuMulticastAcl), cfg::MatchAction{});
-  cpuAcls.push_back(makeNetworkAcl(
+  // Match CoppTestUtils' SAI behavior: when user-defined traps are enabled and
+  // supported, setTc selects the CPU queue, so do not also program
+  // sendToQueue. Legacy COOP-generated link-test and production configs
+  // contain both actions.
+  auto cpuAcls = genLinkLocalCoppAcls(
       asic,
-      "cpuPolicing-high-NetworkControl-linkLocal-v6",
-      kIPv6LinkLocalNetwork,
-      highQueueId,
-      true));
-  cpuAcls.push_back(makeNetworkAcl(
-      asic,
-      "cpuPolicing-high-NetworkControl-ff02::/16",
-      kIPv6LinkLocalMulticastNetwork,
-      highQueueId,
-      true));
-  cpuAcls.push_back(makeNetworkAcl(
-      asic,
-      "cpuPolicing-mid-linkLocal-v6",
-      kIPv6LinkLocalNetwork,
-      midQueueId,
-      false));
-  cpuAcls.push_back(makeNetworkAcl(
-      asic,
-      "cpuPolicing-mid-ff02::/16",
-      kIPv6LinkLocalMulticastNetwork,
-      midQueueId,
-      false));
+      genCoppQueueAction(
+          enableUserDefinedTrap, asic, highQueueId, getCpuActionType(&asic)),
+      genCoppQueueAction(
+          enableUserDefinedTrap, asic, midQueueId, getCpuActionType(&asic)));
 
   cfg::TrafficPolicyConfig trafficPolicy;
   for (auto& [acl, action] : cpuAcls) {

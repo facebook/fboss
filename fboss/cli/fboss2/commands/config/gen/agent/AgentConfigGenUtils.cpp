@@ -48,6 +48,7 @@ constexpr std::string_view kPlatformDescriptorFileName =
     "platform_descriptor.json";
 constexpr std::string_view kRawPlatformMappingFileName =
     "raw_platform_mapping.json";
+constexpr std::string_view kSaiUserDefinedTrapArg = "sai_user_defined_trap";
 
 struct GeneratedAsicConfigFile {
   fs::path path;
@@ -58,6 +59,13 @@ struct GeneratedPlatformMappingArtifactPaths {
   fs::path colocated;
   fs::path legacy;
 };
+
+bool isCommandLineArgEnabled(
+    const std::map<std::string, std::string>& defaultCommandLineArgs,
+    std::string_view name) {
+  const auto it = defaultCommandLineArgs.find(std::string(name));
+  return it != defaultCommandLineArgs.end() && it->second == "true";
+}
 
 std::string normalizeProfile(std::string_view profile) {
   return profile.empty() ? std::string(kDefaultProfileName)
@@ -383,16 +391,6 @@ std::unique_ptr<HwAsic> generateHwAsic(
   constexpr std::string_view kMockAsicMac = "02:00:00:00:00:01";
   asicSwitchInfo.switchMac() = kMockAsicMac;
   return HwAsic::makeAsic(switchId, asicSwitchInfo, std::nullopt, std::nullopt);
-}
-
-cfg::AsicType getAsicType(const cfg::SwitchConfig& switchConfig) {
-  if (switchConfig.switchSettings()->switchIdToSwitchInfo()->empty()) {
-    throw FbossError("Switch config does not contain switch information");
-  }
-  return *switchConfig.switchSettings()
-              ->switchIdToSwitchInfo()
-              ->begin()
-              ->second.asicType();
 }
 
 void addDefaultProfilePortGraph(
@@ -743,7 +741,8 @@ cfg::SwitchSettings generateSwitchSettings(
 }
 
 cfg::SwitchConfig generateSwitchConfig(
-    const ResolvedAgentConfigInputs& inputs) {
+    const ResolvedAgentConfigInputs& inputs,
+    const std::map<std::string, std::string>& defaultCommandLineArgs) {
   auto switchSettings = generateSwitchSettings(inputs.platformDescriptor);
   auto asic = generateHwAsic(switchSettings);
   if (!asic) {
@@ -761,7 +760,11 @@ cfg::SwitchConfig generateSwitchConfig(
   utility::setupDefaultAclTableGroups(switchConfig, *asic);
   if (inputs.profile == kDefaultProfileName || inputs.linkTopology) {
     utility::addDefaultCpuQueueConfig(switchConfig, *asic);
-    utility::addDefaultCpuTrafficPolicyConfig(switchConfig, *asic);
+    utility::addDefaultCpuTrafficPolicyConfig(
+        switchConfig,
+        *asic,
+        isCommandLineArgEnabled(
+            defaultCommandLineArgs, kSaiUserDefinedTrapArg));
     addDefaultProfilePortGraph(switchConfig, *inputs.platformMapping, *asic);
   }
   if (inputs.linkTopology) {
@@ -794,13 +797,13 @@ std::string generateAgentConfigContents(
       asicConfigType,
       asicConfigVariant,
       linkTopologyVariant);
-  auto switchConfig = generateSwitchConfig(inputs);
   auto defaultCommandLineArgs = generateFeatureDefaultCommandArgs(
       fbossRoot,
       ServiceType::AGENT,
       inputs.profile,
-      getAsicType(switchConfig),
+      *inputs.platformDescriptor.asicType(),
       *inputs.platformDescriptor.platformType());
+  auto switchConfig = generateSwitchConfig(inputs, defaultCommandLineArgs);
   auto config = assembleAgentConfig(
       std::move(defaultCommandLineArgs),
       std::move(switchConfig),

@@ -407,7 +407,8 @@
         {
           "configProfiles": {
             "included": [
-              "default"
+              "default",
+              "link_test"
             ]
           },
           "asicTypes": {

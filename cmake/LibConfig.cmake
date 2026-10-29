@@ -24,6 +24,7 @@ add_library(fboss_agent_config_utils
 )
 
 target_link_libraries(fboss_agent_config_utils
+	Folly::folly
 	fboss_error
 	fboss_types
 	switch_config_cpp2

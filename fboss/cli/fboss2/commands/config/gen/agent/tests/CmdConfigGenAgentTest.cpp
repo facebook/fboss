@@ -693,6 +693,47 @@ TEST(AgentConfigGenTest, GeneratesDefaultAclTableGroup) {
   EXPECT_TRUE(switchConfig.interfaces()->empty());
 }
 
+TEST(AgentConfigGenTest, UsesSaiUserDefinedTrapCommandLineArgumentForCopp) {
+  folly::test::TemporaryDirectory temporaryDirectory;
+  const auto fbossRoot = fs::path(temporaryDirectory.path().string()) / "fboss";
+  createTestPlatform(fbossRoot, "test_vendor");
+  const auto inputs = resolveAgentConfigInputs(fbossRoot, kPlatform, "default");
+
+  const auto enabledConfig =
+      generateSwitchConfig(inputs, {{"sai_user_defined_trap", "true"}});
+  const auto disabledConfig =
+      generateSwitchConfig(inputs, {{"sai_user_defined_trap", "false"}});
+  const auto unsetConfig = generateSwitchConfig(inputs);
+
+  const auto& enabledAction = *enabledConfig.cpuTrafficPolicy()
+                                   ->trafficPolicy()
+                                   ->matchToAction()
+                                   ->at(2)
+                                   .action();
+  EXPECT_FALSE(enabledAction.sendToQueue().has_value());
+  EXPECT_TRUE(enabledAction.setTc().has_value());
+  EXPECT_TRUE(enabledAction.userDefinedTrap().has_value());
+  EXPECT_EQ(*enabledAction.toCpuAction(), cfg::ToCpuAction::COPY);
+
+  const auto& disabledAction = *disabledConfig.cpuTrafficPolicy()
+                                    ->trafficPolicy()
+                                    ->matchToAction()
+                                    ->at(2)
+                                    .action();
+  ASSERT_TRUE(disabledAction.sendToQueue().has_value());
+  EXPECT_FALSE(disabledAction.setTc().has_value());
+  EXPECT_FALSE(disabledAction.userDefinedTrap().has_value());
+  EXPECT_EQ(*disabledAction.toCpuAction(), cfg::ToCpuAction::COPY);
+
+  EXPECT_EQ(
+      *unsetConfig.cpuTrafficPolicy()
+           ->trafficPolicy()
+           ->matchToAction()
+           ->at(2)
+           .action(),
+      disabledAction);
+}
+
 TEST(AgentConfigGenTest, GeneratesDefaultProfilePortGraph) {
   folly::test::TemporaryDirectory temporaryDirectory;
   const auto fbossRoot = fs::path(temporaryDirectory.path().string()) / "fboss";

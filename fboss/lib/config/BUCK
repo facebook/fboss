@@ -61,6 +61,7 @@ cpp_library(
         "//thrift/lib/cpp/util:enum_utils",
     ],
     exported_deps = [
+        "fbsource//xplat/folly:network_address",
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
     ],
