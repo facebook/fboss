@@ -25,7 +25,7 @@ async function runCase(title, labels) {
       endpoint === listLabelsOnIssue ? labels.map(name => ({name})) : [],
   };
   const context = {
-    repo: {owner: 'facebook', repo: 'fboss'},
+    repo: {owner: 'meta', repo: 'fboss'},
     payload: {pull_request: {number: 1828}},
   };
   const core = {warning: message => warnings.push(message), info: () => {}};

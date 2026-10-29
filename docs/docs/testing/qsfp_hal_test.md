@@ -77,7 +77,7 @@ Prebuilt binaries are published by the scheduled runs of the
    scp -r fboss_bins/lib <switch>:/tmp/
    ```
 
-[qsfp-build]: https://github.com/facebook/fboss/actions/workflows/qsfp-build.yml?query=event%3Aschedule+branch%3Amain+is%3Asuccess
+[qsfp-build]: https://github.com/meta/fboss/actions/workflows/qsfp-build.yml?query=event%3Aschedule+branch%3Amain+is%3Asuccess
 
 ### Step 3: Set the Library Search Path
 
@@ -280,7 +280,7 @@ systemctl start qsfp_service
 The HAL tests are GoogleTest C++ files and are the authoritative description of
 what is validated. When debugging a failure, read the test source rather than
 inferring behavior from the test name. The tests live in
-[fboss/qsfp_service/test/hal_test](https://github.com/facebook/fboss/tree/main/fboss/qsfp_service/test/hal_test).
+[fboss/qsfp_service/test/hal_test](https://github.com/meta/fboss/tree/main/fboss/qsfp_service/test/hal_test).
 
 Test cases are grouped by area, one file per area.
 

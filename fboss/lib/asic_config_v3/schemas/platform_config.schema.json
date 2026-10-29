@@ -1,6 +1,6 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://github.com/facebook/fboss/blob/main/fboss/lib/asic_config_v3/schemas/platform_config.schema.json",
+    "$id": "https://github.com/meta/fboss/blob/main/fboss/lib/asic_config_v3/schemas/platform_config.schema.json",
     "title": "Platform Config",
     "description": "Per-platform configuration declaring the vendor, ASIC, port layout, and one or more configuration variants for the asic_config_v3 generator.",
     "type": "object",
@@ -242,7 +242,7 @@
                 "conditional_settings": {
                     "type": "array",
                     "description": "Optional. Platform-level conditional settings, evaluated after the ASIC-level conditional_settings so that platform values take precedence.",
-                    "items": {"$ref": "https://github.com/facebook/fboss/blob/main/fboss/lib/asic_config_v3/schemas/conditional_setting.schema.json#/$defs/conditional_setting"}
+                    "items": {"$ref": "https://github.com/meta/fboss/blob/main/fboss/lib/asic_config_v3/schemas/conditional_setting.schema.json#/$defs/conditional_setting"}
                 },
                 "features": {
                     "type": "object",
