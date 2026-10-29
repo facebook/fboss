@@ -30,13 +30,45 @@ constexpr uint32_t kHighPriorityWeight = 4;
 
 constexpr uint32_t kAveragePacketSize = 300;
 constexpr uint32_t kCpuPacketOverheadBytes = 52;
-constexpr uint32_t kLowPriorityPacketsPerSecond = 100;
-constexpr uint32_t kDefaultPriorityPacketsPerSecond = 200;
-constexpr uint32_t kTajoLowPriorityPacketsPerSecond = 10000;
-constexpr uint32_t kTajoDefaultPriorityPacketsPerSecond = 20000;
-constexpr uint32_t kDnxLowPriorityPacketsPerSecond = 12000;
-constexpr uint32_t kDnxDefaultPriorityPacketsPerSecond = 24000;
-constexpr uint32_t kDnxLowPriorityKbitsPerSecond = 100 * 1024;
+constexpr uint32_t kLegacyLowPriorityPacketsPerSecond = 100;
+constexpr uint32_t kLegacyDefaultPriorityPacketsPerSecond = 200;
+constexpr uint32_t kLowPriorityPacketsPerSecond = 500;
+constexpr uint32_t kDefaultPriorityPacketsPerSecond = 1000;
+constexpr uint32_t kLowPriorityKbitsPerSecond = 28216;
+constexpr uint32_t kDefaultPriorityKbitsPerSecond = 56263;
+constexpr uint32_t kVoqLowPriorityKbitsPerSecond = 100 * 1024;
+
+uint32_t getQueueRate(
+    uint16_t queueId,
+    uint32_t lowPriorityRate,
+    uint32_t defaultPriorityRate) {
+  if (queueId == kLowPriorityQueueId) {
+    return lowPriorityRate;
+  }
+  if (queueId == kDefaultPriorityQueueId) {
+    return defaultPriorityRate;
+  }
+  throw FbossError("Unexpected CoPP queue id ", queueId);
+}
+
+cfg::PortQueueRate makePpsQueueRate(uint32_t maximum) {
+  cfg::PortQueueRate rate;
+  rate.pktsPerSec() = getRange(0, maximum);
+  return rate;
+}
+
+cfg::PortQueueRate makeKbpsQueueRate(uint32_t maximum) {
+  cfg::PortQueueRate rate;
+  rate.kbitsPerSec() = getRange(0, maximum);
+  return rate;
+}
+
+uint32_t ppsToKbps(uint32_t pps) {
+  // Match COOP's nearest-60-pps rounding before converting packet rate to
+  // bandwidth.
+  return ((pps + 30) / 60 * 60) *
+      (kAveragePacketSize + kCpuPacketOverheadBytes) * 8 / 1000;
+}
 
 void setWeight(cfg::PortQueue& queue, uint32_t weight) {
   if (*queue.scheduling() != cfg::QueueScheduling::STRICT_PRIORITY &&
@@ -137,62 +169,68 @@ cfg::StreamType getCpuDefaultStreamType(const HwAsic* hwAsic) {
 }
 
 cfg::QueueScheduling getCpuDefaultQueueScheduling(const HwAsic* hwAsic) {
+  // Model the effective defaults selected by COOP platform templates, rather
+  // than only the default arguments declared by FBOSS_PLATFORM_CONSTANTS_MAP.
+  // For example, its Tomahawk5 lambda defaults cpu_queue_priority_strict to
+  // false, but every current Tomahawk5 platform template passes true. Optional
+  // role- or feature-selected alternatives are not defaults and are outside
+  // this helper's contract.
   if (hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
+    // Spectrum4 defines only strict-priority CPU queues in COOP, without the
+    // scheduling-mode option available to most other platform families.
     return cfg::QueueScheduling::STRICT_PRIORITY;
   }
-  return cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-}
 
-uint32_t getCoppQueuePps(const HwAsic* hwAsic, uint16_t queueId) {
-  if (hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
-    if (queueId == kLowPriorityQueueId) {
-      return kTajoLowPriorityPacketsPerSecond;
-    }
-    if (queueId == kDefaultPriorityQueueId) {
-      return kTajoDefaultPriorityPacketsPerSecond;
-    }
-  } else if (hwAsic->getSwitchType() == cfg::SwitchType::VOQ) {
-    if (queueId == kLowPriorityQueueId) {
-      return kDnxLowPriorityPacketsPerSecond;
-    }
-    if (queueId == kDefaultPriorityQueueId) {
-      return kDnxDefaultPriorityPacketsPerSecond;
-    }
-  } else {
-    if (queueId == kLowPriorityQueueId) {
-      return kLowPriorityPacketsPerSecond;
-    }
-    if (queueId == kDefaultPriorityQueueId) {
-      return kDefaultPriorityPacketsPerSecond;
-    }
+  switch (hwAsic->getAsicType()) {
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
+      // The deployed platform templates for these ASICs opt into strict
+      // priority even when their constants-map lambda also permits WRR.
+      return cfg::QueueScheduling::STRICT_PRIORITY;
+    case cfg::AsicType::ASIC_TYPE_JERICHO3:
+      // Jericho3's COOP CPU queue definitions are unconditionally strict.
+      return cfg::QueueScheduling::STRICT_PRIORITY;
+    default:
+      // Older XGS, Tajo, and Jericho2 retain COOP's WRR default.
+      return cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   }
-  throw FbossError("Unexpected CoPP queue id ", queueId);
 }
 
 cfg::PortQueueRate getPortQueueRate(const HwAsic* hwAsic, uint16_t queueId) {
-  const auto pps = getCoppQueuePps(hwAsic, queueId);
-  cfg::PortQueueRate rate;
-  if (hwAsic->isSupported(HwAsic::Feature::SCHEDULER_PPS)) {
-    rate.pktsPerSec() = getRange(0, pps);
-    return rate;
+  // Resolve the final rate and unit from COOP's effective ASIC defaults. In
+  // particular, Tajo and Chenab express their policy directly in Kbps; they do
+  // not use an intermediate PPS configuration.
+  if (hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_TAJO ||
+      hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
+    return makeKbpsQueueRate(getQueueRate(
+        queueId, kLowPriorityKbitsPerSecond, kDefaultPriorityKbitsPerSecond));
   }
 
-  uint32_t kbps;
-  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3 ||
-      hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4 ||
-      hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D) {
-    kbps = kDnxLowPriorityKbitsPerSecond;
-  } else if (
-      hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_TAJO ||
-      hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB ||
-      hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) {
-    kbps = (pps / 60 * 60) * (kAveragePacketSize + kCpuPacketOverheadBytes) *
-        8 / 1000;
-  } else {
-    throw FbossError("CoPP queue rate unsupported for ASIC");
+  if (hwAsic->getSwitchType() == cfg::SwitchType::VOQ) {
+    return makeKbpsQueueRate(getQueueRate(
+        queueId, kVoqLowPriorityKbitsPerSecond, kVoqLowPriorityKbitsPerSecond));
   }
-  rate.kbitsPerSec() = getRange(0, kbps);
-  return rate;
+
+  const auto asicType = hwAsic->getAsicType();
+  // COOP retains its original 100/200 PPS limits for TD2 and first-generation
+  // Tomahawk. TH3 and newer XGS ASICs use the raised 500/1000 PPS policy.
+  const auto useLegacyRate = asicType == cfg::AsicType::ASIC_TYPE_TRIDENT2 ||
+      asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK;
+  const auto packetsPerSecond = getQueueRate(
+      queueId,
+      useLegacyRate ? kLegacyLowPriorityPacketsPerSecond
+                    : kLowPriorityPacketsPerSecond,
+      useLegacyRate ? kLegacyDefaultPriorityPacketsPerSecond
+                    : kDefaultPriorityPacketsPerSecond);
+
+  if (hwAsic->isSupported(HwAsic::Feature::SCHEDULER_PPS)) {
+    return makePpsQueueRate(packetsPerSecond);
+  }
+
+  // TU1's current SAI SDK cannot program packet-meter schedulers. Preserve the
+  // modern XGS packet budget by expressing its equivalent as a byte rate.
+  return makeKbpsQueueRate(ppsToKbps(packetsPerSecond));
 }
 
 cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic) {

@@ -134,10 +134,14 @@ TEST(CoppConfigUtilsTest, AddsBasicNpuCoppConfigWithoutFlatAcls) {
           *config.cpuQueues()->at(3).id(),
       }),
       std::vector<int16_t>({9, 2, 1, 0}));
-  EXPECT_EQ(
-      *config.cpuQueues()->at(2).portQueueRate()->pktsPerSec()->maximum(), 200);
-  EXPECT_EQ(
-      *config.cpuQueues()->at(3).portQueueRate()->pktsPerSec()->maximum(), 100);
+  EXPECT_FALSE(config.cpuQueues()->at(0).portQueueRate().has_value());
+  EXPECT_FALSE(config.cpuQueues()->at(1).portQueueRate().has_value());
+  EXPECT_TRUE(config.cpuQueues()->at(2).portQueueRate().has_value());
+  EXPECT_TRUE(config.cpuQueues()->at(3).portQueueRate().has_value());
+  for (const auto& queue : *config.cpuQueues()) {
+    EXPECT_EQ(*queue.scheduling(), cfg::QueueScheduling::STRICT_PRIORITY);
+    EXPECT_FALSE(queue.weight().has_value());
+  }
 
   ASSERT_TRUE(config.cpuTrafficPolicy().has_value());
   ASSERT_EQ(

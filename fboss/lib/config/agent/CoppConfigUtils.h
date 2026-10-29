@@ -34,7 +34,6 @@ constexpr uint8_t kNetworkControlDscp = 48;
 cfg::Range getRange(uint32_t minimum, uint32_t maximum);
 cfg::StreamType getCpuDefaultStreamType(const HwAsic* hwAsic);
 cfg::QueueScheduling getCpuDefaultQueueScheduling(const HwAsic* hwAsic);
-uint32_t getCoppQueuePps(const HwAsic* hwAsic, uint16_t queueId);
 cfg::PortQueueRate getPortQueueRate(const HwAsic* hwAsic, uint16_t queueId);
 cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic);
 
