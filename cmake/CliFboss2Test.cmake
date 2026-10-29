@@ -158,6 +158,7 @@ target_link_libraries(fboss2_cmd_test
   Folly::follybenchmark
   Folly::folly_test_util
   FBThrift::thriftcpp2
+  Boost::filesystem
 )
 
 gtest_discover_tests(fboss2_cmd_test)

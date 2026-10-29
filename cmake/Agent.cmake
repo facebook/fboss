@@ -181,6 +181,7 @@ target_link_libraries(utils
   tahansb800bc_platform_mapping
   ladakh800bcls_platform_mapping
   leh800bcls_platform_mapping
+  Boost::filesystem
 )
 
 add_library(stats
