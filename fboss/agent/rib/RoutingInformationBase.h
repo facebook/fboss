@@ -251,6 +251,16 @@ class RibRouteTables {
   void setEcmpWidth(uint32_t ecmpWidth);
   uint32_t getEcmpWidth() const;
 
+  // Runs ribToSwitchStateFunc on every VRF outside any route update.
+  void syncStateFromRib(
+      const SwitchIdScopeResolver* resolver,
+      const RibToSwitchStateFunction& ribToSwitchStateFunc,
+      void* cookie) const;
+  // Whether warm boot reconstruct folded or backfilled NextHop ids.
+  bool nextHopIdsChangedAtWarmboot() const {
+    return nextHopIdsChangedAtWarmboot_;
+  }
+
   void updateRemoteInterfaceRoutes(
       const SwitchIdScopeResolver* resolver,
       const RouterIDAndNetworkToInterfaceRoutes& toAdd,
@@ -383,12 +393,14 @@ class RibRouteTables {
 
   // Stamps missing clientNextHopSetID, resolvedNextHopSetID, and
   // normalizedResolvedNextHopSetID on routes from a pre-feature warmboot
-  // snapshot. No-op when manager is null or IDs are already set.
+  // snapshot. No-op when manager is null or IDs are already set. Returns
+  // whether it backfilled any route.
   // TODO: remove once FLAGS_enable_nexthop_id_manager is permanently on.
-  static void backfillNextHopIds(
+  static bool backfillNextHopIds(
       const SynchronizedRouteTables::WLockedPtr& lockedRouteTables);
 
   SynchronizedRouteTables synchronizedRouteTables_;
+  bool nextHopIdsChangedAtWarmboot_{false};
 };
 
 class RoutingInformationBase {
@@ -559,6 +571,16 @@ class RoutingInformationBase {
 
   void setEcmpWidth(uint32_t ecmpWidth);
   uint32_t getEcmpWidth() const;
+
+  // Applies the RIB to a state outside any route update, e.g. to bring a warm
+  // boot state's NextHop ids in line with the RIB's.
+  void syncStateFromRib(
+      const SwitchIdScopeResolver* resolver,
+      const RibToSwitchStateFunction& ribToSwitchStateFunc,
+      void* cookie);
+  bool nextHopIdsChangedAtWarmboot() const {
+    return ribTables_.nextHopIdsChangedAtWarmboot();
+  }
 
   void updateRemoteInterfaceRoutes(
       const SwitchIdScopeResolver* resolver,

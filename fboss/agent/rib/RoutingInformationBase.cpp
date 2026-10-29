@@ -1427,15 +1427,16 @@ void RoutingInformationBase::setClassIDImpl(
   }
 }
 
-void RibRouteTables::backfillNextHopIds(
+bool RibRouteTables::backfillNextHopIds(
     const SynchronizedRouteTables::WLockedPtr& lockedRouteTables) {
   if (!lockedRouteTables->nextHopIDManager) {
-    return;
+    return false;
   }
+  bool backfilled{false};
   auto& manager = *lockedRouteTables->nextHopIDManager;
   const uint32_t ecmpWidth = lockedRouteTables->ecmpWidth;
 
-  auto backfillOneRoute = [&manager, ecmpWidth](auto& route) {
+  auto backfillOneRoute = [&manager, ecmpWidth, &backfilled](auto& route) {
     // Per-client: snapshot updates first (route->update rebuilds the
     // nexthopsmulti map and invalidates iterators).
     std::vector<std::pair<ClientID, std::shared_ptr<RouteNextHopEntry>>>
@@ -1499,6 +1500,7 @@ void RibRouteTables::backfillNextHopIds(
     if (clientUpdates.empty() && !fwdReplacement) {
       return;
     }
+    backfilled = true;
     if (route->isPublished()) {
       route = route->clone();
     }
@@ -1531,6 +1533,7 @@ void RibRouteTables::backfillNextHopIds(
     backfillIpRoutes(table.v6NetworkToRoute);
     backfillMplsRoutes(table.labelToRoute);
   }
+  return backfilled;
 }
 
 RibRouteTables RibRouteTables::fromThrift(
@@ -1588,6 +1591,7 @@ RibRouteTables RibRouteTables::fromThrift(
         &rib,
         classBasedPolicyMaps,
         &setIdRemap);
+    rib.nextHopIdsChangedAtWarmboot_ = !setIdRemap.empty();
     if (!setIdRemap.empty()) {
       for (auto& [_vrf, routeTable] : lockedRouteTables->routerIDToRouteTable) {
         routeTable.v4NetworkToRoute.forAll([&setIdRemap](auto& ritr) {
@@ -1635,7 +1639,9 @@ RibRouteTables RibRouteTables::fromThrift(
   }
 
   // Stamp any missing IDs on warmboot-loaded routes before readers see them.
-  backfillNextHopIds(lockedRouteTables);
+  if (backfillNextHopIds(lockedRouteTables)) {
+    rib.nextHopIdsChangedAtWarmboot_ = true;
+  }
   return rib;
 }
 
@@ -2785,6 +2791,35 @@ void RoutingInformationBase::setEcmpWidth(uint32_t ecmpWidth) {
 
 uint32_t RoutingInformationBase::getEcmpWidth() const {
   return ribTables_.getEcmpWidth();
+}
+
+void RibRouteTables::syncStateFromRib(
+    const SwitchIdScopeResolver* resolver,
+    const RibToSwitchStateFunction& ribToSwitchStateFunc,
+    void* cookie) const {
+  auto lockedRouteTables = synchronizedRouteTables_.rlock();
+  for (const auto& [vrf, routeTable] :
+       lockedRouteTables->routerIDToRouteTable) {
+    ribToSwitchStateFunc(
+        resolver,
+        vrf,
+        routeTable.v4NetworkToRoute,
+        routeTable.v6NetworkToRoute,
+        routeTable.labelToRoute,
+        lockedRouteTables->nextHopIDManager.get(),
+        lockedRouteTables->mySidTable,
+        cookie);
+  }
+}
+
+void RoutingInformationBase::syncStateFromRib(
+    const SwitchIdScopeResolver* resolver,
+    const RibToSwitchStateFunction& ribToSwitchStateFunc,
+    void* cookie) {
+  ensureRunning();
+  ribUpdateEventBase_.runInFbossEventBaseThreadAndWait([&]() {
+    ribTables_.syncStateFromRib(resolver, ribToSwitchStateFunc, cookie);
+  });
 }
 
 RouteNextHopSet getNonOverrideNormalizedNextHopsFromRib(

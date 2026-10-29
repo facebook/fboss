@@ -1161,6 +1161,11 @@ class SwSwitch : public HwSwitchCallback {
       const std::shared_ptr<SwitchState>& emptyState,
       const std::shared_ptr<SwitchState>& initialState);
 
+  // On warm boot, applies the RIB to the state if RIB reconstruct merged or
+  // backfilled NextHop ids, so the state carries the RIB's ids.
+  std::shared_ptr<SwitchState> syncNextHopIDsToFIB(
+      const std::shared_ptr<SwitchState>& state);
+
   void logLinkStateEvent(PortID port, bool up);
 
   void logSwitchRunStateChange(
