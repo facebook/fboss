@@ -53,6 +53,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   using BinaryAddresses = std::vector<BinaryAddress>;
 
   explicit ThriftHandler(SwSwitch* sw);
+  ~ThriftHandler() override;
 
   fb303::cpp2::fb_status getStatus() override;
 
@@ -176,6 +177,20 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::unique_ptr<fbstring> data,
       int32_t numOfPkts,
       int32_t intervalInMs) override;
+  void setupL3TrafficLoops(
+      std::unique_ptr<std::vector<BinaryAddress>> qualificationAddresses,
+      std::unique_ptr<std::vector<std::string>> portNames,
+      std::unique_ptr<std::vector<BinaryAddress>> peerNextHops,
+      std::unique_ptr<std::vector<std::string>> expectedPeerMacs,
+      std::unique_ptr<std::vector<int32_t>> timeoutSeconds) override;
+  void extendL3TrafficLoops(
+      std::unique_ptr<std::vector<std::string>> portNames,
+      int32_t timeoutSeconds) override;
+  void teardownL3TrafficLoops(
+      std::unique_ptr<std::vector<std::string>> portNames) override;
+  void getL3TrafficLoopStatus(
+      std::map<std::string, L3TrafficLoopStatus>& statuses,
+      std::unique_ptr<std::vector<std::string>> portNames) override;
   void txPktL3(
       std::unique_ptr<fbstring> payload,
       int32_t numOfPkts,
@@ -563,6 +578,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   // Forbidden copy constructor and assignment operator
   ThriftHandler(ThriftHandler const&) = delete;
   ThriftHandler& operator=(ThriftHandler const&) = delete;
+  ThriftHandler(ThriftHandler&&) = delete;
+  ThriftHandler& operator=(ThriftHandler&&) = delete;
 
   template <typename Result>
   void fail(const ThriftCallback<Result>& callback, const std::exception& ex) {
@@ -587,7 +604,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   int thriftIdleTimeout_{};
   std::vector<const TConnectionContext*> brokenClients_;
 
-  apache::thrift::SSLPolicy sslPolicy_;
+  apache::thrift::SSLPolicy sslPolicy_{apache::thrift::SSLPolicy::DISABLED};
 
   std::unordered_set<uint16_t> syncedFibClients_;
 };

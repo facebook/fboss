@@ -952,6 +952,34 @@ namespace facebook::fboss {
 
 ThriftHandler::ThriftHandler(SwSwitch* sw) : FacebookBase2("FBOSS"), sw_(sw) {}
 
+ThriftHandler::~ThriftHandler() = default;
+
+void ThriftHandler::setupL3TrafficLoops(
+    std::unique_ptr<std::vector<BinaryAddress>>,
+    std::unique_ptr<std::vector<std::string>>,
+    std::unique_ptr<std::vector<BinaryAddress>>,
+    std::unique_ptr<std::vector<std::string>>,
+    std::unique_ptr<std::vector<int32_t>>) {
+  throw FbossError("L3 traffic loop setup is not implemented yet");
+}
+
+void ThriftHandler::extendL3TrafficLoops(
+    std::unique_ptr<std::vector<std::string>>,
+    int32_t) {
+  throw FbossError("L3 traffic loop extension is not implemented yet");
+}
+
+void ThriftHandler::teardownL3TrafficLoops(
+    std::unique_ptr<std::vector<std::string>>) {
+  throw FbossError("L3 traffic loop teardown is not implemented yet");
+}
+
+void ThriftHandler::getL3TrafficLoopStatus(
+    std::map<std::string, L3TrafficLoopStatus>&,
+    std::unique_ptr<std::vector<std::string>>) {
+  throw FbossError("L3 traffic loop status is not implemented yet");
+}
+
 fb_status ThriftHandler::getStatus() {
   if (sw_->isExiting()) {
     return fb_status::STOPPING;
