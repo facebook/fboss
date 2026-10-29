@@ -571,7 +571,7 @@ bool ConfigValidator::isValidSensorName(
       }
     }
   }
-  if (const auto& asicCmd = sensorConfig.asicCommand()) {
+  if (auto asicCmd = sensorConfig.asicCommand()) {
     if (sensorName == asicCmd->sensorName()) {
       return true;
     }
