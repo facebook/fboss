@@ -941,7 +941,8 @@ reboot_cause_config::RebootCauseProviderAttempt readBmcWedgePower(
         reboot_cause_config::RebootCauseProviderStatus::READ_FAILED,
         detailWithReason(
             kBmcLogfilePath,
-            read.failure.empty() ? "empty response" : read.failure),
+            read.failure.empty() ? folly::StringPiece("empty response")
+                                 : folly::StringPiece(read.failure)),
         {});
   }
   return parseBmcWedgePower(read.body, btimeSec, windowSec);
