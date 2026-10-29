@@ -103,6 +103,9 @@ class LedManager {
   LedManager();
   virtual ~LedManager();
 
+  // Must be called before destruction, while the derived object is alive
+  void stop();
+
   void subscribeToFsdb();
 
   // Initialize the Led Manager, get system container
