@@ -18,6 +18,9 @@
 
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 
+#include "fboss/lib/platforms/PlatformDescriptor.h"
+#include "fboss/qsfp_service/QsfpConfig.h"
+
 #include <fmt/format.h>
 #include <folly/Conv.h>
 #include <folly/Exception.h>
@@ -4682,6 +4685,22 @@ void getModulePrbsStatsDirectCmis(TransceiverI2CApi* bus, int module) {
         (prbsCheckerLocked[i] ? "Y" : "N"),
         mediaBer[i],
         mediaSnr[i]);
+  }
+}
+
+void initPlatformDescriptorPathFromQsfpConfig() {
+  if (!FLAGS_platform_descriptor_config_path.empty()) {
+    return;
+  }
+  try {
+    const auto qsfpConfig = QsfpConfig::fromDefaultFile();
+    const auto& args = *qsfpConfig->thrift.defaultCommandLineArgs();
+    if (auto it = args.find("platform_descriptor_config_path");
+        it != args.end()) {
+      FLAGS_platform_descriptor_config_path = it->second;
+    }
+  } catch (const std::exception& ex) {
+    XLOG(DBG2) << "No platform descriptor path from qsfp config: " << ex.what();
   }
 }
 
