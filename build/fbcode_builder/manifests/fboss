@@ -61,8 +61,10 @@ libgpiod
 systemd
 range-v3
 tabulate
-gcc12
 python-pyyaml
+
+[dependencies.all(distro_family=rhel,distro_vers=9)]
+gcc12
 
 # Shared FBOSS libraries and tests must not each register a static glog copy.
 [dependencies.os=linux]

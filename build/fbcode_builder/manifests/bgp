@@ -31,6 +31,8 @@ openr = !default, !full, exported_libraries
 wangle
 re2
 zstd
+
+[dependencies.all(distro_family=rhel,distro_vers=9)]
 gcc12
 
 [cmake.defines.test=on]
