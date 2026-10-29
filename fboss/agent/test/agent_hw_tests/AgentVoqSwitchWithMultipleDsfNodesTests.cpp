@@ -764,14 +764,23 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, voqTailDropCounter) {
   auto verify = [this, kNeighborIp]() {
     const auto kRemoteSysPortId =
         utility::getRemoteSysPortId(getSw(), getProgrammedState());
+    const bool verifyCgmLog =
+        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
+            ->isSupported(
+                HwAsic::Feature::VENDOR_SWITCH_CONGESTION_MANAGEMENT_ERRORS);
     const auto switchIds =
         getSw()->getSwitchInfoTable().getSwitchIdsOfType(cfg::SwitchType::VOQ);
-    for (const auto& switchId : switchIds) {
-      getAgentEnsemble()
-          ->getHwAgentTestClient(switchId)
-          ->sync_installLogCapture();
+    if (verifyCgmLog) {
+      for (const auto& switchId : switchIds) {
+        getAgentEnsemble()
+            ->getHwAgentTestClient(switchId)
+            ->sync_installLogCapture();
+      }
     }
     assertVoqTailDrops(kNeighborIp, kRemoteSysPortId);
+    if (!verifyCgmLog) {
+      return;
+    }
     WITH_RETRIES({
       bool found = false;
       for (const auto& switchId : switchIds) {
