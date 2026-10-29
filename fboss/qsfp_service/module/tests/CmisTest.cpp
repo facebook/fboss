@@ -644,7 +644,7 @@ TEST_F(CmisTest, moduleStateIgnoresReservedBitsOfStatusByte) {
   // decode, so a module misread as not-ready silently loses that data. Page
   // 14h byte 0 is 0x06 in this fixture; it is only populated when the module
   // was seen as READY during the refresh.
-  auto cmisData = xcvr->getDOMDataUnion().get_cmis();
+  auto cmisData = xcvr->getDOMDataUnion().cmis().as_const().value();
   ASSERT_TRUE(cmisData.page14().has_value());
   EXPECT_EQ(cmisData.page14()->data()[0], 0x06);
 }
@@ -667,7 +667,8 @@ TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
       xcvr->numMediaLanes(),
       info.tcvrState()->settings()->mediaInterface().value_or({}).size());
   for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
-    EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::FR4_200G);
+    EXPECT_EQ(
+        media.media()->smfCode().value(), SMFMediaInterfaceCode::FR4_200G);
     EXPECT_EQ(media.code(), MediaInterfaceCode::FR4_200G);
   }
   testCachedMediaSignals(xcvr);
@@ -686,7 +687,7 @@ TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
   if (auto status = info.tcvrState()->status();
       status && status->cmisModuleState()) {
     EXPECT_EQ(*status->cmisModuleState(), CmisModuleState::READY);
-    auto cmisData = xcvr->getDOMDataUnion().get_cmis();
+    auto cmisData = xcvr->getDOMDataUnion().cmis().as_const().value();
     // NOTE the following cmis data are specifically set to 0x11 in
     // FakeTransceiverImpl
     EXPECT_TRUE(cmisData.page14());
@@ -893,7 +894,8 @@ TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
       info.tcvrState()->moduleMediaInterface(),
       MediaInterfaceCode::LR4_400G_10KM);
   for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
-    EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::LR4_10_400G);
+    EXPECT_EQ(
+        media.media()->smfCode().value(), SMFMediaInterfaceCode::LR4_10_400G);
     EXPECT_EQ(media.code(), MediaInterfaceCode::LR4_400G_10KM);
   }
   // Check cmisStateChanged
@@ -911,7 +913,7 @@ TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
   if (auto status = info.tcvrState()->status();
       status && status->cmisModuleState()) {
     EXPECT_EQ(*status->cmisModuleState(), CmisModuleState::READY);
-    auto cmisData = xcvr->getDOMDataUnion().get_cmis();
+    auto cmisData = xcvr->getDOMDataUnion().cmis().as_const().value();
     // NOTE the following cmis data are specifically set to 0x11 in
     // FakeTransceiverImpl
     EXPECT_TRUE(cmisData.page14());
@@ -1125,7 +1127,7 @@ TEST_F(CmisTest, cmis400GCr8TransceiverInfoTest) {
       info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::CR8_400G);
   for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
     EXPECT_EQ(
-        media.media()->get_passiveCuCode(),
+        media.media()->passiveCuCode().value(),
         PassiveCuMediaInterfaceCode::COPPER);
     EXPECT_EQ(media.code(), MediaInterfaceCode::CR8_400G);
   }
@@ -1193,7 +1195,8 @@ TEST_F(CmisTest, cmis2x400GFr4TransceiverInfoTest) {
   EXPECT_EQ(
       info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::FR4_2x400G);
   for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
-    EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::FR4_400G);
+    EXPECT_EQ(
+        media.media()->smfCode().value(), SMFMediaInterfaceCode::FR4_400G);
     EXPECT_EQ(media.code(), MediaInterfaceCode::FR4_400G);
   }
 
@@ -1361,7 +1364,8 @@ TEST_F(CmisTest, cmis2x400GFr4LiteTransceiverInfoTest) {
       info.tcvrState()->moduleMediaInterface(),
       MediaInterfaceCode::FR4_LITE_2x400G);
   for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
-    EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::FR4_400G);
+    EXPECT_EQ(
+        media.media()->smfCode().value(), SMFMediaInterfaceCode::FR4_400G);
     EXPECT_EQ(media.code(), MediaInterfaceCode::FR4_400G);
   }
 
@@ -1523,7 +1527,8 @@ TEST_F(CmisTest, cmis2x400GFr4LpoTransceiverInfoTest) {
       info.tcvrState()->moduleMediaInterface(),
       MediaInterfaceCode::FR4_LPO_2x400G);
   for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
-    EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::FR1_100G);
+    EXPECT_EQ(
+        media.media()->smfCode().value(), SMFMediaInterfaceCode::FR1_100G);
     EXPECT_EQ(media.code(), MediaInterfaceCode::FR1_100G);
   }
 
@@ -1688,7 +1693,7 @@ TEST_F(CmisTest, cmis800GZrTransceiverInfoTest) {
       info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::ZR_800G);
   for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
     EXPECT_EQ(
-        media.media()->get_smfCode(),
+        media.media()->smfCode().value(),
         SMFMediaInterfaceCode::ZR_OROADM_FLEXO_8E_DPO_800G);
     EXPECT_EQ(media.code(), MediaInterfaceCode::ZR_800G);
   }
@@ -2564,7 +2569,7 @@ TEST_F(CmisTest, cmisCredo800AecInfoTest) {
       info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::CR8_800G);
   for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
     EXPECT_EQ(
-        media.media()->get_activeCuCode(),
+        media.media()->activeCuCode().value(),
         ActiveCuHostInterfaceCode::AUI_PAM4_8S_800G);
     EXPECT_EQ(media.code(), MediaInterfaceCode::CR8_800G);
   }
@@ -3367,7 +3372,8 @@ TEST_F(CmisTest, cmis2x400GDr4TransceiverInfoTest) {
   EXPECT_EQ(
       info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::DR4_2x400G);
   for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
-    EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::DR4_400G);
+    EXPECT_EQ(
+        media.media()->smfCode().value(), SMFMediaInterfaceCode::DR4_400G);
     EXPECT_EQ(media.code(), MediaInterfaceCode::DR4_400G);
   }
 
@@ -3473,7 +3479,8 @@ TEST_F(CmisTest, cmis2x400GXdr4TransceiverInfoTest) {
   EXPECT_EQ(xcvr->numHostLanes(), 8);
   EXPECT_EQ(xcvr->numMediaLanes(), 8);
   for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
-    EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::DR4_400G);
+    EXPECT_EQ(
+        media.media()->smfCode().value(), SMFMediaInterfaceCode::DR4_400G);
     EXPECT_EQ(media.code(), MediaInterfaceCode::DR4_400G);
   }
   EXPECT_EQ(*info.tcvrState()->cable()->singleMode(), 2000);
@@ -3630,7 +3637,8 @@ TEST_F(CmisTest, cmis400GDr4TransceiverInfoTest) {
   EXPECT_EQ(
       info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::DR4_400G);
   for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
-    EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::DR4_400G);
+    EXPECT_EQ(
+        media.media()->smfCode().value(), SMFMediaInterfaceCode::DR4_400G);
     EXPECT_EQ(media.code(), MediaInterfaceCode::DR4_400G);
   }
   // Check cmisStateChanged
@@ -3710,7 +3718,8 @@ TEST_F(CmisTest, cmis2x800GDr4TransceiverInfoTest) {
   EXPECT_EQ(
       info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::DR4_2x800G);
   for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
-    EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::DR4_800G);
+    EXPECT_EQ(
+        media.media()->smfCode().value(), SMFMediaInterfaceCode::DR4_800G);
     EXPECT_EQ(media.code(), MediaInterfaceCode::DR4_800G);
   }
 

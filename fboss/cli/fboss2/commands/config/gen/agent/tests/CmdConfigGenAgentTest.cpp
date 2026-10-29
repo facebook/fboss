@@ -929,7 +929,12 @@ TEST(AgentConfigGenTest, GeneratesPlatformConfig) {
   ASSERT_EQ(
       platformConfig.chip()->getType(), cfg::ChipConfig::Type::asicConfig);
   EXPECT_EQ(
-      platformConfig.chip()->asicConfig().value().common()->get_yamlConfig(),
+      platformConfig.chip()
+          ->asicConfig()
+          .value()
+          .common()
+          ->yamlConfig()
+          .value(),
       kAsicYaml);
   EXPECT_EQ(
       *platformConfig.portIdToPortAssignment(),
@@ -980,7 +985,12 @@ TEST(AgentConfigGenTest, UsesExplicitAsicConfigFile) {
   const auto platformConfig = generatePlatformConfig(inputs);
 
   EXPECT_EQ(
-      platformConfig.chip()->asicConfig().value().common()->get_yamlConfig(),
+      platformConfig.chip()
+          ->asicConfig()
+          .value()
+          .common()
+          ->yamlConfig()
+          .value(),
       kVendorAsicYaml);
 }
 
@@ -1003,7 +1013,12 @@ TEST(AgentConfigGenTest, UsesExplicitAsicConfigTypeWithoutMetadata) {
   const auto platformConfig = generatePlatformConfig(inputs);
 
   EXPECT_EQ(
-      platformConfig.chip()->asicConfig().value().common()->get_yamlConfig(),
+      platformConfig.chip()
+          ->asicConfig()
+          .value()
+          .common()
+          ->yamlConfig()
+          .value(),
       kVendorAsicYaml);
 }
 
@@ -1204,7 +1219,8 @@ TEST(AgentConfigGenTest, GeneratesBenchmarkWithDefaultAsicConfigVariant) {
           .as_const()
           .value()
           .common()
-          ->get_yamlConfig(),
+          ->yamlConfig()
+          .value(),
       kDefaultAsicYaml);
   EXPECT_EQ(
       *config.platform()->portIdToPortAssignment(),
@@ -1769,7 +1785,8 @@ TEST(CmdConfigGenAgentTest, UsesExplicitAsicConfigVariant) {
           .as_const()
           .value()
           .common()
-          ->get_yamlConfig(),
+          ->yamlConfig()
+          .value(),
       kDefaultAsicYaml);
 }
 
