@@ -101,6 +101,7 @@
 #endif
 #include "fboss/cli/fboss2/commands/show/product/CmdShowProduct.h"
 #include "fboss/cli/fboss2/commands/show/product/CmdShowProductDetails.h"
+#include "fboss/cli/fboss2/commands/show/reboot_history/CmdShowRebootHistory.h"
 #include "fboss/cli/fboss2/commands/show/rif/CmdShowRif.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRoute.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteCounters.h"
@@ -703,6 +704,12 @@ const CommandTree& kCommandTree() {
          "Show Product Detail Information",
          commandHandler<CmdShowProductDetails>,
          argTypeHandler<CmdShowProductDetailsTraits>}}},
+
+      {"show",
+       "reboot-history",
+       "Show the switch's reboot history and causes",
+       commandHandler<CmdShowRebootHistory>,
+       argTypeHandler<CmdShowRebootHistoryTraits>},
 
       {"stream",
        "fsdb",

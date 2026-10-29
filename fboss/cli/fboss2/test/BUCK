@@ -209,6 +209,7 @@ cpp_unittest(
         "CmdShowPortTest.cpp",
         "CmdShowProductDetailsTest.cpp",
         "CmdShowProductTest.cpp",
+        "CmdShowRebootHistoryTest.cpp",
         "CmdShowRifTest.cpp",
         "CmdShowRouteCountersTest.cpp",
         "CmdShowRouteDetailsTest.cpp",
