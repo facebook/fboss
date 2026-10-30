@@ -69,7 +69,7 @@ AgentEnsembleSwitchConfigFn makeSrv6ConfigFn() {
         asic,
         portIds,
         ensemble.supportsAddRemovePort(),
-        utility::kDefaultLoopbackMap(),
+        asic->desiredLoopbackModes(),
         true /*interfaceHasSubnet*/,
         true /*setInterfaceMac*/,
         utility::kBaseVlanId,
