@@ -118,6 +118,7 @@ cpp_unittest(
     deps = [
         "fbsource//third-party/googletest:gmock",
         "//fboss/platform/platform_manager:device_path_resolver",
+        "//folly:scope_guard",
     ],
 )
 

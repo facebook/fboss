@@ -144,6 +144,7 @@ cpp_library(
     deps = [
         ":pci_explorer",
         ":utils",
+        "//folly/logging:logging",
     ],
     exported_deps = [
         ":data_store",
