@@ -68,3 +68,38 @@ TEST_F(VirtualRouterManagerTest, getRouterIDNotFoundTest) {
       saiManagerTable->virtualRouterManager().getRouterID(invalidVrId),
       FbossError);
 }
+
+TEST_F(VirtualRouterManagerTest, addVirtualRouter) {
+  auto& manager = saiManagerTable->virtualRouterManager();
+  auto vrId = manager.addVirtualRouter(RouterID(1001));
+
+  auto handle = manager.getVirtualRouterHandle(RouterID(1001));
+  ASSERT_NE(handle, nullptr);
+  EXPECT_EQ(handle->virtualRouter->adapterKey(), vrId);
+  EXPECT_EQ(handle->mplsRouterInterface, nullptr);
+  EXPECT_EQ(manager.getRouterID(vrId), RouterID(1001));
+}
+
+TEST_F(VirtualRouterManagerTest, addDuplicateVirtualRouter) {
+  auto& manager = saiManagerTable->virtualRouterManager();
+  manager.addVirtualRouter(RouterID(1001));
+  EXPECT_THROW(manager.addVirtualRouter(RouterID(1001)), FbossError);
+  EXPECT_THROW(manager.addVirtualRouter(RouterID(0)), FbossError);
+}
+
+TEST_F(VirtualRouterManagerTest, removeVirtualRouter) {
+  auto& manager = saiManagerTable->virtualRouterManager();
+  auto vrId = manager.addVirtualRouter(RouterID(1001));
+
+  manager.removeVirtualRouter(RouterID(1001));
+
+  EXPECT_EQ(manager.getVirtualRouterHandle(RouterID(1001)), nullptr);
+  EXPECT_FALSE(FakeSai::getInstance()->virtualRouteManager.exists(vrId));
+  EXPECT_NE(manager.getVirtualRouterHandle(RouterID(0)), nullptr);
+}
+
+TEST_F(VirtualRouterManagerTest, removeInvalidVirtualRouter) {
+  auto& manager = saiManagerTable->virtualRouterManager();
+  EXPECT_THROW(manager.removeVirtualRouter(RouterID(0)), FbossError);
+  EXPECT_THROW(manager.removeVirtualRouter(RouterID(1001)), FbossError);
+}

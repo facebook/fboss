@@ -40,6 +40,7 @@ class SaiVirtualRouterManager {
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
   VirtualRouterSaiId addVirtualRouter(const RouterID& routerId);
+  void removeVirtualRouter(const RouterID& routerId);
   SaiVirtualRouterHandle* getVirtualRouterHandle(const RouterID& routerId);
   const SaiVirtualRouterHandle* getVirtualRouterHandle(
       const RouterID& routerId) const;

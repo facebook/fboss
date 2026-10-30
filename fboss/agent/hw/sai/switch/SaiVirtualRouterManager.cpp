@@ -41,12 +41,40 @@ SaiVirtualRouterManager::SaiVirtualRouterManager(
     CHECK(virtualRouterHandle->virtualRouter);
     handles_.emplace(
         std::make_pair(RouterID(0), std::move(virtualRouterHandle)));
+  } else if (
+      auto defaultVr =
+          saiStore_->get<SaiVirtualRouterTraits>().getWarmbootHandle(
+              RouterID(0))) {
+    // Never remove the adapter's default virtual router
+    defaultVr->setOwnedByAdapter(true);
   }
 }
+
 VirtualRouterSaiId SaiVirtualRouterManager::addVirtualRouter(
-    const RouterID& /* routerId */) {
-  throw FbossError("Adding new virtual routers is not supported");
-  folly::assume_unreachable();
+    const RouterID& routerId) {
+  if (handles_.find(routerId) != handles_.end()) {
+    throw FbossError("Virtual router already exists for ", routerId);
+  }
+  auto virtualRouterHandle = std::make_unique<SaiVirtualRouterHandle>();
+  virtualRouterHandle->virtualRouter =
+      saiStore_->get<SaiVirtualRouterTraits>().setObject(
+          routerId, SaiVirtualRouterTraits::CreateAttributes{});
+  auto vrId = virtualRouterHandle->virtualRouter->adapterKey();
+  handles_.emplace(routerId, std::move(virtualRouterHandle));
+  XLOG(DBG2) << "Added virtual router " << routerId << " sai id " << vrId;
+  return vrId;
+}
+
+void SaiVirtualRouterManager::removeVirtualRouter(const RouterID& routerId) {
+  if (routerId == RouterID(0)) {
+    throw FbossError("Cannot remove the default virtual router");
+  }
+  auto itr = handles_.find(routerId);
+  if (itr == handles_.end()) {
+    throw FbossError("Virtual router does not exist for ", routerId);
+  }
+  handles_.erase(itr);
+  XLOG(DBG2) << "Removed virtual router " << routerId;
 }
 
 SaiVirtualRouterHandle* SaiVirtualRouterManager::getVirtualRouterHandle(

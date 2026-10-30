@@ -48,10 +48,6 @@ struct SaiVirtualRouterTraits {
 
 SAI_ATTRIBUTE_NAME(VirtualRouter, SrcMac)
 
-template <>
-struct IsSaiObjectOwnedByAdapter<SaiVirtualRouterTraits>
-    : public std::true_type {};
-
 class VirtualRouterApi : public SaiApi<VirtualRouterApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_VIRTUAL_ROUTER;
