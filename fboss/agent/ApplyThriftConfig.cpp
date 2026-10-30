@@ -4767,13 +4767,22 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
           bool hasTunnelRedirect = false;
           for (const auto& nh : *redirectToNextHop->redirectNextHops()) {
             auto nhIp = folly::IPAddress(*nh.ip());
-            if (nhIp.isV6() && nhIp.isLinkLocal() && !nh.intfID().has_value()) {
+            if (nhIp.isV6() && nhIp.isLinkLocal()) {
+              if (!nh.intfID().has_value()) {
+                throw FbossError(
+                    "Invalid config: link-local nexthop ",
+                    nhIp.str(),
+                    " in ACL ",
+                    *aclCfg.name(),
+                    " must specify an interface");
+              }
+            } else if (nh.intfID().has_value()) {
               throw FbossError(
-                  "Invalid config: link-local nexthop ",
+                  "Invalid config: non-link-local nexthop ",
                   nhIp.str(),
                   " in ACL ",
                   *aclCfg.name(),
-                  " must specify an interface");
+                  " must not specify an interface");
             }
             if (nh.tunnelType().has_value() &&
                 nh.tunnelType().value() == TunnelType::IP_IN_IP_ENCAP) {

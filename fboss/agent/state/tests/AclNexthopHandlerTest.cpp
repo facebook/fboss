@@ -143,14 +143,6 @@ class AclNexthopHandlerTest : public ::testing::Test {
     return intfAndIps;
   }
 
-  std::vector<int32_t> getOutInterfaces(int numInterfaces) const {
-    std::vector<int32_t> intfIDs;
-    for (int i = 0, vid = 100; i < numInterfaces; ++i, ++vid) {
-      intfIDs.emplace_back(vid);
-    }
-    return intfIDs;
-  }
-
   std::vector<std::string> getMatchingPrefixes(int numPrefixes) const {
     std::vector<std::string> prefixes(numPrefixes);
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
@@ -463,93 +455,6 @@ TYPED_TEST(AclNexthopHandlerTest, MplsNexthops) {
   this->verifyResolvedNexthopsInAclAction(kAclName, expectedNexthops);
 }
 
-// Verify acl nexthop resolution when outgoing interfaces are specified.
-// The configuration specifies an out interface in addition to a recursive
-// nexthop address and ACL nexthop resolution logic should select a nexthop
-// for redirection only if the interface matches.
-TYPED_TEST(AclNexthopHandlerTest, ResolvedAclNextHopMultiNexthopWithInterface) {
-  auto outIntfs = this->getOutInterfaces(4);
-  // Create acl with one outinterface from each nexthop
-  this->updateState(
-      "UnresolvedAclNextHop",
-      [=, this](const std::shared_ptr<SwitchState>& state) {
-        return this->addAcl(
-            state,
-            kAclName,
-            this->getAclNexthopIps(2),
-            {outIntfs[0], outIntfs[2]});
-      });
-
-  auto nexthopIps = this->getResolvedNexthops(4);
-  RouteNextHopSet nexthops1 = makeResolvedNextHops(
-      {
-          nexthopIps[0],
-          nexthopIps[1],
-      },
-      UCMP_DEFAULT_WEIGHT);
-  RouteNextHopSet nexthops2 = makeResolvedNextHops(
-      {
-          nexthopIps[2],
-          nexthopIps[3],
-      },
-      UCMP_DEFAULT_WEIGHT);
-  auto matchingPrefixes = this->getMatchingPrefixes(2);
-  auto longestPrefix1 = this->makePrefix(matchingPrefixes[0]);
-  this->addRoute(longestPrefix1, nexthops1);
-  auto longestPrefix2 = this->makePrefix(matchingPrefixes[1]);
-  this->addRoute(longestPrefix2, nexthops2);
-
-  RouteNextHopSet expectedNexthops;
-  RouteNextHopSet expected = makeResolvedNextHops(
-      {
-          nexthopIps[0],
-          nexthopIps[2],
-      },
-      UCMP_DEFAULT_WEIGHT);
-  expectedNexthops.merge(expected);
-  this->verifyResolvedNexthopsInAclAction(kAclName, expectedNexthops);
-
-  // Now change the route nexthops and verify the
-  // change is reflected on the ACL redirect action
-  this->delRoute(longestPrefix1);
-  this->delRoute(longestPrefix2);
-  this->verifyResolvedNexthopsInAclAction(kAclName, kEmptyNexthopSet);
-
-  // Change to nexthops with no matching interface ids
-  RouteNextHopSet nexthops3 = makeResolvedNextHops(
-      {
-          nexthopIps[1],
-      },
-      UCMP_DEFAULT_WEIGHT);
-  RouteNextHopSet nexthops4 = makeResolvedNextHops(
-      {
-          nexthopIps[3],
-      },
-      UCMP_DEFAULT_WEIGHT);
-  this->addRoute(longestPrefix1, nexthops3);
-  this->addRoute(longestPrefix2, nexthops4);
-
-  this->verifyResolvedNexthopsInAclAction(kAclName, kEmptyNexthopSet);
-
-  this->delRoute(longestPrefix1);
-  this->delRoute(longestPrefix2);
-
-  // change back to matching interface ids
-  RouteNextHopSet nexthops5 = makeResolvedNextHops(
-      {
-          nexthopIps[0],
-      },
-      UCMP_DEFAULT_WEIGHT);
-  RouteNextHopSet nexthops6 = makeResolvedNextHops(
-      {
-          nexthopIps[2],
-      },
-      UCMP_DEFAULT_WEIGHT);
-  this->addRoute(longestPrefix1, nexthops5);
-  this->addRoute(longestPrefix2, nexthops6);
-
-  this->verifyResolvedNexthopsInAclAction(kAclName, expectedNexthops);
-}
 // Link-local nexthops are only meaningful with interface scoping and are
 // inherently resolved, so no RIB lookup is needed.
 TYPED_TEST(AclNexthopHandlerTest, LinkLocalNexthopResolvedWithInterface) {
@@ -612,6 +517,52 @@ TYPED_TEST(AclNexthopHandlerTest, LinkLocalNexthopWithoutInterfaceBadConfig) {
     config.dataPlaneTrafficPolicy()->matchToAction()->push_back(mta);
     EXPECT_THROW(
         this->sw_->applyConfig("LinkLocalNexthopNoIntf", config), FbossError);
+  }
+}
+
+// Non-link-local nexthop with interface scoping is invalid, resolution throws.
+TYPED_TEST(AclNexthopHandlerTest, NonLinkLocalNexthopWithInterfaceThrows) {
+  auto cfgRedirectToNextHop = cfg::RedirectToNextHopAction();
+  cfg::RedirectNextHop nhop;
+  nhop.ip() = this->getAclNexthopIps(1)[0];
+  nhop.intfID() = 100;
+  cfgRedirectToNextHop.redirectNextHops()->push_back(nhop);
+  auto redirectToNextHop = MatchAction::RedirectToNextHopAction();
+  redirectToNextHop.first = cfgRedirectToNextHop;
+  MatchAction action = MatchAction();
+  action.setRedirectToNextHop(redirectToNextHop);
+  AclNexthopHandler handler(this->sw_);
+  EXPECT_THROW(handler.resolveActionNexthops(action), FbossError);
+}
+
+// Config with a non-link-local redirect nexthop carrying interface scoping
+// is rejected at apply time.
+TYPED_TEST(AclNexthopHandlerTest, NonLinkLocalNexthopWithInterfaceBadConfig) {
+  if constexpr (std::is_same_v<
+                    typename TestFixture::AddrT,
+                    folly::IPAddressV4>) {
+    auto config = this->testConfig();
+    cfg::AclEntry acl;
+    acl.name() = kAclName;
+    acl.dstIp() = "2401::2/128";
+    config.acls()->push_back(acl);
+    auto redirect = cfg::RedirectToNextHopAction();
+    cfg::RedirectNextHop nhop;
+    nhop.ip() = "123.0.0.1";
+    nhop.intfID() = 100;
+    redirect.redirectNextHops()->push_back(nhop);
+    auto action = cfg::MatchAction();
+    action.redirectToNextHop() = redirect;
+    cfg::MatchToAction mta;
+    mta.matcher() = kAclName;
+    mta.action() = action;
+    if (!config.dataPlaneTrafficPolicy().has_value()) {
+      config.dataPlaneTrafficPolicy() = cfg::TrafficPolicyConfig();
+    }
+    config.dataPlaneTrafficPolicy()->matchToAction()->push_back(mta);
+    EXPECT_THROW(
+        this->sw_->applyConfig("NonLinkLocalNexthopWithIntf", config),
+        FbossError);
   }
 }
 

@@ -66,18 +66,6 @@ void AclNexthopHandler::resolveActionNexthops(MatchAction& action) {
   RouteNextHopSet nexthops;
   const auto& redirect = action.getRedirectToNextHop();
 
-  auto addFilteredNexthops = [&nexthops](auto& fibNextHops, auto& intfID) {
-    if (intfID.has_value()) {
-      for (const auto& nhop : fibNextHops) {
-        if (nhop.intfID().has_value() &&
-            InterfaceID(intfID.value()) == nhop.intfID().value()) {
-          nexthops.insert(nhop);
-        }
-      }
-    } else {
-      nexthops.merge(std::move(fibNextHops));
-    }
-  };
   for (auto& nhIpStruct : *redirect.value().first.redirectNextHops()) {
     auto nhIp = folly::IPAddress(*nhIpStruct.ip());
     auto intfID = nhIpStruct.intfID();
@@ -93,20 +81,26 @@ void AclNexthopHandler::resolveActionNexthops(MatchAction& action) {
           nhIp, InterfaceID(intfID.value()), UCMP_DEFAULT_WEIGHT));
       continue;
     }
+    if (intfID.has_value()) {
+      throw FbossError(
+          "Non-link-local nexthop ",
+          nhIp.str(),
+          " must not specify an interface");
+    }
     if (nhIp.isV4()) {
       auto result =
           sw_->getRib()->getRouteAndNextHops(nhIp.asV4(), RouterID(0));
       if (!result || !result->first->isResolved()) {
         continue;
       }
-      addFilteredNexthops(result->second, intfID);
+      nexthops.merge(std::move(result->second));
     } else {
       auto result =
           sw_->getRib()->getRouteAndNextHops(nhIp.asV6(), RouterID(0));
       if (!result || !result->first->isResolved()) {
         continue;
       }
-      addFilteredNexthops(result->second, intfID);
+      nexthops.merge(std::move(result->second));
     }
   }
   action.setRedirectToNextHop(std::make_pair(redirect.value().first, nexthops));
