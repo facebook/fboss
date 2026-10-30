@@ -27,7 +27,7 @@
 namespace facebook::fboss::configgen {
 
 struct ResolvedAgentConfigInputs {
-  std::string profile;
+  ConfigProfileType profile;
   // PlatformMapping inputs
   PlatformDescriptor platformDescriptor;
   std::map<int32_t, cfg::PortAssignment> portAssignments;
@@ -85,8 +85,9 @@ findPlatformDescriptorConfigWithDescriptor(
     std::string_view platform);
 
 // Resolves and loads one coherent set of inputs for agent config generation.
-// An omitted profile is normalized to "default". Raw mapping and port
-// assignment artifacts are loaded from the selected descriptor's directory.
+// The profile must use a canonical config-generation profile name. Raw mapping
+// and port assignment artifacts are loaded from the selected descriptor's
+// directory.
 ResolvedAgentConfigInputs resolveAgentConfigInputs(
     const std::filesystem::path& fbossRoot,
     std::string_view platform,
@@ -113,6 +114,9 @@ void applyLinkTopology(
     cfg::SwitchConfig& switchConfig,
     const PlatformMapping& platformMapping,
     const LinkTopology& topology);
+
+// Assigns deterministic IPv4 and IPv6 subnets to link-test interfaces.
+void assignLinkTestInterfaceIpAddresses(cfg::SwitchConfig& switchConfig);
 
 // Constructs the platform section of an AgentConfig from resolved inputs.
 cfg::PlatformConfig generatePlatformConfig(

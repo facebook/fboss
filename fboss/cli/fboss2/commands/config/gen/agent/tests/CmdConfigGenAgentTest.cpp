@@ -949,23 +949,12 @@ TEST(AgentConfigGenTest, GeneratesPlatformConfig) {
   EXPECT_FALSE(inputs.platformMapping->toThrift().rawPlatformPorts());
 }
 
-TEST(AgentConfigGenTest, NormalizesOmittedProfileToDefault) {
+TEST(AgentConfigGenTest, RejectsEmptyProfile) {
   folly::test::TemporaryDirectory temporaryDirectory;
   const auto fbossRoot = fs::path(temporaryDirectory.path().string()) / "fboss";
   createTestPlatform(fbossRoot, "test_vendor");
 
-  const auto omitted = resolveAgentConfigInputs(fbossRoot, kPlatform, "");
-  const auto explicitDefault =
-      resolveAgentConfigInputs(fbossRoot, kPlatform, "default");
-
-  EXPECT_EQ(omitted.profile, "default");
-  EXPECT_EQ(explicitDefault.profile, "default");
-  EXPECT_EQ(omitted.platformDescriptor, explicitDefault.platformDescriptor);
-  EXPECT_EQ(
-      omitted.platformMapping->toThrift(),
-      explicitDefault.platformMapping->toThrift());
-  EXPECT_EQ(omitted.chipConfig, explicitDefault.chipConfig);
-  EXPECT_EQ(omitted.portAssignments, explicitDefault.portAssignments);
+  EXPECT_THROW(resolveAgentConfigInputs(fbossRoot, kPlatform, ""), FbossError);
 }
 
 TEST(AgentConfigGenTest, UsesExplicitAsicConfigFile) {
@@ -1402,7 +1391,7 @@ TEST(AgentConfigGenTest, GeneratesAndRefreshesManifestOutputs) {
   EXPECT_FALSE(fs::exists(obsoletePath));
 }
 
-TEST(AgentConfigGenTest, AppliesDeclaredLinkTopologyToDefaultPortGraph) {
+TEST(AgentConfigGenTest, GeneratesAddressedLinkTestPortGraph) {
   folly::test::TemporaryDirectory sourceDirectory;
   const auto fbossRoot = fs::path(sourceDirectory.path().string()) / "fboss";
   const auto platformDirectory =
@@ -1417,10 +1406,10 @@ TEST(AgentConfigGenTest, AppliesDeclaredLinkTopologyToDefaultPortGraph) {
       "eth1/1/1,eth1/1/2,PROFILE_100G_4_NRZ_NOFEC,true\n");
   writeConfigGenerationTarget(
       platformDirectory,
-      R"({"serviceToOptions":{"AGENT":[{"profile":"DEFAULT","linkTopologyVariant":"paired_ports"}]}})");
+      R"({"serviceToOptions":{"AGENT":[{"profile":"LINK_TEST","asicConfigVariant":"default","linkTopologyVariant":"paired_ports"}]}})");
 
   const auto outputPath = platformDirectory / "forwarding_stack" / "generated" /
-      "agent" / "default.conf";
+      "agent" / "link_test.conf";
   EXPECT_EQ(
       generateConfigsFromManifest(
           fbossRoot,
@@ -1445,6 +1434,16 @@ TEST(AgentConfigGenTest, AppliesDeclaredLinkTopologyToDefaultPortGraph) {
   EXPECT_EQ(*topologyPort.state(), cfg::PortState::ENABLED);
   EXPECT_EQ(
       topologyPort.expectedLLDPValues()->at(cfg::LLDPTag::PORT), kPortName);
+  EXPECT_FALSE(config.sw()->cpuQueues()->empty());
+  EXPECT_TRUE(config.sw()->cpuTrafficPolicy());
+  ASSERT_EQ(config.sw()->interfaces()->size(), 3);
+  for (size_t index = 0; index < config.sw()->interfaces()->size(); ++index) {
+    EXPECT_EQ(
+        *config.sw()->interfaces()[index].ipAddresses(),
+        (std::vector<std::string>{
+            std::to_string(2400 + index) + "::/64",
+            std::to_string(10 + index) + ".0.0.0/24"}));
+  }
 }
 
 TEST(AgentConfigGenTest, AppliesTopologyWithoutModeledPeer) {
@@ -1483,6 +1482,26 @@ TEST(AgentConfigGenTest, AppliesTopologyWithoutModeledPeer) {
   EXPECT_EQ(*topologyPort.profileID(), kPortProfile);
   EXPECT_EQ(*topologyPort.state(), cfg::PortState::ENABLED);
   EXPECT_TRUE(topologyPort.expectedLLDPValues()->empty());
+  for (const auto& interface : *config.sw()->interfaces()) {
+    EXPECT_TRUE(interface.ipAddresses()->empty());
+  }
+}
+
+TEST(AgentConfigGenTest, AssignsLinkTestAddressesBeyondFirstIpv4Octet) {
+  cfg::SwitchConfig switchConfig;
+  switchConfig.interfaces()->resize(251);
+
+  assignLinkTestInterfaceIpAddresses(switchConfig);
+
+  EXPECT_EQ(
+      *switchConfig.interfaces()[213].ipAddresses(),
+      (std::vector<std::string>{"2613::/64", "223.0.0.0/24"}));
+  EXPECT_EQ(
+      *switchConfig.interfaces()[214].ipAddresses(),
+      (std::vector<std::string>{"2614::/64", "10.1.0.0/24"}));
+  EXPECT_EQ(
+      *switchConfig.interfaces()[250].ipAddresses(),
+      (std::vector<std::string>{"2650::/64", "46.1.0.0/24"}));
 }
 
 TEST(AgentConfigGenTest, DisablesPortsOutsideLinkTopology) {

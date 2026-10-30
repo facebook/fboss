@@ -21,6 +21,9 @@
 
 namespace facebook::fboss::configgen {
 
+ConfigProfileType normalizeProfile(std::string_view profile);
+std::string getProfileName(ConfigProfileType profile);
+
 // Service-neutral inputs resolved from one declaration option. Service-specific
 // generators consume this request to produce serialized config contents.
 struct ConfigGenerationRequest {

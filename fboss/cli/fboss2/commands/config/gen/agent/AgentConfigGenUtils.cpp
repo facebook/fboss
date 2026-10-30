@@ -67,11 +67,6 @@ bool isCommandLineArgEnabled(
   return it != defaultCommandLineArgs.end() && it->second == "true";
 }
 
-std::string normalizeProfile(std::string_view profile) {
-  return profile.empty() ? std::string(kDefaultProfileName)
-                         : std::string(profile);
-}
-
 std::string normalizeAsicConfigVariant(
     std::string_view profile,
     std::optional<std::string_view> asicConfigVariant) {
@@ -579,6 +574,39 @@ void applyLinkTopology(
   }
 }
 
+void assignLinkTestInterfaceIpAddresses(cfg::SwitchConfig& switchConfig) {
+  // Preserve the legacy 10.0.0.0/24, 11.0.0.0/24, ... sequence until the
+  // first octet reaches 224. Then wrap it to 10 and increment the second
+  // octet, producing 10.1.0.0/24, 11.1.0.0/24, ... so configurations can
+  // assign unique IPv4 subnets to more than 250 interfaces.
+  constexpr size_t kIpv4FirstOctetStart = 10;
+  constexpr size_t kIpv4OctetLimit = 224;
+  constexpr size_t kIpv4FirstOctetCount =
+      kIpv4OctetLimit - kIpv4FirstOctetStart;
+  // IPv6 hextets are emitted as decimal digits to preserve the legacy output.
+  // 9999 is the largest such value that still fits in one hexadecimal hextet.
+  constexpr size_t kIpv6FirstHextetStart = 2400;
+  constexpr size_t kIpv6FirstHextetLimit = 10000;
+  constexpr size_t kMaxInterfaces =
+      kIpv6FirstHextetLimit - kIpv6FirstHextetStart;
+  if (switchConfig.interfaces()->size() > kMaxInterfaces) {
+    throw FbossError(
+        "Link-test interface address assignment supports at most ",
+        kMaxInterfaces,
+        " interfaces");
+  }
+  for (size_t index = 0; index < switchConfig.interfaces()->size(); ++index) {
+    const auto ipv4FirstOctet =
+        kIpv4FirstOctetStart + index % kIpv4FirstOctetCount;
+    const auto ipv4SecondOctet = index / kIpv4FirstOctetCount;
+    switchConfig.interfaces()[index].ipAddresses() = {
+        std::to_string(kIpv6FirstHextetStart + index) + "::/64",
+        std::to_string(ipv4FirstOctet) + "." + std::to_string(ipv4SecondOctet) +
+            ".0.0/24",
+    };
+  }
+}
+
 cfg::AsicConfigType parseAsicConfigType(std::string_view configType) {
   if (configType == "key_value") {
     return cfg::AsicConfigType::KEY_VALUE_CONFIG;
@@ -667,8 +695,9 @@ ResolvedAgentConfigInputs resolveAgentConfigInputs(
     std::optional<std::string_view> asicConfigVariant,
     std::optional<std::string_view> linkTopologyVariant) {
   const auto normalizedProfile = normalizeProfile(profile);
+  const auto profileName = getProfileName(normalizedProfile);
   const auto normalizedAsicConfigVariant =
-      normalizeAsicConfigVariant(normalizedProfile, asicConfigVariant);
+      normalizeAsicConfigVariant(profileName, asicConfigVariant);
   const auto platformDirectory =
       findPlatformConfigDirectory(fbossRoot, platform);
   auto [descriptorPath, descriptor] =
@@ -751,14 +780,20 @@ cfg::SwitchConfig generateSwitchConfig(
   // TODO(@joseph5wu) Only update the l2LearningMode for `default` profile. Once
   // FBOSS Agent team finishes migrating test config to use Software mode for
   // TH4/5/6, we can remove the profile limitation here
-  if (inputs.profile == kDefaultProfileName) {
+  if (inputs.profile == ConfigProfileType::DEFAULT) {
     switchSettings.l2LearningMode() = asic->getDefaultL2LearningMode();
   }
 
   cfg::SwitchConfig switchConfig;
   switchConfig.switchSettings() = std::move(switchSettings);
   utility::setupDefaultAclTableGroups(switchConfig, *asic);
-  if (inputs.profile == kDefaultProfileName || inputs.linkTopology) {
+
+  // DEFAULT and LINK_TEST are standalone service configurations, so they need
+  // a usable port graph and control-plane policy. HW_TEST and BENCHMARK remain
+  // intentionally minimal because their test fixtures construct the required
+  // switch state.
+  if (inputs.profile == ConfigProfileType::DEFAULT ||
+      inputs.profile == ConfigProfileType::LINK_TEST) {
     utility::addDefaultCpuQueueConfig(switchConfig, *asic);
     utility::addDefaultCpuTrafficPolicyConfig(
         switchConfig,
@@ -766,10 +801,15 @@ cfg::SwitchConfig generateSwitchConfig(
         isCommandLineArgEnabled(
             defaultCommandLineArgs, kSaiUserDefinedTrapArg));
     addDefaultProfilePortGraph(switchConfig, *inputs.platformMapping, *asic);
-  }
-  if (inputs.linkTopology) {
-    applyLinkTopology(
-        switchConfig, *inputs.platformMapping, *inputs.linkTopology);
+
+    if (inputs.linkTopology) {
+      applyLinkTopology(
+          switchConfig, *inputs.platformMapping, *inputs.linkTopology);
+    }
+    // Link tests derive ECMP next hops from non-link-local interface addresses.
+    if (inputs.profile == ConfigProfileType::LINK_TEST) {
+      assignLinkTestInterfaceIpAddresses(switchConfig);
+    }
   }
   return switchConfig;
 }
@@ -800,7 +840,7 @@ std::string generateAgentConfigContents(
   auto defaultCommandLineArgs = generateFeatureDefaultCommandArgs(
       fbossRoot,
       ServiceType::AGENT,
-      inputs.profile,
+      getProfileName(inputs.profile),
       *inputs.platformDescriptor.asicType(),
       *inputs.platformDescriptor.platformType());
   auto switchConfig = generateSwitchConfig(inputs, defaultCommandLineArgs);
