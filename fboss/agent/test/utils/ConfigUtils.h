@@ -70,12 +70,6 @@ void applyTomahawk6PciAddrs(
     const std::vector<std::string>& pciAddrs,
     std::map<SwitchID, cfg::SwitchInfo>& switchIdToSwitchInfo);
 
-/*
- * applyTomahawk6PciAddrs() against the addresses on this box's PCI bus.
- */
-void applyTomahawk6PciAddrsFromBus(
-    std::map<SwitchID, cfg::SwitchInfo>& switchIdToSwitchInfo);
-
 int getMaxRdsw(std::optional<PlatformType> platformType = std::nullopt);
 int getMaxEdsw();
 

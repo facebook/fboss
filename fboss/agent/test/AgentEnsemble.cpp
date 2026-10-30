@@ -18,7 +18,6 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/TestUtils.h"
-#include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/PacketSendUtils.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/CommonFileUtils.h"
@@ -97,24 +96,6 @@ void AgentEnsemble::setupEnsemble(
     if (platformConfigFn) {
       platformConfigFn(
           *(inputAgentConfig.sw()), *(inputAgentConfig.platform()));
-    }
-
-    // Tests that generate their config get this from genPortVlanCfg(); tests
-    // that take the production config verbatim (link tests) would otherwise
-    // hand SAI a handle naming an empty slot on the other COM-E variant.
-    auto& configSwitchInfo =
-        *inputAgentConfig.sw()->switchSettings()->switchIdToSwitchInfo();
-    std::map<SwitchID, cfg::SwitchInfo> tomahawk6SwitchInfo;
-    for (const auto& [switchId, switchInfo] : configSwitchInfo) {
-      if (switchInfo.asicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK6) {
-        tomahawk6SwitchInfo.emplace(SwitchID(switchId), switchInfo);
-      }
-    }
-    if (!tomahawk6SwitchInfo.empty()) {
-      utility::applyTomahawk6PciAddrsFromBus(tomahawk6SwitchInfo);
-      for (const auto& [switchId, switchInfo] : tomahawk6SwitchInfo) {
-        configSwitchInfo[static_cast<int64_t>(switchId)] = switchInfo;
-      }
     }
     // some platform config may need cold boots. so overwrite the config before
     // creating a switch
