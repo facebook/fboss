@@ -265,7 +265,9 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=lld")
 endif()
 if (WITH_ASAN)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g -static-libasan")
+  # -g1 (line tables only) keeps file:line in sanitizer reports. Full -g is
+  # over 80% of each ASAN binary, too large for a full build to fit on disk.
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g1 -static-libasan")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-sanitize-recover=all")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-common")
