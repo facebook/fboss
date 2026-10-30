@@ -1259,6 +1259,13 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       lockPolicy,
       &SaiRouterInterfaceManager::removeLocalRouterInterface);
 
+  // Remove virtual routers after the routes and router interfaces using them
+  processRemovedDelta(
+      delta.getVrfsDelta(),
+      managerTable_->virtualRouterManager(),
+      lockPolicy,
+      &SaiVirtualRouterManager::removeVrf);
+
   // Remove system ports (which may depend on local ports
   // before removing ports)
   processRemovedDelta(
@@ -1406,6 +1413,18 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
           managerTable_->lagManager().addBridgePort(newAggPort);
         });
   }
+
+  // Add virtual routers before the router interfaces using them
+  processChangedDelta(
+      delta.getVrfsDelta(),
+      managerTable_->virtualRouterManager(),
+      lockPolicy,
+      &SaiVirtualRouterManager::changeVrf);
+  processAddedDelta(
+      delta.getVrfsDelta(),
+      managerTable_->virtualRouterManager(),
+      lockPolicy,
+      &SaiVirtualRouterManager::addVrf);
 
   processChangedDelta(
       delta.getIntfsDelta(),

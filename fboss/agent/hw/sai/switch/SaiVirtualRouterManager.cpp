@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
+#include "fboss/agent/state/Vrf.h"
 
 #include <folly/logging/xlog.h>
 
@@ -75,6 +76,24 @@ void SaiVirtualRouterManager::removeVirtualRouter(const RouterID& routerId) {
   }
   handles_.erase(itr);
   XLOG(DBG2) << "Removed virtual router " << routerId;
+}
+
+void SaiVirtualRouterManager::addVrf(const std::shared_ptr<Vrf>& vrf) {
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::VRF)) {
+    throw FbossError(
+        "VRFs are not supported on ", platform_->getAsic()->getAsicTypeStr());
+  }
+  addVirtualRouter(vrf->getID());
+}
+
+void SaiVirtualRouterManager::removeVrf(const std::shared_ptr<Vrf>& vrf) {
+  removeVirtualRouter(vrf->getID());
+}
+
+void SaiVirtualRouterManager::changeVrf(
+    const std::shared_ptr<Vrf>& /* oldVrf */,
+    const std::shared_ptr<Vrf>& /* newVrf */) {
+  // Only the name can change, which is not programmed
 }
 
 SaiVirtualRouterHandle* SaiVirtualRouterManager::getVirtualRouterHandle(

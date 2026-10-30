@@ -10,6 +10,8 @@
 
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
+#include "fboss/agent/state/Vrf.h"
+#include "fboss/agent/state/VrfMap.h"
 
 #include <string>
 
@@ -102,4 +104,19 @@ TEST_F(VirtualRouterManagerTest, removeInvalidVirtualRouter) {
   auto& manager = saiManagerTable->virtualRouterManager();
   EXPECT_THROW(manager.removeVirtualRouter(RouterID(0)), FbossError);
   EXPECT_THROW(manager.removeVirtualRouter(RouterID(1001)), FbossError);
+}
+
+TEST_F(VirtualRouterManagerTest, vrfDelta) {
+  auto& manager = saiManagerTable->virtualRouterManager();
+  auto newState = programmedState->clone();
+  auto vrf = std::make_shared<Vrf>(RouterID(1001));
+  newState->getVrfs()->modify(&newState)->addNode(
+      vrf, scopeResolver().scope(vrf));
+  applyNewState(newState);
+  ASSERT_NE(manager.getVirtualRouterHandle(RouterID(1001)), nullptr);
+
+  newState = programmedState->clone();
+  newState->getVrfs()->modify(&newState)->removeNode(RouterID(1001));
+  applyNewState(newState);
+  EXPECT_EQ(manager.getVirtualRouterHandle(RouterID(1001)), nullptr);
 }
