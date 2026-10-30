@@ -7076,6 +7076,19 @@ std::shared_ptr<MultiSwitchMirrorMap> ThriftConfigApplier::updateMirrors() {
         continue;
       }
       auto newMirror = mirror->clone();
+      // Don't carry another switch's resolved egress port onto this switch.
+      if (auto egressPort = mirror->getEgressPortDesc(); egressPort &&
+          !scopeResolver_.scope(new_, *egressPort).has(SwitchID(switchId))) {
+        newMirror = std::make_shared<Mirror>(
+            mirror->getID(),
+            std::optional<PortDescriptor>(),
+            mirror->getDestinationIp(),
+            mirror->getSrcIp(),
+            mirror->getTunnelUdpPorts(),
+            mirror->getDscp(),
+            mirror->getTruncate(),
+            mirror->getSamplingRate());
+      }
       newMirror->setSwitchId(SwitchID(switchId));
       multiSwitchMirrors->addNode(std::move(newMirror), switchMatcher);
     }
