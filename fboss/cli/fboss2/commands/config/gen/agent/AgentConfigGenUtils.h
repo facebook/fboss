@@ -134,7 +134,6 @@ std::filesystem::path generateAgentConfig(
     std::optional<std::string_view> asicConfigVariant = std::nullopt);
 
 // Produces serialized Agent config contents for a generic declaration request.
-// Agent does not currently define service variants.
 std::string generateAgentConfigForManifest(
     const ConfigGenerationRequest& request);
 

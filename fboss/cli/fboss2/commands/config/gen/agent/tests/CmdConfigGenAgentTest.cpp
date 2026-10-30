@@ -1391,7 +1391,7 @@ TEST(AgentConfigGenTest, GeneratesAndRefreshesManifestOutputs) {
   EXPECT_FALSE(fs::exists(obsoletePath));
 }
 
-TEST(AgentConfigGenTest, GeneratesAddressedLinkTestPortGraph) {
+TEST(AgentConfigGenTest, GeneratesAddressedLinkTestVariants) {
   folly::test::TemporaryDirectory sourceDirectory;
   const auto fbossRoot = fs::path(sourceDirectory.path().string()) / "fboss";
   const auto platformDirectory =
@@ -1404,19 +1404,26 @@ TEST(AgentConfigGenTest, GeneratesAddressedLinkTestPortGraph) {
           "paired_ports.csv",
       "portA,portB,profile,hasTransceiver\n"
       "eth1/1/1,eth1/1/2,PROFILE_100G_4_NRZ_NOFEC,true\n");
+  writeTestFile(
+      platformDirectory / "forwarding_stack" / "link_topology" /
+          "single_port.csv",
+      "portA,portB,profile,hasTransceiver\n"
+      "eth1/1/1,,PROFILE_100G_4_NRZ_NOFEC,true\n");
   writeConfigGenerationTarget(
       platformDirectory,
-      R"({"serviceToOptions":{"AGENT":[{"profile":"LINK_TEST","asicConfigVariant":"default","linkTopologyVariant":"paired_ports"}]}})");
+      R"({"serviceToOptions":{"AGENT":[{"profile":"LINK_TEST","asicConfigVariant":"default","linkTopologyVariant":"paired_ports"},{"profile":"LINK_TEST","variant":"stress","asicConfigVariant":"default","linkTopologyVariant":"single_port"}]}})");
 
   const auto outputPath = platformDirectory / "forwarding_stack" / "generated" /
       "agent" / "link_test.conf";
+  const auto stressOutputPath = platformDirectory / "forwarding_stack" /
+      "generated" / "agent" / "link_test_stress.conf";
   EXPECT_EQ(
       generateConfigsFromManifest(
           fbossRoot,
           ServiceType::AGENT,
           generateAgentConfigForManifest,
           "wedge800bact"),
-      std::vector<fs::path>{outputPath});
+      (std::vector<fs::path>{outputPath, stressOutputPath}));
 
   cfg::AgentConfig config;
   apache::thrift::SimpleJSONSerializer::deserialize(
@@ -1444,6 +1451,14 @@ TEST(AgentConfigGenTest, GeneratesAddressedLinkTestPortGraph) {
             std::to_string(2400 + index) + "::/64",
             std::to_string(10 + index) + ".0.0.0/24"}));
   }
+
+  cfg::AgentConfig stressConfig;
+  apache::thrift::SimpleJSONSerializer::deserialize(
+      readFile(stressOutputPath), stressConfig);
+  ASSERT_EQ(stressConfig.sw()->ports()->size(), 1);
+  EXPECT_EQ(*stressConfig.sw()->ports()->front().name(), kPortName);
+  EXPECT_TRUE(
+      stressConfig.sw()->ports()->front().expectedLLDPValues()->empty());
 }
 
 TEST(AgentConfigGenTest, AppliesTopologyWithoutModeledPeer) {

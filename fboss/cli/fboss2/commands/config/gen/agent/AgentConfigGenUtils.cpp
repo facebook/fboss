@@ -881,14 +881,6 @@ std::string generateAgentConfigForManifest(
   if (request.service != ServiceType::AGENT) {
     throw FbossError("Agent config generator received a non-Agent request");
   }
-  if (request.variant) {
-    throw FbossError(
-        "Agent config generation does not yet support variant '",
-        *request.variant,
-        "' for platform '",
-        request.platform,
-        "'");
-  }
   return generateAgentConfigContents(
       request.platform,
       request.profile,
