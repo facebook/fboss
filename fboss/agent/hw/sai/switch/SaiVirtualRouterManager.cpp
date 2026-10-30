@@ -34,7 +34,7 @@ SaiVirtualRouterManager::SaiVirtualRouterManager(
         SaiApiTable::getInstance()->switchApi().getAttribute(
             switchId, SaiSwitchTraits::Attributes::DefaultVirtualRouterId{})};
     virtualRouterHandle->virtualRouter = store.loadObjectOwnedByAdapter(
-        SaiVirtualRouterTraits::AdapterKey{defaultVrfId});
+        SaiVirtualRouterTraits::AdapterKey{defaultVrfId}, RouterID(0));
     virtualRouterHandle->mplsRouterInterface =
         createMplsRouterInterface(defaultVrfId);
 
