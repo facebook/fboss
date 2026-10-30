@@ -1,7 +1,7 @@
 # FBOSS Skills
 
 This directory contains reusable skills for working on
-[FBOSS](https://github.com/facebook/fboss), the Facebook Open Switching
+[FBOSS](https://github.com/meta/fboss), the Facebook Open Switching
 System. They cover FBOSS services and components such as Agent, QSFP, FSDB,
 platform code, SAI/SDK integration, configuration, and hardware tests. The
 skills are plain-text workflow instructions that can be used by coding agents
