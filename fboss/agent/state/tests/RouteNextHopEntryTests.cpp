@@ -1540,3 +1540,39 @@ TEST(RouteNextHopEntry, WeightedNexthopsNotReplicatedByDefault) {
   const RouteNextHopSet weighted{UnresolvedNextHop(nextHopAddr2, 3)};
   EXPECT_EQ(toAddrAndWeights(util::fromRouteNextHopSet(weighted)), expected);
 }
+
+TEST(RouteNextHopEntry, VxlanNextHopsThriftRoundTrip) {
+  RouteNextHopSet nhops;
+  nhops.emplace(ResolvedNextHop(
+      nextHopAddr2,
+      InterfaceID(2),
+      10,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::vector<folly::IPAddressV6>{},
+      TunnelType::VXLAN,
+      "vxlan_tunnel_1",
+      std::nullopt,
+      NextHopRole::PRIMARY,
+      folly::MacAddress("02:00:00:00:00:01")));
+
+  auto thriftNhops = util::fromRouteNextHopSet(nhops);
+  ASSERT_EQ(thriftNhops.size(), 1);
+  EXPECT_EQ(thriftNhops.at(0).overlayDstMac(), "02:00:00:00:00:01");
+  auto roundTripped = util::toRouteNextHopSet(thriftNhops, true);
+  ASSERT_EQ(roundTripped.size(), 1);
+  EXPECT_EQ(
+      roundTripped.begin()->overlayDstMac(),
+      folly::MacAddress("02:00:00:00:00:01"));
+  EXPECT_EQ(roundTripped.begin()->tunnelType(), TunnelType::VXLAN);
+
+  // Normalization (the RouteNextHopEntry weight-scaling path) must keep
+  // the MAC: dropping it would merge tunnel NHs for different remotes.
+  auto normalized = RouteNextHopEntry::normalizeNextHops(nhops, 1);
+  ASSERT_EQ(normalized.size(), 1);
+  EXPECT_EQ(
+      normalized.begin()->overlayDstMac(),
+      folly::MacAddress("02:00:00:00:00:01"));
+}
