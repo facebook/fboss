@@ -9,6 +9,7 @@ source /opt/fboss/bin/setup_fboss_env
 FBOSS_SHARE="/opt/fboss/share"
 COOP_DIR="/etc/coop"
 FRUID_FILE="/var/facebook/fboss/fruid.json"
+CHASSIS_EEPROM_PARSED="/run/devmap/eeproms/CHASSIS_EEPROM_PARSED"
 NPU_SDK_UTILS_TOOL="/opt/fboss/bin/npu_sdk_utils.py"
 NPU_SDK_METADATA="${FBOSS_SHARE}/npu_sdk_metadata.json"
 NPU_HW_AGENT_BINARY="fboss_hw_agent-sai_impl"
