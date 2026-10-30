@@ -972,6 +972,77 @@ struct ThriftHandler::L3TrafficLoopStateStore {
   folly::Synchronized<std::map<std::string, Loop>> loops;
 };
 
+namespace {
+
+constexpr int32_t kL3TrafficLoopMinTimeoutSeconds{1};
+constexpr int32_t kL3TrafficLoopMaxTimeoutSeconds{3600};
+void validateL3TrafficLoopTimeout(int32_t timeoutSeconds) {
+  if (timeoutSeconds < kL3TrafficLoopMinTimeoutSeconds ||
+      timeoutSeconds > kL3TrafficLoopMaxTimeoutSeconds) {
+    throw FbossError(
+        "L3 traffic loop timeout must be between ",
+        kL3TrafficLoopMinTimeoutSeconds,
+        " and ",
+        kL3TrafficLoopMaxTimeoutSeconds,
+        " seconds");
+  }
+}
+
+std::shared_ptr<Port> findL3TrafficLoopPort(
+    const std::shared_ptr<SwitchState>& state,
+    const std::string& portName) {
+  return state->getPorts()->getPortIf(portName);
+}
+
+std::shared_ptr<AggregatePort> findL3TrafficLoopAggregate(
+    const std::shared_ptr<SwitchState>& state,
+    PortID portId) {
+  for (const auto& switchAndAggregatePorts :
+       std::as_const(*state->getAggregatePorts())) {
+    for (const auto& aggregatePortEntry :
+         std::as_const(*switchAndAggregatePorts.second)) {
+      if (aggregatePortEntry.second->isMemberPort(portId)) {
+        return aggregatePortEntry.second;
+      }
+    }
+  }
+  return nullptr;
+}
+
+std::optional<HwAsic::Feature> getL3TrafficLoopTtlFeature(
+    SwSwitch* sw,
+    const std::shared_ptr<AggregatePort>& aggregatePort) {
+  const auto asicTable = sw->getHwAsicTable();
+  const auto feature = aggregatePort
+      ? HwAsic::Feature::LAG_TTL_DECREMENT_DISABLE
+      : HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE;
+  if (asicTable->isFeatureSupportedOnAnyAsic(feature)) {
+    return feature;
+  }
+  if (asicTable->isFeatureSupportedOnAnyAsic(
+          HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE)) {
+    return HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE;
+  }
+  return std::nullopt;
+}
+
+std::optional<std::string> getL3TrafficLoopUnsupportedReason(
+    const std::shared_ptr<Port>& port,
+    const std::shared_ptr<AggregatePort>& aggregatePort,
+    std::optional<HwAsic::Feature> ttlFeature) {
+  if (port->getPortType() != cfg::PortType::INTERFACE_PORT) {
+    return "L3 traffic loops require an interface port";
+  }
+  if (ttlFeature) {
+    return std::nullopt;
+  }
+  return aggregatePort
+      ? "Aggregate member loops require LAG or next-hop TTL control"
+      : "Port loops require port or next-hop TTL control";
+}
+
+} // namespace
+
 ThriftHandler::ThriftHandler(SwSwitch* sw)
     : FacebookBase2("FBOSS"),
       sw_(sw),
@@ -980,12 +1051,53 @@ ThriftHandler::ThriftHandler(SwSwitch* sw)
 ThriftHandler::~ThriftHandler() = default;
 
 void ThriftHandler::setupL3TrafficLoopImpl(
-    const BinaryAddress&,
+    const BinaryAddress& qualificationAddressArg,
+    const std::string& portName,
+    const BinaryAddress& peerNextHopArg,
     const std::string&,
-    const BinaryAddress&,
-    const std::string&,
-    int32_t) {
-  throw FbossError("L3 traffic loop setup is not implemented yet");
+    int32_t timeoutSeconds) {
+  const auto qualificationAddress = toIPAddress(qualificationAddressArg);
+  if (!qualificationAddress.isV6()) {
+    throw FbossError("L3 traffic loop qualification address must be IPv6");
+  }
+  const auto peerNextHop = toIPAddress(peerNextHopArg);
+  if (!peerNextHop.isV6() || peerNextHop == qualificationAddress) {
+    throw FbossError(
+        "L3 traffic loop peer next hop must be a distinct IPv6 address");
+  }
+  validateL3TrafficLoopTimeout(timeoutSeconds);
+
+  const auto state = sw_->getState();
+  const auto port = findL3TrafficLoopPort(state, portName);
+  if (!port) {
+    throw FbossError("no such port ", portName);
+  }
+  const auto portId = port->getID();
+  const auto aggregatePort = findL3TrafficLoopAggregate(state, portId);
+  const auto ttlFeature = getL3TrafficLoopTtlFeature(sw_, aggregatePort);
+  const auto unsupportedReason =
+      getL3TrafficLoopUnsupportedReason(port, aggregatePort, ttlFeature);
+  if (unsupportedReason) {
+    throw FbossError(*unsupportedReason);
+  }
+  const auto interfaceId = port->getInterfaceID();
+  const auto interface = state->getInterfaces()->getNodeIf(interfaceId);
+  if (!interface) {
+    throw FbossError("No routed interface found for port ", portName);
+  }
+  // Use LAG control for members, port control for standalone ports, then
+  // next-hop control if the selected LAG or port has no TTL control.
+  const bool useLagTtlDisable =
+      ttlFeature == HwAsic::Feature::LAG_TTL_DECREMENT_DISABLE;
+  const bool usePortTtlDisable =
+      ttlFeature == HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE;
+  const bool useNextHopTtlDisable =
+      ttlFeature == HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE;
+  XLOG(INFO) << "L3 traffic loop TTL strategy on " << portName
+             << ": aggregateMember=" << static_cast<bool>(aggregatePort)
+             << ", lagTtlDisable=" << useLagTtlDisable
+             << ", nextHopTtlDisable=" << useNextHopTtlDisable
+             << ", portTtlDisable=" << usePortTtlDisable;
 }
 
 void ThriftHandler::setupL3TrafficLoops(
