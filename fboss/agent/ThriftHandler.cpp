@@ -1054,7 +1054,7 @@ void ThriftHandler::setupL3TrafficLoopImpl(
     const BinaryAddress& qualificationAddressArg,
     const std::string& portName,
     const BinaryAddress& peerNextHopArg,
-    const std::string&,
+    const std::string& expectedPeerMac,
     int32_t timeoutSeconds) {
   const auto qualificationAddress = toIPAddress(qualificationAddressArg);
   if (!qualificationAddress.isV6()) {
@@ -1087,6 +1087,7 @@ void ThriftHandler::setupL3TrafficLoopImpl(
   }
   // Use LAG control for members, port control for standalone ports, then
   // next-hop control if the selected LAG or port has no TTL control.
+  // The LAG strategy is selected only when aggregatePort is present.
   const bool useLagTtlDisable =
       ttlFeature == HwAsic::Feature::LAG_TTL_DECREMENT_DISABLE;
   const bool usePortTtlDisable =
@@ -1098,6 +1099,85 @@ void ThriftHandler::setupL3TrafficLoopImpl(
              << ", lagTtlDisable=" << useLagTtlDisable
              << ", nextHopTtlDisable=" << useNextHopTtlDisable
              << ", portTtlDisable=" << usePortTtlDisable;
+
+  auto peerMac = std::optional<MacAddress>{};
+  if (!expectedPeerMac.empty()) {
+    auto parsedMac = MacAddress::tryFromString(expectedPeerMac);
+    if (!parsedMac.hasValue()) {
+      throw FbossError("Invalid expected peer MAC ", expectedPeerMac);
+    }
+    peerMac = parsedMac.value();
+  }
+  auto neighbor = interface->getNdpTable()->getEntryIf(peerNextHop.asV6());
+  if (neighbor && !neighbor->isPending()) {
+    if (peerMac && neighbor->getMac() != *peerMac) {
+      throw FbossError(
+          "Existing NDP neighbor MAC does not match expected peer MAC for ",
+          peerNextHop);
+    }
+    if (!peerMac) {
+      peerMac = neighbor->getMac();
+    }
+  } else if (!peerMac) {
+    throw FbossError(
+        "L3 traffic loop requires a resolved peer neighbor; supply expectedPeerMac");
+  }
+
+  // A pending neighbor still has a configured TTL setting to preserve.
+  if ((useLagTtlDisable &&
+       aggregatePort->getTTLDisableDecrement().value_or(false)) ||
+      (usePortTtlDisable && port->getTTLDisableDecrement().value_or(false)) ||
+      (useNextHopTtlDisable && neighbor &&
+       neighbor->getDisableTTLDecrement().value_or(false))) {
+    throw FbossError("TTL decrement is already disabled on ", portName);
+  }
+
+  L3TrafficLoopStateStore::Loop loop;
+  loop.portId = portId;
+  if (aggregatePort) {
+    loop.aggregatePortId = aggregatePort->getID();
+  }
+  loop.interfaceId = interfaceId;
+  loop.qualificationAddress = qualificationAddress.asV6();
+  loop.peerNextHop = peerNextHop.asV6();
+  loop.peerMac = peerMac;
+  loop.expiresAt =
+      std::chrono::steady_clock::now() + std::chrono::seconds(timeoutSeconds);
+  loop.status.state() = L3TrafficLoopState::CONFIGURING;
+  loop.status.expirationTimeMs() =
+      duration_cast<std::chrono::milliseconds>(
+          std::chrono::system_clock::now().time_since_epoch() +
+          std::chrono::seconds(timeoutSeconds))
+          .count();
+
+  {
+    auto loops = l3TrafficLoopState_->loops.wlock();
+    auto existing = loops->find(portName);
+    if (existing != loops->end() &&
+        existing->second.status.state() != L3TrafficLoopState::NOT_CONFIGURED) {
+      throw FbossError("L3 traffic loop already exists on port ", portName);
+    }
+    for (const auto& [existingPort, existingLoop] : *loops) {
+      if (existingLoop.status.state() == L3TrafficLoopState::NOT_CONFIGURED) {
+        continue;
+      }
+      // A port can be renamed while its loop is active, so also compare IDs.
+      if (existingLoop.portId == loop.portId) {
+        throw FbossError(
+            "L3 traffic loop already exists on port ", existingPort);
+      }
+      if (loop.aggregatePortId &&
+          existingLoop.aggregatePortId == loop.aggregatePortId) {
+        throw FbossError("L3 traffic loop already exists on this aggregate");
+      }
+      if (existingLoop.qualificationAddress == loop.qualificationAddress) {
+        throw FbossError(
+            "Qualification address is already used by L3 traffic loop on ",
+            existingPort);
+      }
+    }
+    loops->insert_or_assign(portName, loop);
+  }
 }
 
 void ThriftHandler::setupL3TrafficLoops(
