@@ -583,6 +583,23 @@ void Utils::printLogs() {
             << std::endl;
 }
 
+void Utils::printFile(const std::string& path) const {
+  if (std::filesystem::exists(path)) {
+    std::cout << platformUtils_.execCommand(fmt::format("cat {}", path)).second
+              << std::endl;
+  } else {
+    std::cout << fmt::format("{} not found", path) << std::endl;
+  }
+}
+
+void Utils::printConfigDetails() {
+  for (const auto& file : *config_.configFiles()) {
+    std::cout << fmt::format("##### {} Configuration #####", *file.name())
+              << std::endl;
+    printFile(*file.path());
+  }
+}
+
 void Utils::runFbossCliCmd(const std::string& cmd) {
   if (!std::filesystem::exists("/etc/ramdisk")) {
     auto fullCmd = fmt::format("fboss2 show {}", cmd);
