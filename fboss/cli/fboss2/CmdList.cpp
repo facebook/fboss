@@ -22,6 +22,7 @@
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h"
 #include "fboss/cli/fboss2/commands/config/gen/agent/CmdConfigGenAgent.h"
 #include "fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h"
+#include "fboss/cli/fboss2/commands/reload/CmdReloadConfigAgent.h"
 #include "fboss/cli/fboss2/commands/set/fanhold/CmdSetFanHold.h"
 #include "fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h"
 #include "fboss/cli/fboss2/commands/set/interface/admin_state/CmdSetInterfaceAdminState.h"
@@ -132,6 +133,14 @@ const CommandTree& kCommandTree() {
          commandHandler<CmdConfigGenAgent>,
          argTypeHandler<CmdConfigGenAgentTraits>,
          localOptionsHandler<CmdConfigGenAgentTraits>}}},
+
+      {"reload",
+       "config",
+       "Reload binary configuration file",
+       {{"agent",
+         "Reload the agent config",
+         commandHandler<CmdReloadConfigAgent>,
+         argTypeHandler<CmdReloadConfigAgentTraits>}}},
 
       {"show",
        "acl",
