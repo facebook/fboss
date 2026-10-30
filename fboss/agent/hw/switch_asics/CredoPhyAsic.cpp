@@ -18,6 +18,7 @@ bool CredoPhyAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PCS_RX_LINK_STATUS:
     case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::OBJECT_KEY_CACHE:
+    case HwAsic::Feature::XPHY_SERDES_TX_FIR_POST3:
       return true;
     case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
     case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
@@ -25,6 +26,7 @@ bool CredoPhyAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::CUT_THROUGH_FORWARDING:
     case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
     case HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER:
+    case HwAsic::Feature::SRV6_BINDING_USID_UA_USD:
     case HwAsic::Feature::PBR_ACL:
     case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
@@ -32,6 +34,7 @@ bool CredoPhyAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_SERDES_PRECODING:
     case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
     case HwAsic::Feature::ACL_DST_IPV6_WORD_QUALIFIERS:
+    case HwAsic::Feature::LAG_TTL_DECREMENT_DISABLE:
     default:
       return false;
   }

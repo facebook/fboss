@@ -44,18 +44,22 @@ class NextHopApiTest : public ::testing::Test {
 
   NextHopSaiId createMplsNextHop(
       folly::IPAddress ip,
-      std::vector<sai_uint32_t> stack) {
+      std::vector<sai_uint32_t> stack,
+      sai_int32_t outsegType = SAI_OUTSEG_TYPE_SWAP) {
     SaiMplsNextHopTraits::Attributes::Type typeAttribute(
         SAI_NEXT_HOP_TYPE_MPLS);
     SaiMplsNextHopTraits::Attributes::RouterInterfaceId
         routerInterfaceIdAttribute(0);
     SaiMplsNextHopTraits::Attributes::Ip ipAttribute(ip4);
     SaiMplsNextHopTraits::Attributes::LabelStack labelStack{stack};
+    SaiMplsNextHopTraits::Attributes::OutsegType outsegTypeAttribute{
+        outsegType};
     auto nextHopId = nextHopApi->create<SaiMplsNextHopTraits>(
         {typeAttribute,
          routerInterfaceIdAttribute,
          ipAttribute,
          labelStack,
+         outsegTypeAttribute,
          std::nullopt},
         0);
     auto fnh = fs->nextHopManager.get(nextHopId);
@@ -63,6 +67,7 @@ class NextHopApiTest : public ::testing::Test {
     EXPECT_EQ(ip, fnh.ip);
     EXPECT_EQ(0, fnh.routerInterfaceId);
     EXPECT_EQ(stack, fnh.labelStack);
+    EXPECT_EQ(outsegType, fnh.outsegType);
 
     return nextHopId;
   }
@@ -149,6 +154,21 @@ TEST_F(NextHopApiTest, getMplsTypeAttribute) {
   EXPECT_EQ(nextHopTypeGot, SAI_NEXT_HOP_TYPE_MPLS);
 }
 
+TEST_F(NextHopApiTest, getMplsOutsegTypeAttribute) {
+  auto pushNextHopId =
+      createMplsNextHop(ip4, {1001, 2001}, SAI_OUTSEG_TYPE_PUSH);
+  auto swapNextHopId = createMplsNextHop(ip4, {3001}, SAI_OUTSEG_TYPE_SWAP);
+
+  EXPECT_EQ(
+      nextHopApi->getAttribute(
+          pushNextHopId, SaiMplsNextHopTraits::Attributes::OutsegType()),
+      SAI_OUTSEG_TYPE_PUSH);
+  EXPECT_EQ(
+      nextHopApi->getAttribute(
+          swapNextHopId, SaiMplsNextHopTraits::Attributes::OutsegType()),
+      SAI_OUTSEG_TYPE_SWAP);
+}
+
 // IP is create only, so if we try to set it, we expect to fail
 TEST_F(NextHopApiTest, setIpTypeAttribute) {
   auto nextHopId = createNextHop(ip4);
@@ -195,6 +215,8 @@ TEST_F(NextHopApiTest, formatNextHopAttributes) {
   EXPECT_EQ(fmt::format("Ip: {}", str4), fmt::format("{}", ip));
   SaiMplsNextHopTraits::Attributes::LabelStack ls{{42, 100}};
   EXPECT_EQ("LabelStack: [42, 100]", fmt::format("{}", ls));
+  SaiMplsNextHopTraits::Attributes::OutsegType ot{SAI_OUTSEG_TYPE_PUSH};
+  EXPECT_EQ("OutsegType: 0", fmt::format("{}", ot));
 }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)

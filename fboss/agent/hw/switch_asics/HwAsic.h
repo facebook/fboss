@@ -4,8 +4,11 @@
 #include <cstdint>
 #include <map>
 #include <optional>
+#include <string>
+#include <tuple>
 #include <unordered_set>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include <fboss/lib/phy/gen-cpp2/phy_types.h>
@@ -159,6 +162,12 @@ class HwAsic {
     //    SAI_SWITCH_ATTR_ACL_STAGE_INGRESS
     //  - Rename to carry ACL_ prefix.
     SAI_ACL_ENTRY_SRC_PORT_QUALIFIER,
+
+    // Set to true if the egress port (AclEntry.dstPort) can be used as an
+    // ingress ACL matcher. For SAI, this maps to whether
+    // SAI_ACL_TABLE_ATTR_FIELD_OUT_PORT is set during ingress ACL table
+    // creation.
+    ACL_ENTRY_OUT_PORT_QUALIFIER,
 
     // Set to true if the SAI implementation supports ACL action to set hash
     // algorithm. For SAI, this maps to whether
@@ -331,6 +340,12 @@ class HwAsic {
     // the qualifier fails sai_acl_table_create() with
     // SAI_STATUS_INVALID_ATTR_VALUE instead of ignoring it.
     SAI_ACL_MPLS_LABEL0_TTL,
+
+    // Set to true if the SAI implementation honours
+    // SAI_NEXT_HOP_ATTR_OUTSEG_TYPE on an MPLS next hop. When it is not set,
+    // the adapter falls back to the SAI default of SAI_OUTSEG_TYPE_SWAP, so
+    // head-end imposition silently forwards the packet unlabelled.
+    SAI_MPLS_NEXTHOP_OUTSEG_TYPE,
 
     // Set to true if the SAI implementation supports counting packets dropped
     // due to MPLS label lookup failure. Creates a SAI debug counter with drop
@@ -575,6 +590,9 @@ class HwAsic {
     NEXT_HOP_GROUP_MEMBER_MONITORED_OBJECT,
     SRV6_MYSID_DISCARD_COUNTER,
     SRV6_MYSID_RESOURCE_COUNTER,
+    // Binding uSIDs use uA with USD and an SRv6 decap tunnel rather than
+    // B6_ENCAPS_RED with no flavor or decap tunnel.
+    SRV6_BINDING_USID_UA_USD,
     DEVICE_WATERMARK_SUPPORT,
     // Per-stage HW drop cause bitmaps via custom SAI switch stats
     // (SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_*). Each bitmap is an i64
@@ -592,6 +610,10 @@ class HwAsic {
     // Per-port link up/down debounce (hold-off timers) and the associated
     // debounce retrigger counters.
     PORT_DEBOUNCE,
+    // The link up hold-off timer is a single switch wide control rather than a
+    // per-port one, so every port configuring portUpHoldoffTimeMs has to
+    // configure the same value. Applicable only when PORT_DEBOUNCE is enabled.
+    SWITCH_WIDE_LINK_UP_DEBOUNCE,
     // Per-port Switch Lifetime Limit / Headroom Lifetime Limit egress discard
     // counters (SAI_PORT_STAT_IF_OUT_DISCARDS_SLL / _HLL). NVIDIA Spectrum
     // only; the counters are collected via fillInSupportedVendorExtStats().
@@ -607,6 +629,25 @@ class HwAsic {
     // Port isolation groups: traffic ingressing a port is not forwarded to the
     // members of the isolation group bound to it
     ISOLATION_GROUP,
+    // Extra router MACs via the SAI MY_MAC object: packets destined to a
+    // programmed MAC + VLAN are routed like packets to the switch's own MAC.
+    MY_MAC,
+    // XPHY only: the xphy SerDes has a TX FIR post3 tap, so program it and read
+    // it back. Only consulted by phy/ code; NPU ASICs report false (n/a).
+    // Agera3 (Condor SerDes) has no post3: the SDK drops it on set and returns
+    // -1 on get.
+    XPHY_SERDES_TX_FIR_POST3,
+    // Per-port HW protection switchover counters
+    // (SAI_PORT_STAT_IF_IN_HW_PROTECTION_SWITCHOVER_EVENTS and
+    // SAI_PORT_STAT_IF_IN_HW_PROTECTION_SWITCHOVER_DROP_PKTS). Broadcom
+    // Tomahawk 5/6 with XGS SDK 13.3+.
+    HW_PROTECTION_SWITCHOVER_COUNTERS,
+    // PBR ACL table byte counters, for ASICs without ACL_BYTE_COUNTER.
+    PBR_ACL_BYTE_COUNTER,
+    // CSIG (Congestion Signaling) per-port egress tag action and link locator
+    CSIG,
+    // TTL control on the aggregate's shared forwarding service.
+    LAG_TTL_DECREMENT_DISABLE,
   };
 
   enum class AsicMode {
@@ -795,6 +836,16 @@ class HwAsic {
   virtual std::optional<uint32_t> getMaxArsWidth() const {
     return std::nullopt;
   }
+  // CBFC sender credit sizes, in bytes, that the SAI implementation accepts.
+  // Empty on ASICs without CBFC.
+  virtual std::vector<int16_t> getCbfcSenderCreditSizes() const {
+    return {};
+  }
+  // CBFC sender per-packet overheads, in bytes, that the SAI implementation
+  // accepts. Empty on ASICs without CBFC.
+  virtual std::vector<int16_t> getCbfcSenderPacketOverheads() const {
+    return {};
+  }
   // TODO(zecheng): Define more specific limits for v4/v6 routes with different
   // mask lengths
   virtual std::optional<uint32_t> getMaxRoutes() const {
@@ -821,6 +872,10 @@ class HwAsic {
     return std::nullopt;
   }
 
+  virtual std::optional<uint32_t> getMaxVrfs() const {
+    return std::nullopt;
+  }
+
   virtual std::optional<uint32_t> getMaxRouteCounters() const {
     return std::nullopt;
   }
@@ -832,6 +887,11 @@ class HwAsic {
 
   // SRv6 next hops used by single-nhop routes (NextHopSet size == 1)
   virtual std::optional<uint32_t> getMaxSrv6SingleNextHops() const {
+    return std::nullopt;
+  }
+
+  // Distinct member weights in one SRv6 UCMP next hop group
+  virtual std::optional<uint32_t> getMaxSrv6UcmpDistinctWeights() const {
     return std::nullopt;
   }
 
@@ -890,6 +950,38 @@ class HwAsic {
     uint32_t corePortIndex;
     uint32_t speedMbps;
     uint32_t numVoqs;
+  };
+
+  class AcceptedValues {
+   public:
+    using Range = std::tuple<uint32_t, uint32_t>;
+    using Values = std::vector<uint32_t>;
+
+    static AcceptedValues range(uint32_t minInclusive, uint32_t maxInclusive) {
+      return AcceptedValues(std::make_tuple(minInclusive, maxInclusive));
+    }
+    static AcceptedValues oneOf(Values values) {
+      return AcceptedValues(std::move(values));
+    }
+
+    bool isRange() const {
+      return std::holds_alternative<Range>(accepted_);
+    }
+    const Range& asRange() const {
+      return std::get<Range>(accepted_);
+    }
+    const Values& asValues() const {
+      return std::get<Values>(accepted_);
+    }
+
+    bool accepts(uint32_t value) const;
+    std::string str() const;
+
+   private:
+    explicit AcceptedValues(std::variant<Range, Values> accepted)
+        : accepted_(std::move(accepted)) {}
+
+    std::variant<Range, Values> accepted_;
   };
 
   std::optional<cfg::SdkVersion> getSdkVersion() const {
@@ -976,9 +1068,17 @@ class HwAsic {
     return true;
   }
 
+  virtual std::optional<AcceptedValues> getAcceptedLinkUpHoldoffTimeMs() const {
+    return std::nullopt;
+  }
+
   virtual uint64_t getCpuPortEgressPoolSize() const;
 
   virtual bool portMtuSupported(cfg::PortType portType) const;
+
+  virtual cfg::L2LearningMode getDefaultL2LearningMode() const {
+    return cfg::L2LearningMode::HARDWARE;
+  }
 
  protected:
   static cfg::Range64 makeRange(int64_t min, int64_t max);

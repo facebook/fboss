@@ -13,8 +13,17 @@ target_link_libraries(reboot_cause_finder_impl_test
   ${LIBGMOCK_LIBRARIES}
 )
 
-# The parsers resolve local time, so the golden-input assertions are a
-# property of the zone, not of the build host. Matches env in the BUCK target.
-gtest_discover_tests(reboot_cause_finder_impl_test
-  PROPERTIES ENVIRONMENT "TZ=America/Los_Angeles"
+gtest_discover_tests(reboot_cause_finder_impl_test)
+
+add_executable(reboot_history_test
+  fboss/platform/reboot_cause_finder/tests/RebootHistoryTest.cpp
 )
+
+target_link_libraries(reboot_history_test
+  reboot_history_lib
+  Folly::folly
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(reboot_history_test)

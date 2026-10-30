@@ -30,7 +30,8 @@
         "zPortName": "fab1/18/4",
         "profileID": 37
       }
-    ]
+    ],
+    "qsfpServiceMemLimitBytes": 2500000000
   },
   "transceiverFirmwareVersions": {
     "versionsMap": {
@@ -510,6 +511,14 @@
             }
           ]
       },
+      "SPQ8E44DOCOA": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "0.1"
+            }
+          ]
+      },
       "SPTSHP3CLCK2": {
           "versions": [
             {
@@ -607,6 +616,14 @@
           ]
       },
       "T-OH8CNH-NFM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "36.197"
+            }
+          ]
+      },
+      "T-OH8CNH-NFY": {
           "versions": [
             {
               "fwType": 1,

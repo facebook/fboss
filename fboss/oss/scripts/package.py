@@ -15,9 +15,15 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING or __package__:
-    from .platform_descriptor_utils import get_platform_descriptor_paths
+    from .platform_configs_utils import (
+        get_forwarding_stack_config_paths,
+        get_platform_descriptor_paths,
+    )
 else:
-    from platform_descriptor_utils import get_platform_descriptor_paths
+    from platform_configs_utils import (
+        get_forwarding_stack_config_paths,
+        get_platform_descriptor_paths,
+    )
 
 SRC_DIR = pathlib.Path("/var/FBOSS/fboss")
 OSS_DIR = SRC_DIR / "fboss/oss"
@@ -351,7 +357,10 @@ def _build_target(target: str, build_dir: pathlib.Path):
         }
         libs = FORWARDING_LIBS + COMMON_LIBS
         test_bins = FORWARDING_TEST_BINARIES
-        test_extras = FORWARDING_TEST_EXTRA
+        test_extras = {
+            **FORWARDING_TEST_EXTRA,
+            **get_forwarding_stack_config_paths(PLATFORM_CONFIGS_DIR),
+        }
     elif target == "platform-stack":
         bins = PLATFORM_BINARIES
         extras = PLATFORM_EXTRA
@@ -362,6 +371,7 @@ def _build_target(target: str, build_dir: pathlib.Path):
         bins = AGENT_BENCHMARK_BINARIES
         extras = {
             OSS_DIR / "hw_benchmark_tests": "share/hw_benchmark_tests",
+            **get_forwarding_stack_config_paths(PLATFORM_CONFIGS_DIR),
         }
     elif target == "bgp":
         bins = BGP_BINARIES

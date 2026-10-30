@@ -55,7 +55,6 @@ class SaiArsManager {
       const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitchingConfig,
       std::optional<bool> splitHorizonEnabled = std::nullopt);
   SaiArsHandle* getArsHandle() const;
-  SaiArsHandle* getAlternateMemberArsHandle() const;
   SaiArsHandle* getVirtualArsGroupHandle() const;
   SaiArsHandle* getStandbyArsHandle() const;
   sai_int32_t cfgSwitchingModeToSai(cfg::SwitchingMode switchingMode) const;
@@ -100,7 +99,6 @@ class SaiArsManager {
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   std::unique_ptr<SaiArsHandle> arsHandle_;
-  std::unique_ptr<SaiArsHandle> alternateMemberArsHandle_;
   std::unique_ptr<SaiArsHandle> virtualArsGroupHandle_;
   std::unique_ptr<SaiArsHandle> standbyArsHandle_;
 #endif

@@ -5,6 +5,7 @@ import argparse
 import glob
 import os
 import pathlib
+import re
 import shutil
 import stat
 import subprocess
@@ -12,9 +13,15 @@ import tempfile
 from typing import ClassVar, TYPE_CHECKING
 
 if TYPE_CHECKING or __package__:
-    from .platform_descriptor_utils import copy_platform_descriptors
+    from .platform_configs_utils import (
+        copy_forwarding_stack_configs,
+        copy_platform_descriptors,
+    )
 else:
-    from platform_descriptor_utils import copy_platform_descriptors
+    from platform_configs_utils import (
+        copy_forwarding_stack_configs,
+        copy_platform_descriptors,
+    )
 
 OPT_ARG_SCRATCH_PATH = "--scratch-path"
 OPT_ARG_COPY_ROOT_LIBS = "--copy-root-libs"
@@ -349,6 +356,7 @@ class PackageFboss:
 
                     # retrieve dependencies using ldd
                     dependencies = self._get_dependency_paths(bin_abs_path)
+                    dependencies |= self._sdk_sibling_libs(dependencies)
                     for lib_abs_path in dependencies:
                         try:
                             shutil.copy(lib_abs_path, lib_pkg_path)
@@ -363,6 +371,10 @@ class PackageFboss:
         self._copy_run_configs(tmp_dir_name)
         self._copy_configs(tmp_dir_name)
         copy_platform_descriptors(
+            pathlib.Path(self.get_fboss_subdirectory("fboss/configs/platforms")),
+            pathlib.Path(tmp_dir_name),
+        )
+        copy_forwarding_stack_configs(
             pathlib.Path(self.get_fboss_subdirectory("fboss/configs/platforms")),
             pathlib.Path(tmp_dir_name),
         )
@@ -413,13 +425,52 @@ class PackageFboss:
         except subprocess.CalledProcessError:
             print("Unable to update LD_LIBRARY_PATH, libs may be missing!")
 
+    def _sdk_sibling_libs(self, dependencies: set[str]) -> set[str]:
+        """
+        Shared libraries shipped beside a dynamically linked libsai_impl.so, plus
+        their own dependencies. An NPU SDK may dlopen these (for example
+        per-device libraries), so ldd on the binaries reports neither.
+        """
+        siblings = set()
+        for lib in dependencies:
+            if os.path.basename(lib) != "libsai_impl.so":
+                continue
+            sdk_dir = os.path.dirname(lib)
+            for name in os.listdir(sdk_dir):
+                path = os.path.join(sdk_dir, name)
+                # libfoo.so or libfoo.so.1.2, not libfoo.so.debug or *.so.bak.
+                if (
+                    re.fullmatch(r".+\.so(\.\d+)*", name)
+                    and os.path.isfile(path)
+                    and path not in self.dependencies
+                ):
+                    siblings.add(path)
+        self.dependencies |= siblings
+        for sibling in list(siblings):
+            siblings |= self._get_dependency_paths(sibling)
+        return siblings
+
     def _get_dependency_paths(self, path_to_binary: str) -> {str}:
         """
         Get full paths to dependencies identified by ldd for a given binary.
         """
 
         dependencies = set()
-        exclude_patterns = ["libc.so", "libgcc_s.so", "libsystemd.so"]
+        # All of glibc comes from the host: its libraries share GLIBC_PRIVATE
+        # symbols, so bundling some beside the host's libc mixes versions.
+        exclude_patterns = [
+            "libc.so",
+            "libm.so",
+            "libresolv.so",
+            "libdl.so",
+            "libpthread.so",
+            "librt.so",
+            "libutil.so",
+            "libnss_",
+            "ld-linux",
+            "libgcc_s.so",
+            "libsystemd.so",
+        ]
 
         try:
             output = subprocess.check_output(["file", path_to_binary])

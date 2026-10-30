@@ -162,6 +162,7 @@ class SaiPortManager {
   void replaceIngressAcl(
       AclTableSaiId oldAclTableId,
       AclTableSaiId newAclTableId);
+  void resetIngressAcl();
 
   bool createOnlyAttributeChanged(
       const std::shared_ptr<Port>& oldPort,
@@ -184,7 +185,9 @@ class SaiPortManager {
       const std::shared_ptr<SaiPortSerdes>& serdes,
       bool zeroPreemphasis = false,
       const std::optional<std::string>& customCollection = std::nullopt,
-      bool skipSerdesProgramming = false);
+      bool skipSerdesProgramming = false,
+      bool txPrecodingEnabled = false,
+      bool rxPrecodingEnabled = false);
 
   const SaiPortHandle* getPortHandle(PortID swId) const;
   SaiPortHandle* getPortHandle(PortID swId);
@@ -313,9 +316,13 @@ class SaiPortManager {
       uint8_t numFecLanes) const;
   std::optional<sai_latch_status_t> getPcsRxLinkStatus(
       PortSaiId saiPortId) const;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+  std::optional<sai_latch_status_t> getExtOperStatusLatch(
+      PortSaiId saiPortId) const;
+#endif
 #endif
 
-#if defined(SAI_BRCM_PAI_IMPL) && SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+#if defined(BRCM_PAI_SDK) && SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
   phy::Loopback getLoopbackMode(PortSaiId saiPortId) const;
 #endif
 
@@ -349,6 +356,8 @@ class SaiPortManager {
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
   cfg::PortType getPortType(PortID portId) const;
+  void programSwitchWideLinkUpDebounceTimeout(
+      const std::shared_ptr<Port>& swPort);
   void setClm(PortID portId, bool clmEnabled);
   bool isClmEnabled(PortID portId) const;
   bool fecCorrectedBitsSupported(PortID portID) const;
@@ -445,7 +454,6 @@ class SaiPortManager {
   bool llrProfileBindingChanged(
       std::optional<sai_object_id_t> boundProfile,
       const std::shared_ptr<Port>& swPort);
-  void reissueLlrModeRemote(SaiPortHandle* portHandle, PortID portId);
   void programSampling(
       PortID portId,
       SamplePacketDirection direction,

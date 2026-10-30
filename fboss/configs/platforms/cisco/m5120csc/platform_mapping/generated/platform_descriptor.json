@@ -6,5 +6,6 @@
   "modeNames": [
     "m5120csc"
   ],
-  "asicType": 26
+  "asicType": 26,
+  "numSwitchAsics": 1
 }

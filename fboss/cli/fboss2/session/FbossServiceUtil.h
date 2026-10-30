@@ -85,6 +85,9 @@ class FbossServiceUtil {
   // Returns ordered list of services to restart (hw_agent first, sw_agent last)
   std::vector<std::string> getServicesToRestart(cli::ServiceType service) const;
 
+  // Prefers classic unit names and falls back to the installed NetOS unit.
+  std::string resolveSystemdServiceName(const std::string& service) const;
+
   // Shared per-service helper: restart and wait for active.
   void performRestartAndWait(const std::string& service);
 

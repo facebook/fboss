@@ -296,6 +296,15 @@ std::
       udfGroupIds[3], // UserDefinedFieldGroupMin3
       udfGroupIds[4], // UserDefinedFieldGroupMin4
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      SaiAclTableTraits::Attributes::FieldRouteDestination::
+              optionalExtensionAttributeId()
+                  .has_value()
+          ? std::optional<SaiAclTableTraits::Attributes::
+                              FieldRouteDestination>{qualifierExistsFn(
+                cfg::AclTableQualifier::NEXT_HOP_GROUP_ID)}
+          : std::nullopt,
+#endif
       fieldPortUserMeta,
   };
 

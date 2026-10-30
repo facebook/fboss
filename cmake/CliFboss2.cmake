@@ -124,6 +124,13 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  show_mymac_model
+  fboss/cli/fboss2/commands/show/mymac/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
   show_mysid_model
   fboss/cli/fboss2/commands/show/mysid/model.thrift
   OPTIONS
@@ -156,6 +163,15 @@ add_fbthrift_cpp_library(
   fboss/cli/fboss2/commands/show/product/model.thrift
   OPTIONS
     json
+)
+
+add_fbthrift_cpp_library(
+  show_reboot_history_model
+  fboss/cli/fboss2/commands/show/reboot_history/model.thrift
+  OPTIONS
+    json
+  DEPENDS
+    reboot_cause_config_cpp2
 )
 
 add_fbthrift_cpp_library(
@@ -403,13 +419,6 @@ add_fbthrift_cpp_library(
     json
 )
 
-add_fbthrift_cpp_library(
-  feature_default_command_args_cpp2
-  fboss/configs/platforms/generic/forwarding_stacks/feature_default_command_args.thrift
-  OPTIONS
-    json
-)
-
 find_package(CLI11 CONFIG REQUIRED)
 
 add_library(fboss2_config_file_utils
@@ -423,10 +432,10 @@ target_link_libraries(fboss2_config_file_utils
 )
 
 add_library(fboss2_config_gen_lib
+  fboss/cli/fboss2/commands/config/gen/ConfigGenerationUtils.h
+  fboss/cli/fboss2/commands/config/gen/ConfigGenerationUtils.cpp
   fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.h
   fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.cpp
-  fboss/cli/fboss2/commands/config/gen/FeatureDefaultCommandArgs.h
-  fboss/cli/fboss2/commands/config/gen/FeatureDefaultCommandArgs.cpp
   fboss/cli/fboss2/commands/config/gen/agent/AgentConfigComparisonUtils.h
   fboss/cli/fboss2/commands/config/gen/agent/AgentConfigComparisonUtils.cpp
   fboss/cli/fboss2/commands/config/gen/agent/AgentConfigGenUtils.h
@@ -434,16 +443,16 @@ add_library(fboss2_config_gen_lib
 )
 
 target_link_libraries(fboss2_config_gen_lib
-  acl_config_utils
   agent_config_cpp2
-  feature_default_command_args_cpp2
+  config_generation_utils
+  fboss_common_cpp2
   fboss_config_utils
   fboss_error
+  fboss_agent_config_utils
   fboss2_config_file_utils
   Folly::folly
   platform_descriptor
   platform_mapping
-  port_config_utils
   ${YAML-CPP}
   ${YAML}
   split_platform_mapping_utils
@@ -484,6 +493,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.h
   fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h
   fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.cpp
+  fboss/cli/fboss2/commands/reload/CmdReloadConfigAgent.h
+  fboss/cli/fboss2/commands/reload/CmdReloadConfigAgent.cpp
   fboss/cli/fboss2/commands/set/fanhold/CmdSetFanHold.h
   fboss/cli/fboss2/commands/set/fanhold/CmdSetFanHold.cpp
   fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h
@@ -494,6 +505,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/set/interface/prbs/state/CmdSetInterfacePrbsState.cpp
   fboss/cli/fboss2/commands/set/interface/loopback/CmdSetInterfaceLoopback.h
   fboss/cli/fboss2/commands/set/interface/loopback/CmdSetInterfaceLoopback.cpp
+  fboss/cli/fboss2/commands/set/interface/admin_state/CmdSetInterfaceAdminState.h
+  fboss/cli/fboss2/commands/set/interface/admin_state/CmdSetInterfaceAdminState.cpp
   fboss/cli/fboss2/commands/set/port/CmdSetPort.h
   fboss/cli/fboss2/commands/set/port/CmdSetPort.cpp
   fboss/cli/fboss2/commands/set/port/state/CmdSetPortState.h
@@ -587,6 +600,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/product/CmdShowProduct.cpp
   fboss/cli/fboss2/commands/show/product/CmdShowProductDetails.h
   fboss/cli/fboss2/commands/show/product/CmdShowProductDetails.cpp
+  fboss/cli/fboss2/commands/show/reboot_history/CmdShowRebootHistory.h
+  fboss/cli/fboss2/commands/show/reboot_history/CmdShowRebootHistory.cpp
   fboss/cli/fboss2/commands/show/route/utils.cpp
   fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h
   fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.cpp
@@ -603,6 +618,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/mac/CmdShowMacDetails.cpp
   fboss/cli/fboss2/commands/show/mirror/CmdShowMirror.h
   fboss/cli/fboss2/commands/show/mirror/CmdShowMirror.cpp
+  fboss/cli/fboss2/commands/show/mymac/CmdShowMyMac.h
+  fboss/cli/fboss2/commands/show/mymac/CmdShowMyMac.cpp
   fboss/cli/fboss2/commands/show/mysid/CmdShowMySid.h
   fboss/cli/fboss2/commands/show/mysid/CmdShowMySid.cpp
   fboss/cli/fboss2/commands/show/nexthopgroups/CmdShowNextHopGroups.h
@@ -631,6 +648,10 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/interface/counters/mka/CmdShowInterfaceCountersMKA.cpp
   fboss/cli/fboss2/commands/show/interface/transceiver/CmdShowInterfaceTransceiver.h
   fboss/cli/fboss2/commands/show/interface/transceiver/CmdShowInterfaceTransceiver.cpp
+  fboss/cli/fboss2/commands/show/interface/transceiver/eeprom/CmdShowInterfaceTransceiverEeprom.h
+  fboss/cli/fboss2/commands/show/interface/transceiver/eeprom/CmdShowInterfaceTransceiverEeprom.cpp
+  fboss/cli/fboss2/commands/show/interface/transceiver/eeprom/CmdShowInterfaceTransceiverEepromDump.h
+  fboss/cli/fboss2/commands/show/interface/transceiver/eeprom/CmdShowInterfaceTransceiverEepromDump.cpp
   fboss/cli/fboss2/commands/show/interface/transceiver/performancemonitoring/CmdShowInterfaceTransceiverPerformanceMonitoring.h
   fboss/cli/fboss2/commands/show/interface/transceiver/performancemonitoring/CmdShowInterfaceTransceiverPerformanceMonitoring.cpp
   fboss/cli/fboss2/commands/show/interface/phy/CmdShowInterfacePhy.h
@@ -661,10 +682,6 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/teflow/CmdShowTeFlow.cpp
   fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h
   fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.cpp
-  fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEeprom.h
-  fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEeprom.cpp
-  fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEepromDump.h
-  fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEepromDump.cpp
   fboss/cli/fboss2/commands/show/transceiver/loopback/CmdShowTransceiverLoopback.h
   fboss/cli/fboss2/commands/show/transceiver/loopback/CmdShowTransceiverLoopback.cpp
   fboss/cli/fboss2/commands/show/bgp/CmdShowUtils.h
@@ -677,6 +694,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/bgp/CmdShowBgpOriginatedRoutes.cpp
   fboss/cli/fboss2/commands/show/bgp/CmdShowBgpInitializationEvents.h
   fboss/cli/fboss2/commands/show/bgp/CmdShowBgpInitializationEvents.cpp
+  fboss/cli/fboss2/commands/show/bgp/fibnexthops/CmdShowBgpFibNexthops.h
+  fboss/cli/fboss2/commands/show/bgp/fibnexthops/CmdShowBgpFibNexthops.cpp
   fboss/cli/fboss2/commands/show/bgp/health/CmdShowBgpHealth.h
   fboss/cli/fboss2/commands/show/bgp/health/CmdShowBgpHealth.cpp
   fboss/cli/fboss2/commands/show/bgp/holdtimers/CmdShowBgpHoldTimers.h
@@ -777,6 +796,7 @@ add_library(fboss2_lib
 
 target_link_libraries(fboss2_lib
   CLI11::CLI11
+  reboot_history_lib
   fboss2_config_gen_lib
   tabulate::tabulate
   data_corral_service_cpp2
@@ -796,6 +816,7 @@ target_link_libraries(fboss2_lib
   fsdb_path_converter
   thrift_visitors
   Folly::folly
+  FBThrift::thriftcpp2
   input_balance_util
   cli_model
   bgp_thrift_cpp2
@@ -820,11 +841,13 @@ target_link_libraries(fboss2_lib
   show_host_model
   show_lldp_model
   show_mirror_model
+  show_mymac_model
   show_mysid_model
   show_nexthopgroups_model
   show_ndp_model
   show_port_model
   show_product_model
+  show_reboot_history_model
   show_transceiver_model
   show_interface_model
   show_interface_flaps
@@ -925,8 +948,6 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h
   fboss/cli/fboss2/commands/config/interface/InterfaceAttrArgsBase.h
   fboss/cli/fboss2/commands/config/interface/InterfaceIpUtils.h
-  fboss/cli/fboss2/commands/config/interface/ProfileValidation.cpp
-  fboss/cli/fboss2/commands/config/interface/ProfileValidation.h
   fboss/cli/fboss2/commands/config/interface/ipv6/CmdConfigInterfaceIpv6.cpp
   fboss/cli/fboss2/commands/config/interface/ipv6/CmdConfigInterfaceIpv6.h
   fboss/cli/fboss2/commands/config/interface/ipv6/ndp/CmdConfigInterfaceIpv6Ndp.cpp
@@ -972,6 +993,16 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/protocol/bgp/policy/as-path-list/BgpAsPathListCliUtils.h
   fboss/cli/fboss2/commands/config/protocol/bgp/policy/as-path-list/CmdConfigProtocolBgpPolicyAsPathList.cpp
   fboss/cli/fboss2/commands/config/protocol/bgp/policy/as-path-list/CmdConfigProtocolBgpPolicyAsPathList.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/policy/community-list/BgpCommunityListCliUtils.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/policy/community-list/CmdConfigProtocolBgpPolicyCommunityList.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/policy/community-list/CmdConfigProtocolBgpPolicyCommunityList.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/policy/prefix-list/BgpPrefixListCliUtils.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/policy/prefix-list/CmdConfigProtocolBgpPolicyPrefixList.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/policy/prefix-list/CmdConfigProtocolBgpPolicyPrefixList.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/policy/prefix-list/entry/CmdConfigProtocolBgpPolicyPrefixListEntry.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/policy/prefix-list/entry/CmdConfigProtocolBgpPolicyPrefixListEntry.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/policy/routing-policy/CmdConfigProtocolBgpPolicyRoutingPolicy.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/policy/routing-policy/CmdConfigProtocolBgpPolicyRoutingPolicy.h
   fboss/cli/fboss2/commands/config/ptp/CmdConfigPtp.cpp
   fboss/cli/fboss2/commands/config/ptp/CmdConfigPtp.h
   fboss/cli/fboss2/commands/config/ptp/transparent_clock/CmdConfigPtpTransparentClock.cpp
@@ -1112,6 +1143,12 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/delete/protocol/bgp/policy/CmdDeleteProtocolBgpPolicy.h
   fboss/cli/fboss2/commands/delete/protocol/bgp/policy/as-path-list/CmdDeleteProtocolBgpPolicyAsPathList.cpp
   fboss/cli/fboss2/commands/delete/protocol/bgp/policy/as-path-list/CmdDeleteProtocolBgpPolicyAsPathList.h
+  fboss/cli/fboss2/commands/delete/protocol/bgp/policy/community-list/CmdDeleteProtocolBgpPolicyCommunityList.cpp
+  fboss/cli/fboss2/commands/delete/protocol/bgp/policy/community-list/CmdDeleteProtocolBgpPolicyCommunityList.h
+  fboss/cli/fboss2/commands/delete/protocol/bgp/policy/prefix-list/CmdDeleteProtocolBgpPolicyPrefixList.cpp
+  fboss/cli/fboss2/commands/delete/protocol/bgp/policy/prefix-list/CmdDeleteProtocolBgpPolicyPrefixList.h
+  fboss/cli/fboss2/commands/delete/protocol/bgp/policy/routing-policy/CmdDeleteProtocolBgpPolicyRoutingPolicy.cpp
+  fboss/cli/fboss2/commands/delete/protocol/bgp/policy/routing-policy/CmdDeleteProtocolBgpPolicyRoutingPolicy.h
   fboss/cli/fboss2/commands/delete/protocol/CmdDeleteProtocol.h
   fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.cpp
   fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.h
@@ -1168,7 +1205,7 @@ target_link_libraries(fboss2_config_lib
   cli_metadata
   fboss2_lib
   fboss2_config_file_utils
-  port_config_utils
+  fboss_agent_config_utils
   agent_dir_util
   common_file_utils
   switch_config_cpp2

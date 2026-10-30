@@ -140,7 +140,6 @@ DECLARE_bool(dsf_single_stage_r128_f40_e16_8k_sys_ports);
 DECLARE_bool(dsf_single_stage_r128_f40_e16_uniform_local_offset);
 DECLARE_bool(hyper_port);
 DECLARE_uint32(ecmp_width);
-DECLARE_bool(enable_th5_ars_scale_mode);
 DECLARE_bool(check_wb_handles);
 DECLARE_bool(enable_fabric_link_monitoring);
 DECLARE_bool(fabric_ports_uniform_local_offset);

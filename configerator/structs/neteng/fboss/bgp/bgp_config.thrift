@@ -593,7 +593,11 @@ struct BgpSettingConfig {
 
   /**
    * Enable egress queue backpressure when queueing updates to TCP socket.
+   *
+   * DEPRECATED: bgp++ always uses egress queue backpressure and ignores this
+   * field.
    */
+  @thrift.Deprecated
   8: optional bool enable_egress_queue_backpressure;
 
   /**
@@ -684,7 +688,11 @@ struct BgpSettingConfig {
    * unbounded buffer inside bgpd. Default (unset or false): the legacy
    * unbounded egress path, so the feature can be turned off instantly for
    * rollback.
+   *
+   * DEPRECATED: bgp++ always uses the bounded, backpressured egress path for
+   * thrift stream subscribers and ignores this field.
    */
+  @thrift.Deprecated
   20: optional bool enable_stream_subscriber_backpressure;
 
   /**
@@ -707,6 +715,9 @@ struct BgpSettingConfig {
    * Refresh is disabled for every peer.
    */
   23: optional bool enable_route_refresh;
+
+  /** Record the latest platform-normalized FIB request for each RIB entry. */
+  24: optional bool enable_fib_out_tracking;
 }
 
 /**

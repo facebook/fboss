@@ -64,6 +64,7 @@ struct NextHopThrift {
   5: list<Address.BinaryAddress> srv6SegmentList;
   6: optional TunnelType tunnelType;
   7: optional string tunnelId;
+  8: optional string overlayDstMac;
 
   /**
   * For capturing topology information to assist Agent path pruning decisions
@@ -112,6 +113,8 @@ struct NextHopGroup {
   1: optional string name;
   2: list<NextHopThrift> nexthops;
   3: optional bool isProgrammed;
+  // NextHopSetId of the group. Output only; ignored when adding groups.
+  4: optional i64 id;
 }
 
 /*
@@ -242,6 +245,7 @@ enum TunnelType {
   SRV6_ENCAP = 1,
   IP_IN_IP_ENCAP = 2,
   SRV6_DECAP = 3,
+  VXLAN = 4,
 }
 
 enum MySidType {

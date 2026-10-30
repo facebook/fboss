@@ -16,7 +16,7 @@
 #include "fboss/agent/hw/sai/api/VirtualChannelApi.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
 
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
 
 using folly::to;
 
@@ -25,6 +25,7 @@ namespace {
 std::map<int32_t, std::pair<std::string, std::size_t>> _VirtualChannelMap{
     SAI_ATTR_MAP(VirtualChannel, Port),
     SAI_ATTR_MAP(VirtualChannel, Index),
+    SAI_ATTR_MAP(VirtualChannel, CbfcReceiverNativeCreditLimit),
     SAI_ATTR_MAP(VirtualChannel, CbfcSenderCreditProfile),
     SAI_ATTR_MAP(VirtualChannel, CbfcReceiverEnable),
     SAI_ATTR_MAP(VirtualChannel, CbfcSenderEnable),
@@ -55,6 +56,18 @@ WRAP_GET_ATTR_FUNC(
     virtual_channel,
     SAI_OBJECT_TYPE_VIRTUAL_CHANNEL,
     virtualChannel);
+WRAP_GET_STATS_FUNC(
+    virtual_channel,
+    SAI_OBJECT_TYPE_VIRTUAL_CHANNEL,
+    virtualChannel);
+WRAP_GET_STATS_EXT_FUNC(
+    virtual_channel,
+    SAI_OBJECT_TYPE_VIRTUAL_CHANNEL,
+    virtualChannel);
+WRAP_CLEAR_STATS_FUNC(
+    virtual_channel,
+    SAI_OBJECT_TYPE_VIRTUAL_CHANNEL,
+    virtualChannel);
 
 WRAP_CREATE_FUNC(
     cbfc_credit_profile,
@@ -82,6 +95,12 @@ sai_virtual_channel_api_t* wrappedVirtualChannelApi() {
       &wrap_set_virtual_channel_attribute;
   virtualChannelWrappers.get_virtual_channel_attribute =
       &wrap_get_virtual_channel_attribute;
+  virtualChannelWrappers.get_virtual_channel_stats =
+      &wrap_get_virtual_channel_stats;
+  virtualChannelWrappers.get_virtual_channel_stats_ext =
+      &wrap_get_virtual_channel_stats_ext;
+  virtualChannelWrappers.clear_virtual_channel_stats =
+      &wrap_clear_virtual_channel_stats;
 
   virtualChannelWrappers.create_cbfc_credit_profile =
       &wrap_create_cbfc_credit_profile;

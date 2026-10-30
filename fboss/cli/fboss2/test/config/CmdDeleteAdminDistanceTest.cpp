@@ -7,7 +7,6 @@
 #include <stdexcept>
 #include <string>
 
-#include "fboss/agent/FbossError.h"
 #include "fboss/cli/fboss2/commands/config/switch/admin_distance/CmdConfigAdminDistance.h"
 #include "fboss/cli/fboss2/commands/delete/switch/admin_distance/CmdDeleteAdminDistance.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
@@ -106,13 +105,17 @@ TEST_F(CmdDeleteAdminDistanceTestFixture, deleteExistingEntry) {
   EXPECT_EQ(adminDistanceMap().at(0), 20);
 }
 
-TEST_F(CmdDeleteAdminDistanceTestFixture, deleteAbsentEntryRefused) {
+TEST_F(CmdDeleteAdminDistanceTestFixture, deleteAbsentEntryIsNoop) {
+  const auto sessionBefore = sessionConfigText();
   ASSERT_FALSE(adminDistanceMap().count(42));
 
   auto cmd = CmdDeleteAdminDistance();
-  EXPECT_THROW(
-      cmd.queryClient(localhost(), AdminDistanceDeleteArg({"42"})), FbossError);
+  auto result = cmd.queryClient(localhost(), AdminDistanceDeleteArg({"42"}));
+  EXPECT_THAT(result, HasSubstr("Warning"));
+  EXPECT_THAT(result, HasSubstr("nothing to delete"));
   EXPECT_EQ(adminDistanceMap().size(), 4);
+  EXPECT_EQ(sessionConfigText(), sessionBefore)
+      << "a no-op delete must not save the config";
 }
 
 } // namespace facebook::fboss

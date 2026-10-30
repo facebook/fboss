@@ -53,6 +53,8 @@ class FakeAsic : public HwAsic {
       case HwAsic::Feature::SDK_REGISTER_DUMP:
       case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
       case HwAsic::Feature::TEMPERATURE_MONITORING:
+      case HwAsic::Feature::SWITCH_WIDE_LINK_UP_DEBOUNCE:
+      case HwAsic::Feature::SRV6_BINDING_USID_UA_USD:
         return false;
 
       default:
@@ -251,6 +253,12 @@ class FakeAsic : public HwAsic {
   }
   std::optional<uint32_t> getArsBaseIndex() const override {
     return std::nullopt;
+  }
+  std::vector<int16_t> getCbfcSenderCreditSizes() const override {
+    return {32, 56};
+  }
+  std::vector<int16_t> getCbfcSenderPacketOverheads() const override {
+    return {0, 16, 32, 48, 64, 80};
   }
 };
 

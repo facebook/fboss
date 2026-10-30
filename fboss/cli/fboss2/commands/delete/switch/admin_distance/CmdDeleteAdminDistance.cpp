@@ -14,7 +14,6 @@
 
 #include <fmt/format.h>
 #include <iostream>
-#include "fboss/agent/FbossError.h"
 #include "fboss/cli/fboss2/commands/config/switch/admin_distance/CmdConfigAdminDistance.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 
@@ -53,7 +52,10 @@ CmdDeleteAdminDistanceTraits::RetType CmdDeleteAdminDistance::queryClient(
   auto& adminDistanceMap = *swConfig.clientIdToAdminDistance();
   auto it = adminDistanceMap.find(clientId);
   if (it == adminDistanceMap.end()) {
-    throw FbossError("No admin distance configured for client-id ", clientId);
+    return fmt::format(
+        "Warning: no admin distance configured for client-id {}, nothing to "
+        "delete",
+        clientId);
   }
   adminDistanceMap.erase(it);
 

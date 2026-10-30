@@ -91,6 +91,7 @@ struct FakePort {
   sai_port_lane_latch_status_list_t portFecAlignmentLockStatus{};
   sai_latch_status_t portPcsLinkStatus{};
   sai_latch_status_t portCrcErrDetect{};
+  sai_latch_status_t portExtOperStatusLatch{};
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
   sai_port_frequency_offset_ppm_list_t portRxPPM{};
@@ -106,6 +107,18 @@ struct FakePort {
   std::vector<sai_object_id_t> ingressPriorityGroupList;
   sai_uint32_t numberOfIngressPriorityGroups{0};
   sai_object_id_t qosTcToPriorityGroupMap{SAI_NULL_OBJECT_ID};
+  sai_object_id_t qosTcToVcMap{SAI_NULL_OBJECT_ID};
+  sai_uint32_t cbfcSenderCreditLimit{0};
+  sai_uint16_t cbfcSenderCreditSize{128};
+  sai_int16_t cbfcSenderPacketOverhead{0};
+  sai_object_id_t qosQueueToVcMap{SAI_NULL_OBJECT_ID};
+  // READ_ONLY on real hardware, derived from the MMU carving. Fake has no
+  // MMU, so these are canned. The negative overhead is deliberate: it is a
+  // legal value (spec range -16..127) and catches modelling the attribute as
+  // unsigned, which would read back as 65520.
+  sai_uint16_t cbfcReceiverNativeCreditSize{256};
+  sai_int16_t cbfcReceiverNativePacketOverhead{-16};
+  sai_uint16_t cbfcReceiverNativeTotalCredits{1000};
   sai_object_id_t qosPfcPriorityToQueueMap{SAI_NULL_OBJECT_ID};
   sai_object_id_t qosPfcPriorityToPriorityGroupMap{SAI_NULL_OBJECT_ID};
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)

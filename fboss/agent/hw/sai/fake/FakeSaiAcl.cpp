@@ -164,6 +164,7 @@ sai_status_t create_acl_table_fn(
   sai_object_id_t userDefinedFieldGroupMin2 = SAI_NULL_OBJECT_ID;
   sai_object_id_t userDefinedFieldGroupMin3 = SAI_NULL_OBJECT_ID;
   sai_object_id_t userDefinedFieldGroupMin4 = SAI_NULL_OBJECT_ID;
+  bool fieldRouteDestination = false;
 
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
@@ -238,6 +239,9 @@ sai_status_t create_acl_table_fn(
         break;
       case SAI_ACL_TABLE_ATTR_FIELD_TC:
         fieldTc = attr_list[i].value.booldata;
+        break;
+      case SAI_ACL_TABLE_ATTR_FIELD_ROUTE_DST:
+        fieldRouteDestination = attr_list[i].value.booldata;
         break;
       case SAI_ACL_TABLE_ATTR_FIELD_DST_MAC:
         fieldDstMac = attr_list[i].value.booldata;
@@ -345,6 +349,9 @@ sai_status_t create_acl_table_fn(
       userDefinedFieldGroupMin2,
       userDefinedFieldGroupMin3,
       userDefinedFieldGroupMin4);
+
+  fs->aclTableManager.get(*acl_table_id).fieldRouteDestination =
+      fieldRouteDestination;
 
   return SAI_STATUS_SUCCESS;
 }
@@ -502,6 +509,10 @@ sai_status_t get_acl_table_attribute_fn(
       case SAI_ACL_TABLE_ATTR_FIELD_TC: {
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);
         attr[i].value.booldata = aclTable.fieldTc;
+      } break;
+      case SAI_ACL_TABLE_ATTR_FIELD_ROUTE_DST: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        attr[i].value.booldata = aclTable.fieldRouteDestination;
       } break;
       case SAI_ACL_TABLE_ATTR_FIELD_DST_MAC: {
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);

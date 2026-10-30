@@ -10,8 +10,6 @@
 #include "fboss/agent/hw/sai/fake/FakeSaiVirtualChannel.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 19, 0)
-
 using facebook::fboss::FakeSai;
 
 sai_status_t create_virtual_channel_fn(
@@ -113,6 +111,10 @@ sai_status_t get_virtual_channel_attribute_fn(
         break;
       case SAI_VIRTUAL_CHANNEL_ATTR_INDEX:
         attr_list[i].value.u8 = virtualChannel.getIndex();
+        break;
+      case SAI_VIRTUAL_CHANNEL_ATTR_CBFC_RECEIVER_NATIVE_CREDIT_LIMIT:
+        attr_list[i].value.u32 =
+            virtualChannel.getCbfcReceiverNativeCreditLimit();
         break;
       case SAI_VIRTUAL_CHANNEL_ATTR_CBFC_SENDER_CREDIT_PROFILE:
         attr_list[i].value.oid = virtualChannel.getCbfcSenderCreditProfile();
@@ -309,5 +311,3 @@ void populate_virtual_channel_api(
 }
 
 } // namespace facebook::fboss
-
-#endif

@@ -86,6 +86,25 @@ struct RebootCauseProviderAttempt {
   4: list<RebootCause> causes;
 }
 
+// What a boot's record says about its cause, decided once by the finder so
+// every reader (fboss2, the dashboard, the run event) says the same thing.
+//
+// `FOUND`: a provider reported the cause, in `determinedCause`.
+// `UNEXPLAINED`: every provider was read and none reported a cause.
+// `INCONCLUSIVE`: no cause, and at least one provider could not be read,
+// parsed or attempted, so the cause may be in a source we could not see.
+// `INTERRUPTED`: the run was killed or crashed before it finished this boot.
+enum RebootCauseStatus {
+  FOUND = 0,
+  UNEXPLAINED = 1,
+  INCONCLUSIVE = 2,
+  INTERRUPTED = 3,
+}
+
+// Where reboot_cause_finder persists its per-boot records. Shared so readers
+// (e.g. sensor_service's getRebootHistory) cannot drift from the writer.
+const string REBOOT_HISTORY_DIR = "/var/facebook/fboss/reboot_history";
+
 // `RebootCauseRecord` is the per-boot record persisted under
 // /var/facebook/fboss/reboot_history/.
 //
@@ -109,6 +128,10 @@ struct RebootCauseProviderAttempt {
 // belongs to. Doubles as the once-per-boot guard: a run whose boot id matches
 // the previous run's exits without touching the providers. Empty when the boot
 // id could not be read.
+//
+// `causeStatus`: `INTERRUPTED` on the record written as soon as a run knows
+// its boot, before any provider is read; the finished record replaces it with
+// the run's status. Unset on records written before this field existed.
 struct RebootCauseRecord {
   1: i64 detectedAtMs;
   2: string detectedAtPacific;
@@ -117,4 +140,8 @@ struct RebootCauseRecord {
   5: string bootId;
   6: i64 bootTimeMs;
   7: list<RebootCauseProviderAttempt> providersAttempted;
+  // Release of the kernel this boot ran (`uname -r`). Empty if unreadable.
+  8: string kernelRelease;
+  // 9 was `incomplete`; it is now `causeStatus == INTERRUPTED`. Do not reuse.
+  10: optional RebootCauseStatus causeStatus;
 }

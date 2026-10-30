@@ -13,12 +13,14 @@ build environment without modifying the upstream getdeps.py script.
 import argparse
 import glob
 import hashlib
+import http.client
 import os
 import re
 import shutil
 import subprocess
 import sys
 import sysconfig
+import urllib.request
 from pathlib import Path
 
 from sdk_versions import (
@@ -75,20 +77,6 @@ SUPPORTED_SAI_IMPLS = {
 SUPPORTED_PHY_IMPLS = {
     "SAI_BRCM_PAI_IMPL",
 }
-SAI_VERSION_SHAS = {
-    "1.13.2": "d60935ba1e5cc7e4ebf2ae7d04f9e937d445e3f875822e27a359c775cb203bae",
-    "1.14.0": "4e3a1d010bda0c589db46e077725a2cd9624a5cc255c89d1caa79deb408d1fa7",
-    "1.15.0": "94b7a7dd9dbcc46bf14ba9f12b8597e9e9c2069fcb8e383a61cdf6ca172f3511",
-    "1.15.3": "fd390d86e7abb419023decf1ec254054450a35d9147b0ad6499e6d12aa860812",
-    "1.16.0": "c7d9e85646b28a4d788448db28da649da37cd3ec7955fbeb8d7d80f76ef1796f",
-    "1.16.1": "cf65142d1a1286b5faa24c9ae61b3f955f04724d0bf5ef6e5679298353aa0871",
-    "1.16.3": "5c89cdb6b2e4f1b42ced6b78d43d06d22434ddbf423cdc551f7c2001f12e63d9",
-    "1.17.1": "05411b13b32abcc50f2f2b78e491e503b2b05e5a1503699abd4cc1b81f90d1ae",
-    "1.17.4": "362640d5398c53e7257daf67ff7044591937a8443bf037748527bb2cd185f660",
-    "1.18.0": "606e35da083056e60e818964bcc0737f229a78f1a150e8aa398bc76b3a360509",
-    "1.18.1": "84f2fbd6bf672abaefddfd78a28fec794e37477bf9702fbb56d7bd53ff930ba3",
-    "1.19.0": "199d2cd32408b6470ce0c43beee660cc468e29e72921f1e93e64d4a8eb80246a",
-}
 SUPPORTED_SAI_SDK_VERSIONS = frozenset(SDK_VERSIONS)
 
 # Per-pass SAI implementation selectors.
@@ -98,6 +86,10 @@ PASS_IMPL_FAKE = "fake"
 
 # The CMake target that the PHY pass always (re)builds against the PAI SDK.
 PHY_CMAKE_TARGET = "qsfp_targets"
+
+# An NPU SDK provides its SAI implementation as a static archive or as a shared
+# library (which records its own dependencies, so needs no sai_dependencies.txt).
+LIBSAI_IMPL_NAMES = ("libsai_impl.a", "libsai_impl.so")
 
 # CMake reads the PAI SDK from this hard-coded location, so a user-provided PAI
 # SDK dir/tarball is symlinked/extracted to point here. The expected layout is
@@ -146,10 +138,11 @@ def parse_args():
     parser.add_argument(
         ARG_PHY_SAI_VERSION,
         required=False,
-        choices=SAI_VERSION_SHAS.keys(),
+        type=_sai_version_arg,
         help="SAI spec version to use for the PHY (PAI) build pass. "
         "Only used when --phy-sai-impl is set. When omitted, the PHY pass "
-        "uses the build's default SAI version (current behavior).",
+        "uses the build's default SAI version (current behavior). "
+        "Any X.Y.Z release tag of the OCP SAI repo.",
     )
     parser.add_argument(
         ARG_PHY_PAI_SDK_PATH,
@@ -172,8 +165,9 @@ def parse_args():
     parser.add_argument(
         ARG_NPU_SAI_VERSION,
         required=False,
-        choices=SAI_VERSION_SHAS.keys(),
-        help="SAI version to be used for the build.",
+        type=_sai_version_arg,
+        help="SAI spec version to be used for the build. "
+        "Any X.Y.Z release tag of the OCP SAI repo.",
     )
     parser.add_argument(
         ARG_NPU_SAI_SDK_VERSION,
@@ -184,15 +178,16 @@ def parse_args():
     parser.add_argument(
         ARG_NPU_LIBSAI_IMPL_PATH,
         required=False,
-        help="Path to a directory containing libsai_impl.a (and optionally "
-        "sai_dependencies.txt and any other SDK libs to stage alongside it).",
+        help="Path to a directory containing libsai_impl.a or libsai_impl.so "
+        "(and optionally sai_dependencies.txt and any other SDK libs to stage "
+        "alongside it).",
     )
     parser.add_argument(
         ARG_NPU_LIBSAI_IMPL_TARBALL,
         required=False,
         help="Full path to a pre-built NPU SDK tarball. May use either the flat "
         f"layout consumed by {ARG_NPU_LIBSAI_IMPL_PATH}/{ARG_NPU_EXPERIMENTS_PATH} "
-        "(libsai_impl.a plus an experimental/ headers dir) or a lib/ + include/ "
+        "(libsai_impl.a or .so plus an experimental/ headers dir) or a lib/ + include/ "
         "layout, optionally under a single top-level directory. Mutually exclusive "
         f"with {ARG_NPU_LIBSAI_IMPL_PATH} and {ARG_NPU_EXPERIMENTS_PATH}.",
     )
@@ -510,10 +505,51 @@ def _restore_libsai_manifest(content):
         f.write(content)
 
 
-def _edit_libsai_manifest(version):
-    """Overwrite the libsai manifest with the correct URL and SHA for the given version."""
+def _sai_version_arg(value):
+    """argparse type for SAI spec versions: any X.Y.Z, pinned or not."""
+    if not re.fullmatch(r"\d+\.\d+\.\d+", value):
+        raise argparse.ArgumentTypeError(
+            f"invalid SAI version '{value}', expected X.Y.Z"
+        )
+    return value
+
+
+def _get_sai_sha(url, version, scratch_path):
+    """Return the sha256 of the SAI spec tarball, which getdeps requires in the
+    libsai manifest, downloading it once per scratch path to compute it.
+
+    Only the sha is cached. The tarball must not land in <scratch>/downloads:
+    getdeps would find it there and skip its fetch, and with it the LFS
+    download and upload.
+    """
+    sha_path = os.path.join(scratch_path, "sai_spec_shas", f"{version}.sha256")
+    if os.path.isfile(sha_path):
+        with open(sha_path) as f:
+            return f.read().strip()
+
+    print_info(f"Downloading {url} to compute its sha256")
+    h = hashlib.sha256()
+    try:
+        # urllib honours http_proxy/https_proxy.
+        with urllib.request.urlopen(url, timeout=300) as response:
+            for chunk in iter(lambda: response.read(1 << 20), b""):
+                h.update(chunk)
+    except (OSError, http.client.HTTPException) as ex:
+        print_error(f"Error: failed to download SAI {version} from {url}: {ex}")
+        sys.exit(1)
+    sha256 = h.hexdigest()
+
+    os.makedirs(os.path.dirname(sha_path), exist_ok=True)
+    with open(sha_path, "w") as f:
+        f.write(sha256 + "\n")
+    print_info(f"SAI {version} sha256 {sha256}, cached in {sha_path}")
+    return sha256
+
+
+def _edit_libsai_manifest(version, scratch_path):
+    """Overwrite the libsai manifest with the URL and SHA for the given version."""
     url = f"https://github.com/opencomputeproject/SAI/archive/v{version}.tar.gz"
-    sha256 = SAI_VERSION_SHAS[version]
+    sha256 = _get_sai_sha(url, version, scratch_path)
     manifest_path = _libsai_manifest_path()
     manifest_str = (
         "[manifest]\n"
@@ -559,12 +595,45 @@ def _sdk_fingerprint(*dirs):
     return h.hexdigest()[:12]
 
 
+def _read_sai_spec_version(saiversion_h):
+    """Return the X.Y.Z SAI spec version a saiversion.h declares."""
+    with open(saiversion_h) as f:
+        text = f.read()
+    parts = []
+    for field in ("MAJOR", "MINOR", "REVISION"):
+        m = re.search(rf"^#define\s+SAI_{field}\s+(\d+)", text, re.MULTILINE)
+        if m is None:
+            print_error(f"Error: no SAI_{field} in {saiversion_h}")
+            sys.exit(1)
+        parts.append(m.group(1))
+    return ".".join(parts)
+
+
+def _use_sdk_sai_headers(libsai_impl_dir):
+    """If the SDK ships the SAI headers it was built against (sai/inc/ beside its
+    library), set SAI_VERSION from them. CMake then compiles against those
+    headers instead of the downloaded OCP ones, so the two must agree."""
+    saiversion_h = os.path.join(libsai_impl_dir, "sai", "inc", "saiversion.h")
+    if not os.path.isfile(saiversion_h):
+        return
+    version = _read_sai_spec_version(saiversion_h)
+    requested = os.environ.get("SAI_VERSION")
+    if requested and requested != version:
+        print_error(
+            f"Error: SAI_VERSION is {requested} but the SDK's SAI headers are "
+            f"{version} ({saiversion_h}). Drop {ARG_NPU_SAI_VERSION} or make it match."
+        )
+        sys.exit(1)
+    os.environ["SAI_VERSION"] = version
+    print_info(f"Using the SDK's SAI {version} headers; set ENV SAI_VERSION={version}")
+
+
 def _stage_npu_sdk(libsai_impl_dir, experiments_dir, scratch_path):
     """Stage a flat NPU SDK into <scratch_path>/installed/sai_impl_staging-<hash>
     and prepend it to CMAKE_PREFIX_PATH. Shared by the --npu-libsai-impl-path and
     --npu-libsai-impl-tarball flows.
 
-    ``libsai_impl_dir`` holds libsai_impl.a (and any sibling libs /
+    ``libsai_impl_dir`` holds libsai_impl.a or .so (and any sibling libs /
     sai_dependencies.txt). ``experiments_dir`` holds the flat SAI extension
     headers and is symlinked BOTH as include/ (so bare includes like
     <brcm_sai_extensions.h> resolve) and as experimental/ off the staging root
@@ -592,6 +661,7 @@ def _stage_npu_sdk(libsai_impl_dir, experiments_dir, scratch_path):
     print_info(f"Symlinked {abs_exp} -> {os.path.join(staging_dir, 'include')}")
     print_info(f"Symlinked {abs_exp} -> {os.path.join(staging_dir, 'experimental')}")
     print_info(f"Staged SDK artifacts in {staging_dir}")
+    _use_sdk_sai_headers(abs_lib)
 
     existing = os.environ.get("CMAKE_PREFIX_PATH", "")
     os.environ["CMAKE_PREFIX_PATH"] = (
@@ -605,7 +675,7 @@ def _conditionally_prepare_sdk_artifacts(
     """Validate SDK artifact paths, stage them, and prepend to CMAKE_PREFIX_PATH.
 
     Both paths must be provided together. ``libsai_impl_path`` is a directory
-    that contains libsai_impl.a (and may contain sai_dependencies.txt or
+    that contains libsai_impl.a or .so (and may contain sai_dependencies.txt or
     additional SDK libs). When present, the artifacts are staged into a
     stable scratch directory with the lib/, include/ and experimental/ structure
     that CMake expects, and that directory is prepended to CMAKE_PREFIX_PATH.
@@ -629,15 +699,22 @@ def _conditionally_prepare_sdk_artifacts(
             f"or is not a directory: {libsai_impl_path}"
         )
         sys.exit(1)
-    libsai_impl_a = os.path.join(libsai_impl_path, "libsai_impl.a")
-    if not os.path.isfile(libsai_impl_a):
+    libsai_impl = next(
+        (
+            p
+            for p in (os.path.join(libsai_impl_path, n) for n in LIBSAI_IMPL_NAMES)
+            if os.path.isfile(p)
+        ),
+        None,
+    )
+    if libsai_impl is None:
         print_error(
             f"Error: {ARG_NPU_LIBSAI_IMPL_PATH} directory does not contain "
-            f"libsai_impl.a: {libsai_impl_path}"
+            f"{' or '.join(LIBSAI_IMPL_NAMES)}: {libsai_impl_path}"
         )
         sys.exit(1)
-    if os.path.getsize(libsai_impl_a) == 0:
-        print_error(f"Error: libsai_impl.a is empty: {libsai_impl_a}")
+    if os.path.getsize(libsai_impl) == 0:
+        print_error(f"Error: {libsai_impl} is empty")
         sys.exit(1)
     if not os.path.isdir(experiments_path):
         print_error(
@@ -668,7 +745,7 @@ def _prepare_sdk_from_tarball(tarball_path, scratch_path):
     """Extract a pre-built NPU SDK tarball and stage it for the build.
 
     The tarball may use either the flat layout consumed by
-    --npu-libsai-impl-path/--npu-experiments-path (libsai_impl.a plus an
+    --npu-libsai-impl-path/--npu-experiments-path (libsai_impl.a or .so plus an
     experimental/ headers dir) or the lib/ + include/ layout produced by
     build-helper.py, each optionally wrapped in a single top-level directory.
     It is staged the same way the path flow stages its artifacts (via
@@ -700,14 +777,22 @@ def _prepare_sdk_from_tarball(tarball_path, scratch_path):
     )
     print_info(f"Extracted SDK tarball {tarball_path} to {extract_dir}")
 
-    # libsai_impl.a locates the SDK root (os.walk descends any wrapper dir). The
-    # flat layout keeps the headers in a sibling experimental/; the build-helper
-    # layout keeps libsai_impl.a in lib/ and the headers in a sibling include/.
-    libsai_dir = _find_dir_with_file(extract_dir, "libsai_impl.a")
+    # libsai_impl.{a,so} locates the SDK root (os.walk descends any wrapper dir).
+    # The flat layout keeps the headers in a sibling experimental/; the
+    # build-helper layout keeps the library in lib/ and the headers in a sibling
+    # include/.
+    libsai_dir = next(
+        (
+            d
+            for d in (_find_dir_with_file(extract_dir, n) for n in LIBSAI_IMPL_NAMES)
+            if d is not None
+        ),
+        None,
+    )
     if libsai_dir is None:
         print_error(
             f"Error: {ARG_NPU_LIBSAI_IMPL_TARBALL} does not contain "
-            f"libsai_impl.a: {tarball_path}"
+            f"{' or '.join(LIBSAI_IMPL_NAMES)}: {tarball_path}"
         )
         sys.exit(1)
     experiments_dir = next(
@@ -1087,10 +1172,14 @@ def _prepare_pass(
     # follows --npu-sai-version; the PHY pass follows --phy-sai-version.
     if impl in (PASS_IMPL_NPU, PASS_IMPL_FAKE):
         if args.npu_sai_version is not None:
-            _edit_libsai_manifest(args.npu_sai_version)
+            _edit_libsai_manifest(
+                args.npu_sai_version, _get_scratch_path(args.getdeps_args)
+            )
     elif impl == PASS_IMPL_PHY:
         if args.phy_sai_version is not None:
-            _edit_libsai_manifest(args.phy_sai_version)
+            _edit_libsai_manifest(
+                args.phy_sai_version, _get_scratch_path(args.getdeps_args)
+            )
 
 
 def _setup_toolchain(args):

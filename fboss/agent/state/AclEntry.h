@@ -95,6 +95,8 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
   static const uint8_t kProtoIcmpv6 = 58;
   static const uint8_t kMaxIcmpType = 0xFF;
   static const uint8_t kMaxIcmpCode = 0xFF;
+  static const uint8_t kMaxTcpFlags = 0xFF;
+  static const uint8_t kMaxTcpFlagsMask = 0x3F;
   static const uint16_t kMaxL4Port = 65535;
 
   explicit AclEntry(int priority, const std::string& name);
@@ -200,6 +202,17 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
 
   void setTcpFlagsBitMap(const uint8_t flagsBitMap) {
     set<switch_state_tags::tcpFlagsBitMap>(flagsBitMap);
+  }
+
+  std::optional<uint8_t> getTcpFlagsMask() const {
+    if (auto tcpFlagsMask = cref<switch_state_tags::tcpFlagsMask>()) {
+      return tcpFlagsMask->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setTcpFlagsMask(const uint8_t flagsMask) {
+    set<switch_state_tags::tcpFlagsMask>(flagsMask);
   }
 
   std::optional<uint16_t> getSrcPort() const {

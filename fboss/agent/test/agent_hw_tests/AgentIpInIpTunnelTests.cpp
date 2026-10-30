@@ -58,6 +58,15 @@ class AgentIpInIpTunnelTest : public AgentHwTest {
         ecmpHelper, 1); // forwarding takes the first port: 0
   }
 
+  void learnSrcMacIfPending() {
+    auto vlanId =
+        VlanID(*initialConfig(*getAgentEnsemble()).vlanPorts()[0].vlanID());
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    learnL2EntryIfPending(
+        utility::MacAddressGenerator().get(intfMac.u64HBO() + 1),
+        masterLogicalPortIds()[1]);
+  }
+
   void sendIpInIpPacketPort(
       std::string outDstIpAddr,
       std::string innerDstIpAddr = "3000::3",
@@ -136,6 +145,7 @@ class AgentIpInIpTunnelTest : public AgentHwTest {
 TEST_F(AgentIpInIpTunnelTest, TunnelDecapForwarding) {
   auto setup = [=, this]() { setupHelper(); };
   auto verify = [=, this]() {
+    learnSrcMacIfPending();
     auto beforeInBytes =
         getLatestPortStats(masterLogicalPortIds()[1]).inBytes_().value();
     auto beforeOutBytes =
@@ -156,6 +166,7 @@ TEST_F(AgentIpInIpTunnelTest, TunnelDecapForwarding) {
 TEST_F(AgentIpInIpTunnelTest, TunnelTermEntryMiss) {
   auto setup = [=, this]() { setupHelper(); };
   auto verify = [=, this]() {
+    learnSrcMacIfPending();
     auto beforeInBytes =
         getLatestPortStats(masterLogicalPortIds()[1]).inBytes_().value();
     auto beforeOutBytes =
@@ -191,6 +202,7 @@ TEST_F(AgentIpInIpTunnelTest, IpinIpNoTunnelConfigured) {
   };
 
   auto verify = [=, this]() {
+    learnSrcMacIfPending();
     auto beforeInBytes =
         getLatestPortStats(masterLogicalPortIds()[1]).inBytes_().value();
     auto beforeOutBytes =
@@ -211,6 +223,7 @@ TEST_F(AgentIpInIpTunnelTest, IpinIpNoTunnelConfigured) {
 TEST_F(AgentIpInIpTunnelTest, DecapPacketParsing) {
   auto setup = [=, this]() { setupHelper(); };
   auto verify = [=, this]() {
+    learnSrcMacIfPending();
     auto ensemble = getAgentEnsemble();
     auto l3Asics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
     auto asic = checkSameAndGetAsicForTesting(l3Asics);

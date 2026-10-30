@@ -24,6 +24,7 @@
 #include "fboss/agent/hw/sai/fake/FakeSaiLag.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiMacsec.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiMirror.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiMyMac.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiNeighbor.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiNextHop.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiNextHopGroup.h"
@@ -93,6 +94,7 @@ struct FakeSai {
   FakeQueueManager queueManager;
   FakeRouteManager routeManager;
   FakeRouterInterfaceManager routeInterfaceManager;
+  FakeMyMacManager myMacManager;
   FakeSamplePacketManager samplePacketManager;
   FakeSchedulerManager scheduleManager;
   FakeSwitchManager switchManager;
@@ -101,10 +103,8 @@ struct FakeSai {
   FakeUdfMatchManager udfMatchManager;
   FakeVirtualRouterManager virtualRouteManager;
   FakeVlanManager vlanManager;
-#if SAI_API_VERSION >= SAI_VERSION(1, 19, 0)
   FakeVirtualChannelManager virtualChannelManager;
   FakeCbfcCreditProfileManager cbfcCreditProfileManager;
-#endif
   FakeWredManager wredManager;
   FakeTamManager tamManager;
   FakeTamEventManager tamEventManager;
@@ -115,6 +115,8 @@ struct FakeSai {
   FakeTamEventThresholdManager tamEventThresholdManager;
   FakeTunnelManager tunnelManager;
   FakeTunnelTermManager tunnelTermManager;
+  FakeTunnelMapManager tunnelMapManager;
+  FakeTunnelMapEntryManager tunnelMapEntryManager;
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   FakeSrv6SidListManager srv6SidListManager;
   FakeMySidEntryManager mySidEntryManager;

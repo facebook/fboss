@@ -11,10 +11,13 @@
 #include "fboss/agent/hw/sai/switch/SaiVirtualChannelManager.h"
 
 #include "fboss/agent/hw/sai/api/PortApi.h"
+#include "fboss/agent/hw/sai/api/SaiApiError.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/agent/state/Port.h"
+
+#include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
 
@@ -23,7 +26,7 @@ SaiVirtualChannelManager::SaiVirtualChannelManager(
     const SaiPlatform* platform)
     : saiStore_(saiStore), platform_(platform) {}
 
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
 
 std::shared_ptr<SaiCbfcCreditProfile>
 SaiVirtualChannelManager::getOrCreateCreditProfile(int64_t reservedCreditSize) {
@@ -40,36 +43,18 @@ SaiVirtualChannelManager::getOrCreateCreditProfile(int64_t reservedCreditSize) {
 void SaiVirtualChannelManager::programVirtualChannels(
     [[maybe_unused]] const std::shared_ptr<Port>& swPort,
     [[maybe_unused]] PortSaiId portSaiId) {
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
   if (!platform_->getAsic()->isSupported(HwAsic::Feature::CBFC)) {
     return;
   }
-
-  // Reconciled unconditionally, and ahead of the virtualChannels guard below:
-  // 0 is the SDK's "no port credit limit", so an unset config value has to be
-  // written rather than skipped. Skipping it leaves the last value programmed
-  // forever -- on a port that drops only its limit, and on a port that drops
-  // CBFC entirely and returns early below -- which a later config re-enabling
-  // CBFC without a limit would then silently inherit.
-  //
-  // Set through the port api rather than the port's CreateAttributes.
-  // brcm-sai 16.0_ea_odp rejects a GET of this attribute, and SaiStore reads
-  // back every attribute in that tuple for every port at init, so including it
-  // there aborts the HW agent on boot even with no CBFC configured. That same
-  // failed GET is why nothing can read this back to verify it.
-  SaiApiTable::getInstance()->portApi().setAttribute(
-      portSaiId,
-      SaiPortTraits::Attributes::CbfcSenderCreditLimit{
-          static_cast<sai_uint32_t>(
-              swPort->getCbfcSenderCreditLimit().value_or(0))});
 
   using Attributes = SaiVirtualChannelTraits::Attributes;
 
   SaiVirtualChannelHandle handle;
   auto& store = saiStore_->get<SaiVirtualChannelTraits>();
-  // virtualChannels is an optional thrift field, so the node is null -- not an
-  // empty list -- on a port that has never carried a CBFC config. Erasing is
-  // what an empty list would do anyway.
+  // virtualChannels is an optional thrift field, and ApplyThriftConfig leaves
+  // it unset on a port that names no cbfcConfig. Erasing is what an empty list
+  // would do anyway.
   const auto& virtualChannels = swPort->getVirtualChannels();
   if (!virtualChannels) {
     handles_.erase(swPort->getID());
@@ -109,10 +94,66 @@ void SaiVirtualChannelManager::programVirtualChannels(
 #endif
 }
 
+#if defined(SAI_CBFC_SUPPORTED)
+const SaiVirtualChannelHandle*
+SaiVirtualChannelManager::getVirtualChannelHandle(PortID portId) const {
+  auto itr = handles_.find(portId);
+  return itr == handles_.end() ? nullptr : &itr->second;
+}
+#endif
+
 void SaiVirtualChannelManager::removeVirtualChannels(
     [[maybe_unused]] PortID portId) {
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
   handles_.erase(portId);
+#endif
+}
+
+void SaiVirtualChannelManager::updateStats(
+    [[maybe_unused]] PortID portId,
+    [[maybe_unused]] HwPortStats& hwPortStats) {
+#if defined(SAI_CBFC_SUPPORTED)
+  auto handleItr = handles_.find(portId);
+  if (handleItr == handles_.end()) {
+    return;
+  }
+  for (const auto& virtualChannel : handleItr->second.virtualChannels) {
+    const auto index = static_cast<int16_t>(
+        std::get<SaiVirtualChannelTraits::Attributes::Index>(
+            virtualChannel->adapterHostKey())
+            .value());
+    try {
+      virtualChannel->updateStats(
+          SaiVirtualChannelTraits::cbfcVcStats(), SAI_STATS_MODE_READ);
+    } catch (const SaiApiError& e) {
+      // An SDK that does not serve the virtual channel stats must not take the
+      // whole port stats round down with it. Leave the maps unset for this VC
+      // rather than publishing zeros that read as real credit activity.
+      XLOG_EVERY_MS(WARN, 10000)
+          << "Failed to read CBFC counters for port " << portId << " VC "
+          << index << ": " << e.what();
+      continue;
+    }
+    // All four counters are handled even though cbfcVcStats() currently asks
+    // for one: the three B0-only ids become readable on a B0 part without
+    // touching this loop.
+    for (const auto& [statId, value] : virtualChannel->getStats()) {
+      switch (statId) {
+        case SAI_VIRTUAL_CHANNEL_STAT_SENDER_CREDITS_CONSUMED:
+          hwPortStats.cbfcVcSenderCreditsConsumed_()[index] = value;
+          break;
+        case SAI_VIRTUAL_CHANNEL_STAT_SENDER_CREDITS_FREED:
+          hwPortStats.cbfcVcSenderCreditsFreed_()[index] = value;
+          break;
+        case SAI_VIRTUAL_CHANNEL_STAT_RECEIVER_CREDITS_CONSUMED:
+          hwPortStats.cbfcVcReceiverCreditsConsumed_()[index] = value;
+          break;
+        case SAI_VIRTUAL_CHANNEL_STAT_RECEIVER_CREDITS_FREED:
+          hwPortStats.cbfcVcReceiverCreditsFreed_()[index] = value;
+          break;
+      }
+    }
+  }
 #endif
 }
 

@@ -368,8 +368,13 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     return safe_cref<switch_state_tags::virtualChannels>();
   }
 
-  void setVirtualChannels(std::vector<state::PortVcFields> virtualChannels) {
-    set<switch_state_tags::virtualChannels>(std::move(virtualChannels));
+  void setVirtualChannels(
+      const std::optional<std::vector<state::PortVcFields>>& virtualChannels) {
+    if (!virtualChannels) {
+      ref<switch_state_tags::virtualChannels>().reset();
+      return;
+    }
+    set<switch_state_tags::virtualChannels>(*virtualChannels);
   }
 
   std::optional<std::string> getCbfcConfigName() const {
@@ -400,6 +405,36 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
       return;
     }
     set<switch_state_tags::cbfcSenderCreditLimit>(limit.value());
+  }
+
+  std::optional<int16_t> getCbfcSenderCreditSize() const {
+    if (auto size = cref<switch_state_tags::cbfcSenderCreditSize>()) {
+      return size->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setCbfcSenderCreditSize(const std::optional<int16_t>& size) {
+    if (!size) {
+      ref<switch_state_tags::cbfcSenderCreditSize>().reset();
+      return;
+    }
+    set<switch_state_tags::cbfcSenderCreditSize>(size.value());
+  }
+
+  std::optional<int16_t> getCbfcSenderPacketOverhead() const {
+    if (auto overhead = cref<switch_state_tags::cbfcSenderPacketOverhead>()) {
+      return overhead->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setCbfcSenderPacketOverhead(const std::optional<int16_t>& overhead) {
+    if (!overhead) {
+      ref<switch_state_tags::cbfcSenderPacketOverhead>().reset();
+      return;
+    }
+    set<switch_state_tags::cbfcSenderPacketOverhead>(overhead.value());
   }
 
   VlanID getIngressVlan() const {
@@ -993,6 +1028,36 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
       ref<switch_state_tags::linkScanMode>().reset();
     } else {
       set<switch_state_tags::linkScanMode>(linkScanMode.value());
+    }
+  }
+
+  std::optional<cfg::CsigTagAction> getCsigTagAction() const {
+    if (auto csigTagAction = cref<switch_state_tags::csigTagAction>()) {
+      return csigTagAction->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setCsigTagAction(std::optional<cfg::CsigTagAction> csigTagAction) {
+    if (!csigTagAction.has_value()) {
+      ref<switch_state_tags::csigTagAction>().reset();
+    } else {
+      set<switch_state_tags::csigTagAction>(csigTagAction.value());
+    }
+  }
+
+  std::optional<int16_t> getCsigLinkLocator() const {
+    if (auto csigLinkLocator = cref<switch_state_tags::csigLinkLocator>()) {
+      return csigLinkLocator->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setCsigLinkLocator(std::optional<int16_t> csigLinkLocator) {
+    if (!csigLinkLocator.has_value()) {
+      ref<switch_state_tags::csigLinkLocator>().reset();
+    } else {
+      set<switch_state_tags::csigLinkLocator>(csigLinkLocator.value());
     }
   }
 

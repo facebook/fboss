@@ -327,6 +327,17 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
       counterIds.emplace_back(
           SAI_PORT_STAT_OUT_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS);
     }
+// 13.3+: the 13.3 tp2 package propagates SAI_VERSION_13_0_EA_ODP and 13.0 EA
+// is retired from the build matrix, so GTE_13_0 is the operative gate.
+#if defined(BRCM_SAI_SDK_XGS_GTE_13_0)
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::HW_PROTECTION_SWITCHOVER_COUNTERS)) {
+      counterIds.emplace_back(
+          SAI_PORT_STAT_IF_IN_HW_PROTECTION_SWITCHOVER_EVENTS);
+      counterIds.emplace_back(
+          SAI_PORT_STAT_IF_IN_HW_PROTECTION_SWITCHOVER_DROP_PKTS);
+    }
+#endif
     if (platform_->getAsic()->isSupported(
             HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS)) {
       counterIds.emplace_back(SAI_PORT_STAT_IN_DROPPED_PKTS);
@@ -435,9 +446,13 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   auto platformPort = platform_->getPort(swPort->getID());
   platformPort->setCurrentProfile(swPort->getProfileID());
 
-  // set the lower 32-bit of SaiId as Hardware logical port ID
   auto portSaiId = saiPort->adapterKey();
   uint32_t hwLogicalPortId = static_cast<uint32_t>(portSaiId);
+  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    // Chenab stores the SDK logical port ID in the upper 32 bits of the OID.
+    hwLogicalPortId =
+        static_cast<uint32_t>(static_cast<uint64_t>(portSaiId) >> 32);
+  }
   XLOG(DBG2) << "swPort ID: " << swPort->getID()
              << " hwLogicalPort ID: " << hwLogicalPortId;
   platformPort->setHwLogicalPortId(hwLogicalPortId);
@@ -567,6 +582,10 @@ void SaiPortManager::changePortImpl(
     // Port transitioned from enabled to disabled, remove stats
     portStats_.erase(newPort->getID());
   }
+  // Before the qos policy: on TU1, VC create on a second port of an input
+  // buffer fails with INVALID PARAMETER once QUEUE_TO_VC is bound to it.
+  managerTable_->virtualChannelManager().programVirtualChannels(
+      newPort, saiPort->adapterKey());
   changeQueue(
       newPort,
       oldPort->getPortQueues()->impl(),
@@ -595,8 +614,6 @@ void SaiPortManager::changePortImpl(
     resetCableLength(newPort->getID());
   }
   changePortFlowletConfig(oldPort, newPort);
-  managerTable_->virtualChannelManager().programVirtualChannels(
-      newPort, saiPort->adapterKey());
   if (programLlrForPort) {
     programLlr(newPort, existingPort);
     if (deferAdminEnable) {
@@ -604,11 +621,6 @@ void SaiPortManager::changePortImpl(
       saiPort->setOptionalAttribute(
           SaiPortTraits::Attributes::AdminState{true});
     }
-  } else if (newPort->isUp() != oldPort->isUp() && newPort->isUp()) {
-    // The LLR TX trigger only takes effect once the link is up, which is why
-    // programLlr()'s own mode remote write is lost. This is the transition that
-    // arms it.
-    reissueLlrModeRemote(existingPort, newPort->getID());
   }
   changeClm(oldPort, newPort);
 }
@@ -1058,6 +1070,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   debounceProgrammable =
       swPort->getLinkScanMode() == cfg::LinkScanMode::HARDWARE;
 #endif
+  const bool upHoldoffIsPerPort = !platform_->getAsic()->isSupported(
+      HwAsic::Feature::SWITCH_WIDE_LINK_UP_DEBOUNCE);
   if (platform_->getAsic()->isSupported(HwAsic::Feature::PORT_DEBOUNCE) &&
       debounceProgrammable) {
     // Hold timers (ms) the SDK applies before reporting link up/down events.
@@ -1073,7 +1087,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         static_cast<sai_uint32_t>(swPort->getPortUpHoldoffTimeMs().value_or(
             kSdkDefaultLinkDebouncePeriodMs))};
 #else
-    if (swPort->getPortUpHoldoffTimeMs().has_value()) {
+    if (upHoldoffIsPerPort && swPort->getPortUpHoldoffTimeMs().has_value()) {
       throw FbossError(
           "Per-port link up debounce timer (portUpHoldoffTimeMs) is not "
           "supported by this SAI SDK; cannot apply to port ",
@@ -1091,7 +1105,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
                 kSdkDefaultLinkDebouncePeriodMs) *
             kLinkDownDebounceUnitsPerMs)};
   } else if (
-      swPort->getPortUpHoldoffTimeMs().has_value() ||
+      (upHoldoffIsPerPort && swPort->getPortUpHoldoffTimeMs().has_value()) ||
       swPort->getPortDownHoldoffTimeMs().has_value()) {
     if (!platform_->getAsic()->isSupported(HwAsic::Feature::PORT_DEBOUNCE)) {
       throw FbossError(
@@ -1121,6 +1135,22 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   std::optional<SaiPortTraits::Attributes::LinkScanMode> linkScanMode;
   if (const auto mode = swPort->getLinkScanMode()) {
     linkScanMode = linkScanModeAttribute(*mode);
+  }
+
+  if ((swPort->getCsigTagAction() || swPort->getCsigLinkLocator()) &&
+      !platform_->getAsic()->isSupported(HwAsic::Feature::CSIG)) {
+    throw FbossError(
+        "CSIG is not supported on this ASIC/SDK; cannot apply to port ",
+        swPort->getID());
+  }
+  // cfg::CsigTagAction values match sai_port_csig_tag_action_t.
+  std::optional<SaiPortTraits::Attributes::CsigTagAction> csigTagAction;
+  if (const auto action = swPort->getCsigTagAction()) {
+    csigTagAction = static_cast<sai_int32_t>(*action);
+  }
+  std::optional<SaiPortTraits::Attributes::CsigLinkLocator> csigLinkLocator;
+  if (const auto linkLocator = swPort->getCsigLinkLocator()) {
+    csigLinkLocator = static_cast<sai_uint8_t>(*linkLocator);
   }
 
   if (basicAttributeOnly) {
@@ -1171,8 +1201,12 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // TC to Priority Group map
         std::nullopt, // PFC Priority to Queue map
         std::nullopt, // PFC Priority to Priority Group map
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
         std::nullopt, // TC to VC map
+        std::nullopt, // Queue to VC map
+        std::nullopt, // CBFC sender credit size
+        std::nullopt, // CBFC sender packet overhead
+        std::nullopt, // CBFC sender credit limit
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
         std::nullopt,
@@ -1229,6 +1263,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // Ingress ACL
         std::nullopt, // IsolationGroup
         std::nullopt, // Metadata
+        std::nullopt, // CsigTagAction
+        std::nullopt, // CsigLinkLocator
     };
   }
   std::optional<SaiPortTraits::Attributes::PortVlanId> vlanIdAttr{vlanId};
@@ -1266,6 +1302,29 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       swPort->getID(),
       swPort->getIngressAclTableName().value_or("none"),
       ingressAcl);
+
+#if defined(SAI_CBFC_SUPPORTED)
+  // Only on a port with virtual channels: brcm-sai rejects a sender set on a
+  // port with no CBFC.
+  std::optional<SaiPortTraits::Attributes::CbfcSenderCreditSize>
+      cbfcSenderCreditSize;
+  std::optional<SaiPortTraits::Attributes::CbfcSenderPacketOverhead>
+      cbfcSenderPacketOverhead;
+  std::optional<SaiPortTraits::Attributes::CbfcSenderCreditLimit>
+      cbfcSenderCreditLimit;
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::CBFC) &&
+      swPort->getVirtualChannels()) {
+    if (auto creditSize = swPort->getCbfcSenderCreditSize()) {
+      cbfcSenderCreditSize = static_cast<sai_uint16_t>(*creditSize);
+    }
+    if (auto packetOverhead = swPort->getCbfcSenderPacketOverhead()) {
+      cbfcSenderPacketOverhead = *packetOverhead;
+    }
+    if (auto creditLimit = swPort->getCbfcSenderCreditLimit()) {
+      cbfcSenderCreditLimit = static_cast<sai_uint32_t>(*creditLimit);
+    }
+  }
+#endif
 
   return SaiPortTraits::CreateAttributes{
 #if defined(BRCM_SAI_SDK_DNX)
@@ -1318,8 +1377,12 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // TC to Priority Group map
       std::nullopt, // PFC Priority to Queue map
       std::nullopt, // PFC Priority to Priority Group map
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
       std::nullopt, // TC to VC map
+      std::nullopt, // Queue to VC map
+      cbfcSenderCreditSize,
+      cbfcSenderPacketOverhead,
+      cbfcSenderCreditLimit,
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
       interFrameGap, // Inter Frame Gap
@@ -1380,6 +1443,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       ingressAcl,
       std::nullopt, // IsolationGroup
       metadata,
+      csigTagAction,
+      csigLinkLocator,
   };
 }
 
@@ -1529,9 +1594,8 @@ void SaiPortManager::programLlr(
     portHandle->llrProfile = std::move(profile);
     portHandle->port->setOptionalAttribute(
         SaiPortTraits::Attributes::LlrModeLocal{true});
-    // This sets the mode bit but does not send an LLR_INIT: the port is down,
-    // and a mode remote write before link up is lost (CS00012475411).
-    // reissueLlrModeRemote() arms the trigger on the following link up.
+    // The port is down here, so this sets the mode bit without sending an
+    // LLR_INIT. brcm-sai 16.0EA4 re-arms it on link up (CS00012475411).
     portHandle->port->setOptionalAttribute(
         SaiPortTraits::Attributes::LlrModeRemote{true});
   } else {
@@ -1539,32 +1603,6 @@ void SaiPortManager::programLlr(
         SaiPortTraits::Attributes::LlrProfile{SAI_NULL_OBJECT_ID});
     portHandle->llrProfile.reset();
   }
-#endif
-}
-
-// SAI_PORT_ATTR_LLR_MODE_REMOTE drives the MAC's SEND_TX_INIT trigger.
-// programLlr() asserts it before link up, where the trigger is lost: SAI
-// returns success and PC_LLR_CONTROL reads LLR_MODE_REMOTE=1, but
-// TX_LLR_INIT_OS stays 0 and no LLR_INIT is sent. Re-asserting after link up
-// arms it. Broadcom CS00012475411.
-//
-// The set goes through the port API, not the store: the store elides a set
-// matching its cached value, and mode remote is already true there from
-// programLlr(). Only remote is re-asserted: local is a persistent enable, and
-// clearing it stops this port acknowledging the partner's frames. Clearing is
-// unavailable in any case, since a port at link up is administratively enabled
-// (CS00012478409).
-void SaiPortManager::reissueLlrModeRemote(
-    [[maybe_unused]] SaiPortHandle* portHandle,
-    [[maybe_unused]] PortID portId) {
-#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
-  if (!portHandle->llrProfile) {
-    return;
-  }
-  XLOG(DBG2) << "Re-asserting LLR mode remote on port " << portId;
-  SaiApiTable::getInstance()->portApi().setAttribute(
-      portHandle->port->adapterKey(),
-      SaiPortTraits::Attributes::LlrModeRemote{true});
 #endif
 }
 
@@ -1664,6 +1702,12 @@ void SaiPortManager::programSerdes(
   // attributes need to be programmed on other vendors
   bool skipSerdesProgramming = linkTrainingEnabled;
 
+  // TODO: Remove the flag fallback once precoding is populated in all port
+  // configs.
+  const auto txPrecodingEnabled =
+      FLAGS_montblanc_precoding || swPort->getTxPrecoding().value_or(false);
+  const auto rxPrecodingEnabled =
+      FLAGS_montblanc_precoding || swPort->getRxPrecoding().value_or(false);
   SaiPortSerdesTraits::CreateAttributes serdesAttributes =
       serdesAttributesFromSwPinConfigs(
           saiPort->adapterKey(),
@@ -1671,7 +1715,9 @@ void SaiPortManager::programSerdes(
           serdes,
           swPort->getZeroPreemphasis() && supportsZeroPreemphasis,
           swPort->getSerdesCustomCollection(),
-          skipSerdesProgramming);
+          skipSerdesProgramming,
+          txPrecodingEnabled,
+          rxPrecodingEnabled);
   if (serdes &&
       checkPortSerdesAttributes(serdes->attributes(), serdesAttributes)) {
     portHandle->serdes = serdes;
@@ -1755,75 +1801,6 @@ void SaiPortManager::programSerdes(
   // create if serdes doesn't exist or update existing serdes
   portHandle->serdes = store.setObject(serdesKey, serdesAttributes);
 
-  // Set RX Reach if ASIC supports and platform mapping has a rxReach
-  // setting
-#if defined(BRCM_SAI_SDK_GTE_13_0)
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_SERDES_RX_REACH)) {
-    std::vector<phy::RxReach> rxReachVals;
-    for (const auto& pinConfig : swPort->getPinConfigs()) {
-      if (auto rx = pinConfig.rx()) {
-        if (auto rxReachOpt = rx->rxReach()) {
-          rxReachVals.push_back(rxReachOpt.value());
-        }
-      }
-    }
-    // RX reach is handled by link training
-    if (!rxReachVals.empty() && !linkTrainingEnabled &&
-        (FLAGS_montblanc_precoding ||
-         swPort->getRxPrecoding().value_or(false))) {
-      SaiPortSerdesTraits::Attributes::RxReach rxReach;
-      rxReach = getSaiRxReach(rxReachVals);
-      SaiApiTable::getInstance()->portApi().setAttribute(
-          portHandle->serdes->adapterKey(), rxReach);
-    }
-  }
-#endif
-#if defined(BRCM_SAI_SDK_GTE_13_0) || SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-  if (platform_->getAsic()->isSupported(
-          HwAsic::Feature::SAI_SERDES_PRECODING)) {
-    SaiPortSerdesTraits::Attributes::RxPrecodingAttr::ValueType rxPrecoding;
-    SaiPortSerdesTraits::Attributes::TxPrecodingAttr::ValueType txPrecoding;
-    for (const auto& pinConfig : swPort->getPinConfigs()) {
-      if (auto rx = pinConfig.rx()) {
-        if (auto precoding = rx->precoding()) {
-          rxPrecoding.push_back(precoding.value());
-        }
-      }
-      if (auto tx = pinConfig.tx()) {
-        if (auto precoding = tx->precoding()) {
-          txPrecoding.push_back(precoding.value());
-        }
-      }
-    }
-    // TODO: Remove the flag fallback once precoding is populated in all port
-    // configs.
-    const auto txPrecodingEnabled =
-        FLAGS_montblanc_precoding || swPort->getTxPrecoding().value_or(false);
-    const auto rxPrecodingEnabled =
-        FLAGS_montblanc_precoding || swPort->getRxPrecoding().value_or(false);
-    if (!rxPrecoding.empty() && rxPrecodingEnabled) {
-      SaiPortSerdesTraits::Attributes::RxPrecodingAttr rxPrecodingAttr{
-          rxPrecoding};
-      SaiApiTable::getInstance()->portApi().setAttribute(
-          portHandle->serdes->adapterKey(), rxPrecodingAttr);
-    }
-    if (!txPrecoding.empty() && txPrecodingEnabled) {
-      SaiPortSerdesTraits::Attributes::TxPrecodingAttr txPrecodingAttr{
-          txPrecoding};
-      SaiApiTable::getInstance()->portApi().setAttribute(
-          portHandle->serdes->adapterKey(), txPrecodingAttr);
-    }
-  }
-#else
-  if (platform_->getAsic()->isSupported(
-          HwAsic::Feature::SAI_SERDES_PRECODING)) {
-    XLOG_EVERY_MS(WARNING, 10000)
-        << "Port " << swPort->getID()
-        << ": SAI_SERDES_PRECODING is supported by the ASIC but no precoding "
-           "attribute is available on this SDK, skipping";
-  }
-#endif
-
   if (platform_->getAsic()->getAsicType() ==
           cfg::AsicType::ASIC_TYPE_TOMAHAWK5 &&
       platform_->getHwSwitch()->getBootType() == BootType::COLD_BOOT &&
@@ -1849,16 +1826,14 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     const std::vector<phy::PinConfig>& pinConfigs,
     const std::shared_ptr<SaiPortSerdes>& serdes,
     bool zeroPreemphasis,
-    const std::optional<std::string>& customCollection,
-    bool skipSerdesProgramming) {
+    [[maybe_unused]] const std::optional<std::string>& customCollection,
+    bool skipSerdesProgramming,
+    [[maybe_unused]] bool txPrecodingEnabled,
+    [[maybe_unused]] bool rxPrecodingEnabled) {
   SaiPortSerdesTraits::CreateAttributes attrs;
 
   std::get<SaiPortSerdesTraits::Attributes::PortId>(attrs) =
       static_cast<sai_object_id_t>(portSaiId);
-  if (skipSerdesProgramming) {
-    // PortId is mandatory to create the serdes object
-    return attrs;
-  }
 
   SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType txPre1;
   SaiPortSerdesTraits::Attributes::TxFirMain::ValueType txMain;
@@ -1926,17 +1901,41 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
       rxFfeLengthBitmap;
   SaiPortSerdesTraits::Attributes::RxFfeLmsDynamicGatingEn::ValueType
       rxFfeLmsDynamicGatingEn;
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+  std::vector<phy::RxReach> rxReach;
+#endif
+#if defined(BRCM_SAI_SDK_GTE_13_0) ||            \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) && \
+     !defined(BRCM_SAI_SDK_XGS_AND_DNX))
+  SaiPortSerdesTraits::Attributes::TxPrecodingAttr::ValueType txPrecoding;
+  SaiPortSerdesTraits::Attributes::RxPrecodingAttr::ValueType rxPrecoding;
+#endif
 
   // Now use pinConfigs from SW port as the source of truth
   [[maybe_unused]] auto numExpectedTxLanes = 0;
   auto numExpectedRxLanes = 0;
   for (const auto& pinConfig : pinConfigs) {
+#if defined(BRCM_SAI_SDK_GTE_13_0) ||            \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) && \
+     !defined(BRCM_SAI_SDK_XGS_AND_DNX))
+    if (auto tx = pinConfig.tx(); tx && tx->precoding()) {
+      txPrecoding.push_back(tx->precoding().value());
+    }
+    if (auto rx = pinConfig.rx(); rx && rx->precoding()) {
+      rxPrecoding.push_back(rx->precoding().value());
+    }
+#endif
+    if (skipSerdesProgramming) {
+      continue;
+    }
     if (auto tx = pinConfig.tx()) {
       ++numExpectedTxLanes;
       if (platform_->getAsic()->getAsicType() ==
               cfg::AsicType::ASIC_TYPE_YUBA ||
           platform_->getAsic()->getAsicType() ==
-              cfg::AsicType::ASIC_TYPE_G202X) {
+              cfg::AsicType::ASIC_TYPE_G202X ||
+          platform_->getAsic()->getAsicType() ==
+              cfg::AsicType::ASIC_TYPE_P200) {
         if (auto firPre1 = tx->firPre1()) {
           txPre1.push_back(zeroPreemphasis ? 0 : *firPre1);
         }
@@ -2007,6 +2006,11 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     }
     if (auto rx = pinConfig.rx()) {
       ++numExpectedRxLanes;
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+      if (auto reach = rx->rxReach()) {
+        rxReach.push_back(reach.value());
+      }
+#endif
       if (auto ctlCode = rx->ctlCode()) {
         rxCtleCode.push_back(*ctlCode);
       }
@@ -2099,10 +2103,42 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     }
   };
 
+#if defined(BRCM_SAI_SDK_GTE_13_0) ||            \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) && \
+     !defined(BRCM_SAI_SDK_XGS_AND_DNX))
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_SERDES_PRECODING)) {
+    if (txPrecodingEnabled) {
+      setTxRxAttr(
+          attrs,
+          SaiPortSerdesTraits::Attributes::TxPrecodingAttr{},
+          txPrecoding);
+    }
+    if (rxPrecodingEnabled) {
+      setTxRxAttr(
+          attrs,
+          SaiPortSerdesTraits::Attributes::RxPrecodingAttr{},
+          rxPrecoding);
+    }
+  }
+#endif
+  if (skipSerdesProgramming) {
+    return attrs;
+  }
+
   setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPre1{}, txPre1);
   setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPost1{}, txPost1);
   setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirMain{}, txMain);
   setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::IDriver{}, txIDriver);
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+  if (rxPrecodingEnabled &&
+      platform_->getAsic()->isSupported(HwAsic::Feature::SAI_SERDES_RX_REACH)) {
+    setTxRxAttr(
+        attrs,
+        SaiPortSerdesTraits::Attributes::RxReach{},
+        getSaiRxReach(rxReach));
+  }
+#endif
 
   if (FLAGS_sai_configure_six_tap &&
       platform_->getAsic()->isSupported(

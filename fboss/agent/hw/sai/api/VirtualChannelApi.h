@@ -4,7 +4,7 @@
 
 #include "fboss/agent/hw/sai/api/SaiVersion.h"
 
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
 
 #include "fboss/agent/hw/sai/api/SaiApi.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
@@ -13,6 +13,7 @@
 
 #include <optional>
 #include <tuple>
+#include <vector>
 
 extern "C" {
 #include <sai.h>
@@ -33,6 +34,11 @@ struct SaiVirtualChannelTraits {
         SaiAttribute<EnumType, SAI_VIRTUAL_CHANNEL_ATTR_PORT, SaiObjectIdT>;
     using Index =
         SaiAttribute<EnumType, SAI_VIRTUAL_CHANNEL_ATTR_INDEX, sai_uint8_t>;
+    // READ_ONLY: the per-VC credit limit hardware advertises to the peer.
+    using CbfcReceiverNativeCreditLimit = SaiAttribute<
+        EnumType,
+        SAI_VIRTUAL_CHANNEL_ATTR_CBFC_RECEIVER_NATIVE_CREDIT_LIMIT,
+        sai_uint32_t>;
     using CbfcSenderCreditProfile = SaiAttribute<
         EnumType,
         SAI_VIRTUAL_CHANNEL_ATTR_CBFC_SENDER_CREDIT_PROFILE,
@@ -65,10 +71,32 @@ struct SaiVirtualChannelTraits {
       SAI_VIRTUAL_CHANNEL_STAT_RECEIVER_CREDITS_CONSUMED,
       SAI_VIRTUAL_CHANNEL_STAT_RECEIVER_CREDITS_FREED,
   };
+
+  // The subset of CounterIdsToRead that a real switch can read, the analogue
+  // of SaiPortTraits::cbfcStats(). get_virtual_channel_stats is
+  // all-or-nothing, so asking for a counter the stepping does not serve loses
+  // every virtual channel counter on the port, not just that one.
+  //
+  // Left out because they are Tomahawk Ultra 1 B0 stepping only and return
+  // NOT_SUPPORTED on A0:
+  //   SENDER_CREDITS_CONSUMED    bcmCosqStatCbfcTxPortVcCreditConsumed
+  //   SENDER_CREDITS_FREED       bcmCosqStatCbfcTxPortVcCRCyclicCount
+  //   RECEIVER_CREDITS_FREED     bcmCosqStatCbfcRxPortVcCFCyclicCount
+  //
+  // CounterIdsToRead above keeps all four: fake serves them regardless of
+  // stepping, and it is the set the object declares rather than the set a
+  // given chip can answer.
+  static const std::vector<sai_stat_id_t>& cbfcVcStats() {
+    static const std::vector<sai_stat_id_t> ids = {
+        SAI_VIRTUAL_CHANNEL_STAT_RECEIVER_CREDITS_CONSUMED,
+    };
+    return ids;
+  }
 };
 
 SAI_ATTRIBUTE_NAME(VirtualChannel, Port);
 SAI_ATTRIBUTE_NAME(VirtualChannel, Index);
+SAI_ATTRIBUTE_NAME(VirtualChannel, CbfcReceiverNativeCreditLimit);
 SAI_ATTRIBUTE_NAME(VirtualChannel, CbfcSenderCreditProfile);
 SAI_ATTRIBUTE_NAME(VirtualChannel, CbfcReceiverEnable);
 SAI_ATTRIBUTE_NAME(VirtualChannel, CbfcSenderEnable);

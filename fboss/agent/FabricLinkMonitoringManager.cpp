@@ -13,6 +13,7 @@
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/gen-cpp2/agent_stats_types.h"
 
 DEFINE_int32(
     fabric_link_monitoring_interval_ms,
@@ -200,6 +201,29 @@ FabricLinkMonitoringManager::getAllFabricLinkMonPortStats() const {
     result[portId] = *portStats;
   }
   return result;
+}
+
+void FabricLinkMonitoringManager::fillAgentFabricLinkMonitoringStats(
+    AgentStats& agentStats) const {
+  const auto state = sw_->getState();
+  for (const auto& [portId, stats] : getAllFabricLinkMonPortStats()) {
+    const auto port = state->getPorts()->getNodeIf(portId);
+    if (!port) {
+      continue;
+    }
+    auto it = agentStats.hwPortStats()->find(port->getName());
+    if (it == agentStats.hwPortStats()->end()) {
+      continue;
+    }
+    auto& portStats = it->second;
+    portStats.fabricLinkMonitoringTxPackets_() = *stats.txCount();
+    portStats.fabricLinkMonitoringRxPackets_() = *stats.rxCount();
+    portStats.fabricLinkMonitoringDroppedPackets_() = *stats.droppedCount();
+    portStats.fabricLinkMonitoringInvalidPayloadPackets_() =
+        *stats.invalidPayloadCount();
+    portStats.fabricLinkMonitoringNoPendingSeqNumPackets_() =
+        *stats.noPendingSeqNumCount();
+  }
 }
 
 // Get pending sequence numbers for a specific port

@@ -25,7 +25,9 @@
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/config/agent/InterfaceConfigUtils.h"
 #include "fboss/lib/config/agent/PortConfigUtils.h"
+#include "fboss/lib/config/agent/VlanConfigUtils.h"
 
 #include <folly/MacAddress.h>
 #include <vector>
@@ -55,6 +57,18 @@ bool isEnabledPortWithSubnet(
     const cfg::SwitchConfig& config);
 
 std::vector<std::string> getLoopbackIps(SwitchID switchId);
+
+/*
+ * Correct Tomahawk6 connection handles that were written for a different COM-E
+ * variant. Keeps the configured assignment when every configured handle is
+ * already on the bus, so a config whose switch id order does not follow BDF
+ * order is left alone. Throws when nothing was discovered, or when the count
+ * disagrees with the config and the addresses therefore cannot be mapped to
+ * switch ids. Takes the addresses as an argument so it is testable off-box.
+ */
+void applyTomahawk6PciAddrs(
+    const std::vector<std::string>& pciAddrs,
+    std::map<SwitchID, cfg::SwitchInfo>& switchIdToSwitchInfo);
 
 int getMaxRdsw(std::optional<PlatformType> platformType = std::nullopt);
 int getMaxEdsw();

@@ -62,9 +62,7 @@ bool AgentArsBase::isTH3(const AgentEnsemble& ensemble) const {
   return (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK3);
 }
 
-std::string AgentArsBase::getAclName(
-    AclType aclType,
-    bool enableAlternateArsMembers) const {
+std::string AgentArsBase::getAclName(AclType aclType) const {
   std::string aclName{};
   switch (aclType) {
     case AclType::UDF_ACK:
@@ -80,8 +78,7 @@ std::string AgentArsBase::getAclName(
     case AclType::FLOWLET:
     case AclType::FLOWLET_WITH_UDF_ACK:
     case AclType::FLOWLET_WITH_UDF_NAK:
-      aclName = enableAlternateArsMembers ? "test-flowlet-acl-alt"
-                                          : "test-flowlet-acl";
+      aclName = "test-flowlet-acl";
       break;
     case AclType::UDF_FLOWLET:
     case AclType::UDF_FLOWLET_WITH_UDF_ACK:
@@ -100,10 +97,8 @@ std::string AgentArsBase::getAclName(
   return aclName;
 }
 
-std::string AgentArsBase::getCounterName(
-    AclType aclType,
-    bool enableAlternateArsMembers) const {
-  return getAclName(aclType, enableAlternateArsMembers) + "-stats";
+std::string AgentArsBase::getCounterName(AclType aclType) const {
+  return getAclName(aclType) + "-stats";
 }
 
 std::vector<PortID> AgentArsBase::getTestPorts() const {
@@ -649,17 +644,6 @@ void AgentArsBase::addAclAndStat(
     } break;
     case AclType::FLOWLET: {
       utility::addFlowletAcl(*config, isSai, aclName, counterName, false);
-      if (FLAGS_enable_th5_ars_scale_mode) {
-        auto alternateMemberAclName = getAclName(aclType, true);
-        auto alternateCounterName = getCounterName(aclType, true);
-        utility::addFlowletAcl(
-            *config,
-            isSai,
-            alternateMemberAclName,
-            alternateCounterName,
-            false,
-            true);
-      }
     } break;
     case AclType::FLOWLET_WITH_UDF_ACK:
       config->udfConfig() =

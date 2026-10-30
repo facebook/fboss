@@ -72,6 +72,11 @@ HwPortFb303Stats::kPortMonotonicCounterStatKeys() const {
       kLlrTxNackReplayEvent(),
       kLlrTxTimerReplayEvent(),
       kLlrTxError(),
+      kCbfcCcUpdateTx(),
+      kCbfcCfUpdateTx(),
+      kCbfcCfUpdateRx(),
+      kHwProtectionSwitchoverEvents(),
+      kHwProtectionSwitchoverDropPkts(),
   };
   return kPortKeys;
 }
@@ -431,6 +436,34 @@ void HwPortFb303Stats::updateStats(
   }
   if (curPortStats.llrTxError_().has_value()) {
     updateStat(timeRetrieved_, kLlrTxError(), *curPortStats.llrTxError_());
+  }
+
+  // UEC CBFC counters -- populated only on CBFC-capable ASICs (Tomahawk Ultra).
+  if (curPortStats.cbfcCcUpdateTx_().has_value()) {
+    updateStat(
+        timeRetrieved_, kCbfcCcUpdateTx(), *curPortStats.cbfcCcUpdateTx_());
+  }
+  if (curPortStats.cbfcCfUpdateTx_().has_value()) {
+    updateStat(
+        timeRetrieved_, kCbfcCfUpdateTx(), *curPortStats.cbfcCfUpdateTx_());
+  }
+  if (curPortStats.cbfcCfUpdateRx_().has_value()) {
+    updateStat(
+        timeRetrieved_, kCbfcCfUpdateRx(), *curPortStats.cbfcCfUpdateRx_());
+  }
+
+  // HW protection switchover counters, populated only on TH5/TH6.
+  if (curPortStats.hwProtectionSwitchoverEvents_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kHwProtectionSwitchoverEvents(),
+        *curPortStats.hwProtectionSwitchoverEvents_());
+  }
+  if (curPortStats.hwProtectionSwitchoverDropPkts_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kHwProtectionSwitchoverDropPkts(),
+        *curPortStats.hwProtectionSwitchoverDropPkts_());
   }
 
   // Update queue stats

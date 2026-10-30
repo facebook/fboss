@@ -171,6 +171,12 @@ const RouterInterfaceApi& SaiApiTable::routerInterfaceApi() const {
   return getApi<RouterInterfaceApi>();
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+const MyMacApi& SaiApiTable::myMacApi() const {
+  return getApi<MyMacApi>();
+}
+#endif
+
 const SamplePacketApi& SaiApiTable::samplePacketApi() const {
   return getApi<SamplePacketApi>();
 }
@@ -191,7 +197,7 @@ const UdfApi& SaiApiTable::udfApi() const {
   return getApi<UdfApi>();
 }
 
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
 const VirtualChannelApi& SaiApiTable::virtualChannelApi() const {
   return getApi<VirtualChannelApi>();
 }

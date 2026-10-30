@@ -145,8 +145,16 @@ enum ProductionFeature {
   PORT_USER_METADATA = 127,
   MYSID_ADJACENCY_FRR = 128,
   BUFFER_MIN_GUARANTEE_WITH_DELAY_DROPS = 129,
-  # 130 is CREDIT_BASED_FLOW_CONTROL in the configerator copy, absent here.
+  CREDIT_BASED_FLOW_CONTROL = 130,
   MPLS_TTL_ACL = 131,
+  ACCESS_POLICY_CLASS_ID_ACL = 132,
+  MY_MAC = 133,
+  MIRROR_ON_DROP_AGGREGATE_RATE_LIMIT = 134,
+  PBR_ACL = 135,
+  VXLAN_ENCAP = 136,
+  VXLAN_DECAP = 137,
+  MIRROR_ON_DROP_STATEFUL = 138,
+  MULTI_VRF = 139,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }

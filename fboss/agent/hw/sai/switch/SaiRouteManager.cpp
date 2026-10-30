@@ -244,7 +244,7 @@ void SaiRouteManager::addOrUpdateRoute(
       if (packetAction == SAI_PACKET_ACTION_DROP) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
         attributes = SaiRouteTraits::CreateAttributes{
-            packetAction, SAI_NULL_OBJECT_ID, metadata, std::nullopt};
+            packetAction, SAI_NULL_OBJECT_ID, metadata, counterID};
 #else
         attributes = SaiRouteTraits::CreateAttributes{
             packetAction, SAI_NULL_OBJECT_ID, metadata};
@@ -303,7 +303,7 @@ void SaiRouteManager::addOrUpdateRoute(
             routerInterfaceHandle->adapterKey()};
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
         attributes = SaiRouteTraits::CreateAttributes{
-            packetAction, routerInterfaceId, metadata, std::nullopt};
+            packetAction, routerInterfaceId, metadata, counterID};
 #else
         attributes = SaiRouteTraits::CreateAttributes{
             packetAction, routerInterfaceId, metadata};
@@ -339,7 +339,7 @@ void SaiRouteManager::addOrUpdateRoute(
                    << ", setting route to DROP: " << newRoute->str();
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
         attributes = SaiRouteTraits::CreateAttributes{
-            packetAction, SAI_NULL_OBJECT_ID, metadata, std::nullopt};
+            packetAction, SAI_NULL_OBJECT_ID, metadata, counterID};
 #else
         attributes = SaiRouteTraits::CreateAttributes{
             packetAction, SAI_NULL_OBJECT_ID, metadata};
@@ -383,7 +383,7 @@ void SaiRouteManager::addOrUpdateRoute(
               << interfaceId << ", drop it";
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
           attributes = SaiRouteTraits::CreateAttributes{
-              packetAction, SAI_NULL_OBJECT_ID, metadata, std::nullopt};
+              packetAction, SAI_NULL_OBJECT_ID, metadata, counterID};
 #else
           attributes = SaiRouteTraits::CreateAttributes{
               packetAction, SAI_NULL_OBJECT_ID, metadata};
@@ -445,7 +445,7 @@ void SaiRouteManager::addOrUpdateRoute(
           packetAction = SAI_PACKET_ACTION_DROP;
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
           attributes = SaiRouteTraits::CreateAttributes{
-              packetAction, SAI_NULL_OBJECT_ID, metadata, std::nullopt};
+              packetAction, SAI_NULL_OBJECT_ID, metadata, counterID};
 #else
           attributes = SaiRouteTraits::CreateAttributes{
               packetAction, SAI_NULL_OBJECT_ID, metadata};
@@ -531,7 +531,7 @@ void SaiRouteManager::addOrUpdateRoute(
     }
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
     attributes = SaiRouteTraits::CreateAttributes{
-        packetAction, cpuPortId, metadata, std::nullopt};
+        packetAction, cpuPortId, metadata, counterID};
 #else
     attributes =
         SaiRouteTraits::CreateAttributes{packetAction, cpuPortId, metadata};
@@ -543,7 +543,7 @@ void SaiRouteManager::addOrUpdateRoute(
     packetAction = SAI_PACKET_ACTION_DROP;
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
     attributes = SaiRouteTraits::CreateAttributes{
-        packetAction, SAI_NULL_OBJECT_ID, metadata, std::nullopt};
+        packetAction, SAI_NULL_OBJECT_ID, metadata, counterID};
 #else
     attributes = SaiRouteTraits::CreateAttributes{
         packetAction, SAI_NULL_OBJECT_ID, metadata};
@@ -750,23 +750,6 @@ void SaiRouteManager::checkMetadata(SaiRouteTraits::RouteEntry entry) {
   auto route = getRouteObject(entry);
   if (!route) {
     return;
-  }
-
-  // Read ARS metadata from SDK and set it back to sync all layers
-  // This is needed because metadata is an optional SAI attribute
-  if (FLAGS_enable_th5_ars_scale_mode) {
-    auto& api = SaiApiTable::getInstance()->routeApi();
-    auto sdkMetadata = api.getAttribute(
-        route->adapterKey(), SaiRouteTraits::Attributes::Metadata{});
-    if (sdkMetadata ==
-            static_cast<sai_uint32_t>(
-                cfg::AclLookupClass::ARS_ALTERNATE_MEMBERS_CLASS) ||
-        sdkMetadata == 0) {
-      // Set it back to sync all layers
-      api.setAttribute(
-          route->adapterKey(),
-          SaiRouteTraits::Attributes::Metadata{sdkMetadata});
-    }
   }
 
   auto attributes = route->attributes();

@@ -70,6 +70,11 @@ sai_status_t create_port_fn(
   std::vector<sai_object_id_t> ingressPriorityGroupList;
   std::optional<sai_uint32_t> numberOfIngressPriorityGroups;
   std::optional<sai_object_id_t> qosTcToPriorityGroupMap;
+  std::optional<sai_object_id_t> qosTcToVcMap;
+  std::optional<sai_uint32_t> cbfcSenderCreditLimit;
+  std::optional<sai_uint16_t> cbfcSenderCreditSize;
+  std::optional<sai_int16_t> cbfcSenderPacketOverhead;
+  std::optional<sai_object_id_t> qosQueueToVcMap;
   std::optional<sai_object_id_t> qosPfcPriorityToQueueMap;
   std::optional<sai_object_id_t> qosPfcPriorityToPriorityGroupMap;
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
@@ -247,6 +252,21 @@ sai_status_t create_port_fn(
         break;
       case SAI_PORT_ATTR_QOS_TC_TO_PRIORITY_GROUP_MAP:
         qosTcToPriorityGroupMap = attr_list[i].value.oid;
+        break;
+      case SAI_PORT_ATTR_QOS_TC_TO_VC_MAP:
+        qosTcToVcMap = attr_list[i].value.oid;
+        break;
+      case SAI_PORT_ATTR_CBFC_SENDER_CREDIT_LIMIT:
+        cbfcSenderCreditLimit = attr_list[i].value.u32;
+        break;
+      case SAI_PORT_ATTR_CBFC_SENDER_CREDIT_SIZE:
+        cbfcSenderCreditSize = attr_list[i].value.u16;
+        break;
+      case SAI_PORT_ATTR_CBFC_SENDER_PACKET_OVERHEAD:
+        cbfcSenderPacketOverhead = attr_list[i].value.s16;
+        break;
+      case SAI_PORT_ATTR_QOS_QUEUE_TO_VC_MAP:
+        qosQueueToVcMap = attr_list[i].value.oid;
         break;
       case SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_QUEUE_MAP:
         qosPfcPriorityToQueueMap = attr_list[i].value.oid;
@@ -435,6 +455,21 @@ sai_status_t create_port_fn(
   if (qosTcToPriorityGroupMap.has_value()) {
     port.qosTcToPriorityGroupMap = qosTcToPriorityGroupMap.value();
   }
+  if (qosTcToVcMap.has_value()) {
+    port.qosTcToVcMap = qosTcToVcMap.value();
+  }
+  if (cbfcSenderCreditLimit.has_value()) {
+    port.cbfcSenderCreditLimit = cbfcSenderCreditLimit.value();
+  }
+  if (cbfcSenderCreditSize.has_value()) {
+    port.cbfcSenderCreditSize = cbfcSenderCreditSize.value();
+  }
+  if (cbfcSenderPacketOverhead.has_value()) {
+    port.cbfcSenderPacketOverhead = cbfcSenderPacketOverhead.value();
+  }
+  if (qosQueueToVcMap.has_value()) {
+    port.qosQueueToVcMap = qosQueueToVcMap.value();
+  }
   if (qosPfcPriorityToQueueMap.has_value()) {
     port.qosPfcPriorityToQueueMap = qosPfcPriorityToQueueMap.value();
   }
@@ -510,8 +545,7 @@ sai_status_t set_port_attribute_fn(
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
   // Native BCM SDK 6.5.36 refuses to clear an LLR mode, or to attach or detach
   // a PORT_LLR_PROFILE, while the port is administratively enabled (Broadcom
-  // CS00012478409). Setting a mode on an enabled port is permitted: that is how
-  // the one-shot LLR_MODE_REMOTE trigger is armed after link up.
+  // CS00012478409). Setting a mode on an enabled port is permitted.
   if (port.adminState) {
     bool clearingMode = (attr->id == SAI_PORT_ATTR_LLR_MODE_LOCAL ||
                          attr->id == SAI_PORT_ATTR_LLR_MODE_REMOTE) &&
@@ -817,6 +851,21 @@ sai_status_t set_port_attribute_fn(
       break;
     case SAI_PORT_ATTR_QOS_TC_TO_PRIORITY_GROUP_MAP:
       port.qosTcToPriorityGroupMap = attr->value.oid;
+      break;
+    case SAI_PORT_ATTR_QOS_TC_TO_VC_MAP:
+      port.qosTcToVcMap = attr->value.oid;
+      break;
+    case SAI_PORT_ATTR_CBFC_SENDER_CREDIT_LIMIT:
+      port.cbfcSenderCreditLimit = attr->value.u32;
+      break;
+    case SAI_PORT_ATTR_CBFC_SENDER_CREDIT_SIZE:
+      port.cbfcSenderCreditSize = attr->value.u16;
+      break;
+    case SAI_PORT_ATTR_CBFC_SENDER_PACKET_OVERHEAD:
+      port.cbfcSenderPacketOverhead = attr->value.s16;
+      break;
+    case SAI_PORT_ATTR_QOS_QUEUE_TO_VC_MAP:
+      port.qosQueueToVcMap = attr->value.oid;
       break;
     case SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_QUEUE_MAP:
       port.qosPfcPriorityToQueueMap = attr->value.oid;
@@ -1177,6 +1226,12 @@ sai_status_t get_port_attribute_fn(
         attr[i].value.latchstatus = port.portPcsLinkStatus;
         break;
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+      case SAI_PORT_ATTR_EXT_FAKE_OPER_STATUS_LATCH:
+        attr[i].value.latchstatus = port.portExtOperStatusLatch;
+        port.portExtOperStatusLatch.changed = false;
+        break;
+#endif
       case SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL_MODE:
         attr[i].value.u32 = static_cast<int32_t>(port.priorityFlowControlMode);
         break;
@@ -1215,6 +1270,30 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_QOS_TC_TO_PRIORITY_GROUP_MAP:
         attr[i].value.oid = port.qosTcToPriorityGroupMap;
+        break;
+      case SAI_PORT_ATTR_QOS_TC_TO_VC_MAP:
+        attr[i].value.oid = port.qosTcToVcMap;
+        break;
+      case SAI_PORT_ATTR_CBFC_SENDER_CREDIT_LIMIT:
+        attr[i].value.u32 = port.cbfcSenderCreditLimit;
+        break;
+      case SAI_PORT_ATTR_CBFC_SENDER_CREDIT_SIZE:
+        attr[i].value.u16 = port.cbfcSenderCreditSize;
+        break;
+      case SAI_PORT_ATTR_CBFC_SENDER_PACKET_OVERHEAD:
+        attr[i].value.s16 = port.cbfcSenderPacketOverhead;
+        break;
+      case SAI_PORT_ATTR_QOS_QUEUE_TO_VC_MAP:
+        attr[i].value.oid = port.qosQueueToVcMap;
+        break;
+      case SAI_PORT_ATTR_CBFC_RECEIVER_NATIVE_CREDIT_SIZE:
+        attr[i].value.u16 = port.cbfcReceiverNativeCreditSize;
+        break;
+      case SAI_PORT_ATTR_CBFC_RECEIVER_NATIVE_PACKET_OVERHEAD:
+        attr[i].value.s16 = port.cbfcReceiverNativePacketOverhead;
+        break;
+      case SAI_PORT_ATTR_CBFC_RECEIVER_NATIVE_TOTAL_CREDITS:
+        attr[i].value.u16 = port.cbfcReceiverNativeTotalCredits;
         break;
       case SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_QUEUE_MAP:
         attr[i].value.oid = port.qosPfcPriorityToQueueMap;

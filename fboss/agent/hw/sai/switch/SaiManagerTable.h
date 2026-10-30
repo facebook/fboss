@@ -47,6 +47,7 @@ class SaiQueueManager;
 class SaiQosMapManager;
 class SaiRouteManager;
 class SaiRouterInterfaceManager;
+class SaiMyMacManager;
 class SaiSamplePacketManager;
 class SaiSwitchManager;
 class SaiSystemPortManager;
@@ -60,6 +61,7 @@ class SaiUdfManager;
 class SaiVirtualChannelManager;
 class SaiVirtualRouterManager;
 class SaiVlanManager;
+class SaiVxlanTunnelManager;
 class SaiVendorSwitchManager;
 class SaiWredManager;
 class SaiStore;
@@ -151,6 +153,9 @@ class SaiManagerTable {
   SaiRouterInterfaceManager& routerInterfaceManager();
   const SaiRouterInterfaceManager& routerInterfaceManager() const;
 
+  SaiMyMacManager& myMacManager();
+  const SaiMyMacManager& myMacManager() const;
+
   SaiSamplePacketManager& samplePacketManager();
   const SaiSamplePacketManager& samplePacketManager() const;
 
@@ -189,6 +194,9 @@ class SaiManagerTable {
   SaiSrv6TunnelManager& srv6TunnelManager();
   const SaiSrv6TunnelManager& srv6TunnelManager() const;
 
+  SaiVxlanTunnelManager& vxlanTunnelManager();
+  const SaiVxlanTunnelManager& vxlanTunnelManager() const;
+
   SaiUdfManager& udfManager();
   const SaiUdfManager& udfManager() const;
 
@@ -224,6 +232,7 @@ class SaiManagerTable {
   std::unique_ptr<SaiQosMapManager> qosMapManager_;
   std::unique_ptr<SaiRouteManager> routeManager_;
   std::unique_ptr<SaiRouterInterfaceManager> routerInterfaceManager_;
+  std::unique_ptr<SaiMyMacManager> myMacManager_;
   std::unique_ptr<SaiSamplePacketManager> samplePacketManager_;
   std::unique_ptr<SaiSchedulerManager> schedulerManager_;
   std::unique_ptr<SaiSwitchManager> switchManager_;
@@ -238,6 +247,7 @@ class SaiManagerTable {
   std::unique_ptr<SaiSrv6SidListManager> srv6SidListManager_;
   std::unique_ptr<SaiSrv6MySidManager> srv6MySidManager_;
   std::unique_ptr<SaiSrv6TunnelManager> srv6TunnelManager_;
+  std::unique_ptr<SaiVxlanTunnelManager> vxlanTunnelManager_;
   std::unique_ptr<UnsupportedFeatureManager> teFlowEntryManager_;
   std::unique_ptr<SaiUdfManager> udfManager_;
   std::unique_ptr<SaiVendorSwitchManager> vendorSwitchManager_;

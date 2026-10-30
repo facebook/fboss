@@ -31,6 +31,7 @@
 #include "fboss/agent/hw/sai/tracer/MacsecApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/MirrorApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/MplsApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/MyMacApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/NeighborApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/NextHopApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/NextHopGroupApiTracer.h"
@@ -375,6 +376,14 @@ sai_status_t __wrap_sai_api_query(
       *api_method_table = facebook::fboss::wrappedRouterInterfaceApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "router_interface_api");
       break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+    case SAI_API_MY_MAC:
+      SaiTracer::getInstance()->myMacApi_ =
+          static_cast<sai_my_mac_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrappedMyMacApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "my_mac_api");
+      break;
+#endif
     case SAI_API_SAMPLEPACKET:
       SaiTracer::getInstance()->samplepacketApi_ =
           static_cast<sai_samplepacket_api_t*>(*api_method_table);
@@ -425,7 +434,7 @@ sai_status_t __wrap_sai_api_query(
       *api_method_table = facebook::fboss::wrappedUdfApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "udf_api");
       break;
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
     case SAI_API_VIRTUAL_CHANNEL:
       SaiTracer::getInstance()->virtualChannelApi_ =
           static_cast<sai_virtual_channel_api_t*>(*api_method_table);
@@ -2031,6 +2040,11 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_SAMPLEPACKET:
       setSamplePacketAttributes(attr_list, attr_count, attrLines, rv);
       break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+    case SAI_OBJECT_TYPE_MY_MAC:
+      setMyMacAttributes(attr_list, attr_count, attrLines, rv);
+      break;
+#endif
     case SAI_OBJECT_TYPE_SCHEDULER:
       setSchedulerAttributes(attr_list, attr_count, attrLines, rv);
       break;
@@ -2067,6 +2081,12 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY:
       setTunnelTermAttributes(attr_list, attr_count, attrLines, rv);
       break;
+    case SAI_OBJECT_TYPE_TUNNEL_MAP:
+      setTunnelMapAttributes(attr_list, attr_count, attrLines, rv);
+      break;
+    case SAI_OBJECT_TYPE_TUNNEL_MAP_ENTRY:
+      setTunnelMapEntryAttributes(attr_list, attr_count, attrLines, rv);
+      break;
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
     case SAI_OBJECT_TYPE_SRV6_SIDLIST:
       setSrv6SidListAttributes(attr_list, attr_count, attrLines, rv);
@@ -2084,7 +2104,7 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_UDF_GROUP:
       setUdfGroupAttributes(attr_list, attr_count, attrLines, rv);
       break;
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
     case SAI_OBJECT_TYPE_VIRTUAL_CHANNEL:
       setVirtualChannelAttributes(attr_list, attr_count, attrLines, rv);
       break;
@@ -2592,6 +2612,9 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_QUEUE, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_ROUTER_INTERFACE, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_SAMPLEPACKET, 0);
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  varCounts_.emplace(SAI_OBJECT_TYPE_MY_MAC, 0);
+#endif
   varCounts_.emplace(SAI_OBJECT_TYPE_SCHEDULER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_SCHEDULER_GROUP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_SWITCH, 0);
@@ -2609,6 +2632,8 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_TAM, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_TUNNEL, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_TUNNEL_MAP, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_TUNNEL_MAP_ENTRY, 0);
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   varCounts_.emplace(SAI_OBJECT_TYPE_SRV6_SIDLIST, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_MY_SID_ENTRY, 0);
@@ -2622,7 +2647,7 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(
       static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_SWITCH_PIPELINE), 0);
 #endif
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
   varCounts_.emplace(SAI_OBJECT_TYPE_VIRTUAL_CHANNEL, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_CBFC_CREDIT_PROFILE, 0);
 #endif

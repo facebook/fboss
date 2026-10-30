@@ -37,22 +37,30 @@ struct NextHopAttributesTypes<SAI_NEXT_HOP_TYPE_MPLS> {
       sai_next_hop_attr_t,
       SAI_NEXT_HOP_ATTR_LABELSTACK,
       std::vector<sai_uint32_t>>;
+  using OutsegType = facebook::fboss::SaiAttribute<
+      sai_next_hop_attr_t,
+      SAI_NEXT_HOP_ATTR_OUTSEG_TYPE,
+      sai_int32_t,
+      SaiIntValueDefault<sai_int32_t, SAI_OUTSEG_TYPE_SWAP>>;
 };
 
 template <>
 struct NextHopAttributesTypes<SAI_NEXT_HOP_TYPE_IP> {
   using LabelStack = void;
+  using OutsegType = void;
 };
 
 template <>
 struct NextHopAttributesTypes<SAI_NEXT_HOP_TYPE_TUNNEL_ENCAP> {
   using LabelStack = void;
+  using OutsegType = void;
 };
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 template <>
 struct NextHopAttributesTypes<SAI_NEXT_HOP_TYPE_SRV6_SIDLIST> {
   using LabelStack = void;
+  using OutsegType = void;
 };
 #endif
 
@@ -64,12 +72,14 @@ struct NextHopTraitsAttributes<Attributes, SAI_NEXT_HOP_TYPE_MPLS> {
   using AdapterHostKey = std::tuple<
       typename Attributes::RouterInterfaceId,
       typename Attributes::Ip,
-      typename Attributes::LabelStack>;
+      typename Attributes::LabelStack,
+      std::optional<typename Attributes::OutsegType>>;
   using CreateAttributes = std::tuple<
       typename Attributes::Type,
       typename Attributes::RouterInterfaceId,
       typename Attributes::Ip,
       typename Attributes::LabelStack,
+      std::optional<typename Attributes::OutsegType>,
       std::optional<typename Attributes::DisableTtlDecrement>>;
 };
 
@@ -207,6 +217,8 @@ struct SaiNextHopTraitsT {
         SaiObjectIdT>;
     using LabelStack =
         typename detail::NextHopAttributesTypes<type>::LabelStack;
+    using OutsegType =
+        typename detail::NextHopAttributesTypes<type>::OutsegType;
     using TunnelId =
         SaiAttribute<EnumType, SAI_NEXT_HOP_ATTR_TUNNEL_ID, SaiObjectIdT>;
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
@@ -269,6 +281,7 @@ SAI_ATTRIBUTE_NAME(IpNextHop, Type)
 SAI_ATTRIBUTE_NAME(IpNextHop, RouterInterfaceId)
 SAI_ATTRIBUTE_NAME(IpNextHop, Ip)
 SAI_ATTRIBUTE_NAME(MplsNextHop, LabelStack)
+SAI_ATTRIBUTE_NAME(MplsNextHop, OutsegType)
 SAI_ATTRIBUTE_NAME(IpNextHop, DisableTtlDecrement);
 SAI_ATTRIBUTE_NAME(TunnelEncapNextHop, TunnelId)
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)

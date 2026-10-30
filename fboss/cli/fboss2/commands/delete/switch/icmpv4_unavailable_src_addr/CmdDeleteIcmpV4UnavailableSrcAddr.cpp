@@ -13,7 +13,6 @@
 #include <fmt/format.h>
 #include <iostream>
 
-#include "fboss/agent/FbossError.h"
 #include "fboss/cli/fboss2/CmdHandler.cpp" // NOLINT(facebook-unused-include-check)
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 
@@ -26,7 +25,8 @@ CmdDeleteIcmpV4UnavailableSrcAddr::queryClient(const HostInfo& /* hostInfo */) {
 
   auto addrRef = swConfig.icmpV4UnavailableSrcAddress();
   if (!addrRef.has_value()) {
-    throw FbossError("No ICMPv4 unavailable source address configured");
+    return "Warning: no ICMPv4 unavailable source address configured, "
+           "nothing to delete";
   }
   const std::string oldAddr = *addrRef;
   addrRef.reset();

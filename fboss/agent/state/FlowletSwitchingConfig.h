@@ -333,6 +333,21 @@ class FlowletSwitchingConfig : public ThriftStructNode<
     return std::nullopt;
   }
 
+  void setArsGroupWidth(const std::optional<int32_t>& arsGroupWidth) {
+    if (arsGroupWidth) {
+      set<switch_config_tags::arsGroupWidth>(*arsGroupWidth);
+    } else {
+      ref<switch_config_tags::arsGroupWidth>().reset();
+    }
+  }
+
+  std::optional<int32_t> getArsGroupWidth() const {
+    if (auto arsGroupWidth = get<switch_config_tags::arsGroupWidth>()) {
+      return arsGroupWidth->cref();
+    }
+    return std::nullopt;
+  }
+
   FlowletSwitchingConfig* modify(std::shared_ptr<SwitchState>* state);
 
  private:

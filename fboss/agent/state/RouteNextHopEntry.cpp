@@ -45,6 +45,22 @@ DEFINE_double(ucmp_max_error, 0.05, "Max UCMP normalization error");
 
 namespace facebook::fboss {
 
+bool hasSrv6AndNonSrv6NextHops(const RouteNextHopSet& nextHops) {
+  bool hasSrv6 = false;
+  bool hasNonSrv6 = false;
+  for (const auto& nextHop : nextHops) {
+    if (nextHop.srv6SegmentList().empty()) {
+      hasNonSrv6 = true;
+    } else {
+      hasSrv6 = true;
+    }
+    if (hasSrv6 && hasNonSrv6) {
+      return true;
+    }
+  }
+  return false;
+}
+
 namespace util {
 
 namespace {
@@ -215,7 +231,8 @@ RouteNextHopEntry::RouteNextHopEntry(
     std::optional<NextHopSet> overrideNextHops,
     std::optional<NextHopSetID> normalizedResolvedNextHopSetID,
     std::optional<NextHopSetID> resolvedNextHopSetID,
-    std::optional<NextHopSetID> clientNextHopSetID) {
+    std::optional<NextHopSetID> clientNextHopSetID,
+    std::optional<NextHopSetID> overrideNextHopSetID) {
   auto data = getRouteNextHopEntryThrift(
       action,
       distance,
@@ -226,7 +243,8 @@ RouteNextHopEntry::RouteNextHopEntry(
       overrideNextHops,
       normalizedResolvedNextHopSetID,
       resolvedNextHopSetID,
-      clientNextHopSetID);
+      clientNextHopSetID,
+      overrideNextHopSetID);
   this->fromThrift(std::move(data));
 }
 
@@ -239,7 +257,8 @@ RouteNextHopEntry::RouteNextHopEntry(
     std::optional<NextHopSet> overrideNextHops,
     std::optional<NextHopSetID> normalizedResolvedNextHopSetID,
     std::optional<NextHopSetID> resolvedNextHopSetID,
-    std::optional<NextHopSetID> clientNextHopSetID) {
+    std::optional<NextHopSetID> clientNextHopSetID,
+    std::optional<NextHopSetID> overrideNextHopSetID) {
   auto data = getRouteNextHopEntryThrift(
       Action::NEXTHOPS,
       distance,
@@ -250,7 +269,8 @@ RouteNextHopEntry::RouteNextHopEntry(
       overrideNextHops,
       normalizedResolvedNextHopSetID,
       resolvedNextHopSetID,
-      clientNextHopSetID);
+      clientNextHopSetID,
+      overrideNextHopSetID);
   this->fromThrift(std::move(data));
 }
 
@@ -263,7 +283,8 @@ RouteNextHopEntry::RouteNextHopEntry(
     std::optional<NextHopSet> overrideNextHops,
     std::optional<NextHopSetID> normalizedResolvedNextHopSetID,
     std::optional<NextHopSetID> resolvedNextHopSetID,
-    std::optional<NextHopSetID> clientNextHopSetID) {
+    std::optional<NextHopSetID> clientNextHopSetID,
+    std::optional<NextHopSetID> overrideNextHopSetID) {
   if (nhopSet.empty()) {
     throw FbossError("Empty nexthop set is passed to the RouteNextHopEntry");
   }
@@ -277,7 +298,8 @@ RouteNextHopEntry::RouteNextHopEntry(
       overrideNextHops,
       normalizedResolvedNextHopSetID,
       resolvedNextHopSetID,
-      clientNextHopSetID);
+      clientNextHopSetID,
+      overrideNextHopSetID);
   this->fromThrift(std::move(data));
 }
 
@@ -299,7 +321,8 @@ bool operator==(const RouteNextHopEntry& a, const RouteNextHopEntry& b) {
       a.getNormalizedResolvedNextHopSetID() ==
       b.getNormalizedResolvedNextHopSetID() &&
       a.getResolvedNextHopSetID() == b.getResolvedNextHopSetID() &&
-      a.getClientNextHopSetID() == b.getClientNextHopSetID();
+      a.getClientNextHopSetID() == b.getClientNextHopSetID() &&
+      a.getOverrideNextHopSetID() == b.getOverrideNextHopSetID();
 }
 
 bool operator<(const RouteNextHopEntry& a, const RouteNextHopEntry& b) {
@@ -884,7 +907,8 @@ state::RouteNextHopEntry RouteNextHopEntry::getRouteNextHopEntryThrift(
     const std::optional<RouteNextHopSet>& overrideNextHops,
     const std::optional<NextHopSetID>& normalizedResolvedNextHopSetID,
     const std::optional<NextHopSetID>& resolvedNextHopSetID,
-    const std::optional<NextHopSetID>& clientNextHopSetID) {
+    const std::optional<NextHopSetID>& clientNextHopSetID,
+    const std::optional<NextHopSetID>& overrideNextHopSetID) {
   state::RouteNextHopEntry entry{};
   entry.adminDistance() = distance;
   entry.action() = action;
@@ -912,6 +936,9 @@ state::RouteNextHopEntry RouteNextHopEntry::getRouteNextHopEntryThrift(
   }
   if (clientNextHopSetID) {
     entry.clientNextHopSetID() = static_cast<int64_t>(*clientNextHopSetID);
+  }
+  if (overrideNextHopSetID) {
+    entry.overrideNextHopSetID() = static_cast<int64_t>(*overrideNextHopSetID);
   }
   return entry;
 }

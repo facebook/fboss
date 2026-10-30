@@ -242,7 +242,8 @@
         "zPortName": "eth1/39/1",
         "profileID": 23
       }
-    ]
+    ],
+    "qsfpServiceMemLimitBytes": 2000000000
   },
   "transceiverFirmwareVersions": {
     "versionsMap": {
@@ -722,6 +723,14 @@
             }
           ]
       },
+      "SPQ8E44DOCOA": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "0.1"
+            }
+          ]
+      },
       "SPTSHP3CLCK2": {
           "versions": [
             {
@@ -819,6 +828,14 @@
           ]
       },
       "T-OH8CNH-NFM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "36.197"
+            }
+          ]
+      },
+      "T-OH8CNH-NFY": {
           "versions": [
             {
               "fwType": 1,

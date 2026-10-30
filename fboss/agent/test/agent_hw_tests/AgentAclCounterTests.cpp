@@ -10,17 +10,22 @@
 
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/Utils.h"
+#include "fboss/agent/packet/ArpHdr.h"
+#include "fboss/agent/packet/EthFrame.h"
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/state/StateUtils.h"
 
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TestUtils.h"
-#include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
-#include "fboss/agent/test/agent_hw_tests/AgentTestEcmpConstants.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
+#include "fboss/agent/test/utils/AgentTestAddressConstants.h"
+#include "fboss/agent/test/utils/AgentTestEcmpConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
+#include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/UdfTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -993,6 +998,8 @@ constexpr uint16_t kPortUserMetaPermittedL4DstPort = 53;
 constexpr uint16_t kPortUserMetaDeniedL4DstPort = 54;
 constexpr auto kPortLookupClass =
     cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED;
+constexpr int kPortUserMetaCoppAclTablePriority = 30;
+constexpr uint32_t kControlPlanePuntTimeoutS = 5;
 } // namespace
 
 class AgentPortUserMetaAclTest : public AgentHwTest {
@@ -1038,11 +1045,14 @@ class AgentPortUserMetaAclTest : public AgentHwTest {
         255);
   }
 
-  void addWarmbootAclTable(cfg::SwitchConfig* config) const {
+  void addWarmbootAclTable(
+      cfg::SwitchConfig* config,
+      cfg::AclActionType denyAction = cfg::AclActionType::DENY,
+      int priority = 1) const {
     utility::addAclTable(
         config,
         kPortUserMetaWarmbootAclTableName,
-        1 /* priority */,
+        priority,
         {cfg::AclTableActionType::PACKET_ACTION,
          cfg::AclTableActionType::COUNTER},
         {cfg::AclTableQualifier::LOOKUP_CLASS_PORT,
@@ -1066,7 +1076,7 @@ class AgentPortUserMetaAclTest : public AgentHwTest {
 
     cfg::AclEntry defaultDenyAcl;
     defaultDenyAcl.name() = kPortUserMetaDefaultDenyAclName;
-    defaultDenyAcl.actionType() = cfg::AclActionType::DENY;
+    defaultDenyAcl.actionType() = denyAction;
     defaultDenyAcl.lookupClassPort() = kPortLookupClass;
     utility::addAclEntry(
         config,
@@ -1295,6 +1305,91 @@ class AgentPortUserMetaMultiAclTableTest : public AgentPortUserMetaAclTest {
   std::unique_ptr<utility::EcmpSetupAnyNPorts6> helper_;
 };
 
+class AgentPortUserMetaDenyControlPlaneTest
+    : public AgentPortUserMetaMultiAclTableTest {
+ public:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    auto features =
+        AgentPortUserMetaMultiAclTableTest::getProductionFeaturesVerified();
+    features.push_back(ProductionFeature::ACL_DENY_DATA_AND_CONTROL_PLANE);
+    features.push_back(ProductionFeature::COPP);
+    return features;
+  }
+
+ protected:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    return addCoppConfig(
+        ensemble, AgentPortUserMetaMultiAclTableTest::initialConfig(ensemble));
+  }
+
+  std::map<std::string, std::unique_ptr<TxPacket>> makeControlPlanePackets(
+      PortID ingressPort) {
+    const auto state = getProgrammedState();
+    const auto intfId = getInterfaceIDForPort(ingressPort, state);
+    const auto intfMac = state->getInterfaces()->getNode(intfId)->getMac();
+    const auto myIpsV4 = utility::getIntfAddrsV4(state, intfId);
+    const auto myIpsV6 = utility::getIntfAddrsV6(state, intfId);
+    CHECK(!myIpsV4.empty() && !myIpsV6.empty())
+        << "interface " << intfId << " needs both a v4 and a v6 address";
+    const auto vlanId = getSw()->getVlanIDForTx(intfId);
+    const auto srcMac =
+        utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
+    const folly::IPAddressV6 srcIpV6("2620:0:1cfe:face:b00c::1");
+
+    std::map<std::string, std::unique_ptr<TxPacket>> packets;
+    packets["arp-request"] = utility::makeARPTxPacket(
+        getSw(),
+        vlanId,
+        srcMac,
+        folly::MacAddress::BROADCAST,
+        folly::IPAddressV4("10.0.0.2"),
+        myIpsV4[0],
+        ARP_OPER::ARP_OPER_REQUEST);
+    packets["ndp-neighbor-solicit"] = utility::makeNeighborSolicitation(
+        getSw(), vlanId, srcMac, srcIpV6, myIpsV6[0]);
+    packets["ip2me"] = utility::makeUDPTxPacket(
+        getSw(),
+        vlanId,
+        srcMac,
+        intfMac,
+        srcIpV6,
+        myIpsV6[0],
+        kTestSrcPort,
+        kPortUserMetaDeniedL4DstPort,
+        0,
+        255);
+    return packets;
+  }
+
+  std::set<std::string> puntedControlPlanePackets(PortID ingressPort) {
+    auto packets = makeControlPlanePackets(ingressPort);
+    std::map<std::string, std::unique_ptr<utility::SwSwitchPacketSnooper>>
+        snoopers;
+    for (const auto& [name, pkt] : packets) {
+      snoopers[name] = std::make_unique<utility::SwSwitchPacketSnooper>(
+          getSw(),
+          name,
+          std::nullopt /* port */,
+          utility::makeEthFrame(*pkt, true /* skipTtlDecrement */));
+      snoopers[name]->ignoreUnclaimedRxPkts();
+    }
+    for (auto& [name, pkt] : packets) {
+      EXPECT_TRUE(
+          getSw()->sendPacketOutOfPortAsync(std::move(pkt), ingressPort))
+          << "failed to send " << name;
+    }
+    std::set<std::string> punted;
+    for (const auto& [name, snooper] : snoopers) {
+      if (snooper->waitForPacket(kControlPlanePuntTimeoutS).has_value()) {
+        punted.insert(name);
+      }
+    }
+    return punted;
+  }
+};
+
 // Verify port metadata selects its ACL, while traffic from an untagged port
 // falls through to the IPv6 fallback ACL.
 TEST_F(AgentPortUserMetaAclTest, MatchIngressPortMetadata) {
@@ -1485,6 +1580,49 @@ TEST_F(AgentPortUserMetaMultiAclTableTest, RemovePortMetadataAfterWarmboot) {
   };
 
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+}
+
+// DENY_DATA_AND_CONTROL_PLANE drops the restricted port's traffic and also
+// cancels the copy to CPU a trap would make, so ARP, NDP and IP2Me packets
+// that an untagged port punts never reach the CPU.
+TEST_F(AgentPortUserMetaDenyControlPlaneTest, DenyCancelsControlPlanePunt) {
+  if (!getAgentEnsemble()->isSai()) {
+    GTEST_SKIP() << "Port user metadata is a SAI-only test";
+  }
+  ASSERT_TRUE(isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_ACL_TABLES));
+
+  const auto ports = masterLogicalInterfacePortIds();
+  if (ports.size() < 3) {
+    GTEST_SKIP() << "Need one routed egress port and two ingress ports";
+  }
+  const PortID restrictedPort{ports[1]};
+  const PortID unchangedPort{ports[2]};
+
+  auto setup = [=, this]() {
+    setupRoute();
+    auto config = initialConfig(*getAgentEnsemble());
+    auto portCfg = utility::findCfgPort(config, restrictedPort);
+    portCfg->userMetaData() = kPortLookupClass;
+    addWarmbootAclTable(
+        &config,
+        cfg::AclActionType::DENY_DATA_AND_CONTROL_PLANE,
+        kPortUserMetaCoppAclTablePriority);
+    applyNewConfig(config);
+  };
+
+  auto verify = [=, this]() {
+    verifyRestrictedPortDrop(restrictedPort);
+    verifyRestrictedPortPermit(restrictedPort);
+    const std::set<std::string> allPackets{
+        "arp-request", "ndp-neighbor-solicit", "ip2me"};
+    EXPECT_EQ(puntedControlPlanePackets(unchangedPort), allPackets)
+        << "control plane packets from untagged port " << unchangedPort;
+    EXPECT_EQ(
+        puntedControlPlanePackets(restrictedPort), std::set<std::string>{})
+        << "control plane packets from restricted port " << restrictedPort;
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 // Verify that traffic arrive on a front panel port increments ACL counter.

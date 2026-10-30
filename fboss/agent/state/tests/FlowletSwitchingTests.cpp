@@ -474,3 +474,58 @@ TEST(FlowletSwitching, arsVirtualGroupCommonMembersThresholdAloneRejected) {
   EXPECT_THROW(
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
 }
+
+// arsGroupWidth is a plain optional on the schema: absent unless configured,
+// and carried through the thrift-cow node unchanged.
+TEST(FlowletSwitching, arsGroupWidthThriftRoundTrip) {
+  cfg::FlowletSwitchingConfig flowletCfg;
+  EXPECT_FALSE(flowletCfg.arsGroupWidth().has_value());
+
+  flowletCfg.arsGroupWidth() = 128;
+  auto flowletSwitchingConfig = std::make_shared<FlowletSwitchingConfig>();
+  flowletSwitchingConfig->fromThrift(flowletCfg);
+
+  EXPECT_EQ(flowletSwitchingConfig->toThrift().arsGroupWidth(), 128);
+}
+
+TEST(FlowletSwitching, arsGroupWidthClearedRatherThanZeroed) {
+  auto flowletSwitchingConfig = std::make_shared<FlowletSwitchingConfig>();
+
+  flowletSwitchingConfig->setArsGroupWidth(128);
+  EXPECT_EQ(flowletSwitchingConfig->toThrift().arsGroupWidth(), 128);
+
+  flowletSwitchingConfig->setArsGroupWidth(std::nullopt);
+  EXPECT_FALSE(flowletSwitchingConfig->getArsGroupWidth().has_value());
+  EXPECT_FALSE(flowletSwitchingConfig->toThrift().arsGroupWidth().has_value());
+}
+
+// Both the native width and the doubled width are valid configurations, so
+// the applier carries whichever was asked for onto the state unchanged.
+TEST(FlowletSwitching, arsGroupWidthApplied) {
+  for (auto width : {64, 128}) {
+    auto platform = createMockPlatform();
+    auto stateV0 = std::make_shared<SwitchState>();
+
+    cfg::SwitchConfig config;
+    cfg::FlowletSwitchingConfig flowletCfg;
+    flowletCfg.arsGroupWidth() = width;
+    config.flowletSwitchingConfig() = flowletCfg;
+
+    auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+    ASSERT_NE(nullptr, stateV1);
+    EXPECT_EQ(stateV1->getFlowletSwitchingConfig()->getArsGroupWidth(), width);
+  }
+}
+
+TEST(FlowletSwitching, arsGroupWidthUnsetStaysUnset) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+
+  cfg::SwitchConfig config;
+  config.flowletSwitchingConfig() = cfg::FlowletSwitchingConfig();
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  EXPECT_FALSE(
+      stateV1->getFlowletSwitchingConfig()->getArsGroupWidth().has_value());
+}

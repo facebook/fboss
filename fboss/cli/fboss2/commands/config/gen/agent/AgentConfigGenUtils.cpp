@@ -15,7 +15,6 @@
 #include <set>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include <folly/FileUtil.h>
 #include <folly/json/json.h>
@@ -24,12 +23,16 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/cli/fboss2/commands/config/gen/FeatureDefaultCommandArgs.h"
 #include "fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.h"
 #include "fboss/cli/fboss2/utils/ConfigFileUtils.h"
+#include "fboss/configs/platforms/generic/forwarding_stack/utils/FeatureDefaultCommandArgsUtils.h" // @manual=//fboss/configs/platforms/generic/forwarding_stack/utils:config_generation_utils
+#include "fboss/configs/platforms/generic/forwarding_stack/utils/LinkTopologyUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/config/agent/AclConfigUtils.h"
+#include "fboss/lib/config/agent/CoppConfigUtils.h"
+#include "fboss/lib/config/agent/InterfaceConfigUtils.h"
 #include "fboss/lib/config/agent/PortConfigUtils.h"
+#include "fboss/lib/config/agent/VlanConfigUtils.h"
 #include "fboss/lib/platforms/PlatformDescriptor.h"
 #include "fboss/lib/platforms/PlatformMappingUtils.h"
 
@@ -45,6 +48,7 @@ constexpr std::string_view kPlatformDescriptorFileName =
     "platform_descriptor.json";
 constexpr std::string_view kRawPlatformMappingFileName =
     "raw_platform_mapping.json";
+constexpr std::string_view kSaiUserDefinedTrapArg = "sai_user_defined_trap";
 
 struct GeneratedAsicConfigFile {
   fs::path path;
@@ -56,9 +60,23 @@ struct GeneratedPlatformMappingArtifactPaths {
   fs::path legacy;
 };
 
-std::string normalizeProfile(std::string_view profile) {
-  return profile.empty() ? std::string(kDefaultProfileName)
-                         : std::string(profile);
+bool isCommandLineArgEnabled(
+    const std::map<std::string, std::string>& defaultCommandLineArgs,
+    std::string_view name) {
+  const auto it = defaultCommandLineArgs.find(std::string(name));
+  return it != defaultCommandLineArgs.end() && it->second == "true";
+}
+
+std::string normalizeAsicConfigVariant(
+    std::string_view profile,
+    std::optional<std::string_view> asicConfigVariant) {
+  const auto variant = std::string(asicConfigVariant.value_or(profile));
+  const fs::path component{variant};
+  if (component.empty() || component.has_parent_path() || component == "." ||
+      component == "..") {
+    throw FbossError("Invalid ASIC config variant: ", variant);
+  }
+  return variant;
 }
 
 std::string readFile(const fs::path& path) {
@@ -111,7 +129,7 @@ std::string_view getGeneratedFileExtension(cfg::AsicConfigType configType) {
 GeneratedAsicConfigFile resolveGeneratedAsicConfig(
     const PlatformConfigDirectory& platformDirectory,
     std::string_view platform,
-    std::string_view profile,
+    std::string_view asicConfigVariant,
     const std::optional<fs::path>& asicConfigFile = std::nullopt,
     const std::optional<cfg::AsicConfigType>& asicConfigType = std::nullopt) {
   if (asicConfigType && !asicConfigFile) {
@@ -135,8 +153,7 @@ GeneratedAsicConfigFile resolveGeneratedAsicConfig(
 
   const auto metadata = folly::parseJson(readFile(metadataPath));
   const auto platformName = std::string(platform);
-  const auto profileName =
-      profile == kDefaultProfileName ? std::string{} : std::string(profile);
+  const auto variantName = std::string(asicConfigVariant);
   if (!metadata.isObject() || !metadata.count("platform_name") ||
       !metadata["platform_name"].isString() ||
       metadata["platform_name"].asString() != platformName) {
@@ -148,10 +165,10 @@ GeneratedAsicConfigFile resolveGeneratedAsicConfig(
         "'");
   }
   if (!metadata.count("variants") || !metadata["variants"].isObject() ||
-      !metadata["variants"].count(profileName)) {
+      !metadata["variants"].count(variantName)) {
     throw FbossError(
-        "ASIC config profile '",
-        profile,
+        "ASIC config variant '",
+        asicConfigVariant,
         "' does not exist for platform '",
         platform,
         "'");
@@ -162,15 +179,15 @@ GeneratedAsicConfigFile resolveGeneratedAsicConfig(
     configTypeName = getConfigTypeName(metadata["defaults"], metadataPath);
   }
   if (const auto variantConfigType =
-          getConfigTypeName(metadata["variants"][profileName], metadataPath)) {
+          getConfigTypeName(metadata["variants"][variantName], metadataPath)) {
     configTypeName = variantConfigType;
   }
   if (!configTypeName) {
     throw FbossError(
         "ASIC config metadata ",
         metadataPath.string(),
-        " does not define config_type for profile '",
-        profile,
+        " does not define config_type for variant '",
+        asicConfigVariant,
         "'");
   }
   cfg::AsicConfigType configType;
@@ -186,10 +203,7 @@ GeneratedAsicConfigFile resolveGeneratedAsicConfig(
   if (asicConfigFile) {
     selectedPath = *asicConfigFile;
   } else {
-    auto fileName = platformName;
-    if (!profileName.empty()) {
-      fileName += "_" + profileName;
-    }
+    auto fileName = variantName;
     fileName += getGeneratedFileExtension(configType);
     selectedPath = asicConfigDirectory / "generated" / fileName;
   }
@@ -374,16 +388,6 @@ std::unique_ptr<HwAsic> generateHwAsic(
   return HwAsic::makeAsic(switchId, asicSwitchInfo, std::nullopt, std::nullopt);
 }
 
-cfg::AsicType getAsicType(const cfg::SwitchConfig& switchConfig) {
-  if (switchConfig.switchSettings()->switchIdToSwitchInfo()->empty()) {
-    throw FbossError("Switch config does not contain switch information");
-  }
-  return *switchConfig.switchSettings()
-              ->switchIdToSwitchInfo()
-              ->begin()
-              ->second.asicType();
-}
-
 void addDefaultProfilePortGraph(
     cfg::SwitchConfig& switchConfig,
     const PlatformMapping& platformMapping,
@@ -391,20 +395,21 @@ void addDefaultProfilePortGraph(
   const auto& platformPorts = platformMapping.getPlatformPorts();
 
   const auto portGroups = utility::getSubsidiaryPortIDs(platformPorts);
-  std::map<PortID, std::vector<PortID>> interfacePortGroups;
+  std::map<PortID, std::vector<PortID>> supportedPortGroups;
   std::set<PortID> controllingPorts;
   for (const auto& group : portGroups) {
     const auto& portEntryMapping =
         platformMapping.getPlatformPort(group.first).mapping();
-    if (*portEntryMapping->portType() != cfg::PortType::INTERFACE_PORT) {
+    const auto portType = *portEntryMapping->portType();
+    if (portType != cfg::PortType::INTERFACE_PORT &&
+        portType != cfg::PortType::MANAGEMENT_PORT) {
       XLOG(WARN) << "Skipping unsupported port " << group.first << " ('"
                  << *portEntryMapping->name() << "') with type "
-                 << apache::thrift::util::enumNameSafe(
-                        *portEntryMapping->portType())
+                 << apache::thrift::util::enumNameSafe(portType)
                  << " during default profile config generation";
       continue;
     }
-    interfacePortGroups.emplace(group.first, group.second);
+    supportedPortGroups.emplace(group.first, group.second);
     controllingPorts.insert(group.first);
   }
   // A standalone default config intentionally programs only controlling
@@ -412,28 +417,195 @@ void addDefaultProfilePortGraph(
   const utility::SafeProfileSelectionOptions options{
       .asicType = asic.getAsicType(),
       .supportsAddRemovePort = true,
+      .preferOpticalProfiles = true,
       .requiredPorts = std::move(controllingPorts),
   };
   const auto portProfiles =
-      utility::getSafeProfileIDs(platformMapping, interfacePortGroups, options);
+      utility::getSafeProfileIDs(platformMapping, supportedPortGroups, options);
 
-  auto vlanID = utility::kInterfaceVlanIdMin;
+  auto interfaceVlanID = utility::kInterfaceVlanIdMin;
+  auto managementVlanID = utility::kManagementVlanIdMax;
   for (const auto& [portID, profileID] : portProfiles) {
-    utility::addInterfacePortToConfig(
-        switchConfig, &platformMapping, portID, profileID, VlanID(vlanID++));
+    if (interfaceVlanID > managementVlanID) {
+      throw FbossError("No free VLAN ID available for default port config");
+    }
+    const auto portType =
+        *platformMapping.getPlatformPort(portID).mapping()->portType();
+    int32_t vlanID;
+    if (portType == cfg::PortType::MANAGEMENT_PORT) {
+      // Allocate management VLANs downward to keep them separate from regular
+      // interface VLANs and later low-to-high port additions.
+      vlanID = managementVlanID--;
+    } else {
+      // Allocate regular interface VLANs upward from the low end.
+      vlanID = interfaceVlanID++;
+    }
+    utility::addRoutedPortToConfig(
+        switchConfig, &platformMapping, portID, profileID, VlanID(vlanID));
+    if (portType == cfg::PortType::MANAGEMENT_PORT) {
+      // Keep the management L3 interface logically up independently of the
+      // physical port state, matching the established COOP configuration.
+      auto& managementInterface = switchConfig.interfaces()->back();
+      managementInterface.isVirtual() = true;
+      managementInterface.isStateSyncDisabled() = true;
+    }
     auto& port = switchConfig.ports()->back();
     port.state() = cfg::PortState::ENABLED;
   }
 
-  auto defaultVlan =
-      utility::createVlanConfig(VlanID(utility::kDefaultVlanId4094));
-  defaultVlan.name() = "default";
-  defaultVlan.routable() = false;
-  switchConfig.vlans()->push_back(std::move(defaultVlan));
-  switchConfig.defaultVlan() = utility::kDefaultVlanId4094;
+  utility::addDefaultVlan(switchConfig, asic);
+  utility::addDefaultLoopbackInterface(switchConfig, asic);
+}
+
+struct LinkTopologyEndpoint {
+  std::string portName;
+  std::optional<std::string> peer;
+  cfg::PortProfileID profile;
+};
+
+std::map<PortID, LinkTopologyEndpoint> resolveLinkTopologyEndpoints(
+    const LinkTopology& topology,
+    const PlatformMapping& platformMapping) {
+  std::map<PortID, LinkTopologyEndpoint> endpoints;
+  const auto addEndpoint = [&](const std::string& portName,
+                               std::optional<std::string> peerName,
+                               cfg::PortProfileID profile) {
+    const auto portID = platformMapping.getPortID(portName);
+    if (!endpoints
+             .emplace(
+                 portID,
+                 LinkTopologyEndpoint{
+                     .portName = portName,
+                     .peer = std::move(peerName),
+                     .profile = profile})
+             .second) {
+      throw FbossError(
+          "Link topology resolves more than one endpoint to port '",
+          portName,
+          "'");
+    }
+  };
+
+  for (const auto& link : topology) {
+    addEndpoint(link.portA, link.portB, link.profile);
+    if (link.portB && *link.portB != link.portA) {
+      addEndpoint(*link.portB, link.portA, link.profile);
+    }
+  }
+  return endpoints;
+}
+
+void enableTopologyPort(
+    cfg::SwitchConfig& switchConfig,
+    PortID portID,
+    const LinkTopologyEndpoint& endpoint) {
+  auto portIt = std::find_if(
+      switchConfig.ports()->begin(),
+      switchConfig.ports()->end(),
+      [portID](const auto& port) {
+        return *port.logicalID() == static_cast<int32_t>(portID);
+      });
+  if (portIt == switchConfig.ports()->end()) {
+    throw FbossError(
+        "Link topology profile application did not create port '",
+        endpoint.portName,
+        "'");
+  }
+  if (*portIt->portType() == cfg::PortType::MANAGEMENT_PORT) {
+    // Routed management interfaces remain logically up independently of the
+    // physical port state, matching the default port graph behavior.
+    const auto managementInterface = std::find_if(
+        switchConfig.interfaces()->begin(),
+        switchConfig.interfaces()->end(),
+        [&](const auto& interface) {
+          return *interface.vlanID() == *portIt->ingressVlan();
+        });
+    if (managementInterface == switchConfig.interfaces()->end()) {
+      throw FbossError(
+          "No routed interface exists for management port '",
+          endpoint.portName,
+          "'");
+    }
+    managementInterface->isVirtual() = true;
+    managementInterface->isStateSyncDisabled() = true;
+  }
+  portIt->state() = cfg::PortState::ENABLED;
+  if (endpoint.peer) {
+    portIt->expectedLLDPValues()[cfg::LLDPTag::PORT] = *endpoint.peer;
+  }
 }
 
 } // namespace
+
+void applyLinkTopology(
+    cfg::SwitchConfig& switchConfig,
+    const PlatformMapping& platformMapping,
+    const LinkTopology& topology) {
+  // Resolve every named endpoint before mutating the config so invalid or
+  // ambiguous platform mappings fail without partially applying the topology.
+  const auto endpoints =
+      resolveLinkTopologyEndpoints(topology, platformMapping);
+  std::vector<utility::PortProfileRequest> requests;
+  requests.reserve(endpoints.size());
+  for (const auto& [_, endpoint] : endpoints) {
+    requests.push_back(
+        {.portName = endpoint.portName, .profileID = endpoint.profile});
+  }
+  const auto result =
+      utility::applyPortProfileChanges(switchConfig, platformMapping, requests);
+  // Profile changes can collapse a breakout group. Remove the subsumed ports
+  // and their dependent VLAN/interface state before enabling the final graph.
+  if (!result.subsumedPorts.empty()) {
+    std::set<PortID> subsumedPortIDs;
+    for (const auto& [portID, _] : result.subsumedPorts) {
+      subsumedPortIDs.insert(portID);
+    }
+    utility::removePortsFromConfig(switchConfig, subsumedPortIDs);
+  }
+
+  // Only topology endpoints remain active. Clear any default-graph LLDP state
+  // before adding peer expectations for explicitly paired endpoints.
+  for (auto& port : *switchConfig.ports()) {
+    port.state() = cfg::PortState::DISABLED;
+    port.expectedLLDPValues()->clear();
+  }
+  for (const auto& [portID, endpoint] : endpoints) {
+    enableTopologyPort(switchConfig, portID, endpoint);
+  }
+}
+
+void assignLinkTestInterfaceIpAddresses(cfg::SwitchConfig& switchConfig) {
+  // Preserve the legacy 10.0.0.0/24, 11.0.0.0/24, ... sequence until the
+  // first octet reaches 224. Then wrap it to 10 and increment the second
+  // octet, producing 10.1.0.0/24, 11.1.0.0/24, ... so configurations can
+  // assign unique IPv4 subnets to more than 250 interfaces.
+  constexpr size_t kIpv4FirstOctetStart = 10;
+  constexpr size_t kIpv4OctetLimit = 224;
+  constexpr size_t kIpv4FirstOctetCount =
+      kIpv4OctetLimit - kIpv4FirstOctetStart;
+  // IPv6 hextets are emitted as decimal digits to preserve the legacy output.
+  // 9999 is the largest such value that still fits in one hexadecimal hextet.
+  constexpr size_t kIpv6FirstHextetStart = 2400;
+  constexpr size_t kIpv6FirstHextetLimit = 10000;
+  constexpr size_t kMaxInterfaces =
+      kIpv6FirstHextetLimit - kIpv6FirstHextetStart;
+  if (switchConfig.interfaces()->size() > kMaxInterfaces) {
+    throw FbossError(
+        "Link-test interface address assignment supports at most ",
+        kMaxInterfaces,
+        " interfaces");
+  }
+  for (size_t index = 0; index < switchConfig.interfaces()->size(); ++index) {
+    const auto ipv4FirstOctet =
+        kIpv4FirstOctetStart + index % kIpv4FirstOctetCount;
+    const auto ipv4SecondOctet = index / kIpv4FirstOctetCount;
+    switchConfig.interfaces()[index].ipAddresses() = {
+        std::to_string(kIpv6FirstHextetStart + index) + "::/64",
+        std::to_string(ipv4FirstOctet) + "." + std::to_string(ipv4SecondOctet) +
+            ".0.0/24",
+    };
+  }
+}
 
 cfg::AsicConfigType parseAsicConfigType(std::string_view configType) {
   if (configType == "key_value") {
@@ -474,11 +646,17 @@ cfg::PlatformConfig assemblePlatformConfig(
 fs::path findGeneratedAsicConfig(
     const fs::path& fbossRoot,
     std::string_view platform,
-    std::string_view profile) {
+    std::string_view asicConfigVariant) {
   const auto platformDirectory =
       findPlatformConfigDirectory(fbossRoot, platform);
   return resolveGeneratedAsicConfig(
-             platformDirectory, platform, normalizeProfile(profile))
+             platformDirectory,
+             platform,
+             normalizeAsicConfigVariant(
+                 kDefaultProfileName,
+                 asicConfigVariant.empty()
+                     ? std::nullopt
+                     : std::optional<std::string_view>(asicConfigVariant)))
       .path;
 }
 
@@ -513,29 +691,41 @@ ResolvedAgentConfigInputs resolveAgentConfigInputs(
     std::string_view platform,
     std::string_view profile,
     const std::optional<fs::path>& asicConfigFile,
-    const std::optional<cfg::AsicConfigType>& asicConfigType) {
+    const std::optional<cfg::AsicConfigType>& asicConfigType,
+    std::optional<std::string_view> asicConfigVariant,
+    std::optional<std::string_view> linkTopologyVariant) {
   const auto normalizedProfile = normalizeProfile(profile);
+  const auto profileName = getProfileName(normalizedProfile);
+  const auto normalizedAsicConfigVariant =
+      normalizeAsicConfigVariant(profileName, asicConfigVariant);
   const auto platformDirectory =
       findPlatformConfigDirectory(fbossRoot, platform);
   auto [descriptorPath, descriptor] =
       resolvePlatformDescriptor(fbossRoot, platformDirectory, platform);
   const auto mappingDirectory = descriptorPath.parent_path();
-  const auto rawMappingPath = mappingDirectory / kRawPlatformMappingFileName;
+  const auto rawMappingPath = resolveRawPlatformMappingPath(
+      (mappingDirectory / kRawPlatformMappingFileName).string());
   const auto assignmentPath = mappingDirectory / kPortAssignmentFileName;
   auto portAssignments = readPortIdToPortAssignment(assignmentPath.string());
   auto platformMapping =
       std::make_unique<PlatformMapping>(reconstructPlatformMapping(
-          readRawPlatformMapping(rawMappingPath.string()), portAssignments));
+          readRawPlatformMapping(rawMappingPath), portAssignments));
+  std::optional<LinkTopology> linkTopology;
+  if (linkTopologyVariant) {
+    linkTopology =
+        loadLinkTopologyVariant(platformDirectory.path, *linkTopologyVariant);
+  }
 
   return {
       .profile = normalizedProfile,
       .platformDescriptor = std::move(descriptor),
       .portAssignments = std::move(portAssignments),
       .platformMapping = std::move(platformMapping),
+      .linkTopology = std::move(linkTopology),
       .chipConfig = loadAsicConfig(resolveGeneratedAsicConfig(
           platformDirectory,
           platform,
-          normalizedProfile,
+          normalizedAsicConfigVariant,
           asicConfigFile,
           asicConfigType)),
   };
@@ -580,17 +770,46 @@ cfg::SwitchSettings generateSwitchSettings(
 }
 
 cfg::SwitchConfig generateSwitchConfig(
-    const ResolvedAgentConfigInputs& inputs) {
+    const ResolvedAgentConfigInputs& inputs,
+    const std::map<std::string, std::string>& defaultCommandLineArgs) {
   auto switchSettings = generateSwitchSettings(inputs.platformDescriptor);
   auto asic = generateHwAsic(switchSettings);
   if (!asic) {
     throw FbossError("Unable to construct HwAsic from switch settings");
   }
+  // TODO(@joseph5wu) Only update the l2LearningMode for `default` profile. Once
+  // FBOSS Agent team finishes migrating test config to use Software mode for
+  // TH4/5/6, we can remove the profile limitation here
+  if (inputs.profile == ConfigProfileType::DEFAULT) {
+    switchSettings.l2LearningMode() = asic->getDefaultL2LearningMode();
+  }
+
   cfg::SwitchConfig switchConfig;
   switchConfig.switchSettings() = std::move(switchSettings);
   utility::setupDefaultAclTableGroups(switchConfig, *asic);
-  if (inputs.profile == kDefaultProfileName) {
+
+  // DEFAULT and LINK_TEST are standalone service configurations, so they need
+  // a usable port graph and control-plane policy. HW_TEST and BENCHMARK remain
+  // intentionally minimal because their test fixtures construct the required
+  // switch state.
+  if (inputs.profile == ConfigProfileType::DEFAULT ||
+      inputs.profile == ConfigProfileType::LINK_TEST) {
+    utility::addDefaultCpuQueueConfig(switchConfig, *asic);
+    utility::addDefaultCpuTrafficPolicyConfig(
+        switchConfig,
+        *asic,
+        isCommandLineArgEnabled(
+            defaultCommandLineArgs, kSaiUserDefinedTrapArg));
     addDefaultProfilePortGraph(switchConfig, *inputs.platformMapping, *asic);
+
+    if (inputs.linkTopology) {
+      applyLinkTopology(
+          switchConfig, *inputs.platformMapping, *inputs.linkTopology);
+    }
+    // Link tests derive ECMP next hops from non-link-local interface addresses.
+    if (inputs.profile == ConfigProfileType::LINK_TEST) {
+      assignLinkTestInterfaceIpAddresses(switchConfig);
+    }
   }
   return switchConfig;
 }
@@ -600,31 +819,80 @@ cfg::PlatformConfig generatePlatformConfig(
   return assemblePlatformConfig(inputs.chipConfig, inputs.portAssignments);
 }
 
+namespace {
+
+std::string generateAgentConfigContents(
+    std::string_view platform,
+    std::string_view profile,
+    const fs::path& fbossRoot,
+    const std::optional<fs::path>& asicConfigFile,
+    const std::optional<cfg::AsicConfigType>& asicConfigType,
+    std::optional<std::string_view> asicConfigVariant,
+    std::optional<std::string_view> linkTopologyVariant) {
+  auto inputs = resolveAgentConfigInputs(
+      fbossRoot,
+      platform,
+      profile,
+      asicConfigFile,
+      asicConfigType,
+      asicConfigVariant,
+      linkTopologyVariant);
+  auto defaultCommandLineArgs = generateFeatureDefaultCommandArgs(
+      fbossRoot,
+      ServiceType::AGENT,
+      getProfileName(inputs.profile),
+      *inputs.platformDescriptor.asicType(),
+      *inputs.platformDescriptor.platformType());
+  auto switchConfig = generateSwitchConfig(inputs, defaultCommandLineArgs);
+  auto config = assembleAgentConfig(
+      std::move(defaultCommandLineArgs),
+      std::move(switchConfig),
+      generatePlatformConfig(inputs));
+  return utils::serializeToPrettyJson(config) + "\n";
+}
+
+} // namespace
+
 fs::path generateAgentConfig(
     std::string_view platform,
     std::string_view profile,
     const fs::path& fbossRoot,
     const std::optional<fs::path>& outputDirectory,
     const std::optional<fs::path>& asicConfigFile,
-    const std::optional<cfg::AsicConfigType>& asicConfigType) {
-  auto inputs = resolveAgentConfigInputs(
-      fbossRoot, platform, profile, asicConfigFile, asicConfigType);
-  auto switchConfig = generateSwitchConfig(inputs);
-  auto defaultCommandLineArgs = generateFeatureDefaultCommandArgs(
-      fbossRoot,
-      ServiceType::AGENT,
-      inputs.profile,
-      getAsicType(switchConfig),
-      platform);
-  auto config = assembleAgentConfig(
-      std::move(defaultCommandLineArgs),
-      std::move(switchConfig),
-      generatePlatformConfig(inputs));
+    const std::optional<cfg::AsicConfigType>& asicConfigType,
+    std::optional<std::string_view> asicConfigVariant) {
   auto directory = utils::prepareOutputDirectory(outputDirectory);
   auto outputPath = directory / kAgentConfigFileName;
   utils::writeFileWithoutOverwrite(
-      outputPath, utils::serializeToPrettyJson(config) + "\n");
+      outputPath,
+      generateAgentConfigContents(
+          platform,
+          profile,
+          fbossRoot,
+          asicConfigFile,
+          asicConfigType,
+          asicConfigVariant,
+          std::nullopt));
   return outputPath;
+}
+
+std::string generateAgentConfigForManifest(
+    const ConfigGenerationRequest& request) {
+  if (request.service != ServiceType::AGENT) {
+    throw FbossError("Agent config generator received a non-Agent request");
+  }
+  return generateAgentConfigContents(
+      request.platform,
+      request.profile,
+      request.fbossRoot,
+      std::nullopt,
+      std::nullopt,
+      request.asicConfigVariant
+          ? std::optional<std::string_view>(*request.asicConfigVariant)
+          : std::nullopt,
+      request.linkTopologyVariant
+          ? std::optional<std::string_view>(*request.linkTopologyVariant)
+          : std::nullopt);
 }
 
 } // namespace facebook::fboss::configgen
