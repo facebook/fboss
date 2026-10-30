@@ -120,3 +120,27 @@ TEST_F(VirtualRouterManagerTest, vrfDelta) {
   applyNewState(newState);
   EXPECT_EQ(manager.getVirtualRouterHandle(RouterID(1001)), nullptr);
 }
+
+class VirtualRouterManagerVrfSetupTest : public ManagerTestBase {
+ public:
+  void SetUp() override {
+    setupStage = SetupStage::PORT | SetupStage::VLAN | SetupStage::VRF |
+        SetupStage::INTERFACE;
+    testInterfaceRouterIds = {{1, RouterID(1001)}};
+    ManagerTestBase::SetUp();
+  }
+};
+
+TEST_F(VirtualRouterManagerVrfSetupTest, interfaceInVrf) {
+  EXPECT_NE(
+      saiManagerTable->virtualRouterManager().getVirtualRouterHandle(
+          RouterID(1001)),
+      nullptr);
+  auto state = getProgrammedState();
+  EXPECT_EQ(
+      state->getInterfaces()->getNode(InterfaceID(1))->getRouterID(),
+      RouterID(1001));
+  EXPECT_EQ(
+      state->getInterfaces()->getNode(InterfaceID(0))->getRouterID(),
+      RouterID(0));
+}
