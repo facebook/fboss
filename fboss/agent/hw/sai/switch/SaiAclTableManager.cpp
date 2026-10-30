@@ -1757,7 +1757,11 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
           auto nhIp = folly::IPAddress(*nhStruct.ip());
           SaiTunnelEncapNextHopTraits::AdapterHostKey nhKey{tunnelSaiId, nhIp};
           SaiTunnelEncapNextHopTraits::CreateAttributes nhAttrs{
-              SAI_NEXT_HOP_TYPE_TUNNEL_ENCAP, tunnelSaiId, nhIp, std::nullopt};
+              SAI_NEXT_HOP_TYPE_TUNNEL_ENCAP,
+              tunnelSaiId,
+              nhIp,
+              std::nullopt,
+              std::nullopt};
           auto& nhStore = saiStore_->get<SaiTunnelEncapNextHopTraits>();
           tunnelEncapNextHop = nhStore.setObject(nhKey, nhAttrs);
           aclActionRedirect = SaiAclEntryTraits::Attributes::ActionRedirect{
