@@ -777,8 +777,9 @@ void SaiPhyManager::setSaiPortAdminState(
       saiSwitch->managerTable()->portManager().getPortHandle(swPort);
 
   if (portHandle == nullptr) {
-    XLOG(INFO) << "Port Handle is null";
-    return;
+    throw FbossError(
+        "setSaiPortAdminState: no xphy port handle for port ",
+        static_cast<int>(swPort));
   }
 
   auto portAdapterKey = (component == phy::PortComponent::GB_LINE)

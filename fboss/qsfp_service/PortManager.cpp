@@ -356,6 +356,10 @@ void PortManager::setPortAdminState(
   }
 
   SW_PORT_LOG(INFO, "", portNameStr, portId) << "setPortAdminState() called.";
+  if (!phyManager_) {
+    throw FbossError(
+        "Unable to set xphy admin state when PhyManager is not set");
+  }
   phyManager_->setPortAdminState(PortID(portId), component, setAdminUp);
 }
 

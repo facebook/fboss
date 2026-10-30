@@ -3645,6 +3645,10 @@ void TransceiverManager::setPortAdminState(
 
   XLOG(INFO) << " TransceiverManager::setPortAdminState Port "
              << static_cast<int>(swPort.value());
+  if (!getPhyManager()) {
+    throw FbossError(
+        "Unable to set xphy admin state when PhyManager is not set");
+  }
   getPhyManager()->setPortAdminState(
       PortID(swPort.value()), component, setAdminUp);
 }

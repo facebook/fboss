@@ -205,6 +205,10 @@ class MockFbossQsfpService
   MOCK_METHOD1(
       getPortMediaInterface,
       void(std::map<std::string, MediaInterfaceCode>&));
+  MOCK_METHOD(
+      void,
+      setPortAdminState,
+      (std::unique_ptr<std::string>, phy::PortComponent, bool));
 };
 
 #ifdef IS_OSS

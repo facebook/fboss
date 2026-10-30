@@ -503,6 +503,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/set/interface/prbs/state/CmdSetInterfacePrbsState.cpp
   fboss/cli/fboss2/commands/set/interface/loopback/CmdSetInterfaceLoopback.h
   fboss/cli/fboss2/commands/set/interface/loopback/CmdSetInterfaceLoopback.cpp
+  fboss/cli/fboss2/commands/set/interface/admin_state/CmdSetInterfaceAdminState.h
+  fboss/cli/fboss2/commands/set/interface/admin_state/CmdSetInterfaceAdminState.cpp
   fboss/cli/fboss2/commands/set/port/CmdSetPort.h
   fboss/cli/fboss2/commands/set/port/CmdSetPort.cpp
   fboss/cli/fboss2/commands/set/port/state/CmdSetPortState.h

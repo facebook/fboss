@@ -24,6 +24,7 @@
 #include "fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h"
 #include "fboss/cli/fboss2/commands/set/fanhold/CmdSetFanHold.h"
 #include "fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h"
+#include "fboss/cli/fboss2/commands/set/interface/admin_state/CmdSetInterfaceAdminState.h"
 #include "fboss/cli/fboss2/commands/set/interface/loopback/CmdSetInterfaceLoopback.h"
 #include "fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/set/interface/prbs/state/CmdSetInterfacePrbsState.h"
@@ -633,6 +634,13 @@ const CommandTree& kCommandTree() {
                "Set loopback mode: <component> <enable|disable>",
                commandHandler<CmdSetInterfaceLoopback>,
                argRegistrar<CmdSetInterfaceLoopbackTraits>,
+           },
+           {
+               "admin-state",
+               "Set XPHY admin state: <xphy_system|xphy_line> <enable|disable>",
+               commandHandler<CmdSetInterfaceAdminState>,
+               argRegistrar<CmdSetInterfaceAdminStateTraits>,
+               localOptionsHandler<CmdSetInterfaceAdminStateTraits>,
            }},
       },
       {"set",

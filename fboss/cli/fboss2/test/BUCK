@@ -126,6 +126,7 @@ cpp_unittest(
         "CmdConfigSessionClearTest.cpp",
         "CmdGetPcapTest.cpp",
         "CmdListConfigTest.cpp",
+        "CmdSetInterfaceAdminStateTest.cpp",
         "CmdSetPortStateTest.cpp",
         "CmdShowAclTest.cpp",
         "CmdShowAgentBootTypeTest.cpp",
