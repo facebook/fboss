@@ -4764,16 +4764,24 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
         if (auto redirectToNextHop = mta.action()->redirectToNextHop()) {
           matchAction.setRedirectToNextHop(
               std::make_pair(*redirectToNextHop, MatchAction::NextHopSet()));
-          if (aclNexthopHandler_) {
-            aclNexthopHandler_->resolveActionNexthops(matchAction);
-          }
           bool hasTunnelRedirect = false;
           for (const auto& nh : *redirectToNextHop->redirectNextHops()) {
+            auto nhIp = folly::IPAddress(*nh.ip());
+            if (nhIp.isV6() && nhIp.isLinkLocal() && !nh.intfID().has_value()) {
+              throw FbossError(
+                  "Invalid config: link-local nexthop ",
+                  nhIp.str(),
+                  " in ACL ",
+                  *aclCfg.name(),
+                  " must specify an interface");
+            }
             if (nh.tunnelType().has_value() &&
                 nh.tunnelType().value() == TunnelType::IP_IN_IP_ENCAP) {
               hasTunnelRedirect = true;
-              break;
             }
+          }
+          if (aclNexthopHandler_) {
+            aclNexthopHandler_->resolveActionNexthops(matchAction);
           }
           if (!hasTunnelRedirect &&
               !matchAction.getRedirectToNextHop().value().second.size()) {

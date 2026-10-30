@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/AclNexthopHandler.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
@@ -549,6 +550,71 @@ TYPED_TEST(AclNexthopHandlerTest, ResolvedAclNextHopMultiNexthopWithInterface) {
 
   this->verifyResolvedNexthopsInAclAction(kAclName, expectedNexthops);
 }
+// Link-local nexthops are only meaningful with interface scoping and are
+// inherently resolved, so no RIB lookup is needed.
+TYPED_TEST(AclNexthopHandlerTest, LinkLocalNexthopResolvedWithInterface) {
+  if constexpr (std::is_same_v<
+                    typename TestFixture::AddrT,
+                    folly::IPAddressV6>) {
+    this->updateState(
+        "LinkLocalNexthop",
+        [=, this](const std::shared_ptr<SwitchState>& state) {
+          return this->addAcl(state, kAclName, {"fe80::1"}, {100});
+        });
+
+    RouteNextHopSet expectedNexthops = makeResolvedNextHops(
+        {{InterfaceID(100), "fe80::1"}}, UCMP_DEFAULT_WEIGHT);
+    this->verifyResolvedNexthopsInAclAction(kAclName, expectedNexthops);
+  }
+}
+
+// Link-local nexthop without interface scoping is invalid, resolution throws.
+TYPED_TEST(AclNexthopHandlerTest, LinkLocalNexthopWithoutInterfaceThrows) {
+  if constexpr (std::is_same_v<
+                    typename TestFixture::AddrT,
+                    folly::IPAddressV6>) {
+    auto cfgRedirectToNextHop = cfg::RedirectToNextHopAction();
+    cfg::RedirectNextHop nhop;
+    nhop.ip() = "fe80::1";
+    cfgRedirectToNextHop.redirectNextHops()->push_back(nhop);
+    auto redirectToNextHop = MatchAction::RedirectToNextHopAction();
+    redirectToNextHop.first = cfgRedirectToNextHop;
+    MatchAction action = MatchAction();
+    action.setRedirectToNextHop(redirectToNextHop);
+    AclNexthopHandler handler(this->sw_);
+    EXPECT_THROW(handler.resolveActionNexthops(action), FbossError);
+  }
+}
+
+// Config with a link-local redirect nexthop lacking interface scoping is
+// rejected at apply time.
+TYPED_TEST(AclNexthopHandlerTest, LinkLocalNexthopWithoutInterfaceBadConfig) {
+  if constexpr (std::is_same_v<
+                    typename TestFixture::AddrT,
+                    folly::IPAddressV6>) {
+    auto config = this->testConfig();
+    cfg::AclEntry acl;
+    acl.name() = kAclName;
+    acl.dstIp() = "2401::2/128";
+    config.acls()->push_back(acl);
+    auto redirect = cfg::RedirectToNextHopAction();
+    cfg::RedirectNextHop nhop;
+    nhop.ip() = "fe80::1";
+    redirect.redirectNextHops()->push_back(nhop);
+    auto action = cfg::MatchAction();
+    action.redirectToNextHop() = redirect;
+    cfg::MatchToAction mta;
+    mta.matcher() = kAclName;
+    mta.action() = action;
+    if (!config.dataPlaneTrafficPolicy().has_value()) {
+      config.dataPlaneTrafficPolicy() = cfg::TrafficPolicyConfig();
+    }
+    config.dataPlaneTrafficPolicy()->matchToAction()->push_back(mta);
+    EXPECT_THROW(
+        this->sw_->applyConfig("LinkLocalNexthopNoIntf", config), FbossError);
+  }
+}
+
 TYPED_TEST(AclNexthopHandlerTest, TunnelEncapNexthopSkipsResolution) {
   this->updateState(
       "TunnelEncapAcl", [=, this](const std::shared_ptr<SwitchState>& state) {

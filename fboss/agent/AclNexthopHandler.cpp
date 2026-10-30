@@ -81,6 +81,18 @@ void AclNexthopHandler::resolveActionNexthops(MatchAction& action) {
   for (auto& nhIpStruct : *redirect.value().first.redirectNextHops()) {
     auto nhIp = folly::IPAddress(*nhIpStruct.ip());
     auto intfID = nhIpStruct.intfID();
+    // Link-local nexthops are only meaningful when scoped to an interface
+    // and are inherently resolved (directly connected), so skip RIB lookup
+    // and use the configured address + interface directly.
+    if (nhIp.isV6() && nhIp.isLinkLocal()) {
+      if (!intfID.has_value()) {
+        throw FbossError(
+            "Link-local nexthop ", nhIp.str(), " must specify an interface");
+      }
+      nexthops.emplace(ResolvedNextHop(
+          nhIp, InterfaceID(intfID.value()), UCMP_DEFAULT_WEIGHT));
+      continue;
+    }
     if (nhIp.isV4()) {
       auto result =
           sw_->getRib()->getRouteAndNextHops(nhIp.asV4(), RouterID(0));
