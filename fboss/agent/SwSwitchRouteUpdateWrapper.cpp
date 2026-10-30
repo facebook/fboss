@@ -35,7 +35,8 @@ RibToSwitchStateFunction createRibToSwitchStateFunction(
              const facebook::fboss::LabelToRouteMap& labelToRoute,
              const NextHopIDManager* nextHopIDManager,
              const MySidTable& mySidTable,
-             void* cookie) -> StateDelta {
+             void* cookie,
+             bool vrfDeleted) -> StateDelta {
     folly::Synchronized<facebook::fboss::RibToSwitchStateUpdater>
         ribToSwitchStateUpdater(
             std::in_place,
@@ -45,7 +46,9 @@ RibToSwitchStateFunction createRibToSwitchStateFunction(
             v6NetworkToRoute,
             labelToRoute,
             nextHopIDManager,
-            mySidTable);
+            mySidTable,
+            facebook::fboss::RibToSwitchStateUpdater::kAllActions,
+            vrfDeleted);
 
     auto wRibToSwitchStateUpdater = ribToSwitchStateUpdater.wlock();
     auto sw = static_cast<facebook::fboss::SwSwitch*>(cookie);

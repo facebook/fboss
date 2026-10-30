@@ -59,7 +59,8 @@ using RibToSwitchStateFunction = std::function<StateDelta(
     const LabelToRouteMap& labelToRoute,
     const NextHopIDManager* nextHopIDManager,
     const MySidTable& mySidTable,
-    void* cookie)>;
+    void* cookie,
+    bool vrfDeleted)>;
 
 using RibMySidToSwitchStateFunction = std::function<StateDelta(
     const SwitchIdScopeResolver* resolver,
@@ -331,7 +332,8 @@ class RibRouteTables {
       RouterID vrf,
       const RibToSwitchStateFunction& ribToSwitchStateFunc,
       void* cookie,
-      bool ecmpModeChanged = false);
+      bool ecmpModeChanged = false,
+      bool vrfDeleted = false);
   template <typename RibUpdateFn>
   void updateRib(RouterID vrf, const RibUpdateFn& updateRib);
   void updateEcmpOverrides(RouterID vrf, const StateDelta& delta);

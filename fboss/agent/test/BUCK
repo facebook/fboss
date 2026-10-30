@@ -273,6 +273,7 @@ cpp_unittest(
     deps = [
         ":hw_test_handle",
         ":utils",
+        "//fboss/agent:address_utils",
         "//fboss/agent:core",
         "//fboss/agent/hw/mock:mock",
         "//fboss/agent/rib:standalone_rib",

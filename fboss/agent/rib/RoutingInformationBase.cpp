@@ -637,14 +637,43 @@ void RibRouteTables::reconfigure(
   // parallelism should be straightfoward because it has been written to avoid
   // dependencies across different iterations of the loop.
   for (const auto& vrf : existingVrfs) {
-    // First handle the VRFs for which no interface routes exist
+    // VRFs removed from config: drop routes from every client and remove the
+    // VRF from the FIB
     if (configRouterIDToInterfaceRoutes.find(vrf) !=
         configRouterIDToInterfaceRoutes.end()) {
       continue;
     }
-    configureRoutesForVrf(
-        vrf, {} /* No interface routes*/
-    );
+    if (vrf == RouterID(0)) {
+      // The default VRF always exists, even without interface routes
+      configureRoutesForVrf(vrf, {} /* No interface routes*/);
+      continue;
+    }
+    updateRib(
+        vrf,
+        [vrf](
+            auto& routeTable,
+            auto* mySidTable,
+            auto* nextHopIDManager,
+            uint32_t ecmpWidth) {
+          RibRouteUpdater updater(
+              &routeTable.v4NetworkToRoute,
+              &routeTable.v6NetworkToRoute,
+              &routeTable.labelToRoute,
+              nextHopIDManager,
+              mySidTable,
+              ecmpWidth,
+              vrf);
+          const auto& clients = apache::thrift::TEnumTraits<ClientID>::values;
+          updater.update(
+              {}, {}, std::set<ClientID>(clients.begin(), clients.end()));
+        });
+    updateFib(
+        resolver,
+        vrf,
+        ribToSwitchStateFunc,
+        cookie,
+        ecmpModeChanged,
+        true /* vrfDeleted */);
   }
   {
     auto lockedRouteTables = synchronizedRouteTables_.wlock();
@@ -855,7 +884,8 @@ void RibRouteTables::updateFib(
     RouterID vrf,
     const RibToSwitchStateFunction& ribToSwitchStateFunc,
     void* cookie,
-    bool ecmpModeChanged) {
+    bool ecmpModeChanged,
+    bool vrfDeleted) {
   std::optional<StateDelta> fibDelta;
   try {
     auto lockedRouteTables = synchronizedRouteTables_.rlock();
@@ -869,7 +899,8 @@ void RibRouteTables::updateFib(
         routeTable.labelToRoute,
         lockedRouteTables->nextHopIDManager.get(),
         lockedRouteTables->mySidTable,
-        cookie);
+        cookie,
+        vrfDeleted);
     std::optional<StateDelta> tmp(
         StateDelta(gotDelta.oldState(), gotDelta.newState()));
     fibDelta.swap(tmp);
@@ -2822,7 +2853,8 @@ void RibRouteTables::syncStateFromRib(
         routeTable.labelToRoute,
         lockedRouteTables->nextHopIDManager.get(),
         lockedRouteTables->mySidTable,
-        cookie);
+        cookie,
+        /*vrfDeleted=*/false);
   }
 }
 

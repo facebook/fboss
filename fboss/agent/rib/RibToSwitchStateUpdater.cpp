@@ -25,7 +25,8 @@ RibToSwitchStateUpdater::RibToSwitchStateUpdater(
     const LabelToRouteMap& labelToRoute,
     const NextHopIDManager* nextHopIDManager,
     const MySidTable& mySidTable,
-    int actions)
+    int actions,
+    bool vrfDeleted)
     : actions_(actions),
       fibUpdater_(
           resolver,
@@ -33,7 +34,8 @@ RibToSwitchStateUpdater::RibToSwitchStateUpdater(
           v4NetworkToRoute,
           v6NetworkToRoute,
           labelToRoute,
-          nextHopIDManager),
+          nextHopIDManager,
+          vrfDeleted),
       mySidUpdater_(resolver, mySidTable),
       nhopStateUpdater_(nextHopIDManager),
       classBasedPolicyUpdater_(nextHopIDManager) {}

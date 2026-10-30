@@ -150,7 +150,8 @@ StateDelta updateFibFromConfig(
     const facebook::fboss::LabelToRouteMap& labelToRoute,
     facebook::fboss::NextHopIDManager const* nextHopIDManager,
     const facebook::fboss::MySidTable& mySidTable,
-    void* cookie) {
+    void* cookie,
+    bool vrfDeleted) {
   facebook::fboss::RibToSwitchStateUpdater ribToSwitchStateUpdater(
       resolver,
       vrf,
@@ -158,7 +159,9 @@ StateDelta updateFibFromConfig(
       v6NetworkToRoute,
       labelToRoute,
       nextHopIDManager,
-      mySidTable);
+      mySidTable,
+      facebook::fboss::RibToSwitchStateUpdater::kAllActions,
+      vrfDeleted);
 
   auto nextStatePtr =
       static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);

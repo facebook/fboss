@@ -237,7 +237,8 @@ StateDelta noOpRibToSwitchStateUpdate(
     const LabelToRouteMap& /*labelToRoute*/,
     const NextHopIDManager* /*nextHopIDManager*/,
     const MySidTable& /*mySidTable*/,
-    void* cookie) {
+    void* cookie,
+    bool /*vrfDeleted*/) {
   auto switchState =
       static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);
   return StateDelta(*switchState, *switchState);
@@ -402,7 +403,8 @@ StateDelta routeToSwitchStateUpdateViaRibUpdater(
     const LabelToRouteMap& labelToRoute,
     const NextHopIDManager* nextHopIDManager,
     const MySidTable& mySidTable,
-    void* cookie) {
+    void* cookie,
+    bool /*vrfDeleted*/) {
   auto switchState =
       static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);
   auto oldState = *switchState;

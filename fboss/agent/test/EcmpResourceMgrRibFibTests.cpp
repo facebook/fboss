@@ -273,7 +273,8 @@ TEST_F(EcmpResourceManagerRibFibTest, ribMirrorsOverrideNextHopSetId) {
             const LabelToRouteMap&,
             const NextHopIDManager*,
             const MySidTable&,
-            void*) { return StateDelta(oldState, newState); },
+            void*,
+            bool) { return StateDelta(oldState, newState); },
         nullptr);
   };
   auto state0 = sw_->getState();

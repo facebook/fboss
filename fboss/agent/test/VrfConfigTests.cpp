@@ -2,7 +2,9 @@
 
 #include <gtest/gtest.h>
 
+#include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -154,4 +156,86 @@ TEST_F(VrfConfigTest, RibTablePerVrf) {
   vrfList = rib.getVrfList();
   EXPECT_EQ(
       std::find(vrfList.begin(), vrfList.end(), RouterID(1001)), vrfList.end());
+}
+
+namespace {
+const RouterID kTestVrf{1001};
+
+// testConfigA with interface 55 in kTestVrf
+cfg::SwitchConfig vrfConfig() {
+  auto config = testConfigA();
+  config.vrfs().ensure().emplace_back().vrfId() = kTestVrf;
+  config.interfaces()[1].routerID() = kTestVrf;
+  return config;
+}
+
+cfg::SwitchConfig vrfRemovedConfig() {
+  auto config = testConfigA();
+  return config;
+}
+
+UnicastRoute makeRoute(const std::string& prefix, const std::string& nhop) {
+  auto cidr = folly::IPAddress::createNetwork(prefix);
+  UnicastRoute route;
+  route.dest()->ip() = facebook::network::toBinaryAddress(cidr.first);
+  route.dest()->prefixLength() = cidr.second;
+  route.nextHopAddrs()->push_back(
+      facebook::network::toBinaryAddress(folly::IPAddress(nhop)));
+  return route;
+}
+} // namespace
+
+TEST(VrfDelete, RemovesVrfAndFibWithInterfaceMove) {
+  auto config = vrfConfig();
+  auto handle = createTestHandle(&config);
+  auto sw = handle->getSw();
+  ASSERT_NE(
+      sw->getState()->getFibsInfoMap()->getFibContainerIf(kTestVrf), nullptr);
+
+  sw->applyConfig("delete vrf", vrfRemovedConfig());
+
+  auto state = sw->getState();
+  EXPECT_EQ(state->getVrfs()->getNodeIf(kTestVrf), nullptr);
+
+  auto ribVrfs = sw->getRib()->getVrfList();
+  EXPECT_EQ(std::find(ribVrfs.begin(), ribVrfs.end(), kTestVrf), ribVrfs.end());
+
+  EXPECT_EQ(state->getFibsInfoMap()->getFibContainerIf(kTestVrf), nullptr);
+
+  for (const auto& [_, intfMap] : std::as_const(*state->getInterfaces())) {
+    for (const auto& [id, intf] : std::as_const(*intfMap)) {
+      EXPECT_NE(intf->getRouterID(), kTestVrf) << "interface " << id;
+    }
+  }
+  auto vrf0Fib = state->getFibsInfoMap()->getFibContainer(RouterID(0));
+  EXPECT_NE(
+      vrf0Fib->getFibV4()->exactMatch({folly::IPAddressV4("10.0.55.0"), 24}),
+      nullptr);
+}
+
+TEST(VrfDelete, RemovesNonConfigRoutes) {
+  auto config = vrfConfig();
+  auto handle = createTestHandle(&config);
+  auto sw = handle->getSw();
+  auto updater = sw->getRouteUpdater();
+  updater.addRoute(
+      kTestVrf, ClientID::BGPD, makeRoute("2001:db8:100::/64", "10.0.55.10"));
+  updater.program();
+  auto fib = sw->getState()->getFibsInfoMap()->getFibContainerIf(kTestVrf);
+  ASSERT_NE(fib, nullptr);
+  ASSERT_NE(
+      fib->getFibV6()->exactMatch({folly::IPAddressV6("2001:db8:100::"), 64}),
+      nullptr);
+
+  sw->applyConfig("delete vrf", vrfRemovedConfig());
+
+  auto state = sw->getState();
+  EXPECT_EQ(state->getFibsInfoMap()->getFibContainerIf(kTestVrf), nullptr);
+  const auto bgpNhop =
+      facebook::network::toBinaryAddress(folly::IPAddress("10.0.55.10"));
+  for (const auto& [_, fibInfo] : std::as_const(*state->getFibsInfoMap())) {
+    for (const auto& [id, nhop] : fibInfo->getIdToNextHopMap()->toThrift()) {
+      EXPECT_NE(*nhop.address(), bgpNhop) << "next hop id " << id;
+    }
+  }
 }
