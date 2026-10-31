@@ -60,6 +60,8 @@ class ManagerTestBase : public ::testing::Test {
   };
   ~ManagerTestBase() override;
   void setupSaiPlatform();
+  virtual std::unique_ptr<SaiPlatform> createSaiPlatformForTest(
+      std::unique_ptr<PlatformProductInfo> productInfo);
 
   /*
    * TestPort, TestRemoteHost, and TestInterface are helper structs for

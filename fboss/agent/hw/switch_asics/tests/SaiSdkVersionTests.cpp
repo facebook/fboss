@@ -10,6 +10,8 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
+#include "fboss/agent/hw/switch_asics/FakeAsic.h"
+#include "fboss/agent/hw/switch_asics/MockAsic.h"
 #include "fboss/agent/hw/switch_asics/P200Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk6Asic.h"
 #include "fboss/agent/hw/switch_asics/YubaAsic.h"
@@ -128,4 +130,24 @@ TEST(SaiSdkVersionTest, yubaUsesPortTtlDecrementDisableOnMorganSdk) {
       yuba.isSupported(HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE));
   EXPECT_TRUE(yuba.isSupported(HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE));
   EXPECT_TRUE(yuba.isSupported(HwAsic::Feature::LAG_TTL_DECREMENT_DISABLE));
+}
+
+TEST(HwAsicFeatureTest, portLatchStatusIsLimitedToYuba) {
+  EbroAsic ebro{0, npuSwitchInfo()};
+  EXPECT_FALSE(ebro.isSupported(HwAsic::Feature::PORT_LATCH_STATUS));
+
+  YubaAsic yuba{0, npuSwitchInfo()};
+  EXPECT_TRUE(yuba.isSupported(HwAsic::Feature::PORT_LATCH_STATUS));
+
+  P200Asic p200{0, npuSwitchInfo()};
+  EXPECT_FALSE(p200.isSupported(HwAsic::Feature::PORT_LATCH_STATUS));
+
+  FakeAsic fake{0, npuSwitchInfo()};
+  EXPECT_FALSE(fake.isSupported(HwAsic::Feature::PORT_LATCH_STATUS));
+
+  MockAsic mock{0, npuSwitchInfo()};
+  EXPECT_FALSE(mock.isSupported(HwAsic::Feature::PORT_LATCH_STATUS));
+
+  Tomahawk6Asic tomahawk6{0, npuSwitchInfo()};
+  EXPECT_FALSE(tomahawk6.isSupported(HwAsic::Feature::PORT_LATCH_STATUS));
 }

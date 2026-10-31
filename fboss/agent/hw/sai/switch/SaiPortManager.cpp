@@ -4462,6 +4462,21 @@ std::optional<sai_latch_status_t> SaiPortManager::getExtOperStatusLatch(
   std::optional<SaiPortTraits::Attributes::ExtOperStatusLatch> latch;
   return SaiApiTable::getInstance()->portApi().getAttribute(saiPortId, latch);
 }
+
+SaiPortManager::ExtOperStatusLatchWarmBootState
+SaiPortManager::snapshotExtOperStatusLatch() {
+  ExtOperStatusLatchWarmBootState baseline;
+  for (const auto& [portId, portHandle] : handles_) {
+    if (!portHandle || !portHandle->port) {
+      continue;
+    }
+    auto status = getExtOperStatusLatch(portHandle->port->adapterKey());
+    if (status.has_value()) {
+      baseline.emplace(portId, *status);
+    }
+  }
+  return baseline;
+}
 #endif
 
 #endif

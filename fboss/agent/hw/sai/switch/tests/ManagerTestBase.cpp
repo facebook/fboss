@@ -79,9 +79,14 @@ void ManagerTestBase::SetUp() {
   setupSaiPlatform();
 }
 
+std::unique_ptr<SaiPlatform> ManagerTestBase::createSaiPlatformForTest(
+    std::unique_ptr<PlatformProductInfo> productInfo) {
+  return std::make_unique<SaiFakePlatform>(std::move(productInfo));
+}
+
 void ManagerTestBase::setupSaiPlatform() {
   auto productInfo = fakeProductInfo();
-  saiPlatform = std::make_unique<SaiFakePlatform>(std::move(productInfo));
+  saiPlatform = createSaiPlatformForTest(std::move(productInfo));
   auto thriftAgentConfig = getDummyConfig();
   auto agentConfig = std::make_unique<AgentConfig>(
       std::move(thriftAgentConfig), "dummyConfigStr");

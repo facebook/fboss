@@ -3043,6 +3043,22 @@ void SaiSwitch::gracefulExitLocked(const std::lock_guard<std::mutex>& lock) {
       std::chrono::steady_clock::now();
   XLOG(DBG2) << "[Exit] Starting SAI Switch graceful exit";
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+  const bool portLatchStatusSupported =
+      platform_->getAsic()->isSupported(HwAsic::Feature::PORT_LATCH_STATUS);
+  folly::dynamic latchStateJson = folly::dynamic::array;
+  if (portLatchStatusSupported) {
+    for (const auto& [portId, status] :
+         managerTable_->portManager().snapshotExtOperStatusLatch()) {
+      folly::dynamic portStatusJson = folly::dynamic::object;
+      portStatusJson["portId"] = static_cast<int64_t>(portId);
+      portStatusJson["currentStatus"] = status.current_status;
+      portStatusJson["changed"] = status.changed;
+      latchStateJson.push_back(std::move(portStatusJson));
+    }
+  }
+#endif
+
   SaiSwitchTraits::Attributes::SwitchRestartWarm restartWarm{true};
   SaiApiTable::getInstance()->switchApi().setAttribute(
       saiSwitchId_, restartWarm);
@@ -3064,6 +3080,12 @@ void SaiSwitch::gracefulExitLocked(const std::lock_guard<std::mutex>& lock) {
 #endif
   folly::dynamic follySwitchState = folly::dynamic::object;
   follySwitchState[kHwSwitch] = toFollyDynamicLocked(lock);
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+  if (portLatchStatusSupported) {
+    follySwitchState[kExtOperStatusLatchWarmBootState] =
+        std::move(latchStateJson);
+  }
+#endif
   if (getSwitchType() == cfg::SwitchType::VOQ) {
     // SHEL callback already unregistered, hence safe to store in gracefulExit.
     follySwitchState[kSysPortShelState] =
@@ -3691,6 +3713,33 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
   return state;
 }
 
+void SaiSwitch::restoreExtOperStatusLatchWarmBootBaseline(
+    const std::optional<folly::dynamic>& latchWarmBootState,
+    bool sdkSupportsLatchState) {
+  if (!latchWarmBootState) {
+    if (sdkSupportsLatchState) {
+      XLOG(DBG2) << "Warmboot state is missing "
+                 << kExtOperStatusLatchWarmBootState;
+    }
+    return;
+  }
+  if (!sdkSupportsLatchState) {
+    XLOG(WARNING) << "Ignoring saved " << kExtOperStatusLatchWarmBootState
+                  << " because this build cannot consume the latch state";
+    return;
+  }
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+  extOperStatusLatchWarmBootBaseline_.clear();
+  for (const auto& portStatusJson : *latchWarmBootState) {
+    extOperStatusLatchWarmBootBaseline_.emplace(
+        PortID(portStatusJson["portId"].asInt()),
+        sai_latch_status_t{
+            portStatusJson["currentStatus"].asBool(),
+            portStatusJson["changed"].asBool()});
+  }
+#endif
+}
+
 HwInitResult SaiSwitch::initLocked(
     const std::lock_guard<std::mutex>& lock,
     HwWriteBehavior behavior,
@@ -3702,6 +3751,9 @@ HwInitResult SaiSwitch::initLocked(
   ret.bootType = bootType_;
   std::unique_ptr<folly::dynamic> adapterKeysJson;
   std::unique_ptr<folly::dynamic> adapterKeys2AdapterHostKeysJson;
+  std::optional<folly::dynamic> latchWarmBootState;
+  const bool portLatchStatusSupported =
+      platform_->getAsic()->isSupported(HwAsic::Feature::PORT_LATCH_STATUS);
 
   concurrentIndices_ = std::make_unique<ConcurrentIndices>();
   managerTable_ = std::make_unique<SaiManagerTable>(
@@ -3727,6 +3779,13 @@ HwInitResult SaiSwitch::initLocked(
       adapterKeys2AdapterHostKeysJson = std::make_unique<folly::dynamic>(
           switchStateJson[kHwSwitch][kAdapterKey2AdapterHostKey]);
     }
+    if (portLatchStatusSupported) {
+      if (const auto latchState =
+              switchStateJson.find(kExtOperStatusLatchWarmBootState);
+          latchState != switchStateJson.items().end()) {
+        latchWarmBootState = latchState->second;
+      }
+    }
     // Recover Shel Port State from HW State
     if (getSwitchType() == cfg::SwitchType::VOQ &&
         switchStateJson.find(kSysPortShelState) !=
@@ -3742,7 +3801,15 @@ HwInitResult SaiSwitch::initLocked(
       behavior,
       adapterKeysJson.get(),
       adapterKeys2AdapterHostKeysJson.get());
-  if (bootType_ != BootType::WARM_BOOT) {
+  if (bootType_ == BootType::WARM_BOOT) {
+    if (portLatchStatusSupported) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+      restoreExtOperStatusLatchWarmBootBaseline(latchWarmBootState, true);
+#else
+      restoreExtOperStatusLatchWarmBootBaseline(latchWarmBootState, false);
+#endif
+    }
+  } else {
     if (platform_->getAsic()->isSupported(HwAsic::Feature::SWITCH_ISOLATE)) {
       auto& switchApi = SaiApiTable::getInstance()->switchApi();
       auto isolated = switchApi.getAttribute(
@@ -3762,7 +3829,6 @@ HwInitResult SaiSwitch::initLocked(
               ->second->getL2AgeTimerSeconds());
     }
   }
-
 #if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
   auto& switchApi = SaiApiTable::getInstance()->switchApi();
   asicRevision_ = switchApi.getAttribute(

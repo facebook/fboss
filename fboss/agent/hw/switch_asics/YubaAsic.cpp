@@ -112,6 +112,7 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::NEXT_HOP_GROUP_MEMBER_MONITORED_OBJECT:
     case HwAsic::Feature::PBR_ACL:
     case HwAsic::Feature::PBR_ACL_BYTE_COUNTER:
+    case HwAsic::Feature::PORT_LATCH_STATUS:
       return true;
     case HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER:
     case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:

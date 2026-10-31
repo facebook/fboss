@@ -143,6 +143,10 @@ class SaiPortManager {
   static constexpr double kRateConversionFactor = 1024. * 1024. * 1024.;
 
  public:
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+  using ExtOperStatusLatchWarmBootState = std::map<PortID, sai_latch_status_t>;
+#endif
+
   SaiPortManager(
       SaiStore* saiStore,
       SaiManagerTable* managerTable,
@@ -319,6 +323,7 @@ class SaiPortManager {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
   std::optional<sai_latch_status_t> getExtOperStatusLatch(
       PortSaiId saiPortId) const;
+  ExtOperStatusLatchWarmBootState snapshotExtOperStatusLatch();
 #endif
 #endif
 

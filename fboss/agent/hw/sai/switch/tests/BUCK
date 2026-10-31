@@ -199,6 +199,9 @@ switch_manager_unittest(
     srcs = [
         "SwitchManagerTest.cpp",
     ],
+    extra_deps = [
+        "//fboss/lib:warm_boot_file_utils",
+    ],
 )
 
 switch_manager_unittest(

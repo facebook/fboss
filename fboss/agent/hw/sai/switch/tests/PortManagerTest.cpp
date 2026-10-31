@@ -259,6 +259,40 @@ TEST_F(PortManagerTest, getExtOperStatusLatch) {
   ASSERT_TRUE(status.has_value());
   EXPECT_TRUE(status->current_status);
   EXPECT_TRUE(status->changed);
+
+  const auto* portStats =
+      saiManagerTable->portManager().getLastPortStat(swPort->getID());
+  ASSERT_NE(portStats, nullptr);
+  EXPECT_FALSE(
+      fb303::fbData
+          ->getCounterIfExists(
+              HwPortFb303Stats::statName(
+                  "oper_status_latch.current_status", portStats->portName()))
+          .has_value());
+  EXPECT_FALSE(
+      fb303::fbData
+          ->getCounterIfExists(
+              HwPortFb303Stats::statName(
+                  "oper_status_latch.changed", portStats->portName()))
+          .has_value());
+}
+
+TEST_F(PortManagerTest, snapshotExtOperStatusLatchCapturesPreWarmBootState) {
+  auto swPort = makePort(p0);
+  auto& portManager = saiManagerTable->portManager();
+  portManager.addPort(swPort);
+
+  const auto* handle = portManager.getPortHandle(swPort->getID());
+  ASSERT_NE(handle, nullptr);
+  auto& fakePort =
+      FakeSai::getInstance()->portManager.get(handle->port->adapterKey());
+  fakePort.portExtOperStatusLatch = {true, true};
+
+  const auto baseline = portManager.snapshotExtOperStatusLatch();
+  ASSERT_EQ(baseline.size(), 1);
+  EXPECT_TRUE(baseline.at(swPort->getID()).current_status);
+  EXPECT_TRUE(baseline.at(swPort->getID()).changed);
+  EXPECT_FALSE(fakePort.portExtOperStatusLatch.changed);
 }
 #endif
 
