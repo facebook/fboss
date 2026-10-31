@@ -1391,9 +1391,47 @@ void ThriftHandler::setupL3TrafficLoops(
 }
 
 void ThriftHandler::extendL3TrafficLoops(
-    std::unique_ptr<std::vector<std::string>>,
-    int32_t) {
-  throw FbossError("L3 traffic loop extension is not implemented yet");
+    std::unique_ptr<std::vector<std::string>> portNames,
+    int32_t timeoutSeconds) {
+  if (!portNames) {
+    throw FbossError("L3 traffic loop port list is required");
+  }
+  const auto portNamesForLog = folly::join(",", *portNames);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats(), portNamesForLog);
+  ensureConfigured(__func__);
+  validateL3TrafficLoopTimeout(timeoutSeconds);
+
+  std::lock_guard operationLock(l3TrafficLoopState_->operationMutex);
+  auto loops = l3TrafficLoopState_->loops.wlock();
+  const auto now = std::chrono::steady_clock::now();
+  std::vector<std::pair<std::string, std::chrono::steady_clock::time_point>>
+      expirations;
+  expirations.reserve(portNames->size());
+  for (const auto& portName : *portNames) {
+    auto it = loops->find(portName);
+    if (it == loops->end() ||
+        it->second.status.state() != L3TrafficLoopState::READY) {
+      throw FbossError("L3 traffic loop is not ready yet on port ", portName);
+    }
+    const auto base = std::max(it->second.expiresAt, now);
+    const auto extended = base + std::chrono::seconds(timeoutSeconds);
+    if (extended - now >
+        std::chrono::seconds(kL3TrafficLoopMaxTimeoutSeconds)) {
+      throw FbossError(
+          "L3 traffic loop extension exceeds maximum remaining lease");
+    }
+    expirations.emplace_back(portName, extended);
+  }
+
+  const auto systemNow = std::chrono::system_clock::now();
+  for (const auto& [portName, extended] : expirations) {
+    auto& loop = loops->at(portName);
+    loop.expiresAt = extended;
+    loop.status.expirationTimeMs() =
+        duration_cast<std::chrono::milliseconds>(
+            systemNow.time_since_epoch() + (extended - now))
+            .count();
+  }
 }
 
 void ThriftHandler::teardownL3TrafficLoopImpl(const std::string&) {
