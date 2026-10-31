@@ -67,6 +67,8 @@
 #include "fboss/agent/state/Transceiver.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
+#include "fboss/agent/state/Vrf.h"
+#include "fboss/agent/state/VrfMap.h"
 #include "fboss/lib/LogThriftCall.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
@@ -1661,6 +1663,34 @@ void ThriftHandler::getInterfaceList(std::vector<std::string>& interfaceList) {
       auto intf = iter.second;
       interfaceList.push_back(intf->getName());
     }
+  }
+}
+
+void ThriftHandler::getVrfs(std::vector<VrfInfo>& vrfs) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+
+  auto state = sw_->getState();
+  std::map<int32_t, VrfInfo> vrfInfos;
+  vrfInfos[0].vrfId() = 0;
+  for (const auto& [_, vrfMap] : std::as_const(*state->getVrfs())) {
+    for (const auto& iter : std::as_const(*vrfMap)) {
+      const auto& vrf = iter.second;
+      auto& vrfInfo = vrfInfos[vrf->getID()];
+      vrfInfo.vrfId() = vrf->getID();
+      vrfInfo.name().from_optional(vrf->getName());
+    }
+  }
+  for (const auto& [_, intfs] : std::as_const(*state->getInterfaces())) {
+    for (const auto& iter : std::as_const(*intfs)) {
+      const auto& intf = iter.second;
+      auto& vrfInfo = vrfInfos[intf->getRouterID()];
+      vrfInfo.vrfId() = intf->getRouterID();
+      vrfInfo.interfaceIds()->push_back(intf->getID());
+    }
+  }
+  for (auto& [_, vrfInfo] : vrfInfos) {
+    vrfs.push_back(std::move(vrfInfo));
   }
 }
 

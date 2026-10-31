@@ -148,6 +148,28 @@ class ThriftTestWithNhopIdMgr : public ThriftTest {
   }
 };
 
+TEST_F(ThriftTest, getVrfs) {
+  auto config = testConfigA();
+  auto& vrfConfig = config.vrfs().ensure().emplace_back();
+  vrfConfig.vrfId() = 1001;
+  vrfConfig.name() = "red";
+  config.interfaces()[1].routerID() = 1001;
+  sw_->applyConfig("add vrf", config);
+
+  ThriftHandler handler(sw_);
+  std::vector<VrfInfo> vrfs;
+  handler.getVrfs(vrfs);
+
+  VrfInfo defaultVrf;
+  defaultVrf.vrfId() = 0;
+  defaultVrf.interfaceIds() = {*config.interfaces()[0].intfID()};
+  VrfInfo red;
+  red.vrfId() = 1001;
+  red.name() = "red";
+  red.interfaceIds() = {*config.interfaces()[1].intfID()};
+  EXPECT_EQ(vrfs, (std::vector<VrfInfo>{defaultVrf, red}));
+}
+
 TEST_F(ThriftTest, getInterfaceDetail) {
   ThriftHandler handler(this->sw_);
 
