@@ -38,6 +38,7 @@ cpp_library(
     deps = [
         "fbsource//xplat/folly:cancellation_token",
         "fbsource//xplat/folly:file_util",
+        "fbsource//xplat/folly:try",
         "fbsource//xplat/folly/coro:blocking_wait",
         "fbsource//xplat/folly/logging:logging",
         "//fboss/fsdb/common:flags",
@@ -46,7 +47,6 @@ cpp_library(
         "//fboss/fsdb/oper:path_helpers",
         "//fboss/fsdb/oper:subscription_common",
         "//fboss/lib:log_thrift_call",
-        "//folly:try",
         "//thrift/lib/cpp2:server",
         "//thrift/lib/cpp2/protocol:protocol",
     ],

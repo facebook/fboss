@@ -213,7 +213,7 @@ api_unittest(
         "TamApiTest.cpp",
     ],
     deps = [
-        "//folly/container:f14_hash",
+        "fbsource//xplat/folly/container:f14_hash",
     ],
 )
 

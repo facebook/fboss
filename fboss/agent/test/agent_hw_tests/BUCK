@@ -491,6 +491,7 @@ cpp_library(
     link_whole = True,
     deps = [
         "fbsource//third-party/fmt:fmt",
+        "fbsource//xplat/folly:range",
         ":agent_hw_test_src",
         "//fboss/agent:fboss-error",
         "//fboss/agent:packet",
@@ -501,7 +502,6 @@ cpp_library(
         "//fboss/agent/test:utils",
         "//fboss/agent/test/utils:packet_snooper",
         "//fboss/agent/test/utils:port_test_utils",
-        "//folly:range",
     ],
 )
 
