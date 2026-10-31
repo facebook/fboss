@@ -327,6 +327,12 @@ struct InterfaceDetail {
   15: optional i32 aggregatePortId;
 }
 
+struct VrfInfo {
+  1: i32 vrfId;
+  2: optional string name;
+  3: list<i32> interfaceIds;
+}
+
 /*
  * Values in these counters are cumulative since the last time the agent
  * started.
@@ -1188,6 +1194,7 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   InterfaceDetail getInterfaceDetail(1: i32 interfaceId) throws (
     1: fboss.FbossBaseError error,
   );
+  list<VrfInfo> getVrfs() throws (1: fboss.FbossBaseError error);
 
   /* MPLS route API */
   void addMplsRoutes(1: i16 clientId, 2: list<MplsRoute> routes) throws (
