@@ -11,7 +11,6 @@
 
 #include <folly/Conv.h>
 #include <folly/FileUtil.h>
-#include <folly/Format.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 

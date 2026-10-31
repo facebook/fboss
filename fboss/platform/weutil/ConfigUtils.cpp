@@ -1,7 +1,6 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 #include "fboss/platform/weutil/ConfigUtils.h"
 
-#include <folly/Format.h>
 #include <folly/String.h>
 #include <re2/re2.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
