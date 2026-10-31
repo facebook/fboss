@@ -694,4 +694,14 @@ void HwPortFb303Stats::updateStats(
   portStats_ = curPortStats;
 }
 
+void HwPortFb303Stats::updateLinkDownDuringWarmBootCounter(
+    bool linkDownDuringWarmBoot) {
+  if (!portLatchStatusSupported_) {
+    return;
+  }
+  fb303::fbData->setCounter(
+      statName(kLinkDownDuringWarmBoot(), portName()),
+      linkDownDuringWarmBoot ? 1 : 0);
+}
+
 } // namespace facebook::fboss

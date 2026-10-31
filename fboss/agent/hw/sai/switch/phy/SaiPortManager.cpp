@@ -115,7 +115,19 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
 
   if (swPort->isEnabled()) {
     portStats_.emplace(
-        swPort->getID(), std::make_unique<HwPortFb303Stats>(swPort->getName()));
+        swPort->getID(),
+        std::make_unique<HwPortFb303Stats>(
+            swPort->getName(),
+            HwBasePortFb303Stats::QueueId2Name{} /*queueId2Name*/,
+            std::vector<PfcPriority>{} /*enabledPfcPriorities*/,
+            std::nullopt /*pfcCfg*/,
+            false /*inCongestionDiscardCountSupported*/,
+            false /*inCongestionDiscardSeenSupported*/,
+            false /*srv6MysidDiscardCounterSupported*/,
+            false /*mplsLabelLookupFailCounterSupported*/,
+            false /*linkDebounceRetriggerCounterSupported*/,
+            false /*sllHllDiscardCounterSupported*/,
+            false));
   }
 
   // set platform port's speed

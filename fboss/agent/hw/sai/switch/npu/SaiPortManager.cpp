@@ -425,7 +425,9 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
             SaiPortManager::isLinkDebounceRetriggerCounterSupported(
                 platform_->getAsic()),
             platform_->getAsic()->isSupported(
-                HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS)));
+                HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS),
+            platform_->getAsic()->isSupported(
+                HwAsic::Feature::PORT_LATCH_STATUS)));
   }
 
   bool samplingMirror = swPort->getSampleDestination().has_value() &&
@@ -567,7 +569,9 @@ void SaiPortManager::changePortImpl(
               SaiPortManager::isLinkDebounceRetriggerCounterSupported(
                   platform_->getAsic()),
               platform_->getAsic()->isSupported(
-                  HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS)));
+                  HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS),
+              platform_->getAsic()->isSupported(
+                  HwAsic::Feature::PORT_LATCH_STATUS)));
     } else if (oldPort->getName() != newPort->getName()) {
       // Port was already enabled, but Port name changed - update stats
       portStats_.find(newPort->getID())

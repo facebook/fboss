@@ -4814,6 +4814,15 @@ void SaiSwitch::switchRunStateChangedImplLocked(
 
     } break;
     case SwitchRunState::CONFIGURED: {
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+      if (bootType_ == BootType::WARM_BOOT &&
+          platform_->getAsic()->isSupported(
+              HwAsic::Feature::PORT_LATCH_STATUS)) {
+        managerTable_->portManager().updateExtOperStatusLatchAfterWarmBoot(
+            extOperStatusLatchWarmBootBaseline_);
+      }
+#endif
+
       /*
        * SDK can notify FBOSS of an error condition via callback. For some
        * scenarios e.g. RX FIFO stuck, Firmware isolation etc., to further

@@ -4477,6 +4477,30 @@ SaiPortManager::snapshotExtOperStatusLatch() {
   }
   return baseline;
 }
+
+void SaiPortManager::updateExtOperStatusLatchAfterWarmBoot(
+    const ExtOperStatusLatchWarmBootState& baseline) {
+  for (auto& portStat : portStats_) {
+    portStat.second->updateLinkDownDuringWarmBootCounter(false);
+  }
+
+  for (const auto& [portId, preWarmBootStatus] : baseline) {
+    const auto* portHandle = getPortHandle(portId);
+    if (!portHandle || !portHandle->port) {
+      continue;
+    }
+    const auto postWarmBootStatus =
+        getExtOperStatusLatch(portHandle->port->adapterKey());
+    if (postWarmBootStatus.has_value()) {
+      const auto portStatItr = portStats_.find(portId);
+      if (portStatItr == portStats_.end()) {
+        continue;
+      }
+      portStatItr->second->updateLinkDownDuringWarmBootCounter(
+          preWarmBootStatus.current_status && postWarmBootStatus->changed);
+    }
+  }
+}
 #endif
 
 #endif

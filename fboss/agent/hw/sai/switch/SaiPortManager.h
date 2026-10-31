@@ -324,6 +324,8 @@ class SaiPortManager {
   std::optional<sai_latch_status_t> getExtOperStatusLatch(
       PortSaiId saiPortId) const;
   ExtOperStatusLatchWarmBootState snapshotExtOperStatusLatch();
+  void updateExtOperStatusLatchAfterWarmBoot(
+      const ExtOperStatusLatchWarmBootState& baseline);
 #endif
 #endif
 
