@@ -143,6 +143,7 @@ DEFINE_int32(
     "Interval for reading serdes stats");
 
 namespace {
+constexpr auto kExtOperStatusLatchWarmBootCaptureDelayMs = 1000;
 /*
  * For the devices/SDK we use, the only events we should get (and process)
  * are LEARN and AGED.
@@ -4818,8 +4819,25 @@ void SaiSwitch::switchRunStateChangedImplLocked(
       if (bootType_ == BootType::WARM_BOOT &&
           platform_->getAsic()->isSupported(
               HwAsic::Feature::PORT_LATCH_STATUS)) {
-        managerTable_->portManager().updateExtOperStatusLatchAfterWarmBoot(
-            extOperStatusLatchWarmBootBaseline_);
+        auto updateLatchCounters =
+            [this,
+             baseline =
+                 std::move(extOperStatusLatchWarmBootBaseline_)]() mutable {
+              std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+              managerTable_->portManager()
+                  .updateExtOperStatusLatchAfterWarmBoot(baseline);
+            };
+        if (linkStateBottomHalfThread_) {
+          linkStateBottomHalfEventBase_.runInFbossEventBaseThread(
+              [this,
+               updateLatchCounters = std::move(updateLatchCounters)]() mutable {
+                linkStateBottomHalfEventBase_.runAfterDelay(
+                    std::move(updateLatchCounters),
+                    kExtOperStatusLatchWarmBootCaptureDelayMs);
+              });
+        } else {
+          updateLatchCounters();
+        }
       }
 #endif
 
