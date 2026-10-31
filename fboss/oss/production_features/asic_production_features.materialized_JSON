@@ -153,6 +153,7 @@
         79,
         86,
         68,
+        110,
         124,
         125,
         129
@@ -967,6 +968,7 @@
         "PTP_TC_PROVISIONING_TIME_HW_VALIDATION",
         "CLASS_ID_FOR_NEIGHBOR",
         "MPLS",
+        "IP_IN_IP_ENCAP",
         "EMPTY_ACL_MATCHER",
         "PORT_BOUND_INGRESS_ACL",
         "BUFFER_MIN_GUARANTEE_WITH_DELAY_DROPS"
@@ -2046,8 +2048,8 @@
             "ebro"
           ],
           "sdk": 2,
-          "minSdkVersion": "25.5.4210",
-          "note": "IPinIP encap is only supported after 25.5.4210"
+          "minSdkVersion": "25.11.4210",
+          "note": "IPinIP encap is only supported after 25.11.4210"
         }
       ]
     },
