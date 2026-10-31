@@ -2,6 +2,7 @@
 
 #include "fboss/lib/bsp/BspPimContainer.h"
 
+#include <fmt/format.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/lib/bsp/BspLedContainer.h"
 #include "fboss/lib/bsp/BspPhyContainer.h"

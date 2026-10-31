@@ -103,6 +103,7 @@ cpp_library(
         "BspTransceiverGpioAccess.h",
         "BspTransceiverIO.h",
     ],
+    deps = ["fbsource//third-party/fmt:fmt"],
     exported_deps = [
         "fbsource//xplat/folly:file_util",
         "fbsource//xplat/folly:range",
