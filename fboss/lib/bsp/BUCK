@@ -105,7 +105,6 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//xplat/folly:file_util",
-        "fbsource//xplat/folly:format",
         "fbsource//xplat/folly:range",
         "fbsource//xplat/folly:singleton",
         "fbsource//xplat/folly/logging:logging",

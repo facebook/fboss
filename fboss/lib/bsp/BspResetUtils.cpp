@@ -2,7 +2,6 @@
 
 #include "fboss/lib/bsp/BspResetUtils.h"
 
-#include <folly/Format.h>
 #include <folly/logging/xlog.h>
 #include <unistd.h>
 #include "fboss/lib/CommonFileUtils.h"

@@ -1,7 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/lib/bsp/BspTransceiverGpioAccess.h"
-#include <folly/Format.h>
 #include <stdint.h>
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/GpiodLine.h"
