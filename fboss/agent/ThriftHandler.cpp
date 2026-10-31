@@ -978,6 +978,10 @@ namespace {
 
 constexpr int32_t kL3TrafficLoopMinTimeoutSeconds{1};
 constexpr int32_t kL3TrafficLoopMaxTimeoutSeconds{3600};
+constexpr int16_t kL3TrafficLoopClientId =
+    static_cast<int16_t>(ClientID::TE_AGENT);
+constexpr auto kL3TrafficLoopNeighborUpdateTimeout = std::chrono::seconds(5);
+
 void validateL3TrafficLoopTimeout(int32_t timeoutSeconds) {
   if (timeoutSeconds < kL3TrafficLoopMinTimeoutSeconds ||
       timeoutSeconds > kL3TrafficLoopMaxTimeoutSeconds) {
@@ -1041,6 +1045,77 @@ std::optional<std::string> getL3TrafficLoopUnsupportedReason(
   return aggregatePort
       ? "Aggregate member loops require LAG or next-hop TTL control"
       : "Port loops require port or next-hop TTL control";
+}
+
+IpPrefix makeL3TrafficLoopPrefix(const IPAddressV6& address) {
+  IpPrefix prefix;
+  prefix.ip() = toBinaryAddress(address);
+  prefix.prefixLength() = 128;
+  return prefix;
+}
+
+UnicastRoute makeL3TrafficLoopRoute(
+    const IPAddressV6& qualificationAddress,
+    const std::optional<IPAddressV6>& peerNextHop,
+    bool disableTtlDecrement) {
+  UnicastRoute route;
+  route.dest() = makeL3TrafficLoopPrefix(qualificationAddress);
+  route.adminDistance() = AdminDistance::TE_AGENT;
+  if (!peerNextHop) {
+    // Teardown uses a DROP route to stop traffic before restoring TTL.
+    route.action() = RouteForwardAction::DROP;
+    return route;
+  }
+
+  route.action() = RouteForwardAction::NEXTHOPS;
+  NextHopThrift nextHop;
+  nextHop.address() = toBinaryAddress(*peerNextHop);
+  if (disableTtlDecrement) {
+    nextHop.disableTTLDecrement() = true;
+  }
+  route.nextHops()->push_back(std::move(nextHop));
+  return route;
+}
+
+std::shared_ptr<NdpEntry> getL3TrafficLoopNeighbor(
+    SwSwitch* sw,
+    InterfaceID interfaceId,
+    const IPAddressV6& peerNextHop) {
+  const auto interface =
+      sw->getState()->getInterfaces()->getNodeIf(interfaceId);
+  if (!interface) {
+    return nullptr;
+  }
+  return interface->getNdpTable()->getEntryIf(peerNextHop);
+}
+
+void setL3TrafficLoopNeighborTtl(
+    SwSwitch* sw,
+    InterfaceID interfaceId,
+    const IPAddressV6& peerNextHop,
+    std::optional<bool> disableTtlDecrement) {
+  sw->updateStateBlocking(
+      "update L3 traffic loop neighbor TTL decrement",
+      [interfaceId, peerNextHop, disableTtlDecrement](
+          const std::shared_ptr<SwitchState>& state) {
+        auto newState = state;
+        auto oldInterface = newState->getInterfaces()->getNodeIf(interfaceId);
+        if (!oldInterface) {
+          throw FbossError("No interface ", interfaceId, " for neighbor");
+        }
+        auto interface = oldInterface->modify(&newState);
+        auto ndpTable =
+            interface->getNdpTable()->modify(interfaceId, &newState);
+        auto oldEntry = ndpTable->getEntryIf(peerNextHop);
+        if (!oldEntry) {
+          throw FbossError(
+              "No NDP neighbor ", peerNextHop, " on interface ", interfaceId);
+        }
+        auto newEntry = oldEntry->clone();
+        newEntry->setDisableTTLDecrement(disableTtlDecrement);
+        ndpTable->updateNode(newEntry);
+        return newState;
+      });
 }
 
 } // namespace
@@ -1179,6 +1254,94 @@ void ThriftHandler::setupL3TrafficLoopImpl(
       }
     }
     loops->insert_or_assign(portName, loop);
+  }
+
+  auto saveLoop =
+      [this, &portName](const L3TrafficLoopStateStore::Loop& updatedLoop) {
+        auto loops = l3TrafficLoopState_->loops.wlock();
+        loops->insert_or_assign(portName, updatedLoop);
+      };
+
+  try {
+    if (!neighbor || neighbor->isPending()) {
+      auto install = sw_->getNeighborUpdater()->receivedNdpMineForIntf(
+          interfaceId,
+          peerNextHop.asV6(),
+          *peerMac,
+          aggregatePort ? PortDescriptor(aggregatePort->getID())
+                        : PortDescriptor(portId),
+          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+          0 /* flags */);
+      // Keep neighbors that existed before setup, including pending ones.
+      loop.removeNeighborOnCleanup = !neighbor;
+      saveLoop(loop);
+      std::move(install).get(kL3TrafficLoopNeighborUpdateTimeout);
+      // The cache update queues a separate asynchronous SwitchState update.
+      sw_->updateStateBlocking(
+          "complete L3 traffic loop neighbor installation",
+          [](const std::shared_ptr<SwitchState>&)
+              -> std::shared_ptr<SwitchState> { return nullptr; });
+    }
+
+    // Record the change before applying it so rollback covers partial updates.
+    if (useLagTtlDisable) {
+      loop.aggregateTtlChanged = true;
+      saveLoop(loop);
+      const auto aggregatePortId = *loop.aggregatePortId;
+      sw_->updateStateBlocking(
+          "disable LAG TTL decrement for L3 traffic loop",
+          [aggregatePortId, portId](const std::shared_ptr<SwitchState>& state) {
+            auto newState = state;
+            auto aggregate =
+                state->getAggregatePorts()->getNodeIf(aggregatePortId);
+            if (!aggregate || !aggregate->isMemberPort(portId)) {
+              throw FbossError(
+                  "L3 traffic loop aggregate changed during setup");
+            }
+            aggregate->modify(&newState)->setTTLDisableDecrement(true);
+            return newState;
+          });
+    } else if (usePortTtlDisable) {
+      loop.portTtlChanged = true;
+      saveLoop(loop);
+      sw_->updateStateBlocking(
+          "disable TTL decrement for L3 traffic loop",
+          [portId](const std::shared_ptr<SwitchState>& oldState) {
+            auto newState = oldState;
+            auto oldPort = newState->getPorts()->getNodeIf(portId);
+            if (!oldPort) {
+              throw FbossError("No port ", portId, " for L3 traffic loop");
+            }
+            auto newPort = oldPort->modify(&newState);
+            newPort->setTTLDisableDecrement(true);
+            return newState;
+          });
+    } else if (useNextHopTtlDisable) {
+      neighbor = getL3TrafficLoopNeighbor(sw_, interfaceId, peerNextHop.asV6());
+      if (!neighbor) {
+        throw FbossError(
+            "Peer NDP neighbor was not installed for ", peerNextHop);
+      }
+      loop.neighborTtlChanged = true;
+      saveLoop(loop);
+      setL3TrafficLoopNeighborTtl(sw_, interfaceId, peerNextHop.asV6(), true);
+    } else {
+      throw FbossError("No supported TTL control for L3 traffic loop");
+    }
+
+    auto route = makeL3TrafficLoopRoute(
+        loop.qualificationAddress, loop.peerNextHop, useNextHopTtlDisable);
+    addUnicastRoute(
+        kL3TrafficLoopClientId,
+        std::make_unique<UnicastRoute>(std::move(route)));
+    loop.status.state() = L3TrafficLoopState::READY;
+    saveLoop(loop);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "L3 traffic loop setup failed on " << portName << ": "
+              << ex.what();
+    teardownL3TrafficLoopImpl(portName);
+    throw FbossError(
+        "L3 traffic loop setup failed on ", portName, ": ", ex.what());
   }
 }
 
