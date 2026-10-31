@@ -1346,12 +1346,48 @@ void ThriftHandler::setupL3TrafficLoopImpl(
 }
 
 void ThriftHandler::setupL3TrafficLoops(
-    std::unique_ptr<std::vector<BinaryAddress>>,
-    std::unique_ptr<std::vector<std::string>>,
-    std::unique_ptr<std::vector<BinaryAddress>>,
-    std::unique_ptr<std::vector<std::string>>,
-    std::unique_ptr<std::vector<int32_t>>) {
-  throw FbossError("L3 traffic loop setup is not implemented yet");
+    std::unique_ptr<std::vector<BinaryAddress>> qualificationAddresses,
+    std::unique_ptr<std::vector<std::string>> portNames,
+    std::unique_ptr<std::vector<BinaryAddress>> peerNextHops,
+    std::unique_ptr<std::vector<std::string>> expectedPeerMacs,
+    std::unique_ptr<std::vector<int32_t>> timeoutSeconds) {
+  // Part 6 enables setup after rollback cleanup is implemented.
+  throw FbossError("L3 traffic loop setup requires cleanup support");
+
+  if (!qualificationAddresses || !portNames || !peerNextHops ||
+      !expectedPeerMacs || !timeoutSeconds) {
+    throw FbossError("L3 traffic loop setup lists are required");
+  }
+  const auto numLoops = portNames->size();
+  if (qualificationAddresses->size() != numLoops ||
+      peerNextHops->size() != numLoops ||
+      expectedPeerMacs->size() != numLoops ||
+      timeoutSeconds->size() != numLoops) {
+    throw FbossError("L3 traffic loop setup lists must have equal lengths");
+  }
+  const auto portNamesForLog = folly::join(",", *portNames);
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats(), portNamesForLog);
+  ensureConfigured(__func__);
+
+  std::lock_guard operationLock(l3TrafficLoopState_->operationMutex);
+  std::vector<std::string> configuredPorts;
+  try {
+    for (size_t i = 0; i < numLoops; ++i) {
+      const auto& portName = portNames->at(i);
+      setupL3TrafficLoopImpl(
+          qualificationAddresses->at(i),
+          portName,
+          peerNextHops->at(i),
+          expectedPeerMacs->at(i),
+          timeoutSeconds->at(i));
+      configuredPorts.push_back(portName);
+    }
+  } catch (const std::exception& ex) {
+    for (const auto& portName : configuredPorts) {
+      teardownL3TrafficLoopImpl(portName);
+    }
+    throw FbossError("Bulk L3 traffic loop setup failed: ", ex.what());
+  }
 }
 
 void ThriftHandler::extendL3TrafficLoops(
